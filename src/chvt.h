@@ -37,6 +37,10 @@ int get_active_tty(void);
 /* jump to another tty */
 int set_active_tty(int tty);
 
+/* allow of block tty switching */
+int lock_tty_switching(void);
+int unlock_tty_switching(void);
+
 /* enable or disable stderr */
 void stderr_disable(void);
 void stderr_enable(void);

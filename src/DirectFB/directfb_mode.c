@@ -670,7 +670,7 @@ int Create_Labels_TextBoxes_ComboBoxes(void)
 	if (!password) return 0;
 	window_desc.posy = 5*screen_height/8-font_large_height;
 	session = ComboBox_Create(layer, font_large, &window_desc);
-	if (!session) return 0;	
+	if (!session) return 0;
 	window_desc.posx   = 0;
 	window_desc.posy   = screen_height - (font_small_height);
 	window_desc.width  = screen_width/5;
@@ -811,13 +811,16 @@ int directfb_mode (int argc, char *argv[])
 	screen_saver.surface = primary;
 	screen_saver.events = events;
 
+	/* it should be now safe to unlock vt switching again */
+	unlock_tty_switching();
+
 	/* we go on for ever... or until the user does something in particular */
 	while (returnstatus == -1)
 	{
 		static int screensaver_active = 0;
 		static int screensaver_countdown = 0;
 
-		if (!screensaver_countdown) screensaver_countdown = screensaver_timeout * 120;		
+		if (!screensaver_countdown) screensaver_countdown = screensaver_timeout * 120;
 
 		/* we wait for an input event... */
 		if (!screensaver_active) events->WaitForEventWithTimeout(events, 0, 500);

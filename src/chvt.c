@@ -122,6 +122,30 @@ int set_active_tty(int tty)
 	return 1;
 }
 
+/* block tty switching */
+int lock_tty_switching(void)
+{
+  int fd;
+
+	if ( (fd = getfd()) == -1) return 0;
+	if (ioctl (fd, VT_LOCKSWITCH, 513) == -1) return 0;
+  if (close(fd) != 0) return 0;
+
+	return 1;
+}
+
+/* allow tty switching */
+int unlock_tty_switching(void)
+{
+  int fd;
+
+	if ( (fd = getfd()) == -1) return 0;
+	if (ioctl (fd, VT_UNLOCKSWITCH, 513) == -1) return 0;
+  if (close(fd) != 0) return 0;
+
+	return 1;
+}
+
 void stderr_disable(void)
 {
 	stderr = freopen("/dev/null", "w", stderr);

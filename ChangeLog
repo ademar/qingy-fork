@@ -1,4 +1,6 @@
 qingy CVS:
+- Now qingy locks vt switching when it enters DirectFB mode.
+  So it no longer crashes when you switch VT while it is starting
 - no longer necessary to use a seed file to select a random theme
   (you can safely remove file /etc/qingy/seed if it exists)
 

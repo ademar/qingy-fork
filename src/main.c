@@ -93,6 +93,9 @@ void start_up(void)
 	int argc = 2;
 	char *argv[3];
 
+	/* First of all, we lock vt switching */
+	lock_tty_switching();
+
 	/* We clear the screen */
 	ClearScreen();
 
@@ -113,6 +116,9 @@ void start_up(void)
 
 	/* We get here only if directfb fails or user wants to change tty */
 	free(argv[1]); free(argv[0]); argv[1]= argv[0]= NULL;
+
+	/* re-allow vt switching is still disabled */
+	unlock_tty_switching();
 
 	/* this if user wants to switch to another tty */
 	if (returnstatus != TEXT_MODE)
