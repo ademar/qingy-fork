@@ -1,6 +1,7 @@
 qingy 0.1.1 (09 July 2003):
 - embedded object related functions into object structures themselves
 - full theme support
+- Changed default theme to the Ant one
 - Various clean ups
 
 qingy 0.1 (05 July 2003):
