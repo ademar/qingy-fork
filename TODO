@@ -61,6 +61,9 @@
 
 - Name theme tarball a bit better
 
+- Add an option in theme file to select wether
+  background image should be centered, scaled or tiled...
+
 --
 Items marked as * are those we are currently working on.
 For stuff already done, see NEWS file...
