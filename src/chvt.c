@@ -90,7 +90,7 @@ int switch_to_tty(int tty)
   stdin  = freopen(ttyname, "r", stdin);
   stdout = freopen(ttyname, "w", stdout);
   stderr = freopen(ttyname, "w", stderr);
-  if ( (stdin == NULL) || (stdout == NULL) || (stderr == NULL) ) return 0;
+  if (!stdin || !stdout || !stderr) return 0;
 
   return 1;
 }

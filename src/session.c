@@ -687,6 +687,9 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   /* Restore tty ownership to root:tty */
   restore_tty_ownership();
 
+	/* disallocate tty X was running in */
+	disallocate_tty(dest_vt);
+
   if (args[0]) free(args[0]);
   if (args[1]) free(args[1]);
   if (args[2]) free(args[2]);
