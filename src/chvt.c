@@ -28,19 +28,17 @@
 /* Working to make it compliant to GNU Standards :P ---------------------- */
 
 #include <fcntl.h>
-#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <linux/fb.h>
-#include <linux/kd.h>
-#include <linux/vt.h>
 #include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <errno.h>
+#include <sys/kd.h>
+#include <sys/vt.h>
+
 #include "misc.h"
 #include "chvt.h"
+#include "load_settings.h"
 
 static int is_a_console(int fd)
 {
@@ -253,18 +251,20 @@ char *get_fb_resolution(char *fb_device)
 	return result;
 }
 
-/* get user name of tty owner */
-char *get_tty_owner(int tty)
+int is_tty_available(int tty)
 {
-	struct stat desc;
-	char *device = create_tty_name(tty);
-	struct passwd *pwd;
+	int fd = getfd();
+	struct vt_stat vtstat;
 
-	if (!device) return NULL;
-	if (stat(device, &desc) == -1) return NULL;
+	if (ioctl(fd, VT_GETSTATE, &vtstat) < 0)
+	{
+		fprintf(stderr, "%s: fatal error: VT_GETSTATE failed\n", program_name);
+		exit(EXIT_FAILURE);
+	}
+	close(fd);
 	
-	pwd = getpwuid(desc.st_uid);
-	if (!pwd) return NULL;
+	/* works only for tty < 16 ?!? */
+	if (vtstat.v_state & (1 << tty)) return 0;
 
-	return strdup(pwd->pw_name);
+	return 1;
 }

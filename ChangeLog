@@ -1,3 +1,22 @@
+2004-02-12  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/tty_guardian.c,
+	* src/chvt.h,
+	* src/chvt.c,
+	* src/misc.h,
+	* src/misc.c:
+	completed session locking: it should work well
+	undel all conditions, now. Again, this is what
+	it does (and it really does it, now):
+	if you enable this, when you try to switch to a qingy-controlled tty
+	whose owner is not your current user, you will be asked
+	for the password of that user before being allowed to continue.
+	If you are root, of course, you can switch to any tty you chose to.
+	Default setting is 'no'.
+	Only issue is that you log in into a text console and later fire
+	up an X server manually, the tty the X server is running in is
+	not guarded.
+
 2004-02-11  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* src/tty_guardian.c:

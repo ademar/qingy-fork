@@ -43,6 +43,9 @@ int set_active_tty(int tty);
 /* get the number of an unused tty */
 int get_available_tty(void);
 
+/* checks wether a tty is in use */
+int is_tty_available(int tty);
+
 /* allow of block tty switching */
 int lock_tty_switching(void);
 int unlock_tty_switching(void);
@@ -59,8 +62,5 @@ void stderr_enable(void);
 
 /* get console framebuffer resolution */
 char *get_fb_resolution(char *fb_device);
-
-/* get user name of tty owner */
-char *get_tty_owner(int tty);
 
 #endif /* !CHVT_H */

@@ -69,6 +69,9 @@ char *print_welcome_message(char *preamble, char *postamble);
 /* checks wether <what> is a directory */
 int is_a_directory(char *what);
 
+/* function name says it all ;-P */
+char *get_file_owner(char *file);
+
 #ifdef USE_PAM
 /* duplicate src */
 int StrDup (char **dst, const char *src);

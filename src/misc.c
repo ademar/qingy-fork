@@ -34,6 +34,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 
 #if HAVE_DIRENT_H
 # include <dirent.h>
@@ -301,6 +302,20 @@ int start_gpm(void)
   if (filename) free(filename);
   
   return 0;
+}
+
+char *get_file_owner(char *file)
+{
+	struct stat desc;
+	struct passwd *pwd;
+
+	if (!file) return NULL;
+	if (stat(file, &desc) == -1) return NULL;
+	
+	pwd = getpwuid(desc.st_uid);
+	if (!pwd) return NULL;
+
+	return strdup(pwd->pw_name);
 }
 
 char *assemble_message(char *content, char *command)

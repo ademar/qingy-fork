@@ -24,6 +24,11 @@ qingy CVS:
 - Added a file, /etc/qingy/welcomes, where you can put personalized
   welcome messages (like the 'Greetings, Master...' when you log in
   as root).
+- Added session locking support; if you enable this, when you try to
+  switch to a qingy-controlled tty whose owner is not your current
+  user, you will be asked for the password of that user before being
+  allowed to continue. If you are root, of course, you can switch
+  to any tty you chose to. Default setting is 'no'.
 
 qingy 0.3.0 (09 January 2004):
 - New memory allocation/deallocation management

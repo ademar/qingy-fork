@@ -2,8 +2,6 @@
 
 - drop down menu for sessions 
 
-* allow session locking 
-
 - ldap support for authentication (with pam?)
 
 - allow selection of alternate x server layouts / X config files
