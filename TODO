@@ -39,11 +39,31 @@
   handle console keymaps that we should support as well...
 	NOTE: it appears there is no such code: still digging.
 
-- test in on Mandrake (8.2) as people reported issues with this distro.
+- test in on Mandrake (8.2) and SuSe as people reported issues...
 
 - make images scale according to virtualized / real resolution
   instead of always rendering them their actual size...
 
+- support some graphics toolkits other than DirectFB
+
+- $$$ (huge but interesting blurb)
+
 --
 Items marked as * are those we are currently working on.
 For stuff already done, see NEWS file...
+
+
+
+$$$
+when i log in as myself (non-root) with qingy, xinit seems to be run as root,
+meaning that the system xinitrc file is used (eg. for XFCE /etc/xfce/xinitrc)
+rather than the user xinitrc (eg. $HOME/.xfce4/xinitrc). i noticed this because
+i use XFCE4 and changes to my xinitrc file were ignored by qingy but not when
+starting xfce4 from console, instead qingy uses the /etc/ version, which is used
+if $HOME/.xfce4/xinitrc can't be found (which implies that $HOME is not being
+found under qingy) i know i can get round this by using the 'Your xsession'
+option for logging in, but that means i have to manually set the window manager
+etc in the .xsession file and cannot choose to use another one (i also use fluxbox)
+via qingy if i want my $HOME session files to be used am i right in thinking that
+qingy is executing xinit as root, and if so is this a bug or a feature?
+how can i get qingy to use the logged-in-user's env for executing xinit etc?

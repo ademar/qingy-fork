@@ -29,7 +29,7 @@ qingy CVS:
   user, you will be asked for the password of that user before being
   allowed to continue. If you are root, of course, you can switch
   to any tty you chose to. Default setting is 'no'. Note: this is
-	an EXPERIMANTAL feature, so you are warned. That said, it appears
+	an EXPERIMENTAL feature, so you are warned. That said, it appears
   to work well, only issue that I know of is that if you log in into
   a text console and later fire up an X server manually, the tty the
   X server is running in is not guarded.

@@ -6,5 +6,6 @@ EXTRA_DIST =   \
 		INSTALL    \
 		NEWS       \
 		README     \
+		THANKS     \
 		TODO       \
 		ChangeLog			
