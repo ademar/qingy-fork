@@ -2,12 +2,13 @@
 
 - Some command line options should migrate to config file...
 
-- Name theme tarball a bit better
+* Name theme tarball a bit better
   (BETTER YET, MOVE EVERYTHING TO FRESHMEAT AND WIPE IT OUT!)
 
-- make the GPM start/stop stuff work for distros other
+* make the GPM start/stop stuff work for distros other
   than Gentoo, too...
   BETTER YET, wipe it out completely, since DirectFB 0.9.21 finally supports it!
+  (Does it? Doesn't work here :-/ )
 
 - extend the --verbose option to virtually report all that can be reported ;-)
 
@@ -72,6 +73,8 @@
 
 
 [ENHANCEMENTS]
+
+- Allow user to log into remote systems, also with xdmcp...
 
 - Add support for wildcards in paths in config files...
 

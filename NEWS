@@ -1,4 +1,4 @@
-qingy 0.5.3 (not yet released):
+qingy 0.5.3 (11 January 2005):
 - Finally the code behind the 'sleep' button has been implemented:
   just set up the 'sleep' variable in config file to the
   command you would like to execute for sleep mode, and
