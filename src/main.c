@@ -47,6 +47,7 @@
 - check PAM user permissions
 - allow session locking
 - option to show or hide shutdown messages
+- option to disable 'shutting down' message
 - language support
 - option for starting wms in an unique X server?!?
 */
@@ -110,7 +111,8 @@ void start_up(void)
 	argv[0]= (char *) calloc(6, sizeof(char));
 	strcpy(argv[0], "qingy");
 	argv[1]= (char *) calloc(33, sizeof(char));
-	strcpy(argv[1], "--dfb:no-vt-switch,quiet,bg-none");
+	strcpy(argv[1], "--dfb:no-vt-switch,bg-none");
+	if (silent) strcat(argv[1], ",quiet");
 	argv[2]= NULL;
 
 	/* Now we try to initialize the framebuffer */
