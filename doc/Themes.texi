@@ -1,7 +1,7 @@
 @node  Qingy Themes,  , Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Qingy Themes
-Qingy @value(VERSION) is completely customizable in its appearence
+Qingy @value{VERSION} is completely customizable in its appearence
 through a theming interface. We shall see how these themes are made
 and used and what is possible to be done with themes in Qingy.
 
@@ -29,7 +29,7 @@ You could select a theme by editing @file{/etc/qingy/settings}
 and modifying the line @code{THEME default} with the name of the
 theme you wanted to use (e.g.: @code{THEME playboy}).
 
-This is still true in Qingy @value(VERSION), although the rules vary. 
+This is still true in Qingy @value{VERSION}, although the rules vary. 
 
 Still, it is also possible to define themes in a different way:
 directly in the settings file. This way, you might have some
