@@ -1,5 +1,6 @@
 qingy 0.2.2 ?!?
 - added option to select which framebuffer device to use
+- updated text mode login for increased security
 
 qingy 0.2.1 (01 September 2003):
 - correctly changes tty ownership

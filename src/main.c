@@ -88,18 +88,7 @@ void Error()
 
 void text_mode()
 {
-	char *username;
-	char *welcome = print_welcome_message("\n", " login: ");
-
-	/* We fall back here if framebuffer init fails */
-	username = (char *) my_calloc(MAX, sizeof(char));
-	while (strlen(username)==0)
-	{
-		printf("%s", welcome);
-		scanf("%s", username); /* quick and dirty */
-	}
-	if (welcome) free(welcome);
-	execl("/bin/login", "/bin/login", "--", username, (char *) 0);
+	execl("/bin/login", "/bin/login", (char *) 0);
 
 	/* We should never get here... */
 	fprintf(stderr, "\nCannot exec \"/bin/login\"...\n");
@@ -122,7 +111,7 @@ void start_up(void)
 	if (silent) strcat(argv[1], ",quiet");
 	if (fb_device)
 	{
-		strcat(argv[1], ",");
+		strcat(argv[1], ",fbdev=");
 		strcat(argv[1], fb_device);
 	}
 	argv[2]= NULL;
@@ -175,7 +164,7 @@ int ParseCMDLine(int argc, char *argv[])
 	{
 		int error = 1;
 
-		if (strcmp(argv[i], "--fb-device <device>") == 0)
+		if (strcmp(argv[i], "--fb-device") == 0)
 		{
 			if (i == argc) Error();
 			i++;
