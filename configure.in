@@ -101,6 +101,7 @@ AC_PROG_YACC
 # End check for C headers
 
 AC_CHECK_LIB(crypt, crypt, , , )
+AC_CHECK_LIB(dl, dlopen, , , )
 
 # Check for PAM support
 	PAM=""
@@ -112,7 +113,7 @@ AC_CHECK_LIB(crypt, crypt, , , )
 		fi
 		if test "$PAM" != ""; then
 			CFLAGS="$CFLAGS -DUSE_PAM"
-			LDFLAGS="$LDFLAGS -lpam -lpam_misc -ldl"
+			LDFLAGS="$LDFLAGS -lpam -lpam_misc"
 			AC_MSG_NOTICE([pam found: enabling support in qingy])
 		fi		
 	fi

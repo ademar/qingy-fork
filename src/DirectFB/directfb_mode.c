@@ -594,7 +594,7 @@ void handle_mouse_event (DFBInputEvent *evt)
 						{
 							DFBInputEvent evt;
 							clear_screen();
-							primary->DrawString (primary, "I'm not tired, yet!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+							primary->DrawString (primary, "e", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 							primary->Flip (primary, NULL, 0);
 							sleep(2);
 							events->GetEvent (events, DFB_EVENT (&evt));
