@@ -394,7 +394,7 @@ int set_last_session(char *user, char *session)
   if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
   strcat(filename, ".qingy");
   fp = fopen(filename, "w");
-	free(filename):
+	free(filename);
 
   if (!fp) return 0;
   fprintf(fp, "%s", session);
