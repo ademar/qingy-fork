@@ -25,10 +25,14 @@
  *                                                                         *
  ***************************************************************************/
 
-#define BACKSPACE 8
-#define TAB       9
-#define RETURN   13
-#define ESCAPE   27
+#define BACKSPACE       8
+#define TAB             9
+#define RETURN         13
+#define ESCAPE         27
+#define ARROW_LEFT  61440
+#define ARROW_RIGHT 61441
+#define ARROW_UP    61442
+#define ARROW_DOWN  61443
 
 /* macro for a safe call to DirectFB functions */
 #define DFBCHECK(x...)																					\

@@ -618,8 +618,10 @@ int handle_keyboard_event(DFBInputEvent *evt)
 		/* session events */
 		if (session_hasfocus && allow_tabbing)
 		{
-			if (strcmp(symbol_name->name, "CURSOR_UP"  ) == 0) print_session_name(UP);
-			if (strcmp(symbol_name->name, "CURSOR_DOWN") == 0) print_session_name(DOWN);
+			if (ascii_code == ARROW_UP) print_session_name(UP);
+			if (ascii_code == ARROW_DOWN) print_session_name(DOWN);
+			//if (strcmp(symbol_name->name, "CURSOR_UP"  ) == 0) print_session_name(UP);
+			//if (strcmp(symbol_name->name, "CURSOR_DOWN") == 0) print_session_name(DOWN);
 			if (ascii_code == TAB)
 			{
 				session_hasfocus  = 0;
