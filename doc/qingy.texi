@@ -120,7 +120,7 @@ Qingy is useless anyway: it is just eye-candy for a login screen on
 your box.  Still, it's just plain lovely and cool, and we are sure
 that you will love it.
 
-Qingy graphical effects are obtained perusing the framebuffer, thus
+Qingy graphical effects are obtained perusing the frame-buffer, thus
 avoiding the nuisance of running an X server just to login as it
 happens with the various *DMs. Also, it has some nice features, such
 as text sessions as well as X sessions, a screensaver, themes to
@@ -141,7 +141,7 @@ stable version, unless you are a developer or really brave: in those
 cases, you might want to get the CVS version. This is the bleeding
 edge version, the one we are using everyday for our small and big
 changes in the code. It might even not compile (although we really try
-to avoid that) and it is totally unsopported. To get this version you
+to avoid that) and it is totally unsupported. To get this version you
 will need a CVS client. You should read the huge and very deep
 SourceForge CVS documentation, but something like @kbd{cvs
 -d:pserver:anonymous@@cvs.sf.net:/cvsroot/qingy co qingy} might do the
@@ -165,7 +165,7 @@ Also, if you are using Gentoo as your GNU/Linux distribution, you can
 
 Before starting to compile qingy, you should check to have the
 DirectFB library installed. You should also configure DirectFB for
-your framebuffer device: run @kbd{fbset} and paste the output as the
+your frame-buffer device: run @kbd{fbset} and paste the output as the
 first entry in @file{/etc/fb.modes}. 
 
 @cindex @kbd{make}
@@ -253,7 +253,7 @@ terminals you've set for it.
 
 @cindex configuring Qingy
 Qingy is very customizable, making it possible to have almost exactly
-the behaviour you want it to have. Configuration is done site-widely
+the behavior you want it to have. Configuration is done site-widely
 and breaks down to basically two aspects: ``What it looks like'', and
 ``What happens when I do something''. Of course, you cannot have a
 user-based configuration, as when you have Qingy running, you don't
@@ -273,12 +273,12 @@ options, through the @file{/etc/qingy/settings} file and through themes.
 @cindex line options
 
 When Qingy is called by init, it is passed some options. These options
-change some of Qingy behaviour in different ways. Here is a list of all possible options.
+change some of Qingy behavior in different ways. Here is a list of all possible options.
 
 @table @code
 @cindex @kbd{--fb-device}
 @item --fb-device <device>
-	Use <device> as framebuffer device.
+	Use <device> as frame-buffer device.
 
 @cindex @kbd{--hide-password}
 @item --hide-password
@@ -296,7 +296,7 @@ change some of Qingy behaviour in different ways. Here is a list of all possible
 @item --verbose
 	Display some diagnostic messages on stderr.
 
-@cindex @kbd{--no-sutdown-screen}
+@cindex @kbd{--no-shutdown-screen}
 @item --no-shutdown-screen
 	Close DirectFB mode before shutting down.
 	This way you will see system shutdown messages.
@@ -389,7 +389,7 @@ us. We'll try to have that working soon enough...}
 @chapter Qingy Themes
 
 @cindex themes
-Qingy @value{VERSION} is completely customizable in its appearence
+Qingy @value{VERSION} is completely customizable in its appearance
 through a theming interface. We shall see how these themes are made
 and used and what is possible to be done with themes in Qingy.
 
@@ -407,7 +407,7 @@ and used and what is possible to be done with themes in Qingy.
 @cindex compatibility, themes --
 Settings and theme file syntax and semantics have radically changed since
 version 0.2. Hence, old-style themes are no longer compatible with
-Qingy.  Please read thouroughly this file and change your themes
+Qingy.  Please read thoroughly this file and change your themes
 appropriately. 
 
 
@@ -422,7 +422,7 @@ theme you wanted to use (e.g.: @code{THEME playboy}).
 This is still true in Qingy @value{VERSION}, although the rules vary. 
 
 @cindex @file{themer}
-You might want to use the perl script @file{themer} in Qingy source
+You might want to use the Perl script @file{themer} in Qingy source
 tree to translate your old themes to new ones.
 
 Still, it is also possible to define themes in a different way:
@@ -556,7 +556,7 @@ Finally, you can define windows on your screen. In Qingy, a
 @dfn{window} is any visible widget to be displayed. 
 
 Each window is defined inside a @code{window@{...@}} block.  Therein
-you can define some fields to define the position, size and behaviour
+you can define some fields to define the position, size and behavior
 of the window.
 
 The fields you can set are the following:
@@ -626,7 +626,7 @@ used to display your button respectively normally and when the mouse
 is on them.
 
 @item login
-A login text box. Users will have to write their username here in
+A login text box. Users will have to write their user-name here in
 order to log in. There should be always one and just one of these on
 your window. Having none will result in displaying a default one,
 having more than one will result in an error.
@@ -923,7 +923,7 @@ something like this:
 
 @example
 
-#... more of the setings file, not relevant here
+#... more of the settings file, not relevant here
 
 theme="mytheme"
 
@@ -945,12 +945,12 @@ and you will get theme @file{mytheme} with @code{background} set to
 @subsection Random themes
 
 You can also get a fresh new randomly selected theme from your theme
-collection everytime you start Qingy (as every logout, for
+collection every time you start Qingy (as every logout, for
 example). Just put the line @code{theme random} in your
 @file{settings} file instead of putting @code{theme="name"} and Qingy
 will select for you a random theme each time.
 
-Remember, you can bypass some properties using the inline theme
+Remember, you can bypass some properties using the in-line theme
 functionality:
 
 @example
@@ -974,7 +974,7 @@ is perfectly valid.
 The welcomes feature in Qingy is just the natural evolution of the
 ``Greetings master!'' feature for root: basically it lets you define
 for each user the welcome message to display. To do this, create file
-@file{/etc/qingy/welcomes} and insert, one on each line, the username,
+@file{/etc/qingy/welcomes} and insert, one on each line, the user name,
 a space and just whatever you want to display. For example:
 
 @example
@@ -983,10 +983,19 @@ michele Ah! What a lovely day, my Author...
 root    It's not funny... Why do you wanna log like that!?
 @end example
 
-will display @samp{The answer is 42} when I (paolino) log in, and so on (you got the point).
+will display @samp{The answer is 42} when I (paolino) log in, and so
+on (you got the point).
 
-@emph{Note: this is still a quick hack... It will be most probably
-changed (in better, hopefully) in next releases... :)}
+Another way to define the welcome message is using a file called
+@file{.qingy_welcome} in a user's home directory: when that user logs
+in, the first line of this file is displayed.  This lets each user
+personalise her welcome message at her taste.  
+
+The order of execution is the following: first, the
+@file{~/.qingy_welcome} file is searched. If that is not ound or it
+cannot be used, an entry in @file{/etc/qingy/welcomes} is searched. If
+that is not found, a default message (@samp{starting selected
+session}) is displayed as the welcome message.
 
 @node  Screensavers, Using Qingy, The welcomes feature, Top
 @comment  node-name,  next,  previous,  up
@@ -1030,7 +1039,7 @@ screensaver unless you know exactly what you are doing, or you really
 trust the person who gave it to you}. If you can read C, you probably
 could get a glimpse of what's going on directly there in. Normally a
 screensaver is quite a small file, from a few tens to maybe a couple
-of hudred lines of code.  You might also ask YLE, Your Local Expert,
+of hundred lines of code.  You might also ask YLE, Your Local Expert,
 to check for you. Or just tell us where to get it: we'll most probably
 want to try it and be sure that we will check for bad things in there
 before we even compile it... :-)
@@ -1065,7 +1074,10 @@ as you manage to get from your customer. You are actually encouraged
 to do it: if you do and succeed, you'll be able maybe to live on Free
 Software and you'll be able to improve Free Software as your job. 
 
-This said, just pop your favourite text editor up (we suggest GNU
+This said, create a directory called as the screensaver you want to
+create and @kbd{cd} to it.
+
+Then just pop your favorite text editor up (we suggest GNU
 Emacs) and start typing. 
 
 You should include at least @file{screensaver_module.h}. This file
@@ -1117,7 +1129,7 @@ Width of screen in pixels.
 
 @deftypevar  char** params
 
-Array of the strings passed as arguments to the scrensaver in the
+Array of the strings passed as arguments to the screensaver in the
 configuration file. It's guaranteed that the order of the strings is
 the same as in the config file.
 @end deftypevar
@@ -1126,11 +1138,27 @@ In the function @code{screen_saver_entry} you just write the code you
 want the screensaver to perform. This is usually some sort of loop
 that displays something on the screen and exits the loop to return
 when one of the events occur. Still, you can just make your own
-behaviour (e.g. password locking, time-related lock, etc.)
+behavior (e.g. password locking, time-related lock, etc.)
 
-The visible behaviour (displaying stuff on the screen) is accomplished
+The visible behavior (displaying stuff on the screen) is accomplished
 by writing normal DirectFB C code. Please, see
-@uref{http://directfb.org, the DirectFB homepage} fo more details.
+@uref{http://directfb.org, the DirectFB homepage} for more details.
+
+Once you're done, you should build and install the screensaver. The
+correct way to do this is to use a Makefile that you will distribute
+along with your screensaver.  If you feel like it, you could even use
+the Auto-tools to automate the process.  Or, you might take ---as we
+advise--- our screensaver @file{Makefile} from the Qingy source
+distribution.  You won't have to change a word in it: just copy it to
+your screensaver directory and @kbd{make}, @kbd{make install}.  It
+will automagically fix itself to work with your own screensaver.  
+
+Once this works, you would want to distribute it.  Put a copy of the
+GPL in the directory, in a file named @file{COPYING}.  Don't forget to
+insert a Copyright notice in the beginning of your source files.  Then
+@kbd{make dist}. You will find a @file{tar.gz} archive containing your
+screensaver in a distributable form.
+
 
 @node Using Qingy, Copying Qingy, Screensavers, Top
 @comment  node-name,  next,  previous,  up
@@ -1223,7 +1251,7 @@ that any problems introduced by others will not reflect on the original
 authors' reputations.
 
   Finally, any free program is threatened constantly by software
-patents.  We wish to avoid the danger that redistributors of a free
+patents.  We wish to avoid the danger that re-distributors of a free
 program will individually obtain patent licenses, in effect making the
 program proprietary.  To prevent this, we have made it clear that any
 patent must be licensed for everyone's free use or not licensed at all.

@@ -1,13 +1,29 @@
-running_time.qss: running_time.o
-	gcc -shared -Wl,-soname,running_time.qss -o \
-	running_time.qss running_time.o -lc
+TARGET=$(notdir $(PWD)).qss
+OBJECTS=$(patsubst %.c,%.o,$(wildcard *.c))
+SOURCES=$(wildcard *.c)
+AUX=Makefile COPYING
+INSTALLDIR=/etc/qingy/screensavers
 
-running_time.o: running_time.c
-	gcc -g -I/usr/include/directfb -I/etc/qingy/screensavers -fpic -c running_time.c
+CFLAGS=-g -I/usr/include/directfb -I/etc/qingy/screensavers -fpic 
 
-install: running_time.qss
-	cp running_time.qss /etc/qingy/screensavers
+all: $(TARGET)
 
+$(TARGET): $(OBJECTS)
+	gcc -shared -Wl,-soname,$(TARGET) -o $(TARGET) $(OBJECTS) -lc
+
+.PHONY: install clean dist
+
+install: $(TARGET)
+	@cp $(TARGET) $(INSTALLDIR)
+	@echo "$(TARGET) installed in $(INSTALLDIR)..."
 clean:
-	rm running_time.qss
-	rm running_time.o
+	@rm $(TARGET) $(OBJECTS)
+
+dist: 
+	@mkdir $(notdir $(PWD))
+	@ln $(SOURCES) $(AUX) $(notdir $(PWD))
+	@echo "Making dist: $(notdir $(PWD)).tar.gz"
+	@tar -chzf $(notdir $(PWD)).tar.gz $(notdir $(PWD))
+	@rm -rf $(notdir $(PWD))
+	@echo "dist $(notdir $(PWD)).tar.gz made"
+

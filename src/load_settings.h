@@ -25,6 +25,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifndef LOAD_SETTINGS_H
+#define LOAD_SETTINGS_H
 
 int black_screen_workaround;
 int silent;
@@ -35,6 +37,7 @@ int no_shutdown_screen;
 int use_screensaver;
 int screensaver_timeout;
 
+/* NOTE: some of these should become #defines through autoconf... */
 char *DATADIR;
 char *SETTINGS;
 char *LAST_USER;
@@ -188,3 +191,6 @@ void add_to_options(char *option);
 #ifdef DEBUG
 void show_windows_list(void);
 #endif
+
+
+#endif /* !LOAD_SETTINGS_H */

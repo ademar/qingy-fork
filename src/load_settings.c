@@ -31,6 +31,9 @@
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
+#include <errno.h>
+#include <pwd.h>
 
 #if HAVE_DIRENT_H
 # include <dirent.h>
@@ -71,7 +74,7 @@ void initialize_variables(void)
   DATADIR                 = NULL;
   XINIT                   = NULL;
   FONT                    = NULL;
-	screensaver_options     = NULL;
+  screensaver_options     = NULL;
   windowsList             = NULL;
   black_screen_workaround = 0;
   screensaver_timeout     = 5;
@@ -89,12 +92,19 @@ void initialize_variables(void)
 void set_default_session_dirs(void)
 {
   TEXT_SESSIONS_DIRECTORY = strdup("/etc/qingy/sessions");
-  X_SESSIONS_DIRECTORY    = strdup("/etc/X11/Sessions/");  
+  if(!TEXT_SESSIONS_DIRECTORY)
+    perror("Qingy error");
+  X_SESSIONS_DIRECTORY = strdup("/etc/X11/Sessions/"); 
+  if(!X_SESSIONS_DIRECTORY)
+    perror("Qingy error");
+
 }
 
 void set_default_xinit(void)
 {
   XINIT = strdup("/usr/X11R6/bin/xinit");
+  if(!XINIT)
+    perror("Qingy error");
 }
 
 void set_default_font(void)
@@ -158,10 +168,17 @@ char *get_random_theme()
   int i;
 
   dir= opendir(themes_dir);	
-  if (!dir) return strdup("default");
+  if (!dir) {
+    perror("Qingy error");
+    return strdup("default");
+  }
 
   while ((entry= readdir(dir)))
   {
+    if(!entry){
+      perror("Qingy error");
+      break;
+    }
     char *temp;
     if (!strcmp(entry->d_name, "." )) continue;
     if (!strcmp(entry->d_name, "..")) continue;    
@@ -174,13 +191,16 @@ char *get_random_theme()
       }
     free(temp);
   }
-  closedir(dir);
+  if(closedir(dir)== -1) 
+    perror("Qingy error");
   free(themes_dir);
   
   if (!n_themes) return strdup("default");
   
   /* let's create a random number between 0 and n_themes-1 */
   epoch = time(NULL);
+  if(epoch == -1) 
+    perror("Qingy error");
   localtime_r(&epoch, &curr_time);
   srand(curr_time.tm_sec);
   i = rand() % n_themes;
@@ -215,7 +235,7 @@ char *get_last_user(void)
   FILE *fp = fopen(LAST_USER, "r");
   char tmp[MAX];  
   
-  if (!fp) return NULL;
+  if (!fp) {perror("Qingy error"); return NULL;}
   if (fscanf(fp, "%s", tmp) != 1)
     {
       fclose(fp);
@@ -232,6 +252,10 @@ int set_last_user(char *user)
   
   if (!user) return 0;
   fp = fopen(LAST_USER, "w");
+  if(!fp){
+    perror("Qingy error");
+    return 0;
+  }
   fprintf(fp, "%s", user);
   fclose(fp);
   
@@ -254,14 +278,17 @@ char *get_last_session(char *user)
   if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
   strcat(filename, ".qingy");
   fp = fopen(filename, "r");
-  if (!fp) return NULL;
+  if (!fp){ 
+    perror("Qingy error"); 
+    return NULL;
+  }
   if (!get_line(tmp, fp, MAX))
     {
-      fclose(fp);
+      if(fclose(fp)==EOF) 
+	perror("Qingy error");
       return NULL;
     }
-  fclose(fp);
-  
+  if(fclose(fp)==EOF) perror("Qingy error");
   return strdup(tmp);
 }
 
@@ -283,44 +310,61 @@ int set_last_session(char *user, char *session)
   fp = fopen(filename, "w");
   free(filename);
   
-  if (!fp) return 0;
+  if (!fp){
+    perror("Qingy error"); 
+    return 0;
+  }
   fprintf(fp, "%s", session);
-  fclose(fp);
-  
+  if(fclose(fp)==EOF) perror("Qingy error");
   return 1;
 }
 
 /* see if we know this guy... */
 char *get_welcome_msg(char *username)
 {
-	char line[256];
-	char *welcome_msg = NULL;
-	char *user        = NULL;
-	char *path;
-	FILE *fp;
-	
-	if (!username) return NULL;
+  char line[256];
+  char *welcome_msg = NULL;
+  char *user        = NULL;
+  char *path;
+  FILE *fp;
 
-	path = StrApp((char**)NULL, DATADIR, "welcomes", (char*)NULL);
-	fp   = fopen("/etc/qingy/welcomes", "r");
-	free(path);
+  struct passwd *pw;
+  if (!username) 
+    return NULL;
 
-	if (fp)
+  /* see if this guy has a .qingy_welcome in the home */
+  pw=getpwnam(username);
+  path=StrApp((char **)NULL, pw->pw_dir, "/.qingy_welcome", (char*)NULL);
+  if(!access(path, F_OK)){
+    fp=fopen(path, "r");
+    free(path);
+    fgets(line, 255, fp);
+    fclose(fp);
+    
+    welcome_msg= strdup(strtok(line, "\n"));
+    if(welcome_msg)
+      return welcome_msg;
+  }
+  path = StrApp((char**)NULL, DATADIR, "welcomes", (char*)NULL);
+  fp   = fopen(path, "r");
+  free(path);
+  
+  if (fp)
+    {
+      while (fgets(line, 255, fp))
 	{
-		while (fgets(line, 255, fp))
-		{
-			user = strtok(line, " \t");
-			if(!strcmp(user, username))
-			{
-			     welcome_msg = strdup(strtok(NULL, "\n"));
-			     break;
-			}
-		}
-		fclose(fp);
+	  user = strtok(line, " \t");
+	  if(!strcmp(user, username))
+	    {
+	      welcome_msg = strdup(strtok(NULL, "\n"));
+	      break;
+	    }
 	}
-	if (!welcome_msg) welcome_msg = strdup("Starting selected session...");
-
-	return welcome_msg;
+      fclose(fp);
+    }
+  if (!welcome_msg) 
+    welcome_msg = strdup("Starting selected session...");
+  return welcome_msg;
 }
 
 char *get_action(char *action)

@@ -69,7 +69,7 @@ void *my_calloc(size_t nmemb, size_t size)
   void *temp = calloc(nmemb, size);
   if (!temp)
     {
-      fprintf(stderr, "Fatal error: cannot allocate memory!\n");
+      perror("Qingy error - FATAL");
       abort();
     }
   
@@ -104,8 +104,10 @@ char *my_strdup(const char *s)
   
   if (!s) return NULL;
   temp = strdup(s);
-  if (!temp) abort();
-  
+  if (!temp) {
+    perror("Qingy error - FATAL");
+    abort();
+  }
   return temp;
 }
 
@@ -153,7 +155,6 @@ char *get_home_dir(char *user)
   
   if (!user) return NULL;
   pwd = getpwnam(user);
-  endpwent();
   if (!pwd) return NULL;  
   
   return strdup(pwd->pw_dir);

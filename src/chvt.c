@@ -25,6 +25,8 @@
  *                                                                         *
  ***************************************************************************/
 
+/* Working to make it compliant to GNU Standards :P ------------------------- */
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,29 +34,33 @@
 #include <linux/kd.h>
 #include <linux/vt.h>
 #include <sys/ioctl.h>
-
+#include <errno.h>
 #include "misc.h"
 #include "chvt.h"
 
 static int is_a_console(int fd)
 {
   char arg = 0;
-  return (ioctl(fd, KDGKBTYPE, &arg) == 0 && ((arg == KB_101) || (arg == KB_84)));
+  int returnval=(ioctl(fd, KDGKBTYPE, &arg) == 0 && ((arg == KB_101) || (arg == KB_84)));
+  if(returnval == -1)
+    perror("Qingy error: is_a_console");
+  return returnval;
 }
 
-static int open_a_console(char *fnam)
+static int open_a_console(char *fnam) 
 {
-  int fd;
-  fd = open(fnam, O_RDWR);
-  if (fd < 0) return -1;
+  int fd; 
+  fd = open(fnam, O_RDWR); 
+  if (fd < 0) 
+    return -1; 
   if (!is_a_console(fd))
-  {
-    close(fd);
-    return -1;
-  }
+    { 
+      close(fd); 
+      return -1; 
+    } 
 
-  return fd;
-}
+  return fd; 
+} 
 
 int getfd()
 {
@@ -87,9 +93,11 @@ int switch_to_tty(int tty)
   stdin  = freopen(ttyname, "r", stdin);
   stdout = freopen(ttyname, "w", stdout);
   stderr = freopen(ttyname, "w", stderr);
+  if(!(stdin && stdout && stderr))
+    perror("Qingy error: switch_to_tty");
   free(ttyname);
-  if (!stdin || !stdout || !stderr) return 0;
-  
+  if (!stdin || !stdout || !stderr) 
+    return 0;
   return 1;
 }
 
@@ -101,11 +109,12 @@ int get_active_tty(void)
   if (fd == -1) return -1;
   if (ioctl (fd, VT_GETSTATE, &term_status) == -1)
     {
+      perror("Qingy error: get_active_tty1");
       close(fd);
       return -1;
     }
-  close(fd);
-  
+  if(close(fd) == -1) 
+    perror("Qingy error:  get_active_tty2");
   return term_status.v_active;
 }
 
@@ -116,10 +125,16 @@ int set_active_tty(int tty)
   
   /* we switch to /dev/tty<tty> */
   if ((fd = getfd()) == -1) return 0;
-  if (ioctl (fd, VT_ACTIVATE, tty) == -1) retval = 0;
-  if (ioctl (fd, VT_WAITACTIVE, tty) == -1) retval = 0;
-  close(fd);
-  
+  if (ioctl (fd, VT_ACTIVATE, tty) == -1){
+    perror("Qingy error: set_active_tty1");
+    retval = 0;
+  }
+  if (ioctl (fd, VT_WAITACTIVE, tty) == -1){
+    perror("Qingy error : set_active_tty2");
+    retval = 0;
+  }
+  if(close(fd) == -1)
+    perror("Qingy error: set_active_tty3");
   return retval;
 }
 
@@ -129,9 +144,10 @@ int get_available_tty(void)
   int available;
   
   if (fd == -1) return -1;
-  ioctl (fd, VT_OPENQRY, &available);
-  close(fd);
-  
+  if(ioctl (fd, VT_OPENQRY, &available) == -1)
+    perror("Qingy error: get_avail_tty1");
+  if(close(fd) == -1)
+    perror("Qingy error get_avail_tty1");
   return available;
 }
 
@@ -156,9 +172,14 @@ int disallocate_tty(int tty)
   
   /* we switch to /dev/tty<tty> */
   if ((fd = getfd()) == -1) return 0;
-  if (ioctl (fd, VT_DISALLOCATE, tty) == -1) return 0;
-  if (close(fd) != 0) return 0;
-  
+  if (ioctl (fd, VT_DISALLOCATE, tty) == -1){
+    perror("Qingy error:disalloc tt1 "); 
+    return 0;
+  }
+  if (close(fd) == -1 ) {
+    perror("Qingy error disalloc2");
+    return 0;
+  }
   return 1;
 }
 
@@ -167,9 +188,13 @@ int lock_tty_switching(void)
   int fd = getfd();
   
   if (fd == -1) return 0;
-  if (ioctl (fd, VT_LOCKSWITCH, 513) == -1) return 0;
-  close(fd);
+  if (ioctl (fd, VT_LOCKSWITCH, 513) == -1) { 
+    perror("Qingy error lockswitch1");
+    return 0;
+  }
   
+  if(close(fd)==-1)
+    perror("Qingy error lockswitc2");
   return 1;
 }
 
@@ -178,15 +203,21 @@ int unlock_tty_switching(void)
   int fd = getfd();
   
   if (fd == -1) return 0;
-  if (ioctl (fd, VT_UNLOCKSWITCH, 513) == -1) return 0;
-  close(fd);
+  if (ioctl (fd, VT_UNLOCKSWITCH, 513) == -1){
+    perror("Qingy error unlockswitc1");
+    return 0;
+  }
   
+  if(close(fd)==-1)
+    perror("Qingy error unlockswitch2");
   return 1;
 }
 
 void stderr_disable(void)
 {
   stderr = freopen("/dev/null", "w", stderr);
+  if(!stderr)
+    perror("Qingy error stderdis");
 }
 
 void stderr_enable(void)
@@ -195,5 +226,7 @@ void stderr_enable(void)
   
   if (!ttyname) return;
   stderr = freopen(ttyname, "w", stderr);
+  if(!stderr) 
+    perror("Qingy error stderen");
   free(ttyname);
 }

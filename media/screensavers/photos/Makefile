@@ -1,13 +1,29 @@
-photos.qss: photos_screensvr.o
-	gcc -shared -Wl,-soname,photos.qss -o \
-	photos.qss photos_screensvr.o -lc
+TARGET=$(notdir $(PWD)).qss
+OBJECTS=$(patsubst %.c,%.o,$(wildcard *.c))
+SOURCES=$(wildcard *.c)
+AUX=Makefile COPYING
+INSTALLDIR=/etc/qingy/screensavers
 
-photos_screensvr.o: photos_screensvr.c
-	gcc -g -I/usr/include/directfb -I/etc/qingy/screensavers -fpic -c photos_screensvr.c
+CFLAGS=-g -I/usr/include/directfb -I/etc/qingy/screensavers -fpic 
 
-install: photos.qss
-	cp photos.qss /etc/qingy/screensavers
+all: $(TARGET)
 
+$(TARGET): $(OBJECTS)
+	gcc -shared -Wl,-soname,$(TARGET) -o $(TARGET) $(OBJECTS) -lc
+
+.PHONY: install clean dist
+
+install: $(TARGET)
+	@cp $(TARGET) $(INSTALLDIR)
+	@echo "$(TARGET) installed in $(INSTALLDIR)..."
 clean:
-	rm photos.qss
-	rm photos_screensvr.o
+	@rm $(TARGET) $(OBJECTS)
+
+dist: 
+	@mkdir $(notdir $(PWD))
+	@ln $(SOURCES) $(AUX) $(notdir $(PWD))
+	@echo "Making dist: $(notdir $(PWD)).tar.gz"
+	@tar -chzf $(notdir $(PWD)).tar.gz $(notdir $(PWD))
+	@rm -rf $(notdir $(PWD))
+	@echo "dist $(notdir $(PWD)).tar.gz made"
+

@@ -42,8 +42,8 @@ typedef struct _TextBox
 {
   /* properties */
   char *text;
-	color_t text_color;
-	color_t cursor_color;
+  color_t text_color;
+  color_t cursor_color;
   unsigned int xpos, ypos;
   unsigned int width, height;
   int hasfocus;
@@ -56,8 +56,8 @@ typedef struct _TextBox
   /* methods */
   void (*KeyEvent)(struct _TextBox *thiz, int ascii_code, int draw_cursor);
   void (*SetFocus)(struct _TextBox *thiz, int focus);
-	void (*SetTextColor)(struct _TextBox *thiz, color_t *text_color);
-	void (*SetCursorColor)(struct _TextBox *thiz, color_t *cursor_color);
+  void (*SetTextColor)(struct _TextBox *thiz, color_t *text_color);
+  void (*SetCursorColor)(struct _TextBox *thiz, color_t *cursor_color);
   void (*SetText)(struct _TextBox *thiz, char *text);
   void (*ClearText)(struct _TextBox *thiz);
   void (*Hide)(struct _TextBox *thiz);
@@ -66,11 +66,6 @@ typedef struct _TextBox
 
 } TextBox;
 
-TextBox *TextBox_Create
-(
-  IDirectFBDisplayLayer *layer,
-  IDirectFBFont *font,	
-	color_t *text_color,
-	color_t *cursor_color,
-  DFBWindowDescription *window_desc
-  );
+TextBox *TextBox_Create (IDirectFBDisplayLayer *layer, IDirectFBFont *font,	
+			 color_t *text_color, color_t *cursor_color,
+			 DFBWindowDescription *window_desc);

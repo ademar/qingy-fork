@@ -25,7 +25,10 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifndef CHVT_H
+#define CHVT_H
 
+/* NOTE: should be an inline func, and StrApp should be probably fixed */
 #define create_tty_name(tty) StrApp((char**)0, "/dev/tty", int_to_str(tty), (char*)0)
  
 /* change stdin, stdout and stderr to a new tty */
@@ -53,3 +56,6 @@ int disallocate_tty(int tty);
 /* enable or disable stderr */
 void stderr_disable(void);
 void stderr_enable(void);
+
+
+#endif /* !CHVT_H */
