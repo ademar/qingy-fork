@@ -1,3 +1,12 @@
+2004-02-11  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* media/screensavers/running_time/Makefile.am (INCLUDES),
+	* media/screensavers/pixel/Makefile.am (INCLUDES),
+	* media/screensavers/photos/Makefile.am (INCLUDES),
+	* media/screensavers/matrix/Makefile.am (INCLUDES):
+	added new path to includes, otherwise compilation fails
+	if screensaver_module.h is not found in /etc/qingy/screensavers/
+
 2004-02-09  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* src/tty_guardian.c: more work on session locking;
