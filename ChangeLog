@@ -10,7 +10,17 @@ qingy CVS:
   settings / theme file...
 - Various previously unchecked memory allocations got leashed
 - Now qingy parses /etc/inittab to decide what to do when
-  user presses ctrl-alt-del (up to now it did nothing)
+  user presses ctrl-alt-del (up to now it did nothing).
+  Supported stuff: poweroff, halt, reboot, shutdown
+  (with -h or -r), as well as just displaying a message
+  (echo "your message here").
+- Added --disable-lastuser option to tell qingy not do display
+  last user name. This way it will always ask for user name.
+- Added support for user's own .xsession file (just create a
+  .xsession file in your home dir, put there the stuff you
+  want to load, and choose "Your .xsession" as session).
+- Now background image stays there when attempting to log in,
+  during timeouts... It goes away only during screen saver
 - Many fixes and clean ups
 
 qingy 0.2.3 (21 October 2003):

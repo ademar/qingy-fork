@@ -3,7 +3,7 @@
                             --------------------
     begin                : Sep 21 2003
     copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : noberasco.gnu@educ.disi.unige.it
+    e-mail               : noberasco.gnu@disi.unige.it
  ***************************************************************************/
 
 /***************************************************************************

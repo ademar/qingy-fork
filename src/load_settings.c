@@ -3,7 +3,7 @@
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : noberasco.gnu@educ.disi.unige.it
+    e-mail               : noberasco.gnu@disi.unige.it
 ***************************************************************************/
 
 /***************************************************************************
@@ -71,6 +71,15 @@ void initialize_variables(void)
 	XINIT                   = NULL;
   FONT                    = NULL;
 	image_paths             = NULL;
+  black_screen_workaround = 0;
+  silent                  = 1;
+  hide_password           = 0;
+  hide_last_user          = 0;
+	disable_last_user       = 0;
+  no_shutdown_screen      = 0;
+  use_screensaver         = 1;
+  screensaver_timeout     = 5;
+	SCREENSAVER             = PIXEL_SCREENSAVER;  
 }
 
 void set_default_session_dirs(void)

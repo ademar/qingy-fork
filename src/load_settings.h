@@ -3,7 +3,7 @@
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : noberasco.gnu@educ.disi.unige.it
+    e-mail               : noberasco.gnu@disi.unige.it
  ***************************************************************************/
 
 /***************************************************************************
@@ -30,6 +30,7 @@ int black_screen_workaround;
 int silent;
 int hide_password;
 int hide_last_user;
+int disable_last_user;
 int no_shutdown_screen;
 int use_screensaver;
 int screensaver_timeout;

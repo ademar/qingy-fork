@@ -3,7 +3,7 @@
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : noberasco.gnu@educ.disi.unige.it
+    e-mail               : noberasco.gnu@disi.unige.it
 ***************************************************************************/
 
 /***************************************************************************
@@ -167,6 +167,7 @@ int load_images_list(void)
       if (!strcmp(entry->d_name, "..")) continue;
 			if (is_image(entry->d_name))
 			{
+				char *temp = calloc(strlen(paths->path)+strlen(entry->d_name)+2, sizeof(char));
 				if (n_images == max)
 				{
 					char **temp;
@@ -178,8 +179,7 @@ int load_images_list(void)
 						abort();
 					}
 					images = temp;
-				}
-				char *temp= (char *) calloc(strlen(paths->path)+strlen(entry->d_name)+2, sizeof(char));
+				}				
 				strcpy(temp, paths->path);
 				if (*(temp+strlen(temp)-1) != '/') strcat(temp, "/");
 				strcat(temp, entry->d_name);

@@ -3,7 +3,7 @@
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : noberasco.gnu@educ.disi.unige.it
+    e-mail               : noberasco.gnu@disi.unige.it
 ***************************************************************************/
 
 /***************************************************************************
@@ -63,6 +63,8 @@ void PrintUsage()
   printf("\tDo not show password asterisks.\n\n");
   printf("\t--hide-lastuser\n");
   printf("\tDo not display last user name.\n\n");
+  printf("\t--disable-lastuser\n");
+  printf("\tDo not remember last user name.\n\n");
   printf("\t--verbose\n");
   printf("\tDisplay some diagnostic messages on stderr.\n\n");
   printf("\t--no-shutdown-screen\n");
@@ -92,6 +94,13 @@ void Error(int fatal)
 
 	PrintUsage();
 	if (!fatal) text_mode();
+
+	/*
+	 * we give the user some time to read the message
+	 * and change VT before dying
+	 */
+	sleep(5);
+
 	exit(EXIT_FAILURE);
 }
 
@@ -108,23 +117,17 @@ void start_up(void)
   ClearScreen();
 
   /* Set up some stuff */
-  argv[0]= (char *) calloc(6,  sizeof(char));
-  argv[1]= (char *) calloc(50, sizeof(char));
-  strcpy(argv[0], "qingy");
-  strcpy(argv[1], "--dfb:no-vt-switch,bg-none");
-  if (silent) strcat(argv[1], ",quiet");
-  if (fb_device)
-  {
-    strcat(argv[1], ",fbdev=");
-    strcat(argv[1], fb_device);
-  }
+  argv[0]= strdup("qingy");
+  argv[1]= strdup("--dfb:no-vt-switch,bg-none");
+  if (silent)    StrApp(&(argv[1]), ",quiet", (char*)NULL);
+  if (fb_device) StrApp(&(argv[1]), ",fbdev=", fb_device, (char*)NULL);
   argv[2]= NULL;
 
 	/* Now we try to initialize the framebuffer */
 	returnstatus = directfb_mode(argc, argv);		
 
   /* We get here only if directfb fails or user wants to change tty */  
-	free(argv[1]); free(argv[0]); argv[1]= argv[0]= NULL;	
+	free(argv[1]); free(argv[0]);
 
   /* re-allow vt switching if it is still disabled */
   unlock_tty_switching();
@@ -140,8 +143,10 @@ void start_up(void)
     exit(EXIT_SUCCESS); /* init will restart us in listen mode */    
   }
 
-  /* framebuffer init failed or user pressed ESC twice...
-		 ... we revert to text mode                            */
+	/*
+	 * framebuffer init failed or user pressed ESC twice...
+	 * ... we revert to text mode
+	 */
 
   /* This is to avoid a black display after framebuffer dies */
   if (black_screen_workaround) tty_redraw();
@@ -167,21 +172,19 @@ int ParseCMDLine(int argc, char *argv[])
      
   for (i=2; i<argc; i++)
   {
-    if (strcmp(argv[i], "--fb-device") == 0)
+    if (!strcmp(argv[i], "--fb-device"))
     {
       if (i == argc) Error(0);
-      i++;
-      fb_device = argv[i];
+      fb_device = argv[++i];
       continue;
     }
 	  
-    if (strcmp(argv[i], "--screensaver") == 0)
+    if (!strcmp(argv[i], "--screensaver"))
     {
       int temp;
 	       
       if (i == argc) Error(0);
-      i++;
-      temp = atoi(argv[i]);
+      temp = atoi(argv[++i]);
       if (temp < 0) Error(0);
       if (!temp)
       {
@@ -193,27 +196,32 @@ int ParseCMDLine(int argc, char *argv[])
       continue;
     }
 	  
-    if (strcmp(argv[i], "--verbose") == 0)
+    if (!strcmp(argv[i], "--verbose"))
     {
       silent = 0;
       continue;
     }
-    if (strcmp(argv[i], "--black-screen-workaround") == 0)
+    if (!strcmp(argv[i], "--black-screen-workaround"))
     {
       black_screen_workaround = 1;
       continue;
     }
-    if (strcmp(argv[i], "--hide-password") == 0)
+    if (!strcmp(argv[i], "--hide-password"))
     {
       hide_password = 1;
       continue;
     }
-    if (strcmp(argv[i], "--hide-lastuser") == 0)
+    if (!strcmp(argv[i], "--hide-lastuser"))
     {
       hide_last_user = 1;
       continue;
     }
-    if (strcmp(argv[i], "--no-shutdown-screen") == 0)
+    if (!strcmp(argv[i], "--disable-lastuser"))
+    {
+      disable_last_user = 1;
+      continue;
+    }
+    if (!strcmp(argv[i], "--no-shutdown-screen"))
     {
       no_shutdown_screen = 1;
       continue;
@@ -232,8 +240,8 @@ int main(int argc, char *argv[])
   struct timespec delay;
   
   /* We set up a delay of 0.5 seconds */
-  delay.tv_sec= 0;
-  delay.tv_nsec= 500000000;
+  delay.tv_sec  = 0;
+  delay.tv_nsec = 500000000;
   
   /* We enable vt switching in case some previous session
      crashed on start and left it disabled                */
@@ -241,15 +249,6 @@ int main(int argc, char *argv[])
 
   /* We set up some default values */
 	initialize_variables();
-	image_paths = NULL;
-  black_screen_workaround = 0;
-  silent = 1;
-  hide_password = 0;
-  hide_last_user = 0;
-  no_shutdown_screen = 0;
-  use_screensaver = 1;
-  screensaver_timeout = 5;
-	SCREENSAVER = PIXEL_SCREENSAVER;  
   
   our_tty_number = ParseCMDLine(argc, argv);
 
@@ -259,10 +258,6 @@ int main(int argc, char *argv[])
     fprintf(stderr, "\nUnable to switch to virtual terminal %s\n", argv[1]);
     return EXIT_FAILURE;
   }
-
-  /* we sleep a cycle to allow user to chance vt in case
-     settings file or config options are badly broken    */
-  nanosleep(&delay, NULL);
 
   /* Main loop: we wait until the user switches to the tty we are running in */
   while (1)

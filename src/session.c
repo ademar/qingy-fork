@@ -3,7 +3,7 @@
                             -------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : noberasco.gnu@educ.disi.unige.it
+    e-mail               : noberasco.gnu@disi.unige.it
 ***************************************************************************/
 
 /***************************************************************************
@@ -176,17 +176,18 @@ char *get_sessions(void)
   struct dirent *entry;
   static int status = 0;
   static char *dirname = NULL;
-  char *temp;
 
   if (!dirname) dirname = X_SESSIONS_DIRECTORY;
 
   switch (status)
   {
   case 0:
-    temp = strdup("Text: Console");
-    status = 1;
-    return temp;
+		status = 1;
+    return strdup("Text: Console");
   case 1:
+		status = 2;
+		return strdup("Your .xsession");
+	case 2:
     dir= opendir(dirname);
     if (!dir)
     {
@@ -194,8 +195,8 @@ char *get_sessions(void)
       fprintf(stderr, "session: unable to open directory \"%s\"\n", dirname);
       return NULL;
     }
-    status = 2;
-  case 2:
+    status = 3;
+  case 3:
     while (1)
     {
       if (!(entry= readdir(dir))) break;
@@ -204,10 +205,9 @@ char *get_sessions(void)
       if (dirname == X_SESSIONS_DIRECTORY)
       {
 				if (!strcmp(entry->d_name, "Xsession")) continue;
-				temp = strdup(entry->d_name);
+				return strdup(entry->d_name);
       }
-      else temp = StrApp((char**)NULL, "Text: ", entry->d_name, (char*)NULL);
-      return temp;
+      else return StrApp((char**)NULL, "Text: ", entry->d_name, (char*)NULL);
     }
     closedir(dir);
     if (dirname == TEXT_SESSIONS_DIRECTORY)
@@ -217,7 +217,7 @@ char *get_sessions(void)
       return NULL;
     }
     dirname = TEXT_SESSIONS_DIRECTORY;
-    status = 1;
+    status = 2;
     return get_sessions();
   }
 
@@ -489,11 +489,12 @@ void dolastlog(struct passwd *pwd, int quiet)
 void Text_Login(struct passwd *pw, char *session, char *username)
 {
   pid_t proc_id;
-  char *args[4] = {shell_base_name(pw->pw_shell), NULL, NULL, NULL};
+  char *args[4] = {NULL, NULL, NULL, NULL};
 #ifdef USE_PAM
   int retval;
 #endif
   
+	args[0] = shell_base_name(pw->pw_shell);
   if (!session || strcmp(session+6, "Console"))
   {
     args[1] = strdup("-c");
@@ -554,7 +555,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 
 /*
  * if somebody else, somewhere else, sometime else
- *  somehow started some other X servers ;-)
+ * somehow started some other X servers ;-)
  */
 int which_X_server(void)
 {
@@ -568,7 +569,7 @@ int which_X_server(void)
    * using the default startx command
    */
 
-  while ((fp = fopen(filename, "r")) != NULL)
+  while ((fp = fopen(filename, "r")))
   {
 		char *temp = int_to_str(++num);
     fclose(fp);
@@ -601,7 +602,10 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 
   args[0] = shell_base_name(pw->pw_shell);
   args[1] = strdup("-c");
-  args[2] = StrApp((char **)NULL, XINIT, " ", X_SESSIONS_DIRECTORY, session, " -- :", x_server, " vt", vt, " >& /dev/null", (char*)NULL);
+	if (!strcmp(session, "Your .xsession"))
+		args[2] = StrApp((char **)NULL, XINIT, " $HOME/.xsession -- :", x_server, " vt", vt, " >& /dev/null", (char*)NULL);
+	else
+		args[2] = StrApp((char **)NULL, XINIT, " ", X_SESSIONS_DIRECTORY, session, " -- :", x_server, " vt", vt, " >& /dev/null", (char*)NULL);
   args[3] = NULL;
   free(x_server);
   free(vt);

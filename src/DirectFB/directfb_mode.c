@@ -3,7 +3,7 @@
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : noberasco.gnu@educ.disi.unige.it
+    e-mail               : noberasco.gnu@disi.unige.it
 ***************************************************************************/
 
 /***************************************************************************
@@ -312,6 +312,7 @@ void clear_screen(void)
   session->Hide(session);
   layer->EnableCursor (layer, 0);
   primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
+	Draw_Background_Image();
   primary->Flip (primary, NULL, DSFLIP_BLIT);
   primary->SetFont (primary, font_large);
   primary->SetColor (primary, OTHER_TEXT_COLOR_R, OTHER_TEXT_COLOR_G, OTHER_TEXT_COLOR_B, OTHER_TEXT_COLOR_A);
@@ -351,6 +352,7 @@ void begin_shutdown_sequence (int action)
       return;
     }
     primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
+		Draw_Background_Image();
     strcat (message, " in ");
     temp = int_to_str (countdown);
     strcat (message, temp);
@@ -367,7 +369,11 @@ void begin_shutdown_sequence (int action)
     close_framebuffer_mode ();
     if (black_screen_workaround != -1) tty_redraw();
   }
-  else primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
+  else
+	{
+		primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
+		Draw_Background_Image();
+	}
   if (action == POWEROFF)
   {
     if (!no_shutdown_screen)
@@ -491,6 +497,7 @@ void start_login_sequence(DFBInputEvent *evt)
   if (!check_password(temp, password->text))
   {
     primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
+		Draw_Background_Image();
     primary->DrawString (primary, "Login failed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
     primary->Flip (primary, NULL, DSFLIP_BLIT);
     sleep(2);
@@ -500,6 +507,7 @@ void start_login_sequence(DFBInputEvent *evt)
     return;
   }
   primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
+	Draw_Background_Image();
   if (!strcmp(temp, "root"))
     primary->DrawString (primary, "Greetings, Master...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
   else primary->DrawString (primary, "Starting selected session...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
@@ -734,13 +742,13 @@ int directfb_mode (int argc, char *argv[])
   DFBSurfaceDescription sdsc;   /* description for the primary surface      */
   DFBInputEvent evt;            /* generic input events will be stored here */
 	DFBResult result;             /* we store eventual errors here            */
-  char *lastuser;               /* last user logged in                      */
+  char *lastuser=NULL;          /* latest user who logged in                */
   char *temp1, *temp2;
   ScreenSaver screen_saver;
 
   /* load settings from file */
   if (!load_settings()) return TEXT_MODE;
-  lastuser = get_last_user();
+  if (!disable_last_user) lastuser = get_last_user();
 
   /* Stop GPM if necessary */
   we_stopped_gpm= stop_gpm();
@@ -786,11 +794,11 @@ int directfb_mode (int argc, char *argv[])
   temp1 = StrApp((char **)0, THEME_DIR, "power_normal.png", (char *)0);
   temp2 = StrApp((char **)0, THEME_DIR, "power_mouseover.png", (char *)0);
   power = Button_Create(temp1, temp2, screen_width, screen_height, layer, primary, dfb);
-  if (temp1) free(temp1); if (temp2) free(temp2);
+  free(temp1); free(temp2);
   temp1 = StrApp((char **)0, THEME_DIR, "reset_normal.png", (char *)0);
   temp2 = StrApp((char **)0, THEME_DIR, "reset_mouseover.png", (char *)0);
   reset = Button_Create(temp1, temp2, power->xpos - 10, screen_height, layer, primary, dfb);
-  if (temp1) free(temp1); if (temp2) free(temp2);
+  free(temp1); free(temp2);
   if (!power || !reset)
   {
     DirectFB_Error();
@@ -894,6 +902,8 @@ int directfb_mode (int argc, char *argv[])
       {
 				screensaver_active = 1;
 				clear_screen();
+				primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
+				primary->Flip (primary, NULL, DSFLIP_BLIT);
       }
     }
   }
