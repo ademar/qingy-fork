@@ -1,3 +1,11 @@
+2004-07-02  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/libraries/load_settings.c (load_settings):
+	moved last user file from /etc/qingy/ to /var/lib/misc/
+	to comply to the File System Hierarchy Standard.
+	Thanks to Jason Andryuk <the_deuce@yahoo.com>
+	for poinint this out.
+
 2004-06-17  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* src/DirectFB/objects/button.c (load_image_int),

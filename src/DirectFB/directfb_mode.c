@@ -720,11 +720,22 @@ int handle_keyboard_event(DFBInputEvent *evt)
   int allow_tabbing = 1;
   int modifier = 0;
   int ascii_code = (int) evt->key_symbol;
+	char key_symbol;
 
   show_lock_key_status(evt);
   /* If user presses ESC two times, we go back to text mode */
   if ((last_symbol == ESCAPE) && (ascii_code == ESCAPE)) return TEXT_MODE;
   /* We store the previous keystroke */
+
+	if (DFB_KEY_TYPE( evt->key_symbol ) == DIKT_UNICODE)
+	{
+		DFBInputDeviceKeySymbol *temp;
+		temp = &(evt->key_symbol);
+		key_symbol = (char)(evt->key_symbol);
+	}
+	else
+		key_symbol = -1;
+
   last_symbol = ascii_code;
   symbol_name = bsearch (&(evt->key_symbol), keynames, 
 												 sizeof (keynames) / sizeof (keynames[0]) - 1,
@@ -809,7 +820,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 	    }
 			else
 	    {
-	      username->KeyEvent(username, ascii_code, 1);
+	      username->KeyEvent(username, ascii_code, -1, 1);
 	      set_user_session(username->text);
 	    }
 		}
@@ -833,7 +844,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 					username->SetFocus(username, 1);
 				}
 	    }
-			else password->KeyEvent(password, ascii_code, 1);
+			else password->KeyEvent(password, ascii_code, -1, 1);
 		}
 
 		/* session events */
@@ -858,6 +869,13 @@ int handle_keyboard_event(DFBInputEvent *evt)
 				}
 	    }
 		}
+	}
+	else if (key_symbol != -1)
+	{
+		if (username->hasfocus) 
+			username->KeyEvent(username, -1, key_symbol, 1);
+		if (password->hasfocus) 
+			password->KeyEvent(password, -1, key_symbol, 1);
 	}
 
   return returnstatus;
@@ -1230,8 +1248,8 @@ int directfb_mode (int argc, char *argv[])
 #ifdef USE_SCREEN_SAVERS	  
 			if (!screensaver_active)
 	    {
-	      if (username->hasfocus) username->KeyEvent(username, REDRAW, flashing_cursor);
-	      if (password->hasfocus) password->KeyEvent(password, REDRAW, flashing_cursor);
+	      if (username->hasfocus) username->KeyEvent(username, REDRAW, -1, flashing_cursor);
+	      if (password->hasfocus) password->KeyEvent(password, REDRAW, -1, flashing_cursor);
 	      flashing_cursor = !flashing_cursor;
 	      if (use_screensaver) screensaver_countdown--;
 	      update_labels();

@@ -1,4 +1,7 @@
 qingy CVS:
+- Added proper support for transparent pixmaps, now qingy
+  will honour the transparency instead of faking it by
+  making the black pixels transparent...
 - New command line argument: '--resolution <xres>x<yres>'.
   Use it if qingy fails to properly detect your framebuffer
   resolution.
@@ -10,6 +13,10 @@ qingy CVS:
 - Allow for buttons with no action associated to them,
   just use "action = NULL", thanks to a suggestion from
   Dark Liquid (http://www.darkliquid.net/)
+- moved last user file from /etc/qingy/ to /var/lib/misc/
+  to comply to the File System Hierarchy Standard.
+  Thanks to Jason Andryuk <the_deuce@yahoo.com>
+  for poinint this out.
 
 
 qingy 0.4.0 (18 March 2004):

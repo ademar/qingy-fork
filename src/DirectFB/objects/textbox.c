@@ -41,7 +41,7 @@
 #include "misc.h"
 
 
-int parse_input(int *input, char *buffer, int *length, int *position)
+int parse_input(int *input, char key_symbol, char *buffer, int *length, int *position)
 {
 	int i;
 
@@ -90,6 +90,17 @@ int parse_input(int *input, char *buffer, int *length, int *position)
 		return 1;
 	}
 
+	if (key_symbol != -1) /* getting desperate, our last hope is key_symbol */
+	{
+		if (*length == MAX) return 0;
+		for (i=*length; i>*position; i--) buffer[i] = buffer[i-1];
+		buffer[*position] = key_symbol;
+		(*position)++;
+		(*length)++;
+		buffer[*length] = '\0';
+		fprintf(stderr, "buffer is now '%s'\n", buffer);
+		return 1;
+	}
 	return 0;
 }
 
@@ -136,7 +147,7 @@ void DrawCursor(TextBox *thiz)
 	if (free_text) free(text);
 }
 
-void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int draw_cursor)
+void TextBox_KeyEvent(TextBox *thiz, int ascii_code, char key_symbol, int draw_cursor)
 {
 	char *buffer = thiz->text;
 	int length;
@@ -150,7 +161,7 @@ void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int draw_cursor)
 	}
 	length = strlen(thiz->text);
 
-	if (parse_input(&ascii_code, buffer, &length, position))
+	if (parse_input(&ascii_code, key_symbol, buffer, &length, position))
 	{
 		window_surface->Clear (window_surface, 0x00, 0x00, 0x00, 0x00);
 		if (draw_cursor) DrawCursor(thiz);
@@ -175,8 +186,8 @@ void TextBox_SetText(TextBox *thiz, char *text)
 	if (!thiz->text) thiz->text = (char *) calloc(MAX, sizeof(char));
 	strcpy(thiz->text, text);
 	thiz->position = strlen(thiz->text);
-	if (thiz->hasfocus) TextBox_KeyEvent(thiz, REDRAW, 1);
-	else TextBox_KeyEvent(thiz, REDRAW, 0);
+	if (thiz->hasfocus) TextBox_KeyEvent(thiz, REDRAW, -1, 1);
+	else TextBox_KeyEvent(thiz, REDRAW, -1, 0);
 }
 
 void TextBox_ClearText(TextBox *thiz)
@@ -184,8 +195,8 @@ void TextBox_ClearText(TextBox *thiz)
 	if (!thiz) return;
 	if (thiz->text) *thiz->text = '\0';
 	thiz->position = 0;
-	if (thiz->hasfocus) TextBox_KeyEvent(thiz, REDRAW, 1);
-	else TextBox_KeyEvent(thiz, REDRAW, 0);
+	if (thiz->hasfocus) TextBox_KeyEvent(thiz, REDRAW, -1, 1);
+	else TextBox_KeyEvent(thiz, REDRAW, -1, 0);
 }
 
 void TextBox_SetTextColor(TextBox *thiz, color_t *text_color)
@@ -222,13 +233,13 @@ void TextBox_SetFocus(TextBox *thiz, int focus)
 		thiz->window->SetOpacity(thiz->window, SELECTED_WINDOW_OPACITY);
 		if (!thiz->text) thiz->position = 0;
 		else thiz->position = strlen(thiz->text);
-		TextBox_KeyEvent(thiz, REDRAW, 1);
+		TextBox_KeyEvent(thiz, REDRAW, -1, 1);
 		return;
 	}
 
 	thiz->hasfocus = 0;
 	thiz->window->SetOpacity(thiz->window, WINDOW_OPACITY);
-	TextBox_KeyEvent(thiz, REDRAW, 0);
+	TextBox_KeyEvent(thiz, REDRAW, -1, 0);
 	return;
 }
 

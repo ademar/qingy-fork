@@ -629,7 +629,7 @@ int load_settings(void)
 {
   DATADIR   = strdup(SETTINGS_DIR "/");
   SETTINGS  = StrApp((char**)NULL, DATADIR, "settings", (char*)NULL);
-  LAST_USER = StrApp((char**)NULL, DATADIR, "lastuser", (char*)NULL);  
+  LAST_USER = StrApp((char**)NULL, "/var/lib/misc/qingy-lastuser", (char*)NULL);  
   
   yyin = fopen(SETTINGS, "r");
   if (!yyin)
