@@ -146,7 +146,8 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		case EXIT_SUCCESS:
 			if (check_password(username, password))
 				start_session(username, session);
-			break;
+			fprintf(stderr, "\nLogin failed, reverting to text mode!\n");
+			/* Fall trough */
 		case TEXT_MODE:
 			text_mode();
 			break;
@@ -155,6 +156,11 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 			break;
 		case SHUTDOWN_H:
 			execl ("/sbin/shutdown", "/sbin/shutdown", "-h", "now", (char*)NULL);
+			break;
+		case DO_SLEEP:
+			if (SLEEP_CMD) execl (SLEEP_CMD, SLEEP_CMD, (char*)NULL);
+			fprintf(stderr, "\nfatal error: could not execute sleep command!\n");
+			exit(EXIT_FAILURE);
 			break;
 		default: /* user wants to switch to another tty ... */
 			if (!set_active_tty(returnstatus))

@@ -112,6 +112,9 @@ static window_t wind =
 /* autologin stuff tokens */
 %token AUTOLOGIN_TOK USERNAME_TOK PASSWORD_TOK SESSION_TOK RELOGIN_TOK LAST_SESSION_TOK
 
+/* sleep tokens */
+%token SLEEP_TOK
+
 /* typed tokens: */
 %token <ival>  ANUM_T 		/* int */
 %token <str>   QUOTSTR_T	/* char* */
@@ -134,6 +137,7 @@ config: /* nothing */
 | config x_server
 | config x_args
 | config gui_retries
+| config sleep
 | config theme { TTY_CHECK_COND GOT_THEME=set_theme_result; }
 | config shutdown
 | config window
@@ -158,6 +162,7 @@ config_tty: /* nothing */
 | config_tty x_server
 | config_tty x_args
 | config_tty gui_retries
+| config_tty sleep
 | config_tty theme { TTY_CHECK_COND GOT_THEME=set_theme_result; }
 | config_tty shutdown
 | config_tty window
@@ -191,6 +196,13 @@ dfb_interface: DFB_INTERFACE_TOK '=' QUOTSTR_T
 	{
 	  if(in_theme) yyerror("Setting 'qingy_DirectFB' is not allowed in theme file.");
 	  TTY_CHECK_COND { if (DFB_INTERFACE) free(DFB_INTERFACE); DFB_INTERFACE = strdup($3); }
+	}
+
+/* sleep cupport */
+sleep: SLEEP_TOK '=' QUOTSTR_T
+	{
+	  if(in_theme) yyerror("Setting 'sleep' is not allowed in theme file.");
+	  TTY_CHECK_COND { if (SLEEP_CMD) free(SLEEP_CMD); SLEEP_CMD = strdup($3); }
 	}
 
 /* options to enable or disable session locking */

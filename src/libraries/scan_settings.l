@@ -153,6 +153,7 @@ session                 return SESSION_TOK;
 relogin                 return RELOGIN_TOK;
 lastsession             return LAST_SESSION_TOK;
 temp_files_dir          return TEMP_FILES_DIR_TOK;
+sleep                   return SLEEP_TOK;
 
 "#"[^\n]*"\n" ;			/* skip comments */
 

@@ -61,6 +61,7 @@ char *THEME_DIR;
 char *THEMES_DIR;
 char *DFB_INTERFACE;
 char *TMP_FILE_DIR;
+char *SLEEP_CMD;
 
 /* autologin stuff */
 char *AUTOLOGIN_FILE_BASENAME;

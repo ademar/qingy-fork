@@ -1,4 +1,8 @@
 qingy 0.5.3 (not yet released):
+- Finally implemented the code behind the 'sleep' button:
+  just set up the 'sleep' variable in config file to the
+  command you would like to execute for sleep mode, and
+  press the button in qingy...
 - Now the directory qingy uses to store its temporary files
   can be customized
 - Added support for automatically logging in a user when

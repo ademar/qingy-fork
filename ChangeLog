@@ -1,3 +1,21 @@
+2004-12-21  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* media/qingy-mode.el,
+	* src/main.c (start_up),
+	* src/DirectFB/directfb_mode.c (begin_shutdown_sequence),
+	(handle_mouse_event),
+	* src/libraries/load_settings.c (initialize_variables),
+	* src/libraries/load_settings.h,
+	* src/libraries/scan_settings.l,
+	* src/libraries/parse_settings.y:
+	Added sleep support...
+
+2004-11-29  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/main.c (start_up):
+	Fall back to text mode if login fails, instead of defaulting
+	to the 'brains went pop' option ;-)
+
 2004-11-28  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/main.c (check_autologin),

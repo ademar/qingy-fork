@@ -60,7 +60,8 @@
 typedef enum
 {
 	STOP,
-	RESTART
+	RESTART,
+	GO_SLEEP
 } shutdown_t;
 
 
@@ -412,7 +413,10 @@ void begin_shutdown_sequence (shutdown_t action)
   switch (SHUTDOWN_POLICY)
 	{
     case NOONE: /* no one is allowed to shut down the system */
-      primary->DrawString (primary, "Shutting down this machine is not allowed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+			if (action == GO_SLEEP)
+				primary->DrawString (primary, "Putting this machine in sleep mode is not allowed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+			else
+				primary->DrawString (primary, "Shutting down this machine is not allowed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
       primary->Flip (primary, NULL, 0);
       sleep(2);
       events->GetEvent(events, DFB_EVENT (&evt));
@@ -421,7 +425,10 @@ void begin_shutdown_sequence (shutdown_t action)
     case ROOT: /* only root can shutdown the system */
       if (!check_password("root", password->text))
 			{
-				primary->DrawString (primary, "You must enter root password to shut down this machine!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+				if (action == GO_SLEEP)
+					primary->DrawString (primary, "You must enter root password to put this machine to sleep!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+				else
+					primary->DrawString (primary, "You must enter root password to shut down this machine!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 				primary->Flip (primary, NULL, 0);
 				sleep(2);
 				events->GetEvent(events, DFB_EVENT (&evt));
@@ -453,6 +460,9 @@ void begin_shutdown_sequence (shutdown_t action)
 			case RESTART:
 				strcat (message, "restart");
 				break;
+			case GO_SLEEP:
+				strcat (message, "will fall asleep");
+				break;
 		}
 		primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
 		if (!clear_background) Draw_Background_Image(0);
@@ -467,11 +477,12 @@ void begin_shutdown_sequence (shutdown_t action)
 		sleep (1);
 		countdown--;
 	}
-  if (no_shutdown_screen)
+  if (no_shutdown_screen || (action == GO_SLEEP))
 	{
 		close_framebuffer_mode ();
-		if (action == STOP)    exit(SHUTDOWN_H);
-		if (action == RESTART) exit(SHUTDOWN_R);
+		if (action == STOP)     exit(SHUTDOWN_H);
+		if (action == RESTART)  exit(SHUTDOWN_R);
+		if (action == GO_SLEEP) exit(DO_SLEEP);
 	}
   else
 	{
@@ -576,12 +587,19 @@ void handle_mouse_event (DFBInputEvent *evt)
 						case SLEEP:
 						{
 							DFBInputEvent evt;
-							clear_screen();
-							primary->DrawString (primary, "I'm not tired, yet!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
-							primary->Flip (primary, NULL, 0);
-							sleep(2);
-							events->GetEvent (events, DFB_EVENT (&evt));
-							reset_screen(&evt);
+
+							if (!SLEEP_CMD)
+							{
+								clear_screen();
+								primary->DrawString (primary, "You must define sleep command in settings file!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+								primary->Flip (primary, NULL, 0);
+								sleep(2);
+								events->GetEvent (events, DFB_EVENT (&evt));
+								reset_screen(&evt);
+								break;
+							}
+
+							begin_shutdown_sequence (GO_SLEEP);
 							break;
 						}
 						default: /* no action */

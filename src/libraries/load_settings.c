@@ -85,6 +85,7 @@ void initialize_variables(void)
 	THEMES_DIR              = NULL;
   THEME_DIR               = NULL;
   LAST_USER               = NULL;
+	SLEEP_CMD               = NULL;
   SETTINGS                = NULL;	
 	X_SERVER                = NULL;
   X_ARGS                  = NULL;

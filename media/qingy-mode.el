@@ -50,6 +50,7 @@
 	 '("\\(p\\(?:assword\\)\\)" . font-lock-variable-name-face)
 	 '("\\(q\\(?:ingy_DirectFB\\)\\)" . font-lock-variable-name-face)
 	 '("\\(r\\(?:elogin\\)\\)" . font-lock-variable-name-face)
+	 '("\\(s\\(?:leep\\)\\)" . font-lock-variable-name-face)
 	 '("\\(u\\(?:sername\\)\\)" . font-lock-variable-name-face)
    '("\\(content\\|default_\\(?:\\(?:cursor\\|text\\)_color\\)\\|linkto\\|text_orientation\\)" . font-lock-variable-name-face)
    '("\\(b\\(?:ackground\\|utton_opacity\\)\\|cursor_color\\|font\\|text_color\\|other_text_color\\|\\(?:selected_\\)?window_opacity\\)" . font-lock-variable-name-face)
