@@ -156,6 +156,7 @@ int yywrap(){
     yy_switch_to_buffer(settings_buf);
     settings_buf=NULL;
     GOT_THEME=1;
+    in_theme=0;
     return 0;
   }
   return 1;
@@ -178,7 +179,6 @@ int set_theme(char *theme)
     }
   yy_switch_to_buffer(yy_create_buffer( yyin, YY_BUF_SIZE ) );
   in_theme = 1;
-  yyparse();
   return 1;
 }
 

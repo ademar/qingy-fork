@@ -1,3 +1,8 @@
+2004-01-21  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
+
+	* src/scan_settings.l (set_theme): bug fixed. Now it looks like
+	working
+
 2004-01-20  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
 
 	* src/load_settings.c, src/load_settings.h, src/scan_settings.l
