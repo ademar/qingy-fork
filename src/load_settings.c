@@ -392,7 +392,7 @@ char *get_action(char *action)
 		begin = temp + 1;
 		temp = strchr(begin, '"');
 		if (!temp) return NULL;
-		length = (temp - 1) - begin;
+		length = temp - begin;
 		return strndup(begin, length);		
 	}
 
@@ -412,6 +412,7 @@ char *parse_inittab_file(void)
 	{
 		char *test = strstr(line, ":ctrlaltdel:");
 		if (!test) continue;
+		if (*line == '#') continue;
 		result = get_action(test + 12);
 		break; 
 	}
