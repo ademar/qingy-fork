@@ -1,3 +1,15 @@
+2004-01-20  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
+
+	* src/load_settings.c, src/load_settings.h, src/scan_settings.l
+	(set_theme): moved here, changed to fix bug due to bison
+	buffering.
+
+	* doc/qingy.texi (Windows): bugfix: inconsistency "polltime" ->
+	"time". Thanks to Carl N for pointing that out.
+	
+	* src/DirectFB/directfb_mode.c (handle_keyboard_event): Added
+	powerkeys option
+
 2004-01-17  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* src/DirectFB/objects/screensaver_module.h: see below...

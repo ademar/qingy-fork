@@ -24,10 +24,18 @@
 #include <string.h>
 #include "parse_settings.h"
 
+#include "load_settings.h"
+#include "misc.h"
+
 #define MAX_STR_CONST 256
 
 char string_buf[MAX_STR_CONST];
 char *string_buf_ptr;
+YY_BUFFER_STATE settings_buf=NULL;
+
+extern int in_theme;
+ int GOT_THEME=0;
+extern int yyparse();
 
 %}
 
@@ -142,4 +150,35 @@ right                   return WTEXT_RIGHT_TOK;
 %%
 
  /* do nothing at EOF */
-int yywrap(){return 1;}
+int yywrap(){
+  if(settings_buf){
+    yy_delete_buffer( YY_CURRENT_BUFFER );
+    yy_switch_to_buffer(settings_buf);
+    settings_buf=NULL;
+    GOT_THEME=1;
+    return 0;
+  }
+  return 1;
+}
+
+
+int set_theme(char *theme)
+{
+  char* file;
+  if (!theme) return 0;
+  
+  THEME_DIR = StrApp((char**)NULL, DATADIR, "themes/", theme, "/", (char*)NULL);
+  file = StrApp((char**)NULL, THEME_DIR, "theme", (char*)NULL);
+  settings_buf=YY_CURRENT_BUFFER;
+  yyin = fopen(file, "r");
+  if (!yyin)
+    {
+      if (!silent) fprintf(stderr, "load_settings: theme '%s' does not exist.\n", theme);		
+      return 0;
+    }
+  yy_switch_to_buffer(yy_create_buffer( yyin, YY_BUF_SIZE ) );
+  in_theme = 1;
+  yyparse();
+  return 1;
+}
+

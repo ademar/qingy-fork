@@ -177,7 +177,8 @@ int set_last_session(char *user, char *session);
 char *get_welcome_msg(char *user);
 
 /* theme stuff */
-int set_theme(char *theme);
+extern int GOT_THEME;
+extern int set_theme(char *theme);
 char *get_random_theme();
 
 /* stuff you don't want to know about ;-P */

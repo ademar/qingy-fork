@@ -147,6 +147,7 @@ shutdown: SHUTDOWN_TOK '=' EVERYONE_TOK
 	}
 | SHUTDOWN_TOK '=' ONLY_ROOT_TOK
 	{
+	  fprintf(stderr,"c)INTHEME: %d\n", in_theme);
 	  if (in_theme) yyerror("Setting 'shutdown_policy' is not allowed in theme file.");
 	  SHUTDOWN_POLICY = ROOT;
 	}

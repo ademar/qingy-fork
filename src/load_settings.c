@@ -57,7 +57,6 @@ extern FILE* yyin;
 extern int yyparse(void);
 
 char *file_error = NULL;
-int   GOT_THEME  = 0;
 int   in_theme   = 0;
 
 void initialize_variables(void)
@@ -190,39 +189,6 @@ char *get_random_theme()
   for (i=0; i<n_themes; i++) free(themes[i]);
   
   return result;
-}
-
-int set_theme(char *theme)
-{
-  char *oldfile_error = file_error;
-  FILE *oldfile       = yyin;
-  char *file;
-  
-  if (!theme) return 0;
-  
-  THEME_DIR = StrApp((char**)NULL, DATADIR, "themes/", theme, "/", (char*)NULL);
-  file = StrApp((char**)NULL, THEME_DIR, "theme", (char*)NULL);
-  file_error = file;
-  
-  yyin = fopen(file, "r");
-  if (!yyin)
-    {
-      if (!silent) fprintf(stderr, "load_settings: theme '%s' does not exist.\n", theme);		
-      file_error = oldfile_error;
-      yyin       = oldfile;
-      return 0;
-    }
-  
-  in_theme = 1;
-  yyparse();
-  fclose(yyin);
-  
-  file_error = oldfile_error;
-  yyin       = oldfile;
-  GOT_THEME  = 1;
-  in_theme   = 0;
-  
-  return 1;
 }
 
 void yyerror(char *error)
