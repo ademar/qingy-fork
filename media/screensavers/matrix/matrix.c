@@ -39,7 +39,7 @@ screen_saver_entry(Q_screen_t env)
   int posx;
   int posy;
   unsigned int seconds=0;
-  unsigned int milli_seconds=200;
+  unsigned int milli_seconds=100;
   int i, j;
   int cel_w, cel_h;
   
@@ -49,10 +49,9 @@ screen_saver_entry(Q_screen_t env)
   IDirectFBFont *font;
   DFBFontDescription font_dsc;
   
-
   /* initialize matrix to 0 */
-  for(i=1; i<COLS; i++){
-    for(j=0; j<ROWS; j++){
+  for(i=0; i<COLS; i++){
+    for(j=1; j<ROWS; j++){
       Matrix[j][i]=0;
     }
   }
@@ -68,8 +67,7 @@ screen_saver_entry(Q_screen_t env)
   if (!env.dfb || !env.surface) return;
   /* we clear event buffer to avoid being bailed out immediately */
   env.screen_saver_events->Reset(env.screen_saver_events);
-  
-  
+
   /* do screen saver until an input event arrives */
   while (1)
     {
@@ -83,19 +81,22 @@ screen_saver_entry(Q_screen_t env)
       font_dsc.height = 30;
       env.dfb->CreateFont(env.dfb, "/etc/qingy/screensavers/matr.ttf", &font_dsc, &font);
       env.surface->SetFont(env.surface, font);
-      env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0xFF);
-      env.surface->SetColor (env.surface, 0x10, 0xA0, 0x10, 0x8A);
+      env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0x01);
+      env.surface->SetColor (env.surface, 0x10, 0xA0, 0x10, 0xff);
       for(i=0; i<COLS; i++){
-/* 	if(speeds[i] > curspeed[i]) */
-/* 	  { */
-/* 	    curspeed[i]++; */
-/* 	    continue; */
-/* 	  } */
-/* 	else{ */
-/* 	  curspeed[i]=0; */
-/* 	  speeds[i]=rand()%100; */
-/* 	} */
+	if(speeds[i] > curspeed[i])
+	  {
+	    curspeed[i]++;
+	    j=rand()%ROWS;
+	    Matrix[j][i]='\0';
+	    
+	  }
+	else{
+	  curspeed[i]=0;
+	  speeds[i]=rand()%30;
+	}
 	for(j=0; j<ROWS; j++){
+	  env.surface->SetColor(env.surface, 0x10, 0xA0, 0x10, 0x01);
 	  if(Matrix[j][i])
 	    env.surface->DrawGlyph (env.surface,
 				    Matrix[j][i],
