@@ -21,8 +21,8 @@ static window_t wind =
 		0,
 		LARGE,
 		LEFT,
-		{0, 0, 0, 0},
-		{0, 0, 0, 0},
+		NULL,
+		NULL,
 		UNKNOWN,
 		NULL,
 		NULL,
@@ -151,23 +151,27 @@ wintextsize: WTEXT_SMALL_TOK  { wind.text_size = SMALL;  }
 
 wincolorprop: WTEXT_COLOR_TOK '=' COLOR_T
               {
-                wind.text_color.R=$3[3]; wind.text_color.G=$3[2]; 
-                wind.text_color.B=$3[1]; wind.text_color.A=$3[0];
+                wind.text_color = (color_t *) calloc(1, sizeof(color_t));
+                wind.text_color->R=$3[3]; wind.text_color->G=$3[2]; 
+                wind.text_color->B=$3[1]; wind.text_color->A=$3[0];
               }
             | WTEXT_COLOR_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T
               {
-                wind.text_color.R = $3; wind.text_color.G = $5;
-                wind.text_color.B = $7; wind.text_color.A = $9;
+                wind.text_color = (color_t *) calloc(1, sizeof(color_t));
+                wind.text_color->R = $3; wind.text_color->G = $5;
+                wind.text_color->B = $7; wind.text_color->A = $9;
               }
             | WCURSOR_COLOR_TOK '=' COLOR_T
               {
-                wind.cursor_color.R=$3[3]; wind.cursor_color.G=$3[2]; 
-                wind.cursor_color.B=$3[1]; wind.cursor_color.A=$3[0];
+                wind.cursor_color = (color_t *) calloc(1, sizeof(color_t));
+                wind.cursor_color->R=$3[3]; wind.cursor_color->G=$3[2]; 
+                wind.cursor_color->B=$3[1]; wind.cursor_color->A=$3[0];
               }
             | WCURSOR_COLOR_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T
               {
-                wind.cursor_color.R = $3; wind.cursor_color.G = $5;
-                wind.cursor_color.B = $7; wind.cursor_color.A = $9;
+                wind.cursor_color = (color_t *) calloc(1, sizeof(color_t));
+                wind.cursor_color->R = $3; wind.cursor_color->G = $5;
+                wind.cursor_color->B = $7; wind.cursor_color->A = $9;
               }
             ;
 

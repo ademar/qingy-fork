@@ -383,8 +383,6 @@ char *parse_inittab_file(void)
 
 void restore_default_contents(window_t *window)
 {
-	color_t color = {0, 0, 0, 0};
-
 	window->x                 = 0;
 	window->y                 = 0;
   window->width             = 0;
@@ -392,8 +390,8 @@ void restore_default_contents(window_t *window)
   window->polltime          = 0;
 	window->text_size         = LARGE;
 	window->text_orientation  = LEFT;
-	window->text_color        = color;
-	window->cursor_color      = color;
+	window->text_color        = NULL;
+	window->cursor_color      = NULL;
   window->type              = UNKNOWN;
   window->next              = NULL;
 	window->content           = NULL;
@@ -421,14 +419,10 @@ int add_window_to_list(window_t *w)
 				temp->width          = w->width;
 				temp->height         = w->height;
 				temp->text_size      = w->text_size;
-				temp->text_color.R   = w->text_color.R;
-				temp->text_color.G   = w->text_color.G;
-				temp->text_color.B   = w->text_color.B;
-				temp->text_color.A   = w->text_color.A;
-				temp->cursor_color.R = w->cursor_color.R;
-				temp->cursor_color.G = w->cursor_color.G;
-				temp->cursor_color.B = w->cursor_color.B;
-				temp->cursor_color.A = w->cursor_color.A;
+				if (w->text_color) temp->text_color = w->text_color;
+				else temp->text_color = &DEFAULT_TEXT_COLOR;	
+				if (w->cursor_color) temp->cursor_color = w->cursor_color;
+				else temp->cursor_color = &DEFAULT_CURSOR_COLOR;
 				/*
 				 * other settings are not used in this kind of window
 				 * so we don't bother copying them...
@@ -460,18 +454,15 @@ int add_window_to_list(window_t *w)
 	aux->polltime         = w->polltime;
 	aux->text_size        = w->text_size;
 	aux->text_orientation = w->text_orientation;
-	aux->text_color.R     = w->text_color.R;
-	aux->text_color.G     = w->text_color.G;
-	aux->text_color.B     = w->text_color.B;
-	aux->text_color.A     = w->text_color.A;
-	aux->cursor_color.R   = w->cursor_color.R;
-	aux->cursor_color.G   = w->cursor_color.G;
-	aux->cursor_color.B   = w->cursor_color.B;
-	aux->cursor_color.A   = w->cursor_color.A;	
   aux->command          = strdup(w->command);
   aux->content          = strdup(w->content);
 	aux->linkto           = strdup(w->linkto);
   aux->next             = NULL;
+	if (w->text_color) aux->text_color = w->text_color;
+	else aux->text_color = &DEFAULT_TEXT_COLOR;	
+	if (w->cursor_color) aux->cursor_color = w->cursor_color;
+	else aux->cursor_color = &DEFAULT_CURSOR_COLOR;
+
 	restore_default_contents(w);
 
   return 1;

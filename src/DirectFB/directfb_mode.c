@@ -806,11 +806,11 @@ int create_windows()
 		switch (window->type)
 		{
 		case LOGIN:
-			username = TextBox_Create(layer, font, &(window->text_color), &(window->cursor_color), &window_desc);
+			username = TextBox_Create(layer, font, window->text_color, window->cursor_color, &window_desc);
 			if (!username) return 0;
 			break;
 		case PASSWORD:
-			password = TextBox_Create(layer, font, &(window->text_color), &(window->cursor_color), &window_desc);
+			password = TextBox_Create(layer, font, window->text_color, window->cursor_color, &window_desc);
 			if (!password) return 0;
 			break;
 		case LABEL:
@@ -827,7 +827,7 @@ int create_windows()
 				labels->next = (Label_list *) calloc(1, sizeof(Label_list));
 				labels = labels->next;
 			}
-			labels->label = Label_Create(layer, font, &(window->text_color), &window_desc);
+			labels->label = Label_Create(layer, font, window->text_color, &window_desc);
 			if (!labels->label) return 0;
 			labels->next = NULL;
 			if (window->content)
@@ -897,7 +897,7 @@ int create_windows()
 		case COMBO:
 			if (window->type == COMBO && !strcmp(window->command, "sessions"))
 			{
-				session = ComboBox_Create(layer, font, &(window->text_color), &window_desc);
+				session = ComboBox_Create(layer, font, window->text_color, &window_desc);
 				if (!session) return 0;
 			}
 			break;

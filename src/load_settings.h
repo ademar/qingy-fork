@@ -142,8 +142,8 @@ typedef struct _window
   int polltime;
 	text_size_t text_size;
 	text_orient_t text_orientation;
-	color_t text_color;
-	color_t cursor_color;
+	color_t *text_color;
+	color_t *cursor_color;
   window_types_t type;
   char *command;
   char *content;
