@@ -49,7 +49,10 @@ Free Documentation License".
 @menu
 * Introduction::                
 * Fetching qingy::              
+* Configuration ::              
 * Copying Qingy::               
+* Copying::
+* GNU Free Documentation License::
 * Index::                       
 
 @detailmenu
@@ -59,10 +62,14 @@ Fetching qingy
 
 * Installing from the tarball::  
 
+Configuration 
+
+* Line options::                
+
 @end detailmenu
 @end menu
 
-@node  Introduction, , Top, Top
+@node  Introduction, Fetching qingy, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Introduction
 
@@ -79,7 +86,7 @@ happens with the various *DMs. Also, it has some nice features, such
 as text sessions as well as X sessions, a screensaver, themes to
 customize it totally and much much more.
 
-@node  Fetching qingy, Copying Qingy, Introduction, Top
+@node  Fetching qingy, Configuration , Introduction, Top
 @chapter Fetching qingy
 
 You can download the latest stable version of Qingy from SourceForge
@@ -116,9 +123,9 @@ first entry in /etc/fb.modes.
 Fetch the tarball and compile it more or less as any Linux package:
 @enumerate
 @item
-@kbd{tar -xvzf qingy-@val{VERSION}.tar.gz}
+@kbd{tar -xvzf qingy-@value{VERSION}.tar.gz}
 @item
-@kbd{cd qingy-@val{VERSION}}
+@kbd{cd qingy-@value{VERSION}}
 @item
 @kbd{./configure}
 @item
@@ -131,10 +138,132 @@ After that, you should check @file{/etc/directfbrc.qingy} (which
 should have been created by Qingy itself). It should have this line in it:
 @code{mode=1024x768} (change this with the actual value you got from fbset).
 If for some reason you don't have such file or it does contain the
-wrong stuff, please correct this manually.}
+wrong stuff, please correct this manually.
+
+Finally, you should change your @file{/etc/inittab} file from something like
+
+@verbatim
+
+#
+# ... more stuff here 
+
+# TERMINALS
+
+c1:12345:respawn:/sbin/agetty 38400 tty1 linux
+c2:12345:respawn:/sbin/agetty 38400 tty2 linux
+c3:12345:respawn:/sbin/agetty 38400 tty3 linux
+c4:12345:respawn:/sbin/agetty 38400 tty4 linux
+c5:12345:respawn:/sbin/agetty 38400 tty5 linux
+c6:12345:respawn:/sbin/agetty 38400 tty6 linux
+
+# and more stuff following ...
+
+# End of /etc/inittab
+@end verbatim
+
+to something like 
+
+@verbatim
+
+#
+# ... more stuff here 
+
+# TERMINALS
+
+c1:12345:respawn:/sbin/qingy tty1  --black-screen-workaround --no-shutdown-screen
+c2:12345:respawn:/sbin/qingy tty2  --black-screen-workaround --no-shutdown-screen
+c3:12345:respawn:/sbin/qingy tty3  --black-screen-workaround --no-shutdown-screen
+c4:12345:respawn:/sbin/agetty 38400 tty4 linux
+
+# and more stuff following ...
+
+# End of /etc/inittab
+@end verbatim
+
+Please note that we left a terminal (tty4) set to the old getty. This
+is because Qingy is still at beta release. Thus, if something goes
+wrong, this way you'll still have a way to login on your system.
+
+Note also that we passed some options to Qingy. @c @xref{Line options}
+, to see what options are available and what they do.
 
 
-@node  Copying Qingy, Index, Fetching qingy, Top
+At this point you're ready to launch Qingy. From a shell prompt type
+@kbd{init Q} and then @kbd{killall -9 agetty} (or whatever getty you
+use). Logout and find Qingy running as the login manager now on the
+terminals you've set for it.
+
+@node  Configuration , Copying Qingy, Fetching qingy, Top
+@comment  node-name,  next,  previous,  up
+@chapter Configuration 
+Qingy is very customizable, making it possible to have almost exactly
+the behaviour you want it to have. Configuration is done site-widely
+and breaks down to basically two aspects: ``What it looks like'', and
+``What happens when I do something''. Of course, you cannot have a
+user-based configuration, as when you have Qingy running, you don't
+know yet which user is sitting in front of it.
+
+Customization is obtained in three different ways: through line
+options, through the @file{/etc/qingy/settings} file and through themes.
+
+@menu
+* Line options::                
+@end menu
+
+@node  Line options,  , Configuration , Configuration
+@comment  node-name,  next,  previous,  up
+@section Line options
+
+When Qingy is called by init, it is passed some options. These options
+change some of Qingy behaviour in different ways. Here is a list of all possible options.
+
+@table 
+@item --fb-device <device>
+	Use <device> as framebuffer device.
+
+@item --hide-password
+	Do not show password asterisks.
+
+@item --hide-lastuser
+	Do not display last user name.
+
+@item --disable-lastuser
+	Do not remember last user name.
+
+@item --verbose
+	Display some diagnostic messages on stderr.
+
+@item --no-shutdown-screen
+	Close DirectFB mode before shutting down.
+	This way you will see system shutdown messages.
+
+@item --screensaver <timeout>
+	Activate screensaver after <timeout> minutes (default is 5).
+	A value of 0 disables screensaver completely.
+
+@item --black-screen-workaround
+	Try this if you get a black screen instead of a text console.
+	Note: switching to another vt and back also solves the problem.
+
+@end table
+
+@include Settings.texi
+
+@include Themes.texi
+
+@node 
+@comment  node-name,  next,  previous,  up
+@chapter Using Qingy
+
+Qingy has a very intuitive interface, so you should be able to use it
+properly since the first time.
+
+On your screen, you might have different widgets, due to theme and
+configuration, but what you will always find are the login field, the
+password field and the Sessions box. In the text fields, you can edit
+normally using your keyboard. Arrows will move in the text.
+
+@node  Copying Qingy, Index, Configuration , Top
 @comment  node-name,  next,  previous,  up
 @appendix Copying This Manual and Qingy
 
@@ -142,9 +271,8 @@ Qingy is Free Software. That means that you can freely use, copy,
 modify Qingy. You don't even have to tell us if you do so. But if you
 do, you have to let others have the same rights you do. For this
 reason, Qingy comes under the GNU General Public
-License. @xref{Copying}, for a copy of this
-License. You should read the license before you do anything with
-Qingy.
+License. @xref{Copying}, for a copy of this License. You should read
+the license before you do anything with Qingy.
 
 Free Software needs Free Documentation. This is a Free manual.
 

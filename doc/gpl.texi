@@ -1,4 +1,4 @@
-@node Copying
+@node Copying, GNU Free Documentation License, Top, Top
 @unnumbered GNU GENERAL PUBLIC LICENSE
 @center Version 2, June 1991
 
