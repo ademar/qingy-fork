@@ -1,3 +1,9 @@
+2005-03-11  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/main.c (start_up):
+	Pass user authentication data between main qingy and its gui
+	trough a securely created temp file instead of a pipe...
+
 2005-03-10  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/DirectFB/objects/combobox.c,

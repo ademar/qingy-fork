@@ -2,8 +2,8 @@
                            main.c  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003,2004 by Noberasco Michele
-    e-mail               : noberasco.gnu@disi.unige.it
+    copyright            : (C) 2003-2005 by Noberasco Michele
+    e-mail               : s4t4n@gentoo.org
 ***************************************************************************/
 
 /***************************************************************************
@@ -51,6 +51,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "memmgmt.h"
 #include "vt.h"
@@ -65,13 +67,13 @@ char *autologin_filename = NULL;
 
 void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 {
-	FILE *fp;
-  int i, returnstatus = QINGY_FAILURE;
-	char *interface  = NULL;
-	char *username   = NULL;
-	char *password   = NULL;
-	char *session    = NULL;
-	size_t len = 0;
+  int      i,j;
+	int      returnstatus = QINGY_FAILURE;
+	char   **gui_argv     = NULL;
+	char    *username     = NULL;
+	char    *password     = NULL;
+	char    *session      = NULL;
+	size_t  len           = 0;
 
   /* We clear the screen */
   ClearScreen();
@@ -90,25 +92,90 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		if (!silent && resolution) fprintf(stderr, "framebuffer resolution is '%s'.\n", resolution);
 
 		/* Set up command line for our interface */
-		interface = StrApp((char**)NULL, DFB_INTERFACE, (char*)NULL);
-		for (i=1; i<argc; i++)
-			StrApp(&interface, " ", argv[i], (char*)NULL);
-		StrApp(&interface, " --dfb:vt-switch,no-vt-switching,bg-none", (char*)NULL);
-		if (silent)     StrApp(&interface, ",quiet", (char*)NULL);
-		if (fb_device)  StrApp(&interface, ",fbdev=", fb_device,  (char*)NULL);
-		if (resolution) StrApp(&interface, ",mode=",  resolution, (char*)NULL);
-		if (resolution) free(resolution);
-		if (fb_device)  free(fb_device);
+		gui_argv = (char **) calloc(argc+2, sizeof(char *));
+		gui_argv[0] = DFB_INTERFACE;
+		for (j=1; j<argc; j++)
+			gui_argv[j] = argv[j];
+
+		gui_argv[++j] = StrApp((char**)NULL, "--dfb:vt-switch,no-vt-switching,bg-none", (char*)NULL);
+		if (silent) StrApp(&(gui_argv[j]), ",quiet", (char*)NULL);
+		if (fb_device)
+		{
+			StrApp(&(gui_argv[j]), ",fbdev=", fb_device,  (char*)NULL);
+			free(fb_device);
+		}
+		if (resolution)
+		{
+			StrApp(&(gui_argv[j]), ",mode=",  resolution, (char*)NULL);
+			free(resolution);
+		}
+		gui_argv[++j] = NULL;
 
 		/* let's go! */
 		for (i=0; i<=retries; i++)
-		{
-			fp = popen(interface, "r");
+		{ /* let's create a unique file name to communicate with our GUI */
+			char  *comm_file_name = StrApp((char**)NULL, TMP_FILE_DIR, "/", "qingyXXXXXX", (char*)NULL);
+			int    fd;
+			FILE  *fp;
+			pid_t  pid;
+			
+			fd = mkstemp(comm_file_name);
+			if (fd == -1)
+			{
+				fprintf(stderr, "%s: fatal error: could not create temporary file!\n", argv[0]);
+				abort();
+			}
+
+			/* set file mode to 600 */
+			if (chmod(comm_file_name, S_IRUSR|S_IWUSR))
+			{
+				fprintf(stderr, "%s: fatal error: cannot chmod() file '%s'!\n", argv[0], comm_file_name);
+				abort();
+			}
+
+			/* open our file for reading */
+			fp = fdopen(fd, "r");
+			if (!fp)
+			{
+				fprintf(stderr, "%s: fatal error: unable to open temporary file '%s'!\n", argv[0], comm_file_name);
+				abort();
+			}
+
+			/* let's spawn a child, that will fire up our GUI and make it write to our temp file */
+			pid = fork();
+
+			switch ((int)pid)
+			{
+				case -1:
+					fprintf(stderr, "%s: fatal error: fork() failed!\n", argv[0]);
+					abort();
+				case 0:  /* child */
+					/* let's redirect stdout to our comm file */
+					if (!freopen(comm_file_name, "w", stdout))
+					{
+						fprintf(stderr, "%s: fatal error: unable to redirect standard output!\n", argv[0]);
+						exit(EXIT_FAILURE);
+					}
+					/* remove comm file so that noone will tamper */
+					unlink(comm_file_name);
+					/* OK, let's fire up the GUI */
+					execve(gui_argv[0], gui_argv, NULL);
+					/* we should never get here unless the execve failed */
+					fprintf(stderr, "%s: fatal error: unable to execute %s!\n", argv[0], gui_argv[0]);
+					exit(EXIT_FAILURE);
+				default: /* parent */
+					/* we wait for our child to exit */
+					waitpid(pid, &returnstatus, 0);
+					break;
+			}
+
 			if (getline(&username, &len, fp) == -1) username = NULL; len = 0;
 			if (getline(&password, &len, fp) == -1) password = NULL; len = 0;
 			if (getline(&session,  &len, fp) == -1) session  = NULL; len = 0;
 
-			returnstatus = pclose(fp);
+			fclose(fp);
+			free(comm_file_name);
+
 			if (WIFEXITED(returnstatus))
 				returnstatus = WEXITSTATUS(returnstatus);
 			else
@@ -125,7 +192,9 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 			if (i == retries) returnstatus = EXIT_TEXT_MODE;
 			else sleep(1);
 		}
-		free(interface);
+
+		free(gui_argv[--j]);
+		free(gui_argv);
 
 		/* remove trailing newlines from these values */
 		if (username) username[strlen(username) - 1] = '\0';

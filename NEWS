@@ -10,6 +10,7 @@ qingy CVS-0.6.0-CVS:
   they look the same on all resolutions.
 - Added two new font sizes that can be used in theme files:
   'smaller' and 'tiny'.
+- Other small fixes and clean-ups.
 
 
 qingy 0.5.3 (11 January 2005):

@@ -112,7 +112,7 @@ void ComboBox_SelectItem(ComboBox *thiz, item *selection)
 
 void ComboBox_Click(ComboBox *thiz)
 {
-	char *text     = "Not implemented, yet...";
+	char *text = "Not implemented, yet...";
 	char *old_text;
 
   if (!thiz) return;
