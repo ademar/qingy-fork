@@ -1,12 +1,12 @@
 SUBDIRS = media src doc
 
 EXTRA_DIST =					\
-		AUTHORS						\
-		COPYING						\
+		AUTHORS				\
+		COPYING				\
 		HOWTO_THEMES			\
-		INSTALL						\
-		NEWS							\
-		README						\
-		TODO							\
-		ChangeLog					\
+		INSTALL				\
+		NEWS				\
+		README				\
+		TODO				\
+		ChangeLog			\
 		ChangeLog.paolino
