@@ -400,7 +400,7 @@ char *shell_base_name(char *name)
   return StrApp((char**)NULL, "-", base, (char*)NULL);
 }
 
-void setEnvironment(struct passwd *pwd)
+void setEnvironment(struct passwd *pwd, int is_x_session)
 {
 #ifdef USE_PAM
 	int    i;
@@ -450,6 +450,10 @@ void setEnvironment(struct passwd *pwd)
 		for (i = 0; env[i++];)
 			putenv (env[i - 1]);
 #endif
+
+	/* We unset DISPLAY if this is not an X session... */
+	if (!is_x_session)
+		unsetenv("DISPLAY");
 }
 
 void restore_tty_ownership(void)
@@ -461,7 +465,7 @@ void restore_tty_ownership(void)
   free(our_tty_name);
 }
 
-void switchUser(struct passwd *pwd)
+void switchUser(struct passwd *pwd, int is_x_session)
 {
   char *our_tty_name = create_tty_name(current_vt);
   
@@ -482,7 +486,7 @@ void switchUser(struct passwd *pwd)
 	}
   
   /* Set enviroment variables */
-  setEnvironment(pwd);
+  setEnvironment(pwd, is_x_session);
 }
 
 /* write login entry to /var/log/lastlog */
@@ -614,7 +618,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 #endif
       
     /* drop root privileges and set user enviroment */
-		switchUser(pw);
+		switchUser(pw, 0);
       
 		/* let's start the shell! */
 		execve(pw->pw_shell, args, environ);
@@ -750,7 +754,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 #endif
       
 		/* drop root privileges and set user enviroment */
-		switchUser(pw);
+		switchUser(pw, 1);
       
 		/* start X server and selected session! */
 		execve(pw->pw_shell, args, environ);
