@@ -81,6 +81,10 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		/* parse settings file again, it may have been changed in the mean while */
 		load_settings();
 
+		/* display native theme resolution */
+		if (!silent)
+			fprintf(stderr, "Native theme resolution is '%dx%d'\n", THEME_XRES, THEME_YRES);
+
 		/* get resolution of console framebuffer */
 		if (!resolution) resolution = get_fb_resolution( (fb_device) ? fb_device : "/dev/fb0" );
 		if (!silent && resolution) fprintf(stderr, "framebuffer resolution is '%s'.\n", resolution);
@@ -111,7 +115,12 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 				returnstatus = QINGY_FAILURE;
 
 			if (returnstatus != QINGY_FAILURE) break;
-			if (username && password && session) break;
+
+			if (username && password && session)
+			{ /* we failed, yet we suceeded, weird eh? */
+				returnstatus = EXIT_SUCCESS;
+				break;
+			}
 
 			if (i == retries) returnstatus = TEXT_MODE;
 			else sleep(1);

@@ -47,6 +47,7 @@
 	 '("\\(x\\(?:_sessions\\|_args\\|init\\|_server\\)\\)" . font-lock-variable-name-face)
    '("\\(t\\(?:hemes_dir\\|ext_sessions\\|emp_files_dir\\)\\)" . font-lock-variable-name-face)
    '("\\(c\\(?:lear_background\\)\\|l\\(?:ock_sessions\\)\\|s\\(?:creensavers_dir\\|creensaver\\|hutdown_policy\\|ession\\)\\)" . font-lock-variable-name-face)
+	 '("\\(n\\(?:ative_resolution\\)\\)" . font-lock-variable-name-face)
 	 '("\\(p\\(?:assword\\)\\)" . font-lock-variable-name-face)
 	 '("\\(q\\(?:ingy_DirectFB\\)\\)" . font-lock-variable-name-face)
 	 '("\\(r\\(?:elogin\\)\\)" . font-lock-variable-name-face)

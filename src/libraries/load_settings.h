@@ -83,6 +83,14 @@ int SELECTED_WINDOW_OPACITY;
 int THEME_WIDTH;
 int THEME_HEIGHT;
 
+/*
+ * this is the native resolution of the theme, i.e. the resolution
+ * the theme was designed for, and we should scale only if our
+ * current resolution is different from this one
+ */
+int THEME_XRES;
+int THEME_YRES;
+
 /* colors */
 typedef struct
 {

@@ -104,6 +104,7 @@ text_sessions           return TXTSESSION_DIR_TOK;
 xinit                   return XINIT_TOK;
 x_server                return X_SERVER_TOK;
 theme                   return THEME_TOK;
+native_resolution       return THEME_RES_TOK;
 random                  return RAND_TOK;
 default_text_color      return DEFAULT_TXT_COL_TOK;
 default_cursor_color    return DEFAULT_CUR_COL_TOK;

@@ -1,3 +1,24 @@
+2005-02-04  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/main.c (start_up):
+	Fix a rather obscure bug in which login could fail even if username
+	and password were correct...
+
+	* media/qingy-mode.el,
+	* src/libraries/load_settings.h,
+	* src/libraries/load_settings.c (initialize_variables),
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l,
+	* media/default/theme: 
+	Began support for specifying a theme native resolution.
+	This is the native resolution of the theme, i.e. the resolution the theme
+	was designed for. If qingy detects a running resolution different than this
+	one, it will (try to) scale things so that they will look the same across
+	all resolutions. If this is omitted, qingy will default to 800x600 to
+	maintain compatibility with older themes...
+	Usage: in theme file, specify something like
+	native_resolution = 800x600
+
 2004-12-24  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/libraries/misc.c (PrintUsage):
@@ -21,6 +42,7 @@
 	* src/main.c (start_up):
 	Fall back to text mode if login fails, instead of defaulting
 	to the 'brains went pop' option ;-)
+	Sigh, this means that my brains HAVE gone pop!
 
 2004-11-28  Noberasco Michele  <s4t4n@gentoo.org>
 

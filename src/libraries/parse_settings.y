@@ -91,7 +91,7 @@ static window_t wind =
 %token DEFAULT_TXT_COL_TOK DEFAULT_CUR_COL_TOK OTHER_TXT_COL_TOK 		     
 
 /* other theme lvals */
-%token BG_TOK FONT_TOK BUTTON_OPAC_TOK WIN_OP_TOK SEL_WIN_OP_TOK 			     
+%token BG_TOK FONT_TOK BUTTON_OPAC_TOK WIN_OP_TOK SEL_WIN_OP_TOK THEME_RES_TOK
 
 /* shutdown policies */
 %token EVERYONE_TOK ONLY_ROOT_TOK NO_ONE_TOK
@@ -316,6 +316,7 @@ themedefn: /* nothing */
 | themedefn colorprop
 | themedefn CLEAR_BACKGROUND_TOK '=' YES_TOK { TTY_CHECK_COND {clear_background = 1; clear_background_is_set = 1;} }
 | themedefn CLEAR_BACKGROUND_TOK '=' NO_TOK  { TTY_CHECK_COND {clear_background = 0; clear_background_is_set = 1;} }
+| themedefn resolutionprop
 ;
 
 /* color assignments */
@@ -366,6 +367,23 @@ colorprop: DEFAULT_TXT_COL_TOK '=' COLOR_T
 		{
 			OTHER_TEXT_COLOR.R = $3; OTHER_TEXT_COLOR.G= $5; 
 			OTHER_TEXT_COLOR.B = $7; OTHER_TEXT_COLOR.A= $9;
+		}
+	}
+;
+
+/* native theme resolution */
+resolutionprop: THEME_RES_TOK '=' ANUM_T 'x' ANUM_T
+	{
+		TTY_CHECK_COND
+		{
+			THEME_XRES = $3; THEME_YRES = $5;
+		}
+	}
+| THEME_RES_TOK '=' ANUM_T 'X' ANUM_T
+	{
+		TTY_CHECK_COND
+		{
+			THEME_XRES = $3; THEME_YRES = $5;
 		}
 	}
 ;

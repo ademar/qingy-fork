@@ -110,6 +110,8 @@ void initialize_variables(void)
 	GOT_THEME               = 0;
 	lock_sessions           = 0;
 	retries                 = 0;
+	THEME_XRES              = 800;
+	THEME_YRES              = 600;
 #ifdef USE_SCREEN_SAVERS
 	screensaver_timeout     = 5;
 	use_screensaver         = 1;

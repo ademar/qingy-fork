@@ -20,6 +20,13 @@ theme
 # wether we should clear background image during dialogs
 # (default is no, unless you set it differently in qingy config file)...
 	clear_background = yes
+
+# this is the native resolution of the theme, i.e. the resolution the theme
+# was designed for. If qingy detects a running resolution different than this
+# one, it will (try to) scale things so that they will look the same across
+# all resolutions. If this is omitted, qingy will default to 800x600 to
+# maintain compatibility with older themes...
+	native_resolution = 800x600
 }
 
 window
