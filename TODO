@@ -10,6 +10,8 @@
 - Make key bindings customizable
 * Make buttons use own pixmaps alpha channel for
   transparency instead of black...
-- Make screensavers shared modules automagically loadable
+* Make screensavers shared modules automagically loadable
+- Make applets possible...A mix of shared modules and window managing
+  :P
 
 Items marked as * are those we are currently working on...
