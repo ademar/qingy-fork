@@ -49,6 +49,17 @@
 - $$$ (huge but interesting blurb)
 
 - Add support for asking for a password after a given idle timeout.
+  (note: look at 'who' source code to see how it gets idle times)
+
+- Add some sort of autologin support:
+  - you boot your machine, qingy autologins
+    lastuser,lastsession (or user/session specified
+    via config file)
+  - when you exit from this session, qingy appears
+    with its normal behaviour.
+  But configurable ;-P
+
+- Name theme tarball a bit better
 
 --
 Items marked as * are those we are currently working on.

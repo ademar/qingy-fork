@@ -192,7 +192,8 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 # End check for distribution
 
 # Let's create /etc/qingy/settings config file
-	AC_PATH_PROG([XINIT], [xinit], [/usr/X11R6/bin/xinit], [$PATH:/usr/X11R6/bin:/usr/bin/X11:/usr/bin:/usr/local/bin])
+	AC_PATH_PROG([XINIT], [xinit],   [/usr/X11R6/bin/xinit],   [$PATH:/usr/X11R6/bin:/usr/bin/X11:/usr/bin:/usr/local/bin])
+	AC_PATH_PROG([XFREE], [XFree86], [/usr/X11R6/bin/XFree86], [$PATH:/usr/X11R6/bin:/usr/bin/X11:/usr/bin:/usr/local/bin])
 	echo -n "Creating config file... "
 	if test -f "media/settings"; then
 		rm media/settings
@@ -207,6 +208,8 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	echo "# Directory containing text mode sessions" >> media/settings
 	echo "text_sessions = \"/etc/qingy/sessions/\"" >> media/settings
 	echo "" >> media/settings
+	echo "# Full path to the X server" >> media/settings
+	echo "# x_server = \"$XFREE\"" >> media/settings
 	echo "# Full path to the 'xinit' executable" >> media/settings
 	echo "xinit = \"$XINIT\"" >> media/settings
 	echo "" >> media/settings

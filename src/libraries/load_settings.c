@@ -74,6 +74,7 @@ void initialize_variables(void)
   THEME_DIR               = NULL;
   LAST_USER               = NULL;
   SETTINGS                = NULL;	
+	X_SERVER                = NULL;
   DATADIR                 = NULL;	
   XINIT                   = NULL;
   FONT                    = NULL;

@@ -690,10 +690,17 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   
   args[0] = shell_base_name(pw->pw_shell);
   args[1] = strdup("-c");
+
+	args[2] = StrApp((char**)NULL, XINIT, " ", (char*)NULL);
   if (!strcmp(session, "Your .xsession"))
-    args[2] = StrApp((char **)NULL, XINIT, " $HOME/.xsession -- :", x_server, " vt", vt, " >& /dev/null", (char*)NULL);
+    args[2] = StrApp(&(args[2]), "$HOME/.xsession -- ", (char*)NULL);
   else
-    args[2] = StrApp((char **)NULL, XINIT, " ", X_SESSIONS_DIRECTORY, session, " -- :", x_server, " vt", vt, " >& /dev/null", (char*)NULL);
+    args[2] = StrApp(&(args[2]), X_SESSIONS_DIRECTORY, session, " -- ", (char*)NULL);
+	if (X_SERVER)
+		args[2] = StrApp(&(args[2]), X_SERVER, " :", x_server, " vt", vt, " >& /dev/null", (char*)NULL);
+	else
+		args[2] = StrApp(&(args[2]), ":", x_server, " vt", vt, " >& /dev/null", (char*)NULL);
+
   args[3] = NULL;
   free(x_server);
   free(vt);

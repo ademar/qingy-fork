@@ -69,7 +69,7 @@ static window_t wind =
 
 /* settings only lvals */
 %token SCREENSAVER_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK 
-%token SHUTDOWN_TOK TTY_TOK SCRSVRS_DIR_TOK THEMES_DIR_TOK
+%token SHUTDOWN_TOK TTY_TOK SCRSVRS_DIR_TOK THEMES_DIR_TOK X_SERVER_TOK
 
 /* windows && theme blocks */
 %token THEME_TOK WINDOW_TOK 
@@ -119,6 +119,7 @@ config: /* nothing */
 | config xsessdir
 | config txtsessdir
 | config xinit
+| config x_server
 | config theme { TTY_CHECK_COND GOT_THEME=set_theme_result; }
 | config shutdown
 | config window
@@ -138,6 +139,7 @@ config_tty: /* nothing */
 | config_tty xsessdir
 | config_tty txtsessdir
 | config_tty xinit
+| config_tty x_server
 | config_tty theme { TTY_CHECK_COND GOT_THEME=set_theme_result; }
 | config_tty shutdown
 | config_tty window
@@ -185,6 +187,13 @@ xinit: XINIT_TOK '=' QUOTSTR_T
 	{
 	  if(in_theme) yyerror("Setting 'xinit' is not allowed in theme file");
 	  TTY_CHECK_COND XINIT = strdup($3);
+	};
+
+/* xinit executable.  Note that it cannot be in theme file..  */
+x_server: X_SERVER_TOK '=' QUOTSTR_T
+	{
+	  if(in_theme) yyerror("Setting 'xinit' is not allowed in theme file");
+	  TTY_CHECK_COND X_SERVER = strdup($3);
 	};
 
 /* shutdown policies */

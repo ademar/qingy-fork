@@ -1,3 +1,19 @@
+2004-03-28  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* configure.in,
+	* src/libraries/session.c (Graph_Login),
+	* src/libraries/load_settings.c (initialize_variables),
+	* src/libraries/load_settings.h,
+	* src/libraries/scan_settings.l,
+	* src/libraries/parse_settings.y:
+	Added support for choosing an X server in settings file
+
+	* src/main.c (get_resolution, ParseCMDLine, start_up)
+	(PrintUsage): 
+	New command line argument: '--resolution <xres>x<yres>'.
+	Use this if qingy fails to properly detect your framebuffer
+	resolution.
+
 2004-03-24  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* configure.in:

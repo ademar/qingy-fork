@@ -1,3 +1,14 @@
+qingy CVS:
+- New command line argument: '--resolution <xres>x<yres>'.
+  Use it if qingy fails to properly detect your framebuffer
+  resolution.
+- Added support for choosing your favourite X server in settings file
+- Fixed theme loading code, now qingy should not crash any more...
+- Made sure that if qingy dies horribly during initialization,
+  it does it with tty switching enabled so that user is not
+  stuck in front of a 'respawning too fast' message...
+
+
 qingy 0.4.0 (18 March 2004):
 - Properly detect framebuffer resolution on qingy startup,
   instead of using directfbrc.qingy, which is no longer necessary:

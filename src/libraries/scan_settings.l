@@ -98,6 +98,7 @@ screensaver             return SCREENSAVER_TOK;
 x_sessions              return XSESSION_DIR_TOK;
 text_sessions           return TXTSESSION_DIR_TOK;
 xinit                   return XINIT_TOK;
+x_server                return X_SERVER_TOK;
 theme                   return THEME_TOK;
 random                  return RAND_TOK;
 default_text_color      return DEFAULT_TXT_COL_TOK;

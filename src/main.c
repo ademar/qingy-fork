@@ -61,7 +61,8 @@
 	}
 
 
-char *fb_device = NULL;
+char *fb_device  = NULL;
+char *resolution = NULL;
 
 
 
@@ -89,6 +90,8 @@ void PrintUsage()
   printf("\t-b, --black-screen-workaround\n");
   printf("\tTry this if you get a black screen instead of a text console.\n");
   printf("\tNote: switching to another vt and back also solves the problem.\n\n");
+	printf("\t-r <xres>x<yres>, --resolution <xres>x<yres>\n");
+	printf("\tDo not detect framebuffer resolution, use this one instead.\n\n");
 }
 
 void text_mode()
@@ -130,14 +133,13 @@ void start_up(void)
 {
   int returnstatus;
   int argc = 2;
-	char *resolution;
   char *argv[3];
 
   /* We clear the screen */
   ClearScreen();
 
 	/* get resolution of console framebuffer */
-	resolution = get_fb_resolution( (fb_device) ? fb_device : "/dev/fb0" );
+	if (!resolution) resolution = get_fb_resolution( (fb_device) ? fb_device : "/dev/fb0" );
 	if (!silent && resolution) fprintf(stderr, "framebuffer resolution is '%s'.\n", resolution);
   
   /* Set up some stuff */
@@ -186,11 +188,45 @@ void start_up(void)
   exit(EXIT_FAILURE);
 }
 
+char *get_resolution(char *resolution)
+{
+	char *result;
+	char *temp;
+	char *temp2;
+	int   width  = 0;
+	int   height = 0;
+	int  *value  = &width;
+
+	if (!resolution) return NULL;
+	for(temp = resolution; (int)*temp; temp++)
+		switch (*temp)
+		{
+			case 'x': case 'X':
+				if (!width) return NULL;
+				if (value == &height) return NULL;
+				value = &height;
+				break;
+			default:
+				if ((*temp) > '9' || (*temp) < '0') return NULL;
+				(*value) *= 10;
+				(*value) += (int)(*temp) - (int)'0';
+		}
+	if (!width)  return NULL;
+	if (!height) return NULL;
+
+	temp   = int_to_str(width);
+	temp2  = int_to_str(height);
+	result = StrApp((char**)NULL, temp, "x", temp2, (char*)NULL);
+	free(temp); free(temp2);
+
+	return result;
+}
+
 int ParseCMDLine(int argc, char *argv[])
 {
 	extern char *optarg;
 	extern int optind, opterr, optopt;
-	const char optstring[] = "f:pldvns:b";
+	const char optstring[] = "f:pldvns:br";
 	const struct option longopts[] =
 	{
 		{"fb-device",               required_argument, NULL, 'f'},
@@ -201,6 +237,7 @@ int ParseCMDLine(int argc, char *argv[])
 		{"no-shutdown-screen",      no_argument,       NULL, 'n'},
 		{"screensaver",             required_argument, NULL, 's'},
 		{"black-screen-workaround", no_argument,       NULL, 'b'},
+		{"resolution",              required_argument, NULL, 'r'},
 		{0, 0, 0, 0}
 	};
   char *tty;
@@ -259,6 +296,9 @@ int ParseCMDLine(int argc, char *argv[])
 			}
 			case 'b': /* black-screen-workaround */
 				black_screen_workaround = 1;
+				break;
+			case 'r': /* use this framebuffer resolution */
+				resolution = get_resolution(optarg);
 				break;
 			default:
 				Switch_TTY;
