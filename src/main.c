@@ -74,6 +74,9 @@ void Error()
   printf("\t--black-screen-workaround\n");
   printf("\tTry this if you get a black screen instead of a text console.\n");
   printf("\tNote: switching to another vt and back also solves the problem.\n\n");
+
+	/* We reenable VT switching if it is disabled */
+	unlock_tty_switching();
   
   exit(EXIT_FAILURE);
 }

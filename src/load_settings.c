@@ -51,6 +51,7 @@
 
 #include "load_settings.h"
 #include "misc.h"
+#include "chvt.h"
 
 char *DEFAULT_THEME;
 
@@ -539,6 +540,9 @@ int set_last_session(char *user, char *session)
 
 void my_exit(int n)
 {
+	/* We reenable VT switching if it is disabled */
+	unlock_tty_switching();
+
   free_stuff(8, DATADIR, SETTINGS, LAST_USER, TEXT_SESSIONS_DIRECTORY, X_SESSIONS_DIRECTORY, XINIT, FONT, BACKGROUND, THEME_DIR);
   exit(n);
 }
