@@ -34,7 +34,7 @@
 #include "load_settings.h"
 #include "misc.h"
 
-#define DEFAULT_THEME DATADIR"default/"
+char *DEFAULT_THEME;
 
 int silent = 0;
 
@@ -105,6 +105,18 @@ int load_settings(int be_silent)
 	XSESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;
 	if (be_silent) silent = 1;
 
+	DATADIR = (char *) calloc(12, sizeof(char));
+	strcpy(DATADIR, "/etc/qingy/");
+	SETTINGS = (char *) calloc(9+strlen(DATADIR), sizeof(char));
+	strcpy(SETTINGS, DATADIR);
+	strcat(SETTINGS, "settings");
+	LAST_USER = (char *) calloc(9+strlen(DATADIR), sizeof(char));
+	strcpy(LAST_USER, DATADIR);
+	strcat(LAST_USER, "lastuser");
+	DEFAULT_THEME = (char *) calloc(9+strlen(DATADIR), sizeof(char));
+	strcpy(DEFAULT_THEME, DATADIR);
+	strcat(DEFAULT_THEME, "default/");
+
 	fp = fopen(SETTINGS, "r");
 	if (!fp)
 	{
@@ -113,6 +125,7 @@ int load_settings(int be_silent)
 		set_default_xinit();
 		set_default_font();
 		set_default_colors();
+		free(DEFAULT_THEME); DEFAULT_THEME = NULL;
 		return 0;
 	}
 	while (fscanf(fp, "%s", tmp) != EOF)
@@ -163,6 +176,7 @@ int load_settings(int be_silent)
 		{
 			error("settings");
 			fclose(fp);
+			free(DEFAULT_THEME); DEFAULT_THEME = NULL;
 			return 0;
 		}
 	}
@@ -184,6 +198,7 @@ int load_settings(int be_silent)
 	{
 		if (!silent) fprintf(stderr, "load_settings: selected theme does not exist. Using internal defaults\n");
 		error("");
+		free(DEFAULT_THEME); DEFAULT_THEME = NULL;
 		return 0;
 	}
 
@@ -280,12 +295,14 @@ int load_settings(int be_silent)
 		{
 			error("theme");
 			fclose(fp);
+			free(DEFAULT_THEME); DEFAULT_THEME = NULL;
 			return 0;
 		}
 	}
 	fclose(fp);
 
 	if (FONT == NULL) set_default_font();
+	free(DEFAULT_THEME); DEFAULT_THEME = NULL;
 
 	return 1;
 }
@@ -369,4 +386,10 @@ int set_last_session(char *user, char *session)
 	fclose(fp);
 
 	return 1;
+}
+
+void my_exit(int n)
+{
+	free_stuff(8, DATADIR, SETTINGS, LAST_USER, XSESSIONS_DIRECTORY, XINIT, FONT, BACKGROUND, THEME_DIR);
+	exit(n);
 }

@@ -29,12 +29,14 @@
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
 #include <sys/types.h>
 
 #include "misc.h"
+
 
 int log10(int n)
 {
@@ -90,16 +92,6 @@ int start_gpm(void)
 	return 0;
 }
 
-char *stringCombine(const char* str1, const char* str2)
-{
-   char* buffer;
-
-   buffer = (char *) calloc(strlen(str1) + strlen(str2) + 1, sizeof(char));
-   strcpy(buffer, str1);
-   strcat(buffer, str2);
-   return buffer;
-}
-
 void ClearScreen(void)
 {
 	system("/usr/bin/clear 2>/dev/null");
@@ -150,49 +142,64 @@ char *print_welcome_message(char *preamble, char *postamble)
 	return text;
 }
 
-#ifdef USE_PAM
-#include <stdarg.h>
-/* append any number of strings to dst */
-int StrApp (char **dst, ...)
+/* free any number of malloced strings */
+void free_stuff(int n, ...)
 {
-	int len;
-	char *bk, *pt, *dp;
 	va_list va;
+	char *pt;
 
-	len = 1;
-	if (*dst) len += strlen(*dst);
-	va_start (va, dst);
-	for (;;)
+	va_start(va, n);
+	for (; n>0 ; n--)
 	{
-		pt = va_arg (va, char *);
-		if (!pt) break;
-		len += strlen (pt);
+		pt = va_arg(va, char *);
+		if (pt)
+		{
+			memset((char *)pt, 0, strlen(pt)*sizeof(char));
+			free(pt);
+			pt = NULL;
+		}
 	}
-	va_end (va);
-	if (!(bk = malloc (len))) return 0;
-	dp = bk;
-	if (*dst)
-	{
-		len = strlen(*dst);
-		memcpy (dp, *dst, len);
-		dp += len;
-		free(*dst);
-	}
-	va_start (va, dst);
-	for (;;)
-	{
-		pt = va_arg (va, char *);
-		if (!pt) break;
-		len = strlen(pt);
-		memcpy (dp, pt, len);
-		dp += len;
-	}
-	va_end (va);
-	*dp = '\0';
-	*dst = bk;
-	return 1;
+	va_end(va);
 }
 
+/* append any number of strings to dst */
+char *StrApp (char **dst, ...)
+{
+	int len = 1;
+	char *pt, *temp;
+	va_list va;
+
+	if (dst) if (*dst) len += strlen(*dst);
+	va_start(va, dst);
+	for (;;)
+	{
+		pt = va_arg(va, char *);
+		if (!pt) break;
+		len += strlen(pt);
+	}
+	va_end (va);
+	temp = (char *) calloc(len, sizeof(char));
+	if (!temp) return NULL;
+	if (dst) if (*dst)
+	{
+		strcpy(temp, *dst);
+		free(*dst);
+	}
+	va_start(va, dst);
+	for (;;)
+	{
+		pt = va_arg(va, char *);
+		if (!pt) break;
+		strcat(temp, pt);
+	}
+	va_end (va);
+	temp[len-1] = '\0';
+
+	if (dst) *dst = temp;
+	return temp;
+}
+
+#ifdef USE_PAM
 int StrDup (char **dst, const char *src)
 {
 	if (src)
@@ -206,14 +213,5 @@ int StrDup (char **dst, const char *src)
 	else *dst = 0;
 
 	return 1;
-}
-
-void WipeStr (char *str)
-{
-	if (str)
-	{
-		memset((char *)str, 0, strlen(str));
-		free (str);
-	}
 }
 #endif

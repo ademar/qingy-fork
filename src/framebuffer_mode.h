@@ -27,8 +27,8 @@
 
 
 /* constants that we make use of */
-#define TEXT_MODE -2
-#define REDRAW      55555
+#define TEXT_MODE    -2
+#define REDRAW    55555
 
 int silent;
 

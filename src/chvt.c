@@ -35,6 +35,7 @@
 #include <sys/ioctl.h>
 
 #include "misc.h"
+#include "chvt.h"
 
 static int is_a_console(int fd)
 {
@@ -79,16 +80,6 @@ int getfd()
   fprintf(stderr, "Couldnt get a file descriptor referring to the console\n");
 
 	return -1;	/* total failure */
-}
-
-char *create_tty_name(int tty)
-{
-	char *ttyname = (char *) calloc(11+log10(tty), sizeof(char));
-	if (ttyname == NULL) return 0;
-	strcpy(ttyname, "/dev/tty");
-	strcat(ttyname, int_to_str(tty));
-
-	return ttyname;
 }
 
 int switch_to_tty(int tty)

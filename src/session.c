@@ -151,8 +151,8 @@ extern char **environ;
 					case PAM_PROMPT_ECHO_ON:
 						free(reply[count].resp);
 						break;
-					case PAM_PROMPT_ECHO_OFF:
-						WipeStr(reply[count].resp);
+					case PAM_PROMPT_ECHO_OFF:						
+						free_stuff(1, reply[count].resp);
 						break;
 				}
 				reply[count].resp = 0;
@@ -246,7 +246,7 @@ int check_password(char *username, char *user_password)
 	char *password;
 #ifdef USE_PAM
 	int retcode;
-	char ttyname[11];
+	char *ttyname;
 #else
 	char*  correct;
 #ifdef HAVE_LIBCRYPT
@@ -277,8 +277,8 @@ int check_password(char *username, char *user_password)
 
 #ifdef USE_PAM
 	PAM_password = (char *)password;
-	strcpy(ttyname, "/dev/tty");
-	strcat(ttyname, int_to_str(get_active_tty()));
+	ttyname = create_tty_name(get_active_tty());
+
 	if (pam_start("qingy", username, &PAM_conversation, &pamh) != PAM_SUCCESS)
 	{
 		LogEvent(pw, PAM_FAILURE);
@@ -377,7 +377,7 @@ char *shell_base_name(char *name)
 
 void setEnvironment(struct passwd *pwd)
 {
-	char *mail;
+	char *mail = StrApp((char**)0, _PATH_MAILDIR, "/", pwd->pw_name, (char*)0);
 
 	environ = (char **) calloc(2, sizeof(char *));
 	environ[0] = 0;
@@ -386,10 +386,6 @@ void setEnvironment(struct passwd *pwd)
 	setenv("SHELL", pwd->pw_shell, 1);
 	setenv("USER", pwd->pw_name, 1);
 	setenv("LOGNAME", pwd->pw_name, 1);
-	mail = (char *) calloc(strlen(_PATH_MAILDIR) + strlen(pwd->pw_name) + 2, sizeof(char));
-	strcpy(mail, _PATH_MAILDIR);
-	strcat(mail, "/");
-	strcat(mail, pwd->pw_name);
 	setenv("MAIL", mail, 1);
 	chdir(pwd->pw_dir);
 }
@@ -400,7 +396,7 @@ void switchUser(struct passwd *pwd)
 	if ((initgroups(pwd->pw_name, pwd->pw_gid) != 0) || (setgid(pwd->pw_gid) != 0) || (setuid(pwd->pw_uid) != 0))
 	{
 		LogEvent(pwd, CANNOT_SWITCH_USER);
-		exit(0);
+		my_exit(0);
 	}
 
 	/* Execute login command */
@@ -460,7 +456,7 @@ void Text_Login(struct passwd *pw, char *username)
 	if (proc_id == -1)
 	{
 		fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
-		exit(0);
+		my_exit(0);
 	}
 	if (!proc_id)
 	{
@@ -486,7 +482,7 @@ void Text_Login(struct passwd *pw, char *username)
 
 		/* execve should never return! */
 		fprintf(stderr, "session: fatal error: cannot start your session!\n");
-		exit(0);
+		my_exit(0);
 	}
 	set_last_user(username);
 	set_last_session(username, "Text Console");
@@ -502,7 +498,7 @@ void Text_Login(struct passwd *pw, char *username)
 	LogEvent(pw, CLOSE_SESSION);
 #endif
 
-	exit(0);
+	my_exit(0);
 }
 
 /* if somebody else, somewhere else, sometime else
@@ -540,7 +536,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	if (proc_id == -1)
 	{
 		fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
-		exit(0);
+		my_exit(0);
 	}
 	if (!proc_id)
 	{
@@ -549,16 +545,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 		args[0] = shell_base_name(pw->pw_shell);
 		args[1] = (char *) calloc(3, sizeof(char));
 		strcpy(args[1], "-c");
-		args[2] = (char *) calloc(MAX, sizeof(char));
-		strcpy(args[2], XINIT);
-		strcat(args[2], " ");
-		strcat(args[2], XSESSIONS_DIRECTORY);
-		strcat(args[2], session);
-		strcat(args[2], " -- :");
-		strcat(args[2], int_to_str(which_X_server()));
-		strcat(args[2], " vt");
-		strcat(args[2], int_to_str(dest_vt));
-		strcat(args[2], ">/dev/null 2>/dev/null");
+		args[2] = StrApp((char **)0, XINIT, " ", XSESSIONS_DIRECTORY, session, " -- :", int_to_str(which_X_server()), " vt", int_to_str(dest_vt), " >/dev/null 2>/dev/null", (char*)0);
 		args[3] = NULL;
 
 		/* write to system logs */
@@ -578,7 +565,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 
 		/* execve should never return! */
 		fprintf(stderr, "session: fatal error: cannot start your session!\n");
-		exit(0);
+		my_exit(0);
 	}
 	set_last_user(username);
 	set_last_session(username, session);
@@ -614,7 +601,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	if (get_active_tty() == dest_vt) set_active_tty(current_vt);
 	free(session);
 
-	exit(0);
+	my_exit(0);
 }
 
 /* Start the session of your choice */
@@ -640,7 +627,7 @@ void start_session(char *username, char *session, int workaround)
 		LogEvent(&pw, UNKNOWN_USER);
 		free(username);
 		free(session);
-		exit(0);
+		my_exit(0);
 	}
 
 	ClearScreen();
@@ -655,7 +642,7 @@ void start_session(char *username, char *session, int workaround)
 		printf("You need to update your authorization token...\n");
 		printf("After that, log out and in again.\n\n");
 		execl("/bin/login", "/bin/login", "--", username, (char *) 0);
-		exit(0);
+		my_exit(0);
 	}
 #endif
 
@@ -668,5 +655,5 @@ void start_session(char *username, char *session, int workaround)
 
 	/* we don't get here unless we couldn't start user session */
 	fprintf(stderr, "Couldn't login user '%s'!\n", username);
-	exit(0);
+	my_exit(0);
 }

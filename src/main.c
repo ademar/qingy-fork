@@ -55,7 +55,7 @@ void Error()
 	printf("\nusage: ginqy <ttyname> [options]\n");
 	printf("Options:\n");
 	printf("\t--silent\n");
-	printf("\tDo not display diagnostic messages on stderr.\n");
+	printf("\tDo not display diagnostic messages on stderr.\n\n");
 	printf("\t--black-screen-workaround\n");
 	printf("\tTry this if you get a black screen instead of a text console.\n");
 	printf("\tNote: switching to another vt and back also solves the problem.\n\n");

@@ -25,6 +25,8 @@
  *                                                                         *
  ***************************************************************************/
 
+
+#define create_tty_name(tty) StrApp((char**)0, "/dev/tty", int_to_str(tty), (char*)0)
  
 /* change stdin, stdout and stderr to a new tty*/
 int switch_to_tty(int tty);

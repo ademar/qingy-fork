@@ -359,7 +359,7 @@ void begin_shutdown_sequence (int action)
 	/* we should never get here unless call to /sbin/shutdown fails */
 	fprintf (stderr, "\nfatal error: unable to exec \"/sbin/shutdown\"!\n");
 	close_framebuffer_mode ();
-	exit (EXIT_FAILURE);
+	my_exit (EXIT_FAILURE);
 }
 
 void handle_mouse_event (DFBInputEvent *evt)
@@ -458,7 +458,7 @@ void start_login_sequence(DFBInputEvent *evt)
 	free(user_name); user_name = NULL;
 	free(user_session); user_session = NULL;
 	fprintf(stderr, "Go tell my creator his brains went pop!\n");
-	exit(0);
+	my_exit(0);
 }
 
 int handle_keyboard_event(DFBInputEvent *evt)
@@ -646,7 +646,7 @@ int framebuffer_mode (int argc, char *argv[], int be_silent, int do_workaround)
 	DFBResult err;              /* the bloody macro uses it to check for errors */
 	DFBSurfaceDescription sdsc; /* description for the primary surface          */
 	DFBInputEvent evt;          /* generic input events will be stored here     */
-	char *lastuser = get_last_user(); /* last user logged in                    */
+	char *lastuser;             /* last user logged in                    */
 
 	if (be_silent) silent = 1;
 	else silent = 0;
@@ -657,6 +657,7 @@ int framebuffer_mode (int argc, char *argv[], int be_silent, int do_workaround)
 
 	/* load settings from file */
 	load_settings(silent);
+	lastuser = get_last_user();
 
 	/* we initialize directfb */
 	if (silent) stderr_disable();
@@ -678,8 +679,8 @@ int framebuffer_mode (int argc, char *argv[], int be_silent, int do_workaround)
 	Draw_Background_Image();
 
 	/* we create buttons */
-	power = Button_Create(stringCombine(THEME_DIR, "power_normal.png"), stringCombine(THEME_DIR, "power_mouseover.png"), screen_width, screen_height, layer, primary, dfb);
-	reset = Button_Create(stringCombine(THEME_DIR, "reset_normal.png"), stringCombine(THEME_DIR, "reset_mouseover.png"), power->xpos - 10, screen_height, layer, primary, dfb);
+	power = Button_Create(StrApp((char **)0, THEME_DIR, "power_normal.png", (char *)0), StrApp((char **)0, THEME_DIR, "power_mouseover.png", (char *)0), screen_width, screen_height, layer, primary, dfb);
+	reset = Button_Create(StrApp((char **)0, THEME_DIR, "reset_normal.png", (char *)0), StrApp((char **)0, THEME_DIR, "reset_mouseover.png", (char *)0), power->xpos - 10, screen_height, layer, primary, dfb);
 	power->MouseOver(power, 0);
 	reset->MouseOver(reset, 0);
 

@@ -31,11 +31,11 @@
 /* Converts an unsigned inteter to a string */
 char *int_to_str(int n);
 
-/* Concatenates two strings */
-char *stringCombine(const char* str1, const char* str2);
-
 /* Computes the integer part of the base 10 log */
 int log10(int n);
+
+/* append any number of strings to dst */
+char *StrApp(char **dst, ...);
 
 /* functions to start and stop gpm */
 int stop_gpm(void);
@@ -53,12 +53,10 @@ int get_line(char *tmp, FILE *fp, int max);
 /* Prints a welcome message */
 char *print_welcome_message(char *preamble, char *postamble);
 
-#ifdef USE_PAM
-/* append any number of strings to dst */
-int StrApp (char **dst, ...);
+/* free any number of malloced strings */
+void free_stuff(int n, ...);
 
+#ifdef USE_PAM
 /* duplicate src */
 int StrDup (char **dst, const char *src);
-
-void WipeStr (char *str);
 #endif
