@@ -28,6 +28,10 @@
 #ifndef LOAD_SETTINGS_H
 #define LOAD_SETTINGS_H
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 int black_screen_workaround;
 int silent;
 int hide_password;

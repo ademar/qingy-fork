@@ -25,6 +25,9 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -622,7 +625,7 @@ int check_windows_sanity()
 
 int load_settings(void)
 {
-  DATADIR   = strdup("/etc/qingy/");
+  DATADIR   = strdup(SETTINGS_DIR "/");
   SETTINGS  = StrApp((char**)NULL, DATADIR, "settings", (char*)NULL);
   LAST_USER = StrApp((char**)NULL, DATADIR, "lastuser", (char*)NULL);  
   

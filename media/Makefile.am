@@ -4,9 +4,65 @@ SUBDIRS = default sessions pam screensavers
 
 if WANT_EMACS_STUFF
 lisp_LISP  = qingy-mode.el
+else
+lisp_LISP  =
 endif
 EXTRA_DIST = qingy-mode.el
 
-settingsdatadir = $(prefix)/etc/qingy
+settingsdatadir = $(sysconfdir)/qingy
 dist_settingsdata_DATA   = welcomes
 nodist_settingsdata_DATA = settings
+
+settings: Makefile
+	@echo -n "Creating config file... "
+	@if test -f "settings"; then rm settings; fi
+	@echo "# Directory containing X sessions" >> settings
+	@echo "x_sessions = \"@X_SESSIONS_DIR@/\"" >> settings
+	@echo "# Directory containing text mode sessions" >> settings
+	@echo "text_sessions = \"@TEXT_SESSIONS_DIR@/\"" >> settings
+	@echo "" >> settings
+	@echo "# Full path to the X server" >> settings
+	@echo "# x_server = \"@XFREE@\"" >> settings
+	@echo "# Full path to the 'xinit' executable" >> settings
+	@echo "xinit = \"@XINIT@\"" >> settings
+	@echo "" >> settings
+if WANT_SCREEN_SAVERS
+	@echo "# Where are the screen savers?" >> settings
+	@echo "screensavers_dir = \"@SCREENSAVERS_DIR@\"" >> settings
+	@echo "" >> settings
+	@echo "#       screensaver \"pixel\"" >> settings
+	@echo "screensaver \"running_time\"#=\"%H:%S:%M\"" >> settings
+	@echo "" >> settings
+endif
+	@echo "# Where are the themes?" >> settings
+	@echo "themes_dir = \"@THEMES_DIR@\"" >> settings
+	@echo "" >> settings
+	@echo "# What theme do you want (you can also specify 'random')" >> settings
+	@echo "# theme = random" >> settings
+	@echo "theme = \"default\"" >> settings
+	@echo "" >> settings
+	@echo "# Who is allowed to shut down the system?" >> settings
+	@echo "# Allowed options are 'everyone', 'root', 'noone'" >> settings
+	@echo "# shutdown_policy = everyone" >> settings
+	@echo "" >> settings
+	@echo "# wether we should clear background image during dialogs (default is no)..." >> settings
+	@echo "# this is the default setting, it gets overridden if the theme you are using" >> settings
+	@echo "# sets the same setting differently..." >> settings
+	@echo "# clear_background = yes" >> settings
+	@echo "" >> settings
+	@echo "# wether to allow session locking; if you enable this, when you try to" >> settings
+	@echo "# switch to a qingy-controlled tty whose owner is not your current" >> settings
+	@echo "# user, you will be asked for the password of that user before being" >> settings
+	@echo "# allowed to continue. If you are root, of course, you can switch" >> settings
+	@echo "# to any tty you chose to. Default setting is 'no'." >> settings
+	@echo "#lock_sessions = yes" >> settings
+	@echo "" >> settings
+	@echo "# these options are valid only if qingy is started from tty3" >> settings
+	@echo "#tty = 3" >> settings
+	@echo "#{" >> settings
+	@echo "#	theme = \"fireplace\"" >> settings
+if WANT_SCREEN_SAVERS
+	@echo "#	screensaver \"pixel\"" >> settings
+endif
+	@echo "#}" >> settings
+	@echo "done"

@@ -25,6 +25,9 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <pwd.h>
 #include <stdio.h>
@@ -182,6 +185,7 @@ int is_a_directory(char *what)
   return 1;
 }
 
+#ifdef USE_GPM_LOCK
 int stop_gpm(void)
 {
   int retval;
@@ -241,6 +245,7 @@ int start_gpm(void)
   
   return 0;
 }
+#endif
 
 char *get_file_owner(char *file)
 {

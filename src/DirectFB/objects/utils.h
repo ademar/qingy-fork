@@ -25,6 +25,9 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* checks wether user has any of these locks active */
 #define SCROLLLOCK	1

@@ -25,6 +25,9 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #define UP       2
 #define DOWN    -2

@@ -1,6 +1,6 @@
 ## Makefile.am for qingy/media/default
 
-defaultthemedatadir = $(prefix)@THEMES_DIR@/default
+defaultthemedatadir = @THEMES_DIR@/default
 
 dist_defaultthemedata_DATA =  \
 	theme                       \

@@ -1,23 +1,24 @@
 ## Makefile.am for qingy/src/libraries
 
-pkglibdir = $(prefix)/@LIB_DIR@/
-
 AM_YFLAGS     = -d
-INCLUDES      = -I../
+INCLUDES      = -I../.. -I../
 BUILT_SOURCES = parse_settings.h
 
-pkglib_LTLIBRARIES = 
-noinst_LTLIBRARIES =
+AM_CFLAGS = -DSETTINGS_DIR=\"$(sysconfdir)/qingy\"
 
 if !WANT_STATIC
-pkglib_LTLIBRARIES += libqingy.la
+pkglib_LTLIBRARIES = libqingy.la
+noinst_LTLIBRARIES =
 else
-noinst_LTLIBRARIES += libqingy_static.la
+pkglib_LTLIBRARIES = 
+noinst_LTLIBRARIES = libqingy_static.la
 endif
 
 libqingy_la_SOURCES = scan_settings.l  parse_settings.y \
                       load_settings.c  load_settings.h  \
                       session.c        session.h        \
                       tty_guardian.c   tty_guardian.h
+
+libqingy_la_LIBADD = @PASSWDLIB@
 
 libqingy_static_la_SOURCES = $(libqingy_la_SOURCES)

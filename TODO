@@ -66,6 +66,9 @@
 
 - Add support for multiline text labels...
 
+- make the GPM start/stop stuff work for distros other
+  than Gentoo, too...
+
 --
 Items marked as * are those we are currently working on.
 For stuff already done, see NEWS file...

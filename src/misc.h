@@ -24,6 +24,10 @@
  *   59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.              *
  *                                                                         *
  ***************************************************************************/
+ 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include "qingy_constants.h"
 
@@ -39,9 +43,11 @@ char *StrApp(char **dst, ...);
 /* like strncpy, but the result is null-terminated */
 void xstrncpy(char *dest, const char *src, size_t n);
 
+#ifdef USE_GPM_LOCK
 /* functions to start and stop gpm */
 int stop_gpm(void);
 int start_gpm(void);
+#endif
 
 /* I couldn'd think of an intelligent explanation for this */
 void ClearScreen(void);

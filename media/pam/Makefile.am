@@ -1,7 +1,11 @@
 ## Makefile.am for qingy/media/pam
 
-defaultpamdatadir = $(prefix)/etc/pam.d
+pamdatadir = @PAMDIR@
 
-defaultpamdata_DATA = @PAM@
+if USE_PAM
+pamdata_DATA = qingy
+else
+pamdata_DATA =
+endif
 
 EXTRA_DIST = qingy

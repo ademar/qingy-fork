@@ -2,8 +2,7 @@
 
 SUBDIRS = libraries DirectFB
 
-pkglibdir = $(prefix)/@LIB_DIR@/
-INCLUDES  = -Ilibraries -IDirectFB
+INCLUDES  = -I.. -Ilibraries -IDirectFB
 
 sbin_PROGRAMS  = qingy
 qingy_SOURCES  =         \
@@ -16,13 +15,10 @@ qingy_SOURCES  =         \
     misc.h               \
     main.c
 
-qingy_LDADD    =
-qingy_LDFLAGS  =
-
 if !WANT_STATIC
-qingy_LDADD   += DirectFB/libdirectfb.la libraries/libqingy.la
-qingy_LDFLAGS += -rdynamic
+qingy_LDADD   = DirectFB/libqingyui_directfb.la libraries/libqingy.la
+qingy_LDFLAGS = -rdynamic
 else
-qingy_LDADD   += DirectFB/libdirectfb_static.la libraries/libqingy_static.la
-qingy_LDFLAGS += -static
+qingy_LDADD   = DirectFB/libqingyui_directfb_static.la libraries/libqingy_static.la @PASSWDLIB@
+qingy_LDFLAGS = -static
 endif

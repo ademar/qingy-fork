@@ -25,7 +25,9 @@
  *                                                                         *
  ***************************************************************************/
 
-
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* which screen saver do you want to run? */
 char*  screen_saver_kind;

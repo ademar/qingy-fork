@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifndef QINGY_SCREENSVR_MOD_H
 #define QINGY_SCREENSVR_MOD_H
 

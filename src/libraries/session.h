@@ -25,6 +25,9 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* get info about available sessions */
 char *get_sessions(void);

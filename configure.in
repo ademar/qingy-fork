@@ -1,7 +1,8 @@
 AC_INIT([qingy],[0.4.1],[noberasco.gnu@disi.unige.it])
-AC_PREREQ(2.58)
+AC_PREREQ(2.57)
 AC_CONFIG_SRCDIR(src/main.c)
-AM_INIT_AUTOMAKE([1.7 check-news dist-bzip2])
+AM_INIT_AUTOMAKE([1.6 check-news dist-bzip2])
+AM_CONFIG_HEADER([config.h])
 
 AC_GNU_SOURCE
 AC_PROG_LIBTOOL
@@ -9,12 +10,15 @@ AC_PROG_INSTALL
 AC_PROG_CC
 AM_PROG_LEX
 AC_PROG_YACC
+AM_PATH_LISPDIR
 
-# Set my own flags for gcc
-	if test "$MY_CFLAGS" = ""; then
-		if test "x$GCC" = "xyes"; then
+	AC_ARG_ENABLE(optimizations, AC_HELP_STRING([--enable-optimizations],
+	[turn on code optimizations (default is yes)]))
+	
+	if test "$enable_optimizations" != "no"; then
+	    if test "x$GCC" = "xyes"; then
 			CPULAGS=""
-			MY_CFLAGS="-Os -fomit-frame-pointer -pipe -W -Wall"
+			MY_CFLAGS="-Os -fomit-frame-pointer"
 			GCC_TEST_MESSAGE="Checking for gcc version"
 			AC_MSG_CHECKING([$GCC_TEST_MESSAGE])
 			GCCVERSION="`$CC -dumpversion`"
@@ -45,6 +49,10 @@ AC_PROG_YACC
 				if test "`echo $PROCESSOR | grep \"Intel(R) Pentium(R) 4\"`" != ""; then
 					CPUFLAGS="-march=pentium4"
 				fi
+				#K6 processor
+				if test "`echo $PROCESSOR | grep \"AMD-K6(tm)\"`" != ""; then
+				  CPUFLAGS="-march=k6"
+				fi
 				#Athlon processors
 				if test "`echo $PROCESSOR | grep \"AMD Athlon(tm)\"`" != ""; then
 				  CPUFLAGS="-march=athlon"
@@ -71,28 +79,13 @@ AC_PROG_YACC
 			fi
 			CFLAGS="$CPUFLAGS $MY_CFLAGS"
 		fi
-	else
-		CFLAGS="$MY_CFLAGS"
 	fi
-# End of setting suctom flags for gcc
-
-# Check wether we are using shadow passwords
-	AC_MSG_CHECKING([for shadow passwords])
-	if test -a /etc/shadow; then
-		AC_MSG_RESULT([found])
-		CFLAGS="$CFLAGS -DSHADOW_PASSWD"
-	else
-		AC_MSG_RESULT([not found])
-		SHADOW=""
-	fi
-# End check for shadow passwords
+	
+	CFLAGS="-pipe -W -Wall $CFLAGS"
 
 # Check for C headers
 	HEADERS="fcntl.h grp.h lastlog.h paths.h pwd.h stdio.h stdlib.h string.h syslog.h \
 	         time.h unistd.h linux/kd.h linux/vt.h sys/ioctl.h sys/types.h"
-	if test "$SHADOW" != ""; then
-		HEADERS="shadow.h $HEADERS"
-	fi
 	HEADERS_ERROR_MESSAGE="One or more system headers that are necessary to compile this program are missing on this system. Cannot continue."
 	AC_CHECK_HEADERS([$HEADERS],,[AC_MSG_ERROR([$HEADERS_ERROR_MESSAGE])],)
 	AC_HEADER_DIRENT
@@ -105,59 +98,104 @@ AC_PROG_YACC
 # End check functions
 
 # Wether we should compile qingy mayor mode for emacs
-	AC_ARG_ENABLE(emacs, AS_HELP_STRING(--enable-emacs,enable compilation of emacs major mode (default is no)),, [enable_emacs=no])
-	if test "$enable_emacs" == "yes"; then		
-		AM_PATH_LISPDIR
+	AC_ARG_ENABLE(emacs, AC_HELP_STRING([--enable-emacs],
+	[enable compilation of emacs major mode (default is no)]),, [enable_emacs=no])
+	if test "$enable_emacs" == "yes"; then
 		AC_MSG_NOTICE([Also compiling qingy major mode for emacs])
 	fi
 	AM_CONDITIONAL(WANT_EMACS_STUFF, test "$enable_emacs" == "yes")
 # End compile emacs stuff
 
 # Check for PAM support
-	PAM=""
-	AC_ARG_ENABLE(pam, AS_HELP_STRING(--enable-pam,turn on PAM support (default is yes)),, [enable_pam=yes])
-	if test "$enable_pam" == "yes"; then
-		AC_CHECK_HEADER([security/pam_appl.h],[PAM="qingy"],[PAM=""],)
-		if test "$PAM" != ""; then
-				AC_CHECK_HEADER([security/pam_misc.h],[PAM="qingy"],[PAM=""],)
-		fi
-		if test "$PAM" != ""; then
-			CFLAGS="$CFLAGS -DUSE_PAM"
-			LDFLAGS="$LDFLAGS -lpam -lpam_misc"
-			AC_MSG_NOTICE([pam found: enabling support in qingy])
-		fi		
+	AC_ARG_ENABLE(pam, AC_HELP_STRING([--enable-pam],
+	[turn on PAM support (default is yes)]))
+	AC_ARG_ENABLE(shadow, AC_HELP_STRING([--disable-shadow],
+	[don't use shadow for authentication]))
+	AC_ARG_WITH(pamdir, AC_HELP_STRING([--with-pamdir], [specify where pam directory is]),
+        [PAMDIR="$withval"], [PAMDIR="/etc/pam.d"])
+	AC_SUBST(PAMDIR)
+	USE_PAM=no
+	if test "$enable_pam" != "no" -a "$enable_shadow" != "yes" \
+    	    || test "$enable_pam" = "yes" -a "$enable_shadow" = "yes"; then
+    	    AC_CHECK_LIB(pam, main,
+                [
+                        USE_PAM=yes
+                        PASSWDLIB="-lpam -ldl"
+                        AC_DEFINE_UNQUOTED(HAVE_PAM_LIB, 1, [Define if libpam is installed])
+                        AC_DEFINE(USE_PAM, 1, [Define if you want wdm to use pam for auth])],
+                ,-ldl)
 	fi
-	AC_SUBST(PAM,)
+	if test -z "$PASSWDLIB" \
+    	    && ( test "$enable_shadow" != "no" -a "$enable_pam" != "yes" \
+    	    || test "$enable_pam" = "yes" -a "$enable_shadow" = "yes" ); then
+    	    AC_CHECK_LIB(shadow, main,[PASSWDLIB="-lshadow"])
+    	    AC_CHECK_HEADERS(shadow.h)
+	fi
+	AC_SUBST(PASSWDLIB)
+	AM_CONDITIONAL(USE_PAM, test "$USE_PAM" == "yes")
 # End check for PAM support
 
 # Enable powerkeys if user asks
-	AC_ARG_ENABLE(powerkeys, AS_HELP_STRING(--enable-powerkeys,use extended keybindings (default is no)),, [enable_powerkeys=no])
+	AC_ARG_ENABLE(powerkeys, AC_HELP_STRING([--enable-powerkeys],
+	[use extended keybindings (default is no)]),, [enable_powerkeys=no])
 	if test "$enable_powerkeys" == "yes"; then
-		CFLAGS="$CFLAGS -DPOWER_KEYS"
+		AC_DEFINE(POWER_KEYS, 1, [Define if powerkeys is enabled])
 		AC_MSG_NOTICE([powerkeys activated])
 	 fi
 # End of powerkeys stuff
 
 # Wether we should compile statically
-	AC_ARG_ENABLE(static-build, AS_HELP_STRING(--enable-static-build,compile qingy statically (default is no)),, [enable_static_build=no])
+	AC_ARG_ENABLE(static-build, AC_HELP_STRING([--enable-static-build],
+	[compile qingy statically (default is no)]),, [enable_static_build=no])
 	if test "$enable_static_build" == "yes"; then
-		CFLAGS="$CFLAGS -DWANT_STATIC"		
+		AC_DEFINE(WANT_STATIC, 1, [Define if we should compile statically])
 		AC_MSG_NOTICE([qingy will be built as a static binary])
 	fi
 	AM_CONDITIONAL(WANT_STATIC, test "$enable_static_build" == "yes")
 # End compile statically stuff
 
 # Wether we should disable screen saver support
-	AC_ARG_ENABLE(screen-savers, AS_HELP_STRING(--enable-screen-savers,enable support for screen savers (default is yes)),, [enable_screen_savers=yes])
-	if test "$enable_screen_savers" == "yes"; then
-		CFLAGS="$CFLAGS -DUSE_SCREEN_SAVERS"
+	AC_ARG_ENABLE(screen-savers, AC_HELP_STRING([--enable-screen-savers],
+	[enable support for screen savers (default is yes)]),, [enable_screen_savers=yes])
+	if test "$enable_screen_savers" == "yes"; then		
+		AC_DEFINE(USE_SCREEN_SAVERS, 1, [Define if we should enable screen saver support])
 	else
 		AC_MSG_NOTICE([Support for screen savers is disabled])
 	fi
 	AM_CONDITIONAL(WANT_SCREEN_SAVERS, test "$enable_screen_savers" == "yes")
+
+	AC_ARG_WITH(screen-savers-dir, AC_HELP_STRING([--with-screen-savers-dir], 
+		[specify screen savers directory]))
+	if test "x$with_screen_savers_dir" != "x"; then
+    		SCREENSAVERS_DIR="$with_screen_savers_dir"
+	else
+    		SCREENSAVERS_DIR="$libdir/$PACKAGE_NAME/screensavers"
+	fi
+	AC_SUBST(SCREENSAVERS_DIR)
 # End screen saver stuff
 
-CFLAGS="$CFLAGS -DLinux"
+# Where we should place themes
+	AC_ARG_WITH(themes-dir, AC_HELP_STRING([--with-themes-dir], 
+		[specify themes directory]))
+	if test "x$with_themes_dir" != "x"; then
+    		THEMES_DIR="$with_themes_dir"
+	else
+    		THEMES_DIR="$datadir/$PACKAGE_NAME/themes"
+	fi
+	AC_SUBST(THEMES_DIR)
+# End themes stuff
+
+# Wether we should disable gpm locking support
+	AC_ARG_ENABLE(gpm-lock, AC_HELP_STRING([--enable-gpm-lock],
+	[enable support for gpm locking (default is yes)]),, [enable_gpm_lock=yes])
+	if test "$enable_gpm_lock" == "yes"; then		
+		AC_DEFINE(USE_GPM_LOCK, 1, [Define if we should enable gpm locking])
+	else
+		AC_MSG_NOTICE([Support for gpm locking is disabled])
+	fi
+# End gpm locking stuff
+
+AC_DEFINE(Linux, 1, [Define if target platform is Linux])
 
 # Check for DirectFB >= 0.9.18
 DFB_VERSION=0.9.18
@@ -171,104 +209,45 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	AC_MSG_CHECKING([for host distribution])
 	DISTRO="unknown"
 	if test "`ls /etc/*release   2>/dev/null | grep \"redhat\"`"    != ""; then
+		AC_DEFINE(redhat, 1, [Define if target platform is RadHat Linux])
 		DISTRO="redhat"
 	fi
 	if test "`ls /etc/*release   2>/dev/null | grep \"mandrake\"`"  != ""; then
+		AC_DEFINE(mandrake, 1, [Define if target platform is Madrake Linux])
 		DISTRO="mandrake"
 	fi
 	if test "`ls /etc/*release   2>/dev/null | grep \"gentoo\"`"    != ""; then
+		AC_DEFINE(gentoo, 1, [Define if target platform is Gentoo Linux])
 		DISTRO="gentoo"
 	fi
 	if test "`ls /etc/debian*    2>/dev/null | grep \"debian\"`"    != ""; then
+		AC_DEFINE(debian, 1, [Define if target platform is Debian Linux])
 		DISTRO="debian"
 	fi
 	if test "`ls /etc/slackware* 2>/dev/null | grep \"slackware\"`" != ""; then
-		 DISTRO="slackware"
-	fi
-	if test "$DISTRO" != "unknown"; then
-		CFLAGS="$CFLAGS -D$DISTRO"
+		AC_DEFINE(slackware, 1, [Define if target platform is Slackware Linux])
+		DISTRO="slackware"
 	fi
 	AC_MSG_RESULT([$DISTRO])
 # End check for distribution
 
-# Let's create /etc/qingy/settings config file
 	AC_PATH_PROG([XINIT], [xinit],   [/usr/X11R6/bin/xinit],   [$PATH:/usr/X11R6/bin:/usr/bin/X11:/usr/bin:/usr/local/bin])
 	AC_PATH_PROG([XFREE], [XFree86], [/usr/X11R6/bin/XFree86], [$PATH:/usr/X11R6/bin:/usr/bin/X11:/usr/bin:/usr/local/bin])
-	echo -n "Creating config file... "
-	if test -f "media/settings"; then
-		rm media/settings
-	fi
+ 	if test "$DISTRO" == "slackware"; then
+		X_SESSIONS_DIR="/etc/X11/xinit"
+	elif test -e "/etc/X11/gdm/Sessions"; then
+		X_SESSIONS_DIR="/etc/X11/gdm/Sessions"
+ 	else
+		X_SESSIONS_DIR="/etc/X11/Sessions"
+ 	fi
+	AC_SUBST(X_SESSIONS_DIR)
+	TEXT_SESSIONS_DIR="\$(sysconfdir)/qingy/sessions"
+	AC_SUBST(TEXT_SESSIONS_DIR)
 
-	echo "# Directory containing X sessions" >> media/settings
-	if test "$DISTRO" == "slackware"; then
-		echo "x_sessions = \"/etc/X11/xinit/\"" >> media/settings
-	else
-		echo "x_sessions = \"/etc/X11/Sessions/\"" >> media/settings
-	fi
-	echo "# Directory containing text mode sessions" >> media/settings
-	echo "text_sessions = \"/etc/qingy/sessions/\"" >> media/settings
-	echo "" >> media/settings
-	echo "# Full path to the X server" >> media/settings
-	echo "# x_server = \"$XFREE\"" >> media/settings
-	echo "# Full path to the 'xinit' executable" >> media/settings
-	echo "xinit = \"$XINIT\"" >> media/settings
-	echo "" >> media/settings
-	if test "$enable_screen_savers" == "yes"; then
-		echo "# Where are the screen savers?" >> media/settings
-		echo "screensavers_dir = \"/usr/lib/qingy/screensavers\"" >> media/settings
-		echo "" >> media/settings
-		echo "#       screensaver \"pixel\"" >> media/settings
-		echo "screensaver \"running_time\"#=\"%H:%S:%M\"" >> media/settings
-		echo "" >> media/settings
-	fi
-	echo "# Where are the themes?" >> media/settings
-	echo "themes_dir = \"/usr/share/qingy/themes\"" >> media/settings
-	echo "" >> media/settings
-	echo "# What theme do you want (you can also specify 'random')" >> media/settings
-	echo "# theme = random" >> media/settings
-	echo "theme = \"default\"" >> media/settings
-	echo "" >> media/settings
-	echo "# Who is allowed to shut down the system?" >> media/settings
-	echo "# Allowed options are 'everyone', 'root', 'noone'" >> media/settings
-	echo "# shutdown_policy = everyone" >> media/settings
-	echo "" >> media/settings
-	echo "# wether we should clear background image during dialogs (default is no)..." >> media/settings
-	echo "# this is the default setting, it gets overridden if the theme you are using" >> media/settings
-	echo "# sets the same setting differently..." >> media/settings
-	echo "# clear_background = yes" >> media/settings
-	echo "" >> media/settings
-	echo "# wether to allow session locking; if you enable this, when you try to" >> media/settings
-	echo "# switch to a qingy-controlled tty whose owner is not your current" >> media/settings
-	echo "# user, you will be asked for the password of that user before being" >> media/settings
-	echo "# allowed to continue. If you are root, of course, you can switch" >> media/settings
-	echo "# to any tty you chose to. Default setting is 'no'." >> media/settings
-	echo "#lock_sessions = yes" >> media/settings
-	echo "" >> media/settings
-	echo "# these options are valid only if qingy is started from tty3" >> media/settings
-	echo "#tty = 3" >> media/settings
-	echo "#{" >> media/settings
-	echo "#	theme = \"fireplace\"" >> media/settings
-	if test "$enable_screen_savers" == "yes"; then
-		echo "#	screensaver \"pixel\"" >> media/settings
-	fi
-	echo "#}" >> media/settings
-
-	echo "done"
-# End creation of config files
-
-# Set up the install dirs
-	PREFIX=""
-	AC_PREFIX_DEFAULT ([$PREFIX])
-	AC_SUBST(infodir,          "[/usr/share/info/]")
-	AC_SUBST(pkglibdir,        "[/usr/lib/qingy/]")
-	AC_SUBST(LIB_DIR,          "[/usr/lib/qingy/]")
-	AC_SUBST(SCREENSAVERS_DIR, "[/usr/lib/qingy/screensavers/]")
-	AC_SUBST(THEMES_DIR,       "[/usr/share/qingy/themes/]")
-	CFLAGS="$CFLAGS -DPKGLIBDIR=\\\"$pkglibdir\\\""
-# Done setting up install dirs
 
 AC_CONFIG_FILES([                          \
 	Makefile                                 \
+	qingy.spec                               \
 	src/Makefile                             \
 	src/libraries/Makefile                   \
 	src/DirectFB/Makefile                    \
@@ -284,3 +263,22 @@ AC_CONFIG_FILES([                          \
 	doc/Makefile
 ])
 AC_OUTPUT
+
+if test "x$USE_PAM" = "xyes"; then
+    DISP_PASSWORD_LIBRARY="pam"
+else
+    DISP_PASSWORD_LIBRARY="shadow"
+fi
+
+echo "
+Configuration:
+
+  Source code location:       ${srcdir}
+  Compiler:                   ${CC}
+  Compiler flags:             ${CFLAGS}
+  
+  Password library:           ${DISP_PASSWORD_LIBRARY}
+  Use extended keybindings:   ${enable_powerkeys}
+  Screen savers support:      ${enable_screen_savers}
+  gpm locking support:        ${enable_gpm_lock}
+"

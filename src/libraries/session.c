@@ -25,6 +25,9 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <fcntl.h>
 #include <grp.h>
@@ -267,6 +270,7 @@ int check_password(char *username, char *user_password)
 #ifdef USE_PAM
   int retcode;
   char *ttyname;
+  char *short_ttyname;
 #else
   char*  correct;
 #ifdef HAVE_LIBCRYPT
@@ -295,13 +299,15 @@ int check_password(char *username, char *user_password)
 #ifdef USE_PAM
   PAM_password = (char *)password;
   ttyname = create_tty_name(get_active_tty());
+  if ((short_ttyname = strrchr(ttyname, '/')) != NULL)
+	if (*(++short_ttyname) == '\0') short_ttyname = NULL;
   
   if (pam_start("qingy", username, &PAM_conversation, &pamh) != PAM_SUCCESS)
 	{
 		LogEvent(pw, PAM_FAILURE);
 		return 0;
 	}
-  if ((retcode = pam_set_item(pamh, PAM_TTY, ttyname)) != PAM_SUCCESS)
+  if ((retcode = pam_set_item(pamh, PAM_TTY, (short_ttyname)?short_ttyname:ttyname)) != PAM_SUCCESS)
 	{
 		pam_end(pamh, retcode);
 		pamh = NULL;

@@ -25,6 +25,9 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /* system and DirectFB library stuff */
 #include <stdio.h>
@@ -105,7 +108,9 @@ Label                 *lock_key_statusB   = NULL;
 Label                 *lock_key_statusC   = NULL;
 Label                 *lock_key_statusD   = NULL;
 ComboBox              *session            = NULL; /* combo boxes                               */
+#ifdef USE_GPM_LOCK
 int                   we_stopped_gpm;             /* wether this program stopped gpm or not    */
+#endif
 int                   screen_width;               /* screen resolution                         */
 int                   screen_height;
 int                   font_small_height;          /* font sizes                                */
@@ -229,7 +234,9 @@ void close_framebuffer_mode (void)
 		devices = next;
 	}
   if (dfb) dfb->Release (dfb);
+#ifdef USE_GPM_LOCK
   if (we_stopped_gpm) start_gpm();
+#endif
 }
 
 void DirectFB_Error()
@@ -1080,8 +1087,10 @@ int directfb_mode (int argc, char *argv[])
   /* lock vt switching */
   lock_tty_switching();
 
+#ifdef USE_GPM_LOCK
   /* Stop GPM if necessary */
   we_stopped_gpm = stop_gpm();
+#endif
 
   /* we initialize directfb */
   if (silent) stderr_disable();

@@ -1,8 +1,8 @@
 ## Makefile.am for qingy/media/sessions
 
-bindir = $(prefix)/etc/qingy/sessions
+sessiondir = @TEXT_SESSIONS_DIR@
 
-bin_SCRIPTS = \
+session_SCRIPTS = \
 	emacs
 
-EXTRA_DIST = $(bin_SCRIPTS)
+EXTRA_DIST = $(session_SCRIPTS)
