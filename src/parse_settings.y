@@ -109,8 +109,8 @@ config: /* nothing */
 ;
 
 /* Screensaver: either pixel or photos="path","path"  */
-ssav:	SCREENSAVER_TOK QUOTSTR_T  { SCREENSAVER = strdup($2); }
-| SCREENSAVER_TOK QUOTSTR_T '=' photos  { SCREENSAVER = strdup($2); }
+ssav:	SCREENSAVER_TOK PIXEL_TOK { SCREENSAVER = strdup("pixel"); }
+| SCREENSAVER_TOK PHOTOS_TOK '=' photos  { SCREENSAVER = strdup("photos"); }
 ;
 photos: QUOTSTR_T	{ add_to_paths($1); }
 | photos ',' QUOTSTR_T { add_to_paths($3); }
