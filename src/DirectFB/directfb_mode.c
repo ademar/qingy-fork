@@ -33,12 +33,15 @@
 #include <directfb.h>
 #include <directfb_keynames.h>
 
-#include "framebuffer_mode.h"
-#include "directfb_button.h"
-#include "directfb_utils.h"
-#include "directfb_textbox.h"
-#include "directfb_combobox.h"
-#include "directfb_label.h"
+/* DirectFB custom objects */
+#include "directfb_mode.h"
+#include "button.h"
+#include "utils.h"
+#include "textbox.h"
+#include "combobox.h"
+#include "label.h"
+#include "screen_saver.h"
+
 #include "chvt.h"
 #include "misc.h"
 #include "session.h"
@@ -48,7 +51,7 @@
 #define REBOOT   1
 
 DeviceInfo *devices = NULL;   /* the list of all input devices             */
-IDirectFBEventBuffer *events; /* input interfaces: device and its buffer   */
+IDirectFBEventBuffer *events; /* all input events will be stored here      */
 IDirectFB *dfb;               /* the super interface                       */
 IDirectFBSurface *primary;    /* surface of the primary layer              */
 IDirectFBDisplayLayer *layer; /* the primary layer                         */
@@ -616,6 +619,17 @@ int handle_keyboard_event(DFBInputEvent *evt)
 	return returnstatus;
 }
 
+void load_sessions(ComboBox *session)
+{
+	char *temp;
+
+	while ((temp = get_sessions()) != NULL)
+	{
+		session->AddItem(session, temp);
+		free(temp); temp = NULL;
+	}
+}
+
 int Create_Labels_TextBoxes_ComboBoxes(void)
 {
 	DFBWindowDescription window_desc;
@@ -687,13 +701,14 @@ int set_font_sizes ()
 	return 1;
 }
 
-int framebuffer_mode (int argc, char *argv[])
+int directfb_mode (int argc, char *argv[])
 {
-	int returnstatus = -1;      /* return value of this function...         */
-	DFBSurfaceDescription sdsc; /* description for the primary surface      */
-	DFBInputEvent evt;          /* generic input events will be stored here */
-	char *lastuser;             /* last user logged in                      */
+	int returnstatus = -1;        /* return value of this function...         */
+	DFBSurfaceDescription sdsc;   /* description for the primary surface      */
+	DFBInputEvent evt;            /* generic input events will be stored here */
+	char *lastuser;               /* last user logged in                      */
 	char *temp1, *temp2;
+	ScreenSaver screen_saver;
 
 	/* Stop GPM if necessary */
 	we_stopped_gpm= stop_gpm();
@@ -764,7 +779,7 @@ int framebuffer_mode (int argc, char *argv[])
 
 	if (!hide_password) password->mask_text = 1;
 	else password->hide_text = 1;
-	get_sessions(session);
+	load_sessions(session);
 	if (lastuser)
 	{
 		username_label->SetFocus(username_label, 0);
@@ -788,14 +803,35 @@ int framebuffer_mode (int argc, char *argv[])
 	session->SetFocus(session, 0);
 
 	layer->EnableCursor (layer, 1);
+
+	/* init screen saver stuff */
+	screen_saver.kind = PIXEL_SCREENSAVER;
+	screen_saver.seconds = 0;
+	screen_saver.milli_seconds = 500;
+	screen_saver.surface = primary;
+	screen_saver.events = events;
+
 	/* we go on for ever... or until the user does something in particular */
 	while (returnstatus == -1)
 	{
+		static int screensaver_active = 0;
+		static int screensaver_countdown = 0;
+
+		if (!screensaver_countdown) screensaver_countdown = screensaver_timeout * 120;		
+
 		/* we wait for an input event... */
-		events->WaitForEventWithTimeout(events, 0, 500);
+		if (!screensaver_active) events->WaitForEventWithTimeout(events, 0, 500);
+		else activate_screen_saver(&screen_saver);
+
 		if (events->HasEvent(events) == DFB_OK)
 		{ /* ...got that! */
 			events->GetEvent (events, DFB_EVENT (&evt));
+			screensaver_countdown = screensaver_timeout * 120;
+			if (screensaver_active)
+			{
+				screensaver_active = 0;
+				reset_screen(&evt);
+			}
 			if ((evt.type == DIET_AXISMOTION) || (evt.type == DIET_BUTTONPRESS) || (evt.type == DIET_BUTTONRELEASE))
 			{	/* handle mouse */
 				handle_mouse_event (&evt);
@@ -808,11 +844,21 @@ int framebuffer_mode (int argc, char *argv[])
 		else
 		{ /* Let there be a flashing cursor! */
 			static int flashing_cursor = 0;
-			if (username->hasfocus)
-				username->KeyEvent(username, REDRAW, flashing_cursor);
-			if (password->hasfocus)
-				password->KeyEvent(password, REDRAW, flashing_cursor);
-			flashing_cursor = !flashing_cursor;
+
+			if (!screensaver_active)
+			{
+				if (username->hasfocus)
+					username->KeyEvent(username, REDRAW, flashing_cursor);
+				if (password->hasfocus)
+					password->KeyEvent(password, REDRAW, flashing_cursor);
+				flashing_cursor = !flashing_cursor;
+				if (use_screensaver) screensaver_countdown--;
+			}
+			if (!screensaver_countdown)
+			{
+				screensaver_active = 1;
+				clear_screen();
+			}
 		}
 	}
 

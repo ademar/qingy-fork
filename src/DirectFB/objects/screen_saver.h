@@ -1,6 +1,6 @@
 /***************************************************************************
-                         session.h  -  description
-                            -------------------
+                       screen_saver.h  -  description
+                            --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
     e-mail               : noberasco.gnu@educ.disi.unige.it
@@ -26,11 +26,28 @@
  ***************************************************************************/
 
 
-/* get info about available sessions */
-char *get_sessions(void);
+typedef enum _kinds
+{
+	PIXEL_SCREENSAVER,
+	PHOTO_SCREENSAVER
+} kinds;
 
-/* Password autentication */
-int check_password(char *username, char *password);
+typedef struct _screen_saver
+{
+	/* which screen saver do you want to run? */
+	kinds kind;
 
-/* Start the session of your choice */
-void start_session(char *username, char *session);
+	/* update rate of screen saver */
+	unsigned int seconds;
+	unsigned int milli_seconds;
+
+	/* surface to run the screen saver into */
+	IDirectFBSurface *surface;
+
+	/* screensaver stops when there is an input event
+	   and it returns it here...                      */
+	IDirectFBEventBuffer *events;
+
+} ScreenSaver;
+
+void activate_screen_saver(ScreenSaver *thiz);

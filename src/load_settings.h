@@ -32,6 +32,8 @@ int silent;
 int hide_password;
 int hide_last_user;
 int no_shutdown_screen;
+int use_screensaver;
+int screensaver_timeout;
 
 char *DATADIR;
 char *SETTINGS;
@@ -42,24 +44,24 @@ char *FONT;
 char *BACKGROUND;
 char *THEME_DIR;
 
-__u8 BUTTON_OPACITY;
-__u8 WINDOW_OPACITY;
-__u8 SELECTED_WINDOW_OPACITY;
+int BUTTON_OPACITY;
+int WINDOW_OPACITY;
+int SELECTED_WINDOW_OPACITY;
 
-__u8 MASK_TEXT_COLOR_R;
-__u8 MASK_TEXT_COLOR_G;
-__u8 MASK_TEXT_COLOR_B;
-__u8 MASK_TEXT_COLOR_A;
+int MASK_TEXT_COLOR_R;
+int MASK_TEXT_COLOR_G;
+int MASK_TEXT_COLOR_B;
+int MASK_TEXT_COLOR_A;
 
-__u8 TEXT_CURSOR_COLOR_R;
-__u8 TEXT_CURSOR_COLOR_G;
-__u8 TEXT_CURSOR_COLOR_B;
-__u8 TEXT_CURSOR_COLOR_A;
+int TEXT_CURSOR_COLOR_R;
+int TEXT_CURSOR_COLOR_G;
+int TEXT_CURSOR_COLOR_B;
+int TEXT_CURSOR_COLOR_A;
 
-__u8 OTHER_TEXT_COLOR_R;
-__u8 OTHER_TEXT_COLOR_G;
-__u8 OTHER_TEXT_COLOR_B;
-__u8 OTHER_TEXT_COLOR_A;
+int OTHER_TEXT_COLOR_R;
+int OTHER_TEXT_COLOR_G;
+int OTHER_TEXT_COLOR_B;
+int OTHER_TEXT_COLOR_A;
 
 /* get program settings from config file */
 int load_settings(void);

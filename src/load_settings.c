@@ -29,7 +29,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <directfb.h>
+#include <sys/types.h>
+
+#if HAVE_DIRENT_H
+	# include <dirent.h>
+	# define NAMLEN(dirent) strlen((dirent)->d_name)
+#else
+	# define dirent direct
+	# define NAMLEN(dirent) (dirent)->d_namlen
+	# if HAVE_SYS_NDIR_H
+		# include <sys/ndir.h>
+	# endif
+	# if HAVE_SYS_DIR_H
+		# include <sys/dir.h>
+	# endif
+	# if HAVE_NDIR_H
+		# include <ndir.h>
+	# endif
+#endif
 
 #include "load_settings.h"
 #include "misc.h"
@@ -93,6 +110,65 @@ void error(char *where)
 	strcpy(THEME_DIR, DEFAULT_THEME);
 }
 
+char *get_random_theme()
+{
+	DIR *dir;
+	struct dirent *entry;
+	FILE *fp;
+	char *temp = NULL;
+	int n_themes = 0;
+	char *themes[128];
+	char *seed;
+	int i;
+
+	dir= opendir(DATADIR);
+	if (!dir)
+	{
+		temp = (char *) calloc(8, sizeof(char));
+		strcpy(temp, "default");
+		return temp;
+	}
+
+	while ((entry= readdir(dir)))
+	{
+	 	if (!strcmp(entry->d_name, "." )) continue;
+		if (!strcmp(entry->d_name, "..")) continue;
+
+		temp = (char *) calloc(strlen(DATADIR)+strlen(entry->d_name)+1, sizeof(char));
+		strcpy(temp, DATADIR);
+		strcat(temp, entry->d_name);
+		if (is_a_directory(temp))
+		{
+			themes[n_themes] = (char *) calloc(strlen(entry->d_name)+1, sizeof(char));
+			strcpy(themes[n_themes], entry->d_name);
+			n_themes++;
+		}
+	}
+	closedir(dir);
+
+	/* all this stuff just to get a random number between 0 and n_themes-1 */
+	seed = (char *) calloc(strlen(DATADIR)+5, sizeof(char));
+	strcpy(seed, DATADIR);
+	strcat(seed, "seed");
+	fp = fopen(seed, "r");
+	if (fp)
+	{
+		fscanf(fp, "%d", &i);
+		fclose(fp);
+		srand(i);
+	}
+	else srand(n_themes);
+	i = rand() % n_themes;
+	fp = fopen(seed, "w");
+	if (fp)
+	{
+		fprintf(fp, "%d", rand());
+		fclose(fp);
+	}
+
+	return themes[i];
+}
+
 int load_settings(void)
 {
 	FILE *fp;
@@ -100,7 +176,7 @@ int load_settings(void)
 	char tmp[MAX];
 	int temp[4];
 
-	XSESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;	
+	XSESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;
 
 	DATADIR = (char *) calloc(12, sizeof(char));
 	strcpy(DATADIR, "/etc/qingy/");
@@ -158,6 +234,12 @@ int load_settings(void)
 			{
 				err = 1;
 				break;
+			}
+			if (!strcmp(tmp, "random") || !strcmp(tmp, "RANDOM") || !strcmp(tmp, "Random"))
+			{
+				char *temp = get_random_theme();
+				strcpy(tmp, temp);
+				free(temp);
 			}
 			THEME_DIR = (char *) calloc(strlen(DATADIR)+strlen(tmp)+2, sizeof(char));
 			strcpy(THEME_DIR, DATADIR);
@@ -236,7 +318,7 @@ int load_settings(void)
 				err = 1;
 				break;
 			}
-			WINDOW_OPACITY = (__u8) temp[0];
+			WINDOW_OPACITY = temp[0];
 			found = 1;
 		}
 		if (strcmp(tmp, "SELECTED_WINDOW_OPACITY") == 0)
@@ -245,8 +327,8 @@ int load_settings(void)
 			{
 				err = 1;
 				break;
-			}
-			SELECTED_WINDOW_OPACITY = (__u8) temp[0];
+			}			
+			SELECTED_WINDOW_OPACITY = temp[0];
 			found = 1;
 		}
 		if (strcmp(tmp, "MASK_TEXT_COLOR") == 0)
@@ -256,10 +338,10 @@ int load_settings(void)
 				err = 1;
 				break;
 			}
-			MASK_TEXT_COLOR_R = (__u8) temp[0];
-			MASK_TEXT_COLOR_G = (__u8) temp[1];
-			MASK_TEXT_COLOR_B = (__u8) temp[2];
-			MASK_TEXT_COLOR_A = (__u8) temp[3];
+			MASK_TEXT_COLOR_R = temp[0];
+			MASK_TEXT_COLOR_G = temp[1];
+			MASK_TEXT_COLOR_B = temp[2];
+			MASK_TEXT_COLOR_A = temp[3];
 			found = 1;
 		}
 		if (strcmp(tmp, "TEXT_CURSOR_COLOR") == 0)
@@ -269,10 +351,10 @@ int load_settings(void)
 				err = 1;
 				break;
 			}
-			TEXT_CURSOR_COLOR_R = (__u8) temp[0];
-			TEXT_CURSOR_COLOR_G = (__u8) temp[1];
-			TEXT_CURSOR_COLOR_B = (__u8) temp[2];
-			TEXT_CURSOR_COLOR_A = (__u8) temp[3];
+			TEXT_CURSOR_COLOR_R = temp[0];
+			TEXT_CURSOR_COLOR_G = temp[1];
+			TEXT_CURSOR_COLOR_B = temp[2];
+			TEXT_CURSOR_COLOR_A = temp[3];
 			found = 1;
 		}
 		if (strcmp(tmp, "OTHER_TEXT_COLOR") == 0)
@@ -282,10 +364,10 @@ int load_settings(void)
 				err = 1;
 				break;
 			}
-			OTHER_TEXT_COLOR_R = (__u8) temp[0];
-			OTHER_TEXT_COLOR_G = (__u8) temp[1];
-			OTHER_TEXT_COLOR_B = (__u8) temp[2];
-			OTHER_TEXT_COLOR_A = (__u8) temp[3];
+			OTHER_TEXT_COLOR_R = temp[0];
+			OTHER_TEXT_COLOR_G = temp[1];
+			OTHER_TEXT_COLOR_B = temp[2];
+			OTHER_TEXT_COLOR_A = temp[3];
 			found = 1;
 		}
 		if (!found || err)

@@ -37,7 +37,6 @@
 #include <syslog.h>
 #include <time.h>
 #include <unistd.h>
-#include <directfb.h>
 
 #if HAVE_DIRENT_H
 	# include <dirent.h>
@@ -75,7 +74,6 @@
 #include "chvt.h"
 #include "misc.h"
 #include "load_settings.h"
-#include "directfb_combobox.h"
 
 #define UNKNOWN_USER            0
 #define WRONG_PASSWORD          1
@@ -171,31 +169,48 @@ extern char **environ;
 
 #endif /* End of USE_PAM */
 
-void get_sessions(void *ext_sessions)
+
+char *get_sessions(void)
 {
-	DIR *dir;
+	static DIR *dir;
 	struct dirent *entry;
-	ComboBox *sessions = (ComboBox *) ext_sessions;
+	static int status = 0;
+	char *temp;
 
-	if (!sessions) return;
-	sessions->AddItem(sessions, "Text Console");
+	if (!status)
+	{
+		temp = (char *) calloc(13, sizeof(char));
+		strcpy(temp, "Text Console");
+		status = 1;
+		return temp;
+	}
 
-	dir= opendir(XSESSIONS_DIRECTORY);
-	if (dir == NULL)
+	if (status == 1)
 	{
-	  fprintf(stderr, "session: unable to open directory \"%s\"\n", XSESSIONS_DIRECTORY);
-		return;
+		dir= opendir(XSESSIONS_DIRECTORY);
+		if (!dir)
+		{
+			status = 0;
+			fprintf(stderr, "session: unable to open directory \"%s\"\n", XSESSIONS_DIRECTORY);
+			return NULL;
+		}
+		status = 2;
 	}
-	while ((entry= readdir(dir)) != NULL)
+
+	while (1)
 	{
-	  if (strcmp(entry->d_name, "." ) != 0)
-		if (strcmp(entry->d_name, "..") != 0)
-		if (strcmp(entry->d_name, "Xsession") != 0)
-			sessions->AddItem(sessions, entry->d_name);
+		if (!(entry= readdir(dir))) break;
+	 	if (!strcmp(entry->d_name, "." )) continue;
+		if (!strcmp(entry->d_name, "..")) continue;
+		if (!strcmp(entry->d_name, "Xsession")) continue;
+		temp = (char *) calloc(strlen(entry->d_name)+1, sizeof(char));
+		strcpy(temp, entry->d_name);
+		return temp;
 	}
+
+	status = 0;
 	closedir(dir);
-
-	return;
+	return NULL;
 }
 
 /* write events to system logs */
@@ -572,8 +587,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	args[0] = shell_base_name(pw->pw_shell);
 	args[1] = (char *) my_calloc(3, sizeof(char));
 	strcpy(args[1], "-c");
-	//args[2] = StrApp((char **)0, XINIT, " ", XSESSIONS_DIRECTORY, session, " -- :", temp1, " vt", temp2, " >/dev/null 2>/dev/null", (char*)0);
-	args[2] = StrApp((char **)0, XINIT, " ", XSESSIONS_DIRECTORY, session, " -- :", temp1, " >/dev/null 2>/dev/null", (char*)0);
+	args[2] = StrApp((char **)0, XINIT, " ", XSESSIONS_DIRECTORY, session, " -- :", temp1, " vt", temp2, " >& /dev/null", (char*)0);
 	if (temp1) free(temp1);
 	if (temp2) free(temp2);
 	args[3] = NULL;

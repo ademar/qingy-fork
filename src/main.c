@@ -44,11 +44,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
-#include <directfb.h>
 
 #include "chvt.h"
 #include "misc.h"
-#include "framebuffer_mode.h"
+#include "directfb_mode.h"
 #include "load_settings.h"
 
 char *fb_device = NULL;
@@ -69,6 +68,9 @@ void Error()
 	printf("\t--no-shutdown-screen\n");
 	printf("\tClose DirectFB mode before shutting down.\n");
 	printf("\tThis way you will see system shutdown messages.\n\n");
+	printf("\t--screensaver <timeout>\n");
+	printf("\tActivate screensaver after <timeout> minutes (default is 5).\n");
+	printf("\tA value of 0 disables screensaver completely.\n\n");
 	printf("\t--black-screen-workaround\n");
 	printf("\tTry this if you get a black screen instead of a text console.\n");
 	printf("\tNote: switching to another vt and back also solves the problem.\n\n");
@@ -107,7 +109,7 @@ void start_up(void)
 	argv[2]= NULL;
 
 	/* Now we try to initialize the framebuffer */
-	returnstatus = framebuffer_mode(argc, argv);
+	returnstatus = directfb_mode(argc, argv);
 
 	/* We get here only if directfb fails or user wants to change tty */
 	free(argv[1]); free(argv[0]); argv[1]= argv[0]= NULL;
@@ -152,43 +154,59 @@ int ParseCMDLine(int argc, char *argv[])
 
 	for (i=2; i<argc; i++)
 	{
-		int error = 1;
-
 		if (strcmp(argv[i], "--fb-device") == 0)
 		{
 			if (i == argc) Error();
 			i++;
 			fb_device = argv[i];
-			error = 0;
+			continue;
+		}
+
+		if (strcmp(argv[i], "--screensaver") == 0)
+		{
+			int temp;
+
+			if (i == argc) Error();
+			i++;
+			temp = atoi(argv[i]);
+			if (temp < 0) Error();
+			if (!temp)
+			{
+				use_screensaver = 0;
+				continue;
+			}
+			use_screensaver = 1;
+			screensaver_timeout = temp;
+			continue;
 		}
 
 		if (strcmp(argv[i], "--silent") == 0)
 		{
 			silent = 1;
-			error = 0;
+			continue;
 		}
 		if (strcmp(argv[i], "--black-screen-workaround") == 0)
 		{
 			black_screen_workaround = our_tty_number;
-			error = 0;
+			continue;
 		}
 		if (strcmp(argv[i], "--hide-password") == 0)
 		{
 			hide_password = 1;
-			error = 0;
+			continue;
 		}
 		if (strcmp(argv[i], "--hide-lastuser") == 0)
 		{
 			hide_last_user = 1;
-			error = 0;
+			continue;
 		}
 		if (strcmp(argv[i], "--no-shutdown-screen") == 0)
 		{
 			no_shutdown_screen = 1;
-			error = 0;
+			continue;
 		}
 
-		if (error) Error();
+		Error();
 	}
 
 	return our_tty_number;
@@ -210,6 +228,8 @@ int main(int argc, char *argv[])
 	hide_password = 0;
 	hide_last_user = 0;
 	no_shutdown_screen = 0;
+	use_screensaver = 1;
+	screensaver_timeout = 5;
 
 	our_tty_number = ParseCMDLine(argc, argv);
 

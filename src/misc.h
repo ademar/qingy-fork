@@ -58,6 +58,9 @@ char *print_welcome_message(char *preamble, char *postamble);
 /* free any number of malloced strings */
 void free_stuff(int n, ...);
 
+/* checks wether <what> is a directory */
+int is_a_directory(char *what);
+
 #ifdef USE_PAM
 /* duplicate src */
 int StrDup (char **dst, const char *src);

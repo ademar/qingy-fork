@@ -31,8 +31,8 @@
 #include <string.h>
 #include <directfb.h>
 
-#include "directfb_combobox.h"
-#include "framebuffer_mode.h"
+#include "combobox.h"
+#include "directfb_mode.h"
 #include "load_settings.h"
 
 void PlotEvent(ComboBox *thiz)

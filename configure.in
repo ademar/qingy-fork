@@ -6,6 +6,7 @@ AM_INIT_AUTOMAKE()
 AC_GNU_SOURCE
 AC_PROG_INSTALL
 AC_PROG_CC
+AC_PROG_RANLIB
 
 # Set my own flags for gcc
 if test "x$GCC" = "xyes"; then
@@ -136,4 +137,4 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 PREFIX=""
 AC_PREFIX_DEFAULT ($PREFIX)
 
-AC_OUTPUT(Makefile src/Makefile media/Makefile media/default/Makefile media/pam/Makefile)
+AC_OUTPUT(Makefile src/Makefile src/DirectFB/Makefile media/Makefile media/default/Makefile media/pam/Makefile)

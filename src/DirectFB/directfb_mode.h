@@ -42,4 +42,4 @@
 }
 
 /* Init framebuffer mode */
-int framebuffer_mode(int argc, char *argv[]);
+int directfb_mode(int argc, char *argv[]);

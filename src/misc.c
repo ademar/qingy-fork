@@ -35,6 +35,23 @@
 #include <unistd.h>
 #include <sys/types.h>
 
+#if HAVE_DIRENT_H
+	# include <dirent.h>
+	# define NAMLEN(dirent) strlen((dirent)->d_name)
+#else
+	# define dirent direct
+	# define NAMLEN(dirent) (dirent)->d_namlen
+	# if HAVE_SYS_NDIR_H
+		# include <sys/ndir.h>
+	# endif
+	# if HAVE_SYS_DIR_H
+		# include <sys/dir.h>
+	# endif
+	# if HAVE_NDIR_H
+		# include <ndir.h>
+	# endif
+#endif
+
 #include "misc.h"
 
 
@@ -208,6 +225,18 @@ char *StrApp (char **dst, ...)
 
 	if (dst) *dst = temp;
 	return temp;
+}
+
+int is_a_directory(char *what)
+{
+	DIR *dir;
+
+	if (!what) return 0;
+	dir = opendir(what);
+	if (!dir) return 0;
+	closedir(dir);
+
+	return 1;
 }
 
 #ifdef USE_PAM

@@ -30,8 +30,8 @@
 #include <stdlib.h>
 #include <directfb.h>
 
-#include "framebuffer_mode.h"
-#include "directfb_button.h"
+#include "directfb_mode.h"
+#include "button.h"
 #include "load_settings.h"
 
 

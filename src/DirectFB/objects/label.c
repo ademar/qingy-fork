@@ -31,8 +31,8 @@
 #include <string.h>
 #include <directfb.h>
 
-#include "directfb_label.h"
-#include "framebuffer_mode.h"
+#include "label.h"
+#include "directfb_mode.h"
 #include "load_settings.h"
 
 
