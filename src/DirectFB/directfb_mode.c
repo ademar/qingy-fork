@@ -96,7 +96,7 @@ int                   we_stopped_gpm,          /* wether this program stopped gp
                       password_area_mouse = 0,
                       session_area_mouse  = 0;
 
-void Draw_Background_Image()
+void Draw_Background_Image(int do_the_drawing)
 {
   /* width and height of the background image */
   static int panel_width, panel_height;
@@ -117,7 +117,7 @@ void Draw_Background_Image()
   }
 
   /* we draw the surface, duplicating it */
-  primary->Flip (primary, NULL, DSFLIP_BLIT);
+  if (do_the_drawing) primary->Flip (primary, NULL, DSFLIP_BLIT);
 }
 
 /* plot previous session of <user> if it exists,
@@ -326,7 +326,7 @@ void reset_screen(DFBInputEvent *evt)
 	Label_list  *labels  = Labels;
 	Button_list *buttons = Buttons;
 
-  Draw_Background_Image ();
+  Draw_Background_Image (1);
 
 	/* redraw all labels */
 	while (labels)
@@ -373,8 +373,7 @@ void clear_screen(void)
   session->Hide(session);
   layer->EnableCursor (layer, 0);
   primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-	Draw_Background_Image();
-  primary->Flip (primary, NULL, DSFLIP_BLIT);
+	Draw_Background_Image(1);  
   primary->SetFont (primary, font_large);
   primary->SetColor (primary, OTHER_TEXT_COLOR.R, OTHER_TEXT_COLOR.G, OTHER_TEXT_COLOR.B, OTHER_TEXT_COLOR.A);
 }
@@ -434,11 +433,11 @@ void begin_shutdown_sequence (int action)
       strcat (message, "restart");
       break;
     default:
-      Draw_Background_Image ();
+      Draw_Background_Image (1);
       return;
     }
     primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-		Draw_Background_Image();
+		Draw_Background_Image(0);
     strcat (message, " in ");
     temp = int_to_str (countdown);
     strcat (message, temp);
@@ -458,7 +457,7 @@ void begin_shutdown_sequence (int action)
   else
 	{
 		primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-		Draw_Background_Image();
+		Draw_Background_Image(0);
 	}
   if (action == POWEROFF)
   {
@@ -609,7 +608,7 @@ void start_login_sequence(DFBInputEvent *evt)
   if (!check_password(temp, password->text))
   {
     primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-		Draw_Background_Image();
+		Draw_Background_Image(1);
     primary->DrawString (primary, "Login failed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
     primary->Flip (primary, NULL, DSFLIP_BLIT);
     sleep(2);
@@ -619,7 +618,7 @@ void start_login_sequence(DFBInputEvent *evt)
     return;
   }
   primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-	Draw_Background_Image();
+	Draw_Background_Image(1);
   if (!strcmp(temp, "root"))
     primary->DrawString (primary, "Greetings, Master...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
   else primary->DrawString (primary, "Starting selected session...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
@@ -993,7 +992,7 @@ int directfb_mode (int argc, char *argv[])
     DirectFB_Error();
     return TEXT_MODE;
   }
-  Draw_Background_Image();
+  Draw_Background_Image(1);
 
 	if (!create_windows())
 	{
