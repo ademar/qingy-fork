@@ -1,3 +1,10 @@
+2005-03-10  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/objects/combobox.c,
+	* src/DirectFB/objects/combobox.h, 
+	* src/DirectFB/directfb_mode.c: 
+	More work on drop-down menus for combo boxes.
+
 2005-03-09  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/main.c (start_up):

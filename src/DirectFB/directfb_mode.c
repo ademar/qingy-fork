@@ -170,7 +170,7 @@ void set_user_session(char *user)
 		temp = session->selected;
 		while (strcmp(session->selected->name, "Text: Console"))
 			session->selected = session->selected->next;
-		if (session->selected != temp) session->KeyEvent(session, REDRAW);
+		if (session->selected != temp) session->SelectItem(session, session->selected);
 		return;
 	}
   
@@ -179,8 +179,7 @@ void set_user_session(char *user)
 	{
 		if (!strcmp(user_session, temp->name))
 		{
-			session->selected = temp;
-			session->KeyEvent(session, REDRAW);
+			session->SelectItem(session, temp);
 			free(user_session);
 			return;
 		}
@@ -296,29 +295,37 @@ void handle_buttons(int *mouse_x, int *mouse_y)
 /* mouse movement in textboxes and comboboxes area */
 void handle_text_combo_boxes(int *mouse_x, int *mouse_y)
 {
-  /* mouse over username area */
-  if ( (*mouse_x >= (int) username->xpos) && (*mouse_x <= (int) username->xpos + (int) username->width) )
-    if ( (*mouse_y >= (int) username->ypos) && (*mouse_y <= (int) username->ypos + (int) username->height) )
-		{
-			username_area_mouse = 1;
-			return;
-		}
+	while (1)
+	{
+		/* mouse over username area */
+		if ( (*mouse_x >= (int) username->xpos) && (*mouse_x <= (int) username->xpos + (int) username->width) )
+			if ( (*mouse_y >= (int) username->ypos) && (*mouse_y <= (int) username->ypos + (int) username->height) )
+			{
+				username_area_mouse = 1;
+				break;
+			}
   
-  /* mouse over password area */
-  if ( (*mouse_x >= (int) password->xpos) && (*mouse_x <= (int) password->xpos + (int) password->width) )
-    if ( (*mouse_y >= (int) password->ypos) && (*mouse_y <= (int) password->ypos + (int) password->height) )
-		{
-			password_area_mouse = 1;
-			return;
-		}
+		/* mouse over password area */
+		if ( (*mouse_x >= (int) password->xpos) && (*mouse_x <= (int) password->xpos + (int) password->width) )
+			if ( (*mouse_y >= (int) password->ypos) && (*mouse_y <= (int) password->ypos + (int) password->height) )
+			{
+				password_area_mouse = 1;
+				break;
+			}
   
-  /* mouse over session area */
-  if ( (*mouse_x >= (int) session->xpos) && (*mouse_x <= (int) session->xpos + (int) session->width) )
-    if ( (*mouse_y >= (int) session->ypos) && (*mouse_y <= (int) session->ypos + (int) session->height) )
-		{
-			session_area_mouse = 1;
-			return;
-		}
+		/* mouse over session area */
+		if ( (*mouse_x >= (int) session->xpos) && (*mouse_x <= (int) session->xpos + (int) session->width) )
+			if ( (*mouse_y >= (int) session->ypos) && (*mouse_y <= (int) session->ypos + (int) session->height) )
+			{
+				session_area_mouse = 1;
+				if (!session->mouse) session->MouseOver(session, 1);
+				return;
+			}		
+
+		break;
+	}
+
+	if (session->mouse) session->MouseOver(session, 0);
 }
 
 /* mouse movement in labels area */
@@ -368,7 +375,7 @@ void handle_mouse_movement (void)
 
 void show_lock_key_status(DFBInputEvent *evt)
 {
-  if (lock_is_pressed(evt) == 3)
+  if (lock_is_pressed(evt) == CAPSLOCK)
 	{ /* CAPS lock is active */
 		lock_key_statusA->Show(lock_key_statusA);
 		lock_key_statusB->Show(lock_key_statusB);
@@ -610,6 +617,9 @@ void handle_mouse_event (DFBInputEvent *evt)
 				}
 	      buttons = buttons->next;
 	    }
+
+			if (session->mouse)
+				session->Click(session);
 		}
 		else
 		{	/* 
@@ -857,7 +867,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 	      else
 				{
 					if (session_label) session_label->SetFocus(session_label, 1);
-					session->SetFocus(session, 1);
+					session->SetFocus(session, 0);
 				}
 	    }
 			else
@@ -911,6 +921,11 @@ int handle_keyboard_event(DFBInputEvent *evt)
 				}
 	    }
 		}
+
+		/* just in case we resized a combobox and
+		 * the mouse cursor is no longer on top of it
+		 */
+		handle_mouse_movement();
 	}
 
   return returnstatus;
@@ -1258,7 +1273,7 @@ int main (int argc, char *argv[])
 #else  /* don't want screensavers */
 		events->WaitForEventWithTimeout(events, 0, 500);
 #endif /* screensaver stuff */
-
+		
 		if (events->HasEvent(events) == DFB_OK)
 		{ /* ...got that! */
 			events->GetEvent (events, DFB_EVENT (&evt));
