@@ -36,8 +36,14 @@ qingy CVS:
   to explain it all here: see updated documentation for all
   details. In short: all stuff you see on screen can be
   added, removed, moved, changed... you got the point :-)
-- added user-oriented welcome messages. See documentation.
+- Added user-oriented welcome messages. See documentation.
   Thanks, again, to Paolino <paolino.gnu@disi.unige.it>
+- Added support for user-provided CFLAGS: just use
+  ./configure MY_CFLAGS="your_cflags_here"
+  Please note that qingy already tries to set the best
+  optimization for your arch in CFLAGS; using the above
+  feature overrides those settings... I added this feature
+  primarily to use with Gentoo GNU Linux portage system.
 - Many fixes and clean ups
 
 qingy 0.2.3 (21 October 2003):
