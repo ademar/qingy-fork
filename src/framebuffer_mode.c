@@ -640,7 +640,7 @@ void set_font_sizes ()
 	font_small_height = fdsc.height;
 }
 
-int framebuffer_mode (int argc, char *argv[], int be_silent, int do_workaround)
+int framebuffer_mode (int argc, char *argv[], int width, int height, int be_silent, int do_workaround)
 {
 	int returnstatus = -1;      /* return value of this function...             */
 	DFBResult err;              /* the bloody macro uses it to check for errors */
@@ -673,7 +673,12 @@ int framebuffer_mode (int argc, char *argv[], int be_silent, int do_workaround)
 	sdsc.flags = DSDESC_CAPS;
 	sdsc.caps  = DSCAPS_PRIMARY | DSCAPS_FLIPPING;
 	DFBCHECK(dfb->CreateSurface( dfb, &sdsc, &primary ));
-	primary->GetSize (primary, &screen_width, &screen_height);
+	if (!width && !height) primary->GetSize(primary, &screen_width, &screen_height);
+	else
+	{
+		screen_width  = width;
+		screen_height	= height;
+	}
 
 	set_font_sizes ();
 	Draw_Background_Image();

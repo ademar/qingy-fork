@@ -54,6 +54,9 @@ void Error()
 	printf("\nqingy version " VERSION "\n");
 	printf("\nusage: ginqy <ttyname> [options]\n");
 	printf("Options:\n");
+	printf("\t--resolution:<resolution>\n");
+	printf("\tSpecify current screen resolution.\n");
+	printf("\tUse XRESxYRES form.\n\n");
 	printf("\t--silent\n");
 	printf("\tDo not display diagnostic messages on stderr.\n\n");
 	printf("\t--black-screen-workaround\n");
@@ -81,7 +84,7 @@ void text_mode()
 	exit(EXIT_FAILURE);
 }
 
-void start_up(int silent, int workaround)
+void start_up(int width, int height, int silent, int workaround)
 {
 	int returnstatus;
 	int argc = 2;
@@ -97,7 +100,7 @@ void start_up(int silent, int workaround)
 	argv[2]= NULL;
 
 	/* Now we try to initialize the framebuffer */
-	returnstatus = framebuffer_mode(argc, argv, silent, workaround);
+	returnstatus = framebuffer_mode(argc, argv, width, height, silent, workaround);
 
 	/* We get here only if directfb fails or user wants to change tty */
 	free(argv[1]); free(argv[0]); argv[1]= argv[0]= NULL;
@@ -127,14 +130,40 @@ void start_up(int silent, int workaround)
 	exit(EXIT_FAILURE);
 }
 
+int get_resolution(char *resolution, int *width, int *height)
+{
+	char *temp;
+	int *value = width;
+
+	if (!resolution) return 0;
+	for(temp = resolution; (int)*temp; temp++)
+		switch (*temp)
+		{
+			case 'x': case 'X':
+				if (!*width) return 0;
+				if (value == height) return 0;
+				value = height;
+				break;
+			default:
+				if ((*temp) > '9' || (*temp) < '0') return 0;
+				(*value) *= 10;
+				(*value) += (*temp) - '0';
+		}
+	if (!*width)  return 0;
+	if (!*height) return 0;
+
+	return 1;
+}
+
 int main(int argc, char *argv[])
 {
 	char *tty;
 	int our_tty_number;
 	int user_tty_number;
+	int width=0, height=0;
 	int workaround = -1;
 	int silent = 0;
-	int i = 2;
+	int i = 3;
 	struct timespec delay;
 
 	/* We set up a delay of 0.5 seconds */
@@ -142,7 +171,7 @@ int main(int argc, char *argv[])
 	delay.tv_nsec= 500000000;
 
 	/* Some consistency checks... */
-	if (argc > 4) Error();
+	if (argc < 2 || argc > 5) Error();
 	tty= argv[1];
 	if (strncmp(tty, "tty", 3) != 0) Error();
 	our_tty_number= atoi(tty+3);
@@ -150,7 +179,11 @@ int main(int argc, char *argv[])
 	if (our_tty_number >12) Error();
 	while (i < argc)
 	{
-		if (strcmp(argv[i], "--silent") == 0)
+		if (strncmp(argv[i], "--resolution:", 13) == 0)
+		{
+			if (!get_resolution((argv[i]+13), &width, &height)) Error();
+		}
+		else if (strcmp(argv[i], "--silent") == 0)
 			silent = 1;
 		else if (strcmp(argv[i], "--black-screen-workaround") == 0)
 			workaround = our_tty_number;
@@ -174,7 +207,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "\nfatal error: cannot get active tty number!\n");
 			return EXIT_FAILURE;
 		}
-		if (user_tty_number == our_tty_number) start_up(silent, workaround);
+		if (user_tty_number == our_tty_number) start_up(width, height, silent, workaround);
 		nanosleep(&delay, NULL); /* wait a little before checking again */
 	}
 

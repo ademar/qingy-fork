@@ -44,4 +44,4 @@ int silent;
 }
 
 /* Init framebuffer mode */
-int framebuffer_mode(int argc, char *argv[], int silent, int workaround);
+int framebuffer_mode(int argc, char *argv[], int width, int height, int silent, int workaround);
