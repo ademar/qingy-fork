@@ -1,3 +1,5 @@
+/* -*-c-*- */
+%{
 /**-*-c-*-****************************************************************/
 /* scan_settings.l - config file scanner for qingy                       */
 /*  v. 1.0                                                               */
@@ -18,7 +20,6 @@
 /* along with GNU Emacs; see the file COPYING.  If not, write to the     */
 /* Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.     */
 /*************************************************************************/
-%{
 
 #include <string.h>
 #include "parse_settings.h"
@@ -28,13 +29,13 @@
 char string_buf[MAX_STR_CONST];
 char *string_buf_ptr;
 
-
-
 %}
 
 %x stringa
 
 %%
+
+/* quted string defn */
 
 \"      string_buf_ptr = string_buf; BEGIN(stringa);
 
@@ -52,7 +53,7 @@ char *string_buf_ptr;
 }
 
 <stringa>\\[0-7]{1,3} {
-                   /* octal escape sequence */
+  /* octal escape sequence */
   unsigned int result;
   
   (void) sscanf( yytext + 1, "%o", &result );
@@ -83,7 +84,9 @@ char *string_buf_ptr;
   while ( *yptr )
     *string_buf_ptr++ = *yptr++;
 }
+/* end of quoted string defn */
 
+/* keywords */
 screensaver             return SCREENSAVER_TOK;
 pixel                   return PIXEL_TOK;
 photos                  return PHOTOS_TOK;
@@ -104,7 +107,6 @@ shutdown_policy         return SHUTDOWN_TOK;
 everyone                return EVERYONE_TOK;
 root                    return ONLY_ROOT_TOK;
 noone                   return NO_ONE_TOK;
-
 type                    return WTYPE_TOK;
 width                   return WWIDTH_TOK;
 height                  return WHEIGHT_TOK;
@@ -125,11 +127,12 @@ center                  return WTEXT_CENTER_TOK;
 right                   return WTEXT_RIGHT_TOK;
 
 
-
 "#"[^\n]*"\n" ;			/* skip comments */
 
+/* numbers */
 [0-9]+	   {  sscanf(yytext, "%i", &(yylval.ival)); return ANUM_T;}	
 
+/* colors */
 "\["[0-9a-fA-F]{8}"\]" { sscanf(yytext, "[%x]", (unsigned int *)yylval.color); return COLOR_T;}
 
 [ \n\t] ; 			/* skip blanks */
@@ -138,4 +141,5 @@ right                   return WTEXT_RIGHT_TOK;
 
 %%
 
+/* do nothing at EOF */
 int yywrap(){return 1;}

@@ -39,14 +39,12 @@
 static int is_a_console(int fd)
 {
   char arg = 0;
-
   return (ioctl(fd, KDGKBTYPE, &arg) == 0 && ((arg == KB_101) || (arg == KB_84)));
 }
 
 static int open_a_console(char *fnam)
 {
   int fd;
-
   fd = open(fnam, O_RDWR);
   if (fd < 0) return -1;
   if (!is_a_console(fd))
@@ -74,115 +72,115 @@ int getfd()
   for (fd = 0; fd < 3; fd++)
     if (is_a_console(fd))
       return fd;
-
+  
   fprintf(stderr, "Couldnt get a file descriptor referring to the console\n");
-
+  
   return -1;	/* total failure */
 }
 
 int switch_to_tty(int tty)
 {
   char *ttyname = create_tty_name(tty);
-
+  
   if (!ttyname) return 0;
   /* we set stdin, stdout and stderr to the new tty */
   stdin  = freopen(ttyname, "r", stdin);
   stdout = freopen(ttyname, "w", stdout);
   stderr = freopen(ttyname, "w", stderr);
-	free(ttyname);
+  free(ttyname);
   if (!stdin || !stdout || !stderr) return 0;
-
+  
   return 1;
 }
 
 int get_active_tty(void)
 {
-	struct vt_stat term_status;
+  struct vt_stat term_status;
   int fd = getfd();
-
+  
   if (fd == -1) return -1;
   if (ioctl (fd, VT_GETSTATE, &term_status) == -1)
-	{
-		close(fd);
-		return -1;
-	}
-	close(fd);
-
+    {
+      close(fd);
+      return -1;
+    }
+  close(fd);
+  
   return term_status.v_active;
 }
 
 int set_active_tty(int tty)
 {
-	int retval = 1;
+  int retval = 1;
   int fd;
-
+  
   /* we switch to /dev/tty<tty> */
   if ((fd = getfd()) == -1) return 0;
   if (ioctl (fd, VT_ACTIVATE, tty) == -1) retval = 0;
   if (ioctl (fd, VT_WAITACTIVE, tty) == -1) retval = 0;
-	close(fd);
-
+  close(fd);
+  
   return retval;
 }
 
 int get_available_tty(void)
 {
-	int fd = getfd();
-	int available;
+  int fd = getfd();
+  int available;
   
   if (fd == -1) return -1;
-	ioctl (fd, VT_OPENQRY, &available);
-	close(fd);
-
-	return available;
+  ioctl (fd, VT_OPENQRY, &available);
+  close(fd);
+  
+  return available;
 }
 
 void tty_redraw(void)
 {
-	int active_tty = get_active_tty();
-	int temp_tty = get_available_tty();
-
-	/* Actually, this is implemented as a hack
-		 I do not think that a *real* way to do 
-		 this even exists...                      */
-
-	if (temp_tty != -1) set_active_tty(temp_tty);
-	else /* hope this never happens, as it could be an active tty running X */
-		set_active_tty(active_tty + 20);
-	set_active_tty(active_tty);
+  int active_tty = get_active_tty();
+  int temp_tty = get_available_tty();
+  
+  /* Actually, this is implemented as a hack
+     I do not think that a *real* way to do 
+     this even exists...                      */
+  
+  if (temp_tty != -1) set_active_tty(temp_tty);
+  else /* hope this never happens, as it could be an active tty running X */
+    set_active_tty(active_tty + 20);
+  set_active_tty(active_tty);
 }
 
 int disallocate_tty(int tty)
 {
   int fd;
-
+  
   /* we switch to /dev/tty<tty> */
   if ((fd = getfd()) == -1) return 0;
   if (ioctl (fd, VT_DISALLOCATE, tty) == -1) return 0;
   if (close(fd) != 0) return 0;
-
+  
   return 1;
 }
 
 int lock_tty_switching(void)
 {
   int fd = getfd();
-
+  
   if (fd == -1) return 0;
   if (ioctl (fd, VT_LOCKSWITCH, 513) == -1) return 0;
   close(fd);
-
+  
   return 1;
 }
 
 int unlock_tty_switching(void)
 {
   int fd = getfd();
-
+  
   if (fd == -1) return 0;
   if (ioctl (fd, VT_UNLOCKSWITCH, 513) == -1) return 0;
   close(fd);
-
+  
   return 1;
 }
 
@@ -194,8 +192,8 @@ void stderr_disable(void)
 void stderr_enable(void)
 {
   char *ttyname = create_tty_name(get_active_tty());
-
+  
   if (!ttyname) return;
   stderr = freopen(ttyname, "w", stderr);
-	free(ttyname);
+  free(ttyname);
 }

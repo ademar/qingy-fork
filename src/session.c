@@ -107,65 +107,65 @@ int PAM_conv (int num_msg, pam_message_type **msg, struct pam_response **resp, v
 {
   int count;
   struct pam_response *reply;
-
+  
   if (appdata_ptr) {}
   if (!(reply = calloc(num_msg, sizeof(*reply)))) return PAM_CONV_ERR;
-
+  
   for (count = 0; count < num_msg; count++)
-  {
-    switch (msg[count]->msg_style)
-    {
-			case PAM_TEXT_INFO:
-				if (!StrApp(&infostr, msg[count]->msg, "\n", (char*)NULL))
-					goto conv_err;
-				break;
-			case PAM_ERROR_MSG:
-				if (!StrApp(&errstr, msg[count]->msg, "\n", (char*)NULL))
-					goto conv_err;
-				break;
-			case PAM_PROMPT_ECHO_OFF:
-				/* wants password */
-				if (!StrDup (&reply[count].resp, PAM_password)) goto conv_err;
-				reply[count].resp_retcode = PAM_SUCCESS;
-				break;
-			case PAM_PROMPT_ECHO_ON:
-				/* username given to PAM already */
-				/* fall through */
-			default:
-				/* unknown */
-				goto conv_err;
-    }
-  }
-  *resp = reply;
-  return PAM_SUCCESS;
-
-conv_err:
-  for (; count >= 0; count--)
-    if (reply[count].resp)
     {
       switch (msg[count]->msg_style)
-      {
-				case PAM_ERROR_MSG:
-				case PAM_TEXT_INFO:
-				case PAM_PROMPT_ECHO_ON:
-					free(reply[count].resp);
-					break;
-				case PAM_PROMPT_ECHO_OFF:
-					free(reply[count].resp);
-					break;
-      }
-      reply[count].resp = 0;
+	{
+	case PAM_TEXT_INFO:
+	  if (!StrApp(&infostr, msg[count]->msg, "\n", (char*)NULL))
+	    goto conv_err;
+	  break;
+	case PAM_ERROR_MSG:
+	  if (!StrApp(&errstr, msg[count]->msg, "\n", (char*)NULL))
+	    goto conv_err;
+	  break;
+	case PAM_PROMPT_ECHO_OFF:
+	  /* wants password */
+	  if (!StrDup (&reply[count].resp, PAM_password)) goto conv_err;
+	  reply[count].resp_retcode = PAM_SUCCESS;
+	  break;
+	case PAM_PROMPT_ECHO_ON:
+	  /* username given to PAM already */
+	  /* fall through */
+	default:
+	  /* unknown */
+	  goto conv_err;
+	}
     }
+  *resp = reply;
+  return PAM_SUCCESS;
+  
+ conv_err:
+  for (; count >= 0; count--)
+    if (reply[count].resp)
+      {
+	switch (msg[count]->msg_style)
+	  {
+	  case PAM_ERROR_MSG:
+	  case PAM_TEXT_INFO:
+	  case PAM_PROMPT_ECHO_ON:
+	    free(reply[count].resp);
+	    break;
+	  case PAM_PROMPT_ECHO_OFF:
+	    free(reply[count].resp);
+	    break;
+	  }
+	reply[count].resp = 0;
+      }
   /* forget reply too */
   free (reply);
   return PAM_CONV_ERR;
 }
 
 struct pam_conv PAM_conversation =
-{
-  PAM_conv,
-  NULL
-};
+  {
+    PAM_conv,
+    NULL
+  };
 
 #endif /* End of USE_PAM */
 
@@ -176,51 +176,51 @@ char *get_sessions(void)
   struct dirent *entry;
   static int status = 0;
   static char *dirname = NULL;
-
+  
   if (!dirname) dirname = X_SESSIONS_DIRECTORY;
-
+  
   switch (status)
-  {
-		case 0:
-			status = 1;
-			return strdup("Text: Console");
-		case 1:
-			status = 2;
-			return strdup("Your .xsession");
-		case 2:
-			dir= opendir(dirname);
-			if (!dir)
-			{
-				status = 0;
-				fprintf(stderr, "session: unable to open directory \"%s\"\n", dirname);
-				return NULL;
-			}
-			status = 3;
-		case 3:
-			while (1)
-			{
-				if (!(entry= readdir(dir))) break;
-				if (!strcmp(entry->d_name, "." )) continue;
-				if (!strcmp(entry->d_name, "..")) continue;      
-				if (dirname == X_SESSIONS_DIRECTORY)
-				{
-					if (!strcmp(entry->d_name, "Xsession")) continue;
-					return strdup(entry->d_name);
-				}
-				else return StrApp((char**)NULL, "Text: ", entry->d_name, (char*)NULL);
-			}
-			closedir(dir);
-			if (dirname == TEXT_SESSIONS_DIRECTORY)
-			{
-				dirname = NULL;
-				status = 0;
-				return NULL;
-			}
-			dirname = TEXT_SESSIONS_DIRECTORY;
-			status = 2;
-			return get_sessions();
-  }
-
+    {
+    case 0:
+      status = 1;
+      return strdup("Text: Console");
+    case 1:
+      status = 2;
+      return strdup("Your .xsession");
+    case 2:
+      dir= opendir(dirname);
+      if (!dir)
+	{
+	  status = 0;
+	  fprintf(stderr, "session: unable to open directory \"%s\"\n", dirname);
+	  return NULL;
+	}
+      status = 3;
+    case 3:
+      while (1)
+	{
+	  if (!(entry= readdir(dir))) break;
+	  if (!strcmp(entry->d_name, "." )) continue;
+	  if (!strcmp(entry->d_name, "..")) continue;      
+	  if (dirname == X_SESSIONS_DIRECTORY)
+	    {
+	      if (!strcmp(entry->d_name, "Xsession")) continue;
+	      return strdup(entry->d_name);
+	    }
+	  else return StrApp((char**)NULL, "Text: ", entry->d_name, (char*)NULL);
+	}
+      closedir(dir);
+      if (dirname == TEXT_SESSIONS_DIRECTORY)
+	{
+	  dirname = NULL;
+	  status = 0;
+	  return NULL;
+	}
+      dirname = TEXT_SESSIONS_DIRECTORY;
+      status = 2;
+      return get_sessions();
+    }
+  
   return NULL;
 }
 
@@ -228,45 +228,45 @@ char *get_sessions(void)
 void LogEvent(struct passwd *pw, int status)
 {
   openlog("qingy", LOG_PID, LOG_AUTHPRIV);
-
+  
   switch (status)
-  {
-		case UNKNOWN_USER:
-			syslog(LOG_AUTHPRIV|LOG_WARNING, "Authentication failure: user '%s' is unknown\n", pw->pw_name);
-			break;
-		case WRONG_PASSWORD:
-			syslog(LOG_AUTHPRIV|LOG_WARNING, "Authentication failure: wrong password for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
-			break;
-		case OPEN_SESSION:
-			syslog(LOG_AUTHPRIV|LOG_INFO, "Session opened for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
-			break;
-		case CLOSE_SESSION:
-			syslog(LOG_AUTHPRIV|LOG_INFO, "Session closed for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
-			break;
-		case CANNOT_SWITCH_USER:
-			syslog(LOG_AUTHPRIV|LOG_WARNING, "Fatal Error: cannot switch user id!\n");
-			break;
-		case CANNOT_CHANGE_TTY_OWNER:
-			syslog(LOG_AUTHPRIV|LOG_WARNING, "Fatal Error: cannot change tty owner!\n");
-			break;
+    {
+    case UNKNOWN_USER:
+      syslog(LOG_AUTHPRIV|LOG_WARNING, "Authentication failure: user '%s' is unknown\n", pw->pw_name);
+      break;
+    case WRONG_PASSWORD:
+      syslog(LOG_AUTHPRIV|LOG_WARNING, "Authentication failure: wrong password for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
+      break;
+    case OPEN_SESSION:
+      syslog(LOG_AUTHPRIV|LOG_INFO, "Session opened for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
+      break;
+    case CLOSE_SESSION:
+      syslog(LOG_AUTHPRIV|LOG_INFO, "Session closed for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
+      break;
+    case CANNOT_SWITCH_USER:
+      syslog(LOG_AUTHPRIV|LOG_WARNING, "Fatal Error: cannot switch user id!\n");
+      break;
+    case CANNOT_CHANGE_TTY_OWNER:
+      syslog(LOG_AUTHPRIV|LOG_WARNING, "Fatal Error: cannot change tty owner!\n");
+      break;
 #ifdef USE_PAM
-		case PAM_FAILURE:
-			syslog(LOG_AUTHPRIV|LOG_WARNING, "Unrecoverable error: PAM failure!\n");
-			break;
-		case PAM_ERROR:
-			syslog(LOG_AUTHPRIV|LOG_WARNING, "PAM was unable to authenticate user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
-			break;
-		case PAM_UPDATE_TOKEN:
-			syslog(LOG_AUTHPRIV|LOG_WARNING, "user '%s' (UID %d) authentication token has expired!\n", pw->pw_name, pw->pw_uid);
-			break;
-		case PAM_CANNOT_UPDATE_TOKEN:
-			syslog(LOG_AUTHPRIV|LOG_WARNING, "Cannot update authentication token for user '%s' (UID %d)!\n", pw->pw_name, pw->pw_uid);
-			break;
+    case PAM_FAILURE:
+      syslog(LOG_AUTHPRIV|LOG_WARNING, "Unrecoverable error: PAM failure!\n");
+      break;
+    case PAM_ERROR:
+      syslog(LOG_AUTHPRIV|LOG_WARNING, "PAM was unable to authenticate user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
+      break;
+    case PAM_UPDATE_TOKEN:
+      syslog(LOG_AUTHPRIV|LOG_WARNING, "user '%s' (UID %d) authentication token has expired!\n", pw->pw_name, pw->pw_uid);
+      break;
+    case PAM_CANNOT_UPDATE_TOKEN:
+      syslog(LOG_AUTHPRIV|LOG_WARNING, "Cannot update authentication token for user '%s' (UID %d)!\n", pw->pw_name, pw->pw_uid);
+      break;
 #endif	
-		default:
-			syslog(LOG_AUTHPRIV|LOG_WARNING, "Error #666, coder brains are severely damaged!\n");
-  }
-
+    default:
+      syslog(LOG_AUTHPRIV|LOG_WARNING, "Error #666, coder brains are severely damaged!\n");
+    }
+  
   closelog();
 }
 
@@ -286,83 +286,83 @@ int check_password(char *username, char *user_password)
   struct spwd* sp;
 #endif
 #endif /* End of USE_PAM */
-
+  
   if (!username) return 0;
   if (!user_password) password = "\0";
   else password = user_password;
-
+  
   pw = getpwnam(username);
   endpwent();
   if (!pw)
-  {
-    struct passwd pwd;
-
-    pwd.pw_name = username;
-    LogEvent(&pwd, UNKNOWN_USER);
-    return 0;
-  }
-
+    {
+      struct passwd pwd;
+      
+      pwd.pw_name = username;
+      LogEvent(&pwd, UNKNOWN_USER);
+      return 0;
+    }
+  
 #ifdef USE_PAM
   PAM_password = (char *)password;
   ttyname = create_tty_name(get_active_tty());
-
+  
   if (pam_start("qingy", username, &PAM_conversation, &pamh) != PAM_SUCCESS)
-  {
-    LogEvent(pw, PAM_FAILURE);
-    return 0;
-  }
+    {
+      LogEvent(pw, PAM_FAILURE);
+      return 0;
+    }
   if ((retcode = pam_set_item(pamh, PAM_TTY, ttyname)) != PAM_SUCCESS)
-  {
-    pam_end(pamh, retcode);
-    pamh = NULL;
-    LogEvent(pw, PAM_FAILURE);
-    return 0;
-  }
+    {
+      pam_end(pamh, retcode);
+      pamh = NULL;
+      LogEvent(pw, PAM_FAILURE);
+      return 0;
+    }
   if ((retcode = pam_set_item(pamh, PAM_RHOST, "")) != PAM_SUCCESS)
-  {
-    pam_end(pamh, retcode);
-    pamh = NULL;
-    LogEvent(pw, PAM_FAILURE);
-    return 0;
-  }
+    {
+      pam_end(pamh, retcode);
+      pamh = NULL;
+      LogEvent(pw, PAM_FAILURE);
+      return 0;
+    }
   free (infostr); free (errstr);
-
+  
   if ((retcode = pam_authenticate(pamh, PAM_DISALLOW_NULL_AUTHTOK)) != PAM_SUCCESS)
-  {
-    pam_end(pamh, retcode);
-    pamh = NULL;
-    switch (retcode)
     {
-			case PAM_USER_UNKNOWN:
-				LogEvent(pw, UNKNOWN_USER);
-				break;
-			case PAM_AUTH_ERR:
-				LogEvent(pw, WRONG_PASSWORD);
-				break;
-			default:
-				LogEvent(pw, PAM_ERROR);
+      pam_end(pamh, retcode);
+      pamh = NULL;
+      switch (retcode)
+	{
+	case PAM_USER_UNKNOWN:
+	  LogEvent(pw, UNKNOWN_USER);
+	  break;
+	case PAM_AUTH_ERR:
+	  LogEvent(pw, WRONG_PASSWORD);
+	  break;
+	default:
+	  LogEvent(pw, PAM_ERROR);
+	}
+      return 0;
     }
-    return 0;
-  }
   if ((retcode = pam_acct_mgmt(pamh, PAM_DISALLOW_NULL_AUTHTOK)) != PAM_SUCCESS)
-  {
-    pam_end(pamh, retcode);
-    pamh = NULL;
-    switch (retcode)
     {
-			case PAM_NEW_AUTHTOK_REQD:
-				LogEvent(pw, PAM_UPDATE_TOKEN);
-				update_token = 1;
-				return 1;
-				break;
-			case PAM_USER_UNKNOWN:
-				LogEvent(pw, UNKNOWN_USER);
-				break;
-			default:
-				LogEvent(pw, PAM_ERROR);
+      pam_end(pamh, retcode);
+      pamh = NULL;
+      switch (retcode)
+	{
+	case PAM_NEW_AUTHTOK_REQD:
+	  LogEvent(pw, PAM_UPDATE_TOKEN);
+	  update_token = 1;
+	  return 1;
+	  break;
+	case PAM_USER_UNKNOWN:
+	  LogEvent(pw, UNKNOWN_USER);
+	  break;
+	default:
+	  LogEvent(pw, PAM_ERROR);
+	}
+      return 0;
     }
-    return 0;
-  }
   return 1;
 #else /* thus we don't USE_PAM */
 #ifdef SHADOW_PASSWD
@@ -386,21 +386,21 @@ char *shell_base_name(char *name)
 {
   char *base = name;
   char *temp = name;
-
-	if (!name) return NULL;
+  
+  if (!name) return NULL;
   while (*temp)
-  {
-    if (*temp == '/') base = temp + 1;
-    temp++;
-  }
-
+    {
+      if (*temp == '/') base = temp + 1;
+      temp++;
+    }
+  
   return StrApp((char**)NULL, "-", base, (char*)NULL);
 }
 
 void setEnvironment(struct passwd *pwd)
 {
   char *mail = StrApp((char**)NULL, _PATH_MAILDIR, "/", pwd->pw_name, (char*)NULL);
-
+  
   environ = (char **) calloc(2, sizeof(char *));
   environ[0] = 0;
   setenv("TERM", "linux", 0);
@@ -416,7 +416,7 @@ void setEnvironment(struct passwd *pwd)
 void restore_tty_ownership(void)
 {
   char *our_tty_name = create_tty_name(current_vt);
-
+  
   /* Restore tty ownership to root:tty */
   chown(our_tty_name, 0, 5);
   free(our_tty_name);
@@ -425,23 +425,23 @@ void restore_tty_ownership(void)
 void switchUser(struct passwd *pwd)
 {
   char *our_tty_name = create_tty_name(current_vt);
-
+  
   /* Change tty ownership to uid:tty */
   if (chown(our_tty_name, pwd->pw_uid, 5))
-  {
-    LogEvent(pwd, CANNOT_CHANGE_TTY_OWNER);
-		free(our_tty_name);
-    exit(EXIT_FAILURE);
-  }
+    {
+      LogEvent(pwd, CANNOT_CHANGE_TTY_OWNER);
+      free(our_tty_name);
+      exit(EXIT_FAILURE);
+    }
   free(our_tty_name);
-
+  
   /* Set user id */
   if (initgroups(pwd->pw_name, pwd->pw_gid) || setgid(pwd->pw_gid) || setuid(pwd->pw_uid))
-  {
-    LogEvent(pwd, CANNOT_SWITCH_USER);
-    exit(EXIT_FAILURE);
-  }
-
+    {
+      LogEvent(pwd, CANNOT_SWITCH_USER);
+      exit(EXIT_FAILURE);
+    }
+  
   /* Set enviroment variables */
   setEnvironment(pwd);
 }
@@ -454,34 +454,34 @@ void dolastlog(struct passwd *pwd, int quiet)
   char *hostname = (char *) calloc(UT_HOSTSIZE, sizeof(char));
   char *tty_name = (char *) calloc(UT_LINESIZE, sizeof(char));
   char *temp = int_to_str(current_vt);
-
+  
   gethostname(hostname, UT_HOSTSIZE);
   strncpy(tty_name, "tty", UT_LINESIZE);
   strncat(tty_name, temp, UT_LINESIZE);
   free(temp);
-
+  
   if ((fd = open(_PATH_LASTLOG, O_RDWR, 0)) >= 0)
-  {
-    lseek(fd, (off_t)pwd->pw_uid * sizeof(ll), SEEK_SET);
-    if (!quiet)
     {
-      if (read(fd, (char *)&ll, sizeof(ll)) == sizeof(ll) && ll.ll_time != 0)
-      {
-				printf("Last login: %.*s ", 24-5, (char *)ctime(&ll.ll_time));
-				if (*ll.ll_host != '\0')
-					printf("from %.*s\n", (int)sizeof(ll.ll_host), ll.ll_host);
-				else
-					printf("on %.*s\n", (int)sizeof(ll.ll_line), ll.ll_line);
-      }
       lseek(fd, (off_t)pwd->pw_uid * sizeof(ll), SEEK_SET);
+      if (!quiet)
+	{
+	  if (read(fd, (char *)&ll, sizeof(ll)) == sizeof(ll) && ll.ll_time != 0)
+	    {
+	      printf("Last login: %.*s ", 24-5, (char *)ctime(&ll.ll_time));
+	      if (*ll.ll_host != '\0')
+		printf("from %.*s\n", (int)sizeof(ll.ll_host), ll.ll_host);
+	      else
+		printf("on %.*s\n", (int)sizeof(ll.ll_line), ll.ll_line);
+	    }
+	  lseek(fd, (off_t)pwd->pw_uid * sizeof(ll), SEEK_SET);
+	}
+      memset((char *)&ll, 0, sizeof(ll));
+      time(&ll.ll_time);
+      xstrncpy(ll.ll_line, tty_name, sizeof(ll.ll_line));
+      if (hostname) xstrncpy(ll.ll_host, hostname, sizeof(ll.ll_host));
+      write(fd, (char *)&ll, sizeof(ll));
+      close(fd);
     }
-    memset((char *)&ll, 0, sizeof(ll));
-    time(&ll.ll_time);
-    xstrncpy(ll.ll_line, tty_name, sizeof(ll.ll_line));
-    if (hostname) xstrncpy(ll.ll_host, hostname, sizeof(ll.ll_host));
-    write(fd, (char *)&ll, sizeof(ll));
-    close(fd);
-  }
   free(hostname);
   free(tty_name);
 }
@@ -494,45 +494,45 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   int retval;
 #endif
   
-	args[0] = shell_base_name(pw->pw_shell);
+  args[0] = shell_base_name(pw->pw_shell);
   if (!session || strcmp(session+6, "Console"))
-  {
-    args[1] = strdup("-c");
-    args[2] = StrApp((char **)NULL, TEXT_SESSIONS_DIRECTORY, session+6, (char *)NULL);
-  }
-
+    {
+      args[1] = strdup("-c");
+      args[2] = StrApp((char **)NULL, TEXT_SESSIONS_DIRECTORY, session+6, (char *)NULL);
+    }
+  
   proc_id = fork();
   if (proc_id == -1)
-  {
-    fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
-		free(args[0]); free(args[1]); free(args[2]); 
-    exit(EXIT_FAILURE);
-  }
+    {
+      fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
+      free(args[0]); free(args[1]); free(args[2]); 
+      exit(EXIT_FAILURE);
+    }
   if (!proc_id)
-  {
-    /* write to system logs */
-    dolastlog(pw, 0);
+    {
+      /* write to system logs */
+      dolastlog(pw, 0);
 #ifdef USE_PAM
-    pam_setcred(pamh, PAM_ESTABLISH_CRED);
-    pam_open_session(pamh, 0);
+      pam_setcred(pamh, PAM_ESTABLISH_CRED);
+      pam_open_session(pamh, 0);
 #else
-    LogEvent(pw, OPEN_SESSION);
+      LogEvent(pw, OPEN_SESSION);
 #endif
-
+      
     /* drop root privileges and set user enviroment */
-    switchUser(pw);
-
-    /* let's start the shell! */
-    execve(pw->pw_shell, args, environ);
-
-    /* execve should never return! */
-    fprintf(stderr, "session: fatal error: cannot start your session!\n");
-    exit(0);
-  }
+      switchUser(pw);
+      
+      /* let's start the shell! */
+      execve(pw->pw_shell, args, environ);
+      
+      /* execve should never return! */
+      fprintf(stderr, "session: fatal error: cannot start your session!\n");
+      exit(0);
+    }
   set_last_user(username);
   set_last_session(username, session);
   free(username); free(session);
-
+  
   wait(NULL);
 #ifdef USE_PAM
   pam_setcred(pamh, PAM_DELETE_CRED);
@@ -542,10 +542,10 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 #else
   LogEvent(pw, CLOSE_SESSION);
 #endif
-
+  
   /* Restore tty ownership to root:tty */
   restore_tty_ownership();
-
+  
   /* free allocated stuff */
   free(args[0]);
   free(args[1]);
@@ -562,23 +562,23 @@ int which_X_server(void)
   FILE *fp;
   char filename[20] = "/tmp/.X1-lock";
   int num = 1;
-
+  
   /*
    * we start our search from server :1 (instead of :0)
    * to allow a console user to start his own X server
    * using the default startx command
    */
-
+  
   while ((fp = fopen(filename, "r")))
   {
-		char *temp = int_to_str(++num);
+    char *temp = int_to_str(++num);
     fclose(fp);
     strcpy(filename, "/tmp/.X");
     strcat(filename, temp);
     free(temp);
     strcat(filename, "-lock");
   }
-
+  
   return num;
 }
 
@@ -593,74 +593,74 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   int retval;
 #endif
 
-	if (dest_vt != -1) vt = int_to_str(dest_vt);
-	else
-	{
-		fprintf(stderr, "session: fatal error: cannot find an unused vt!\n");
-		exit(EXIT_FAILURE);
-	}
-
+  if (dest_vt != -1) vt = int_to_str(dest_vt);
+  else
+    {
+      fprintf(stderr, "session: fatal error: cannot find an unused vt!\n");
+      exit(EXIT_FAILURE);
+    }
+  
   args[0] = shell_base_name(pw->pw_shell);
   args[1] = strdup("-c");
-	if (!strcmp(session, "Your .xsession"))
-		args[2] = StrApp((char **)NULL, XINIT, " $HOME/.xsession -- :", x_server, " vt", vt, " >& /dev/null", (char*)NULL);
-	else
-		args[2] = StrApp((char **)NULL, XINIT, " ", X_SESSIONS_DIRECTORY, session, " -- :", x_server, " vt", vt, " >& /dev/null", (char*)NULL);
+  if (!strcmp(session, "Your .xsession"))
+    args[2] = StrApp((char **)NULL, XINIT, " $HOME/.xsession -- :", x_server, " vt", vt, " >& /dev/null", (char*)NULL);
+  else
+    args[2] = StrApp((char **)NULL, XINIT, " ", X_SESSIONS_DIRECTORY, session, " -- :", x_server, " vt", vt, " >& /dev/null", (char*)NULL);
   args[3] = NULL;
   free(x_server);
   free(vt);
-
+  
   proc_id = fork();
   if (proc_id == -1)
-  {
-    fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
-		free(args[0]); free(args[1]); free(args[2]);
-    exit(EXIT_FAILURE);
-  }
+    {
+      fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
+      free(args[0]); free(args[1]); free(args[2]);
+      exit(EXIT_FAILURE);
+    }
   if (!proc_id)
-  {
-    /* write to system logs */
-    dolastlog(pw, 1);
+    {
+      /* write to system logs */
+      dolastlog(pw, 1);
 #ifdef USE_PAM
-    pam_setcred(pamh, PAM_ESTABLISH_CRED);
-    pam_open_session(pamh, 0);
+      pam_setcred(pamh, PAM_ESTABLISH_CRED);
+      pam_open_session(pamh, 0);
 #else
-    LogEvent(pw, OPEN_SESSION);
+      LogEvent(pw, OPEN_SESSION);
 #endif
-
-    /* drop root privileges and set user enviroment */
-    switchUser(pw);
-
-    /* start X server and selected session! */
-    execve(pw->pw_shell, args, environ);
-
-    /* execve should never return! */
-    fprintf(stderr, "session: fatal error: cannot start your session!\n");
-    exit(EXIT_FAILURE);
-  }
+      
+      /* drop root privileges and set user enviroment */
+      switchUser(pw);
+      
+      /* start X server and selected session! */
+      execve(pw->pw_shell, args, environ);
+      
+      /* execve should never return! */
+      fprintf(stderr, "session: fatal error: cannot start your session!\n");
+      exit(EXIT_FAILURE);
+    }
   set_last_user(username);
   set_last_session(username, session);
   free(username);
-
+  
   /* wait a bit, then clear console from X starting messages */
   sleep(3);
   ClearScreen();
   fprintf(stderr, "Switching to X Server...\n");
-
+  
   /* while X server is active, we wait for user
      to switch to our tty and redirect him there */
   while(1)
-  {
-    pid_t result;
-
-    result = waitpid(-1, NULL, WNOHANG);
-    if (!result || result == -1)
     {
-      if (get_active_tty() == current_vt) set_active_tty(dest_vt);
-      sleep(1);
+      pid_t result;
+      
+      result = waitpid(-1, NULL, WNOHANG);
+      if (!result || result == -1)
+	{
+	  if (get_active_tty() == current_vt) set_active_tty(dest_vt);
+	  sleep(1);
+	}
+      else break;
     }
-    else break;
-  }
 #ifdef USE_PAM
   pam_setcred(pamh, PAM_DELETE_CRED);
   retval = pam_close_session(pamh, 0);
@@ -671,13 +671,13 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 #endif
   if (get_active_tty() == dest_vt) set_active_tty(current_vt);
   free(session);
-
+  
   /* Restore tty ownership to root:tty */
   restore_tty_ownership();
-
-	/* disallocate tty X was running in */
-	disallocate_tty(dest_vt);
-
+  
+  /* disallocate tty X was running in */
+  disallocate_tty(dest_vt);
+  
   free(args[0]);
   free(args[1]);
   free(args[2]);
@@ -688,44 +688,44 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 void start_session(char *username, char *session)
 {
   struct passwd *pwd = getpwnam(username);
-
+  
   endpwent();
-
+  
   if (black_screen_workaround) tty_redraw();
   current_vt = get_active_tty();
-
+  
   if (!pwd)
-  {
-    struct passwd pw;
+    {
+      struct passwd pw;
 
-    pw.pw_name = username;
-    LogEvent(&pw, UNKNOWN_USER);
-    free(username);
-    free(session);
-    exit(EXIT_FAILURE);
-  }
-
+      pw.pw_name = username;
+      LogEvent(&pw, UNKNOWN_USER);
+      free(username);
+      free(session);
+      exit(EXIT_FAILURE);
+    }
+  
   ClearScreen();
-
+  
 #ifdef USE_PAM
   if (update_token)
-  {
-    /*
-     * This is a quick hack... for some reason, if I try to
-     * do things properly, PAM output on screen when updating
-     * authorization token is all garbled, so for now I'll
-     * leave this to /bin/login
-     */
-    printf("You need to update your authorization token...\n");
-    printf("After that, log out and in again.\n\n");
-    execl("/bin/login", "/bin/login", "--", username, (char*)NULL);
-    exit(EXIT_SUCCESS);
-  }
+    {
+      /*
+       * This is a quick hack... for some reason, if I try to
+       * do things properly, PAM output on screen when updating
+       * authorization token is all garbled, so for now I'll
+       * leave this to /bin/login
+       */
+      printf("You need to update your authorization token...\n");
+      printf("After that, log out and in again.\n\n");
+      execl("/bin/login", "/bin/login", "--", username, (char*)NULL);
+      exit(EXIT_SUCCESS);
+    }
 #endif
-
+  
   if (!strncmp(session, "Text: ", 6)) Text_Login(pwd, session, username);
   else Graph_Login(pwd, session, username);
-
+  
   /* we don't get here unless we couldn't start user session */
   fprintf(stderr, "Couldn't login user '%s'!\n", username);
   exit(EXIT_FAILURE);

@@ -56,12 +56,13 @@ int THEME_HEIGHT;
 /* colors */
 typedef struct
 {
-	unsigned int R;
-	unsigned int G;
-	unsigned int B;
-	unsigned int A;
+  unsigned int R;
+  unsigned int G;
+  unsigned int B;
+  unsigned int A;
 }
 color_t;
+
 color_t DEFAULT_TEXT_COLOR;
 color_t DEFAULT_CURSOR_COLOR;
 color_t OTHER_TEXT_COLOR;
@@ -69,43 +70,43 @@ color_t OTHER_TEXT_COLOR;
 /* Shutdown permissions policy... */
 typedef enum 
 {
-	EVERYONE=0,
-	ROOT,
-	NOONE
+  EVERYONE=0,
+  ROOT,
+  NOONE
 } shutdown_policies;
 shutdown_policies SHUTDOWN_POLICY;
 
 /* screen saver stuff */
 struct _image_paths
 {
-	char *path;
-	struct _image_paths *next;
+  char *path;
+  struct _image_paths *next;
 };
 struct _image_paths *image_paths;
 typedef enum _kinds
-{
-  PIXEL_SCREENSAVER,
-  PHOTO_SCREENSAVER
-} screensaver_kinds;
+  {
+    PIXEL_SCREENSAVER,
+    PHOTO_SCREENSAVER
+  } screensaver_kinds;
 screensaver_kinds SCREENSAVER;
 
 /* Custom windows can be of the following- they mean:
    - UNKNOWN: default value, treat as error.
    - LABEL: display static text. if command is empty, not executable
-   or error returning, display content. Otherwise, command output.
-	 If polltime is 0, do not update window content. You can also specify
-	 "%s" somewhere inside content: that "%s" will be converted into
-	 the output of command...
+   	    or error returning, display content. Otherwise, command output.
+	    If polltime is 0, do not update window content. You can also specify
+	    "%s" somewhere inside content: that "%s" will be converted into
+	    the output of command...
    - BUTTON: execute command when mouse pressed (key 1). content has
-	 button file name prefix, i.e. "reset" if button image names are
-	 "reset_normal.png" and "reset_mouseover.png".   
-   button commands may be "halt" "reboot" "sleep" "screensaver"
+	     button file name prefix, i.e. "reset" if button image names are
+	     "reset_normal.png" and "reset_mouseover.png".   
+	     button commands may be "halt" "reboot" "sleep" "screensaver"
    - LOGIN: standard login. command and content aren't used.
    - PASSWORD: standard password. command and content aren't used.
    - COMBO: a combo as in sessions, holding different values. command holds
-   command, content is not used. possible commands here are
-   "sessions".
- */
+   	    command, content is not used. possible commands here are
+	    "sessions".
+*/
 
 typedef enum 
 {
@@ -119,16 +120,16 @@ typedef enum
 
 typedef enum
 {
-	SMALL,
-	MEDIUM,
-	LARGE
+  SMALL,
+  MEDIUM,
+  LARGE
 } text_size_t;
 
 typedef enum
 {
-	LEFT=0,
-	CENTER,
-	RIGHT
+  LEFT=0,
+  CENTER,
+  RIGHT
 }
 text_orient_t;
 
@@ -140,14 +141,14 @@ typedef struct _window
   int width;
   int height;
   int polltime;
-	text_size_t text_size;
-	text_orient_t text_orientation;
-	color_t *text_color;
-	color_t *cursor_color;
+  text_size_t text_size;
+  text_orient_t text_orientation;
+  color_t *text_color;
+  color_t *cursor_color;
   window_types_t type;
   char *command;
   char *content;
-	char *linkto;
+  char *linkto;
   struct _window *next;
 } window_t;
 
