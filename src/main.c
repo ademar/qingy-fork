@@ -279,7 +279,7 @@ int main(int argc, char *argv[])
   
   /* We set up a delay of 0.5 seconds */
   delay.tv_sec  = 0;
-  delay.tv_nsec = 500000000;	/* that's 500M */
+  delay.tv_nsec = 500000000;	/* that's 500M; NOTE (michele): I know, now what? */
   
   /*
 	 * We enable vt switching in case some previous session

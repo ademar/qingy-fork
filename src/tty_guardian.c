@@ -25,39 +25,164 @@
  *                                                                         *
  ***************************************************************************/
 
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
+#include <termios.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "misc.h"
 #include "chvt.h"
+#include "session.h"
+#include "load_settings.h"
 
-#define RETURN                   \
-{                                \
-	(void)waitpid(child, NULL, 0); \
-	return;                        \
+#define WAIT_N_RETURN                   \
+{                                       \
+	(void)waitpid(child, NULL, 0);        \
+	return;                               \
+}
+
+#define ABORT_N_RETURN                                                                 \
+{                                                                                      \
+	fprintf(stderr, "%s: fatal error: cannot set terminal attributes!\n", program_name); \
+	return NULL;                                                                         \
+}
+
+#ifndef TCSASOFT
+#define TCSASOFT 0
+#endif
+
+#define PASSWD_MAX 128
+
+
+
+/* read user password without echoing it */
+char *read_password(int tty)
+{
+	char *device = create_tty_name(tty);
+	int fd = open(device, O_RDONLY);
+	struct termios attr;
+	char buf[PASSWD_MAX];
+	char *retval;
+	int pos = 0;
+	char c;	
+
+	free(device);	
+	if (fd == -1) return NULL;
+
+	/* we disable input echoing */
+	if (tcgetattr(fd, &attr) == -1) ABORT_N_RETURN;
+	attr.c_lflag &= ~(ECHO|ISIG);
+	if (tcsetattr(fd, TCSAFLUSH|TCSASOFT, &attr) == -1) ABORT_N_RETURN;
+
+	/* we read the password */
+	while (read(fd, &c, sizeof(char)) > 0)
+	{
+		if (c == '\n') break;
+		if (c == '\0') break;
+
+		buf[pos++] = c;
+		if (pos == PASSWD_MAX-1) break;
+	}
+	buf[pos] = '\0';
+	close(fd);
+	
+	/* we clear the buffer before exiting */
+	retval = strdup(buf);
+	memset(&buf, 0, PASSWD_MAX*sizeof(char));
+
+	return retval;
+}
+
+/* block user until he authenticates */
+int WatchDog_Bark (char *dog_master, char *intruder, int our_land)
+{
+	int dest = get_available_tty();
+	char *password;
+	int retval;
+
+	if (dest == -1)            return 0;
+	if (!dog_master)           return 0;
+	if (!intruder)             return 0;
+	if (!switch_to_tty(dest))  return 0;
+	if (!set_active_tty(dest)) return 0;
+
+	/*
+	 * we don't want our intruder to switch to the tty
+	 * we are guarding while we ask him the password,
+	 * don't we? I'm afraid that our little guard dog
+	 * does NOT get distracted by steaks ;-P
+	 */
+	lock_tty_switching();
+
+	ClearScreen();
+	printf("%s, terminal \"/dev/tty%d\" is in use by another user.\n", intruder, our_land);
+	printf("Please supply root or tty owner password to continue.\n\nPassword: ");
+	fflush(stdout);
+
+	password = read_password(dest);
+	printf("\n\nChecking password... ");
+	fflush(stdout);
+
+	retval = check_password(dog_master, password);
+	if (!retval) retval = check_password("root", password);
+
+	/* a password is sensitive stuff: let's destroy it! */
+	memset(password, 0, strlen(password)*sizeof(char));
+	free(password);
+
+	if (!retval) printf("Access denied!\n");
+	else         printf("Access allowed!\n");
+	fflush(stdout);
+	sleep(2);
+	unlock_tty_switching();
+
+	switch_to_tty(our_land);
+	set_active_tty(our_land);
+	disallocate_tty(dest);
+
+	return retval;
+}
+
+/* check wether user has auth to visit our tty */
+void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intruder)
+{
+	static int already_sniffed = 0;
+	int retval;
+	char *intruder;
+
+	if (already_sniffed == where_was_intruder) return;
+
+	intruder = get_tty_owner(where_was_intruder);
+	if (!strcmp(intruder, dog_master) || !strcmp(intruder, "root"))
+	{
+		already_sniffed = where_was_intruder;
+		free(intruder);
+		return;
+	}
+
+	already_sniffed = 0;
+	retval = WatchDog_Bark(dog_master, intruder, where_is_intruder);	
+	free(intruder);
+
+	if (!retval)
+	{ /* user has no right to be here */
+		if (!set_active_tty(where_was_intruder)) abort();
+		return;
+	}
+
+	already_sniffed = where_was_intruder;
 }
 
 /*
- * guard specified ttys from unauthorized access
- * fence1 is text tty, fence2, if present is X tty
+ * guard specified ttys against unauthorized access
+ * fence1 is text tty, fence2, if present, is X tty
  */
-void ttyWatchDog(pid_t child, char *dog_master, int fence1, int fence2);
-/* check wether user has auth to visit that tty */
-void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intruder);
-/* block user until he authenticates */
-int WatchDog_Bark(char *dog_master, char *intruder, int where_was_intruder, int where_is_intruder);
-
-
-
-
-/* IMPLEMENTATION */
-
-
-
 void ttyWatchDog(pid_t child, char *dog_master, int fence1, int fence2)
 {
 	struct timespec delay;
@@ -65,8 +190,8 @@ void ttyWatchDog(pid_t child, char *dog_master, int fence1, int fence2)
 	int where_was_intruder = 0;
 
 	if (!child)    return;
-	if (!dog_master) RETURN;
-	if (!fence1 && !fence2) RETURN;
+	if (!dog_master) WAIT_N_RETURN;
+	if (!fence1 && !fence2) WAIT_N_RETURN;
 
 	/* We set up a delay of 0.5 seconds */
   delay.tv_sec  = 0;
@@ -91,40 +216,4 @@ void ttyWatchDog(pid_t child, char *dog_master, int fence1, int fence2)
 		if (where_is_intruder == fence2) WatchDog_Sniff(dog_master, where_was_intruder, fence2);
 		nanosleep(&delay, NULL); /* wait a little before checking again */
 	}
-}
-
-void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intruder)
-{
-	static int already_sniffed = 0;
-	int retval;
-	char *intruder;
-
-	if (already_sniffed == where_was_intruder) return;
-
-	intruder = get_tty_owner(where_was_intruder);
-	if (!strcmp(intruder, dog_master) || !strcmp(intruder, "root"))
-	{
-		already_sniffed = where_was_intruder;
-		free(intruder);
-		return;
-	}
-
-	already_sniffed = 0;
-	retval = WatchDog_Bark(dog_master, intruder, where_was_intruder, where_is_intruder);	
-	free(intruder);
-
-	if (!retval)
-	{ /* user has no right to be here */
-		if (!set_active_tty(where_was_intruder)) abort();
-		return;
-	}
-
-	already_sniffed = where_was_intruder;
-}
-
-int WatchDog_Bark (char *dog_master, char *intruder, int where_was_intruder, int where_is_intruder)
-{
-	fprintf(stderr, "authenticate yourself, %s\n", intruder);
-	sleep(2);
-	return 0;
 }

@@ -53,7 +53,7 @@ void tty_redraw(void);
 /* disallocate tty */
 int disallocate_tty(int tty);
 
-/* enable or disable stderr */
+/* enable or disable stdout and stderr */
 void stderr_disable(void);
 void stderr_enable(void);
 

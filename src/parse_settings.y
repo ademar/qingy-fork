@@ -110,8 +110,8 @@ static window_t wind =
 
 /* a configuration */
 config: /* nothing */
-| config lck_sess
 | config tty_specific
+| config lck_sess
 | config ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config xsessdir
 | config txtsessdir
@@ -123,16 +123,12 @@ config: /* nothing */
 | config CLEAR_BACKGROUND_TOK '=' NO_TOK  { if (!clear_background_is_set) clear_background = 0; }
 ;
 
-/* options to enable or disable session locking */
-lck_sess: LOCK_SESSIONS_TOK '=' YES_TOK { lock_sessions = 1; }
-|         LOCK_SESSIONS_TOK '=' NO_TOK  { lock_sessions = 0; }
-;
-
 /* options that will apply to a specific tty only */
 tty_specific: TTY_TOK '=' ANUM_T { intended_tty = $3; } '{' config_tty '}' { intended_tty = 0; };
 
 /* tty specific allowed configuration */
 config_tty: /* nothing */
+| config_tty lck_sess
 | config_tty ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config_tty xsessdir
 | config_tty txtsessdir
@@ -142,6 +138,11 @@ config_tty: /* nothing */
 | config_tty window
 | config_tty CLEAR_BACKGROUND_TOK '=' YES_TOK { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 1;} }
 | config_tty CLEAR_BACKGROUND_TOK '=' NO_TOK  { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 0;} }
+;
+
+/* options to enable or disable session locking */
+lck_sess: LOCK_SESSIONS_TOK '=' YES_TOK { lock_sessions = 1; }
+|         LOCK_SESSIONS_TOK '=' NO_TOK  { lock_sessions = 0; }
 ;
 
 /* Screensaver: "name" or "name" = "option", "option"  */

@@ -1,5 +1,5 @@
 /***************************************************************************
-                           chvt.c  -  Terminal switching functions
+                    chvt.c  -  Terminal switching functions
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
@@ -25,7 +25,7 @@
  *                                                                         *
  ***************************************************************************/
 
-/* Working to make it compliant to GNU Standards :P ------------------------- */
+/* Working to make it compliant to GNU Standards :P ---------------------- */
 
 #include <fcntl.h>
 #include <pwd.h>

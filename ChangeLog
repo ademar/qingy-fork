@@ -1,3 +1,13 @@
+2004-02-09  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/tty_guardian.c: more work on session locking;
+	now it works except that if you come from an unused
+	tty, which is owned by root, you get granted access
+	to any guarded tty. I have to devise a way to know
+	wether a tty is in use or not. Also, if an user starts
+	an X server from inside a text session, that X server
+	is not guarded...
+
 2004-02-06  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* src/chvt.c (get_tty_owner),
