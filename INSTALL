@@ -18,10 +18,12 @@ Just like nearly every other linux program ;-)
 In order to use qingy you have to properly
 configure DirectFB for your console framebuffer:
 run 'fbset' and paste the output as the first entry
-in /etc/fb.modes; then create a file named
-/etc/directfbrc and put the following line
-int it:
+in /etc/fb.modes. Qingy should auto create a file
+named /etc/directfbrc.qingy with this line in it:
 mode=1024x768
+If for some reason you don't have such file or it
+does contain the wrong stuff, please correct it
+manually.
 Change 1024x768 with the actual resolution of
 your console framebuffer. This should have you
 up and running with DirectFB.

@@ -34,6 +34,40 @@ int screen_width;
 int screen_height;
 
 
+void pixel_screen_saver(IDirectFBSurface *surface);
+void photo_screen_saver(IDirectFBSurface *surface);
+
+void activate_screen_saver(ScreenSaver *thiz)
+{
+	void (*do_screen_saver)(IDirectFBSurface *surface);
+
+	if (!thiz) return;
+	if (!thiz->surface) return;
+	if (!thiz->events) return;
+
+	thiz->surface->GetSize(thiz->surface, &screen_width, &screen_height);
+
+	switch (thiz->kind)
+	{
+		case PHOTO_SCREENSAVER:
+			do_screen_saver = photo_screen_saver;
+			break;
+		case PIXEL_SCREENSAVER: /* fall to default */
+		default:
+			do_screen_saver = pixel_screen_saver;
+	}
+
+	/* do screen saver until an input event arrives */
+	while (1)
+	{
+		thiz->events->WaitForEventWithTimeout(thiz->events, thiz->seconds, thiz->milli_seconds);
+		if (thiz->events->HasEvent(thiz->events) == DFB_OK) break;
+		do_screen_saver(thiz->surface);
+	}
+}
+
+
+
 void pixel_screen_saver(IDirectFBSurface *surface)
 {
 	static int toggle = 1;
@@ -65,34 +99,4 @@ void photo_screen_saver(IDirectFBSurface *surface)
 	/* not implemented yet... */
 	if (!surface) return;
 	return;
-}
-
-
-void activate_screen_saver(ScreenSaver *thiz)
-{
-	void (*do_screen_saver)(IDirectFBSurface *surface);
-
-	if (!thiz) return;
-	if (!thiz->surface) return;
-	if (!thiz->events) return;
-
-	thiz->surface->GetSize(thiz->surface, &screen_width, &screen_height);
-
-	switch (thiz->kind)
-	{
-		case PHOTO_SCREENSAVER:
-			do_screen_saver = photo_screen_saver;
-			break;
-		case PIXEL_SCREENSAVER: /* fall to default */
-		default:
-			do_screen_saver = pixel_screen_saver;
-	}
-
-	/* do screen saver until an input event arrives */
-	while (1)
-	{
-		thiz->events->WaitForEventWithTimeout(thiz->events, thiz->seconds, thiz->milli_seconds);
-		if (thiz->events->HasEvent(thiz->events) == DFB_OK) break;
-		do_screen_saver(thiz->surface);
-	}
 }

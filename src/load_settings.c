@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <time.h>
 
 #if HAVE_DIRENT_H
 	# include <dirent.h>
@@ -114,11 +115,11 @@ char *get_random_theme()
 {
 	DIR *dir;
 	struct dirent *entry;
-	FILE *fp;
 	char *temp = NULL;
 	int n_themes = 0;
 	char *themes[128];
-	char *seed;
+	time_t epoch;
+	struct tm curr_time;	
 	int i;
 
 	dir= opendir(DATADIR);
@@ -146,25 +147,11 @@ char *get_random_theme()
 	}
 	closedir(dir);
 
-	/* all this stuff just to get a random number between 0 and n_themes-1 */
-	seed = (char *) calloc(strlen(DATADIR)+5, sizeof(char));
-	strcpy(seed, DATADIR);
-	strcat(seed, "seed");
-	fp = fopen(seed, "r");
-	if (fp)
-	{
-		fscanf(fp, "%d", &i);
-		fclose(fp);
-		srand(i);
-	}
-	else srand(n_themes);
+	/* let's create a random number between 0 and n_themes-1 */
+	epoch = time(NULL);
+	localtime_r(&epoch, &curr_time);
+	srand(curr_time.tm_sec);
 	i = rand() % n_themes;
-	fp = fopen(seed, "w");
-	if (fp)
-	{
-		fprintf(fp, "%d", rand());
-		fclose(fp);
-	}
 
 	return themes[i];
 }
@@ -218,6 +205,17 @@ int load_settings(void)
 			found = 1;
 		}
 		if (strcmp(tmp, "XINIT") == 0)
+		{
+			if (fscanf(fp, "%s", tmp) == EOF)
+			{
+				err = 1;
+				break;
+			}
+			XINIT = (char *) calloc(strlen(tmp)+1, sizeof(char));
+			strcpy(XINIT, tmp);
+			found = 1;
+		}
+		if (strcmp(tmp, "SCREEN_SAVER") == 0)
 		{
 			if (fscanf(fp, "%s", tmp) == EOF)
 			{

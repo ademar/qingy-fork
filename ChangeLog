@@ -1,3 +1,7 @@
+qingy CVS:
+- no longer necessary to use a seed file to select a random theme
+  (you can safely remove file /etc/qingy/seed if it exists)
+
 qingy 0.2.2 (29 September 2003):
 - Starting X sessions for users with a shell other than bash
   should no longer fail with strange errors
