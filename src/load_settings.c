@@ -95,13 +95,15 @@ void error(char *where)
 
 int load_settings(void)
 {
-	FILE *fp = fopen(SETTINGS, "r");
+	FILE *fp;
 	char *theme = NULL;
 	char tmp[MAX];
 	int temp[4];
 
 	XSESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;
 
+	fprintf(stderr, "using settings file: \"%s\"\n", SETTINGS);
+	fp = fopen(SETTINGS, "r");
 	if (!fp)
 	{
 		fprintf(stderr, "load_Settings: settings file not found...\nusing internal defaults\n");

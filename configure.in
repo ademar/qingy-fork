@@ -69,7 +69,7 @@ fi
 
 # Check wether we are using shadow passwords
 	echo -n "Checking for /etc/shadow: "
-	if test "`cat /etc/shadow`" != ""; then
+	if test -a /etc/shadow; then
 		echo "found"
 		SHADOW="-DSHADOW_PASSWD"
 	else

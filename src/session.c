@@ -217,8 +217,7 @@ void setEnvironment(struct passwd *pwd)
 	setenv("HOME", pwd->pw_dir, 1);
 	setenv("SHELL", pwd->pw_shell, 1);
 	setenv("USER", pwd->pw_name, 1);
-	setenv("LOGNAME", pwd->pw_name, 1);
-	setenv("DISPLAY", ":0.0", 1);
+	setenv("LOGNAME", pwd->pw_name, 1);	
 	mail = (char *) calloc(strlen(_PATH_MAILDIR) + strlen(pwd->pw_name) + 2, sizeof(char));
 	strcpy(mail, _PATH_MAILDIR);
 	strcat(mail, "/");
