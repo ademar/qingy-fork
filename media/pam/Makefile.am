@@ -8,5 +8,4 @@ else
 pamdata_DATA =
 endif
 
-EXTRA_DIST =          \
-    default/qingy     \
+EXTRA_DIST = default/qingy
