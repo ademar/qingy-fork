@@ -2,7 +2,7 @@
                       directfb_mode.c  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
+    copyright            : (C) 2003-2004 by Noberasco Michele
     e-mail               : noberasco.gnu@disi.unige.it
 ***************************************************************************/
 
@@ -192,55 +192,13 @@ void set_user_session(char *user)
 
 void close_framebuffer_mode (void)
 {
-
-	/* 
+	/*
+	 * Once, all DirectFB interfaces were shut
+	 * down gracefully here. Now no longer:
 	 * DirectFB has not been nice to us recently,
 	 * so we are not being nice to it any more!
 	 */
 
-
-/*   /\* destroy all labels *\/ */
-/*   while (Labels) */
-/* 	{ */
-/* 		Label_list *temp = Labels; */
-/* 		Labels = Labels->next; */
-/* 		if (temp->label) temp->label->Destroy(temp->label); */
-/* 		temp->next = NULL; */
-/* 		free(temp->content); */
-/* 		free(temp->command); */
-/* 		free(temp); */
-/* 	} */
-/*   /\* destroy all buttons *\/ */
-/*   while (Buttons) */
-/* 	{ */
-/* 		Button_list *temp = Buttons; */
-/* 		Buttons = Buttons->next; */
-/* 		if (temp->button) temp->button->Destroy(temp->button); */
-/* 		temp->next = NULL; */
-/* 		free(temp); */
-/* 	} */
-  
-/*   if (panel_image) panel_image->Release (panel_image); */
-/*   if (lock_key_statusA) lock_key_statusA->Destroy(lock_key_statusA); */
-/*   if (lock_key_statusB) lock_key_statusB->Destroy(lock_key_statusB); */
-/*   if (lock_key_statusC) lock_key_statusC->Destroy(lock_key_statusC); */
-/*   if (lock_key_statusD) lock_key_statusD->Destroy(lock_key_statusD); */
-/*   if (username) username->Destroy(username); /\* nice: suicide *\/ */
-/*   if (password) password->Destroy(password); */
-/*   if (session) session->Destroy(session); */
-/*   if (font_small) font_small->Release (font_small); */
-/*   if (font_normal) font_normal->Release (font_normal); */
-/*   if (font_large) font_large->Release (font_large); */
-/*   if (primary) primary->Release (primary); */
-/*   if (events) events->Release (events); */
-/*   if (layer) layer->Release (layer); */
-/*   while (devices) */
-/* 	{ */
-/* 		DeviceInfo *next = devices->next; */
-/* 		free (devices); */
-/* 		devices = next; */
-/* 	} */
-/*   if (dfb) dfb->Release (dfb); */
 #ifdef USE_GPM_LOCK
   if (we_stopped_gpm) start_gpm();
 #endif
@@ -1101,10 +1059,10 @@ int main (int argc, char *argv[])
 
 	current_tty = atoi(argv[1]);
   /* user changed vt while we were doing our stuff */
-	//if (get_active_tty() != current_tty) exit(EXIT_SUCCESS);
 
   /* lock vt switching */
-  //lock_tty_switching();
+	/* let's try not to, shall we? */
+  /* lock_tty_switching(); */
 
 #ifdef USE_GPM_LOCK
   /* Stop GPM if necessary */
@@ -1187,7 +1145,8 @@ int main (int argc, char *argv[])
 #endif
 
   /* it should be now safe to unlock vt switching again */
-  unlock_tty_switching();
+	/* but it is not locked, we disabled it... */
+  /* unlock_tty_switching(); */
 
   /* we go on for ever... or until the user does something in particular */
   while (returnstatus == -1)
@@ -1256,8 +1215,8 @@ int main (int argc, char *argv[])
 	      primary->Flip  (primary, NULL, DSFLIP_BLIT);
 	    }
 #else  /* don't want screensavers */
-			if (username->hasfocus) username->KeyEvent(username, REDRAW, flashing_cursor);
-			if (password->hasfocus) password->KeyEvent(password, REDRAW, flashing_cursor);
+			if (username->hasfocus) username->KeyEvent(username, REDRAW, NONE, flashing_cursor);
+			if (password->hasfocus) password->KeyEvent(password, REDRAW, NONE, flashing_cursor);
 			flashing_cursor = !flashing_cursor;
 			update_labels();
 #endif /* screensaver stuff */

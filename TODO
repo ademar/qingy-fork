@@ -32,10 +32,6 @@
 
 - Add support for wildcards in paths in config files...
 
-* Check agetty source code and see wether there is some code there to
-  handle console keymaps that we should support as well...
-	NOTE: it appears there is no such code: still digging.
-
 - test in on Mandrake (8.2) and SuSe as people reported issues...
 
 - make images scale according to virtualized / real resolution
@@ -68,12 +64,10 @@
 
 - extend the --verbose option to virtually report all that can be reported ;-)
 
-- someone reported that user gets increased when logging in, but not
-  decreased when logging out!
+* someone reported that user gets increased when logging in, but not
+  decreased when logging out! Update: I was never, ever, able to replicate this...
 
 - write a FAQ
-
-- allow for buttons with no action associated to them, like "command = NULL"
 
 - allow for linkings elements together, so that when you mouse over 
   one of them, all get the mouseover effect...
@@ -91,8 +85,6 @@
 - Add a timeout (with fading) to the mouseover effect
 
 - support also the /dev/vc* in spite of /dev/tty*
-
-- why does it suck so much ram?
 
 - graphical configuration tool...
 

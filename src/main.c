@@ -136,12 +136,13 @@ void start_up(int our_tty_number)
 {
 	FILE *fp;
   int returnstatus;
-	char *interface     = NULL;
-	char *temp          = NULL;
+	char *interface  = NULL;
+	char *temp       = NULL;
+	char *username   = NULL;
+	char *password   = NULL;
+	char *session    = NULL;
 	size_t len = 0;
-	char *username = NULL;
-	char *password = NULL;
-	char *session  = NULL;
+
 	
 	/* parse settings file */
 	load_settings();
@@ -166,15 +167,15 @@ void start_up(int our_tty_number)
 	/* let's go! */
 	fp = popen(interface, "r");
 	free(interface);
-	if (getline(&username, &len, fp) == -1) username=NULL; len=0;
-	if (getline(&password, &len, fp) == -1) password=NULL; len=0;
-	if (getline(&session,  &len, fp) == -1) session=NULL;  len=0;
+	if (getline(&username, &len, fp) == -1) username = NULL; len = 0;
+	if (getline(&password, &len, fp) == -1) password = NULL; len = 0;
+	if (getline(&session,  &len, fp) == -1) session  = NULL; len = 0;
 	returnstatus = WEXITSTATUS(pclose(fp));
 
 	/* remove trailing newlines from these values */
-	if (username) username[strlen(username)-1] = '\0';
-	if (password) password[strlen(password)-1] = '\0';
-	if (session)  session [strlen(session) -1] = '\0'; 
+	if (username) username[strlen(username) - 1] = '\0';
+	if (password) password[strlen(password) - 1] = '\0';
+	if (session)  session [strlen(session)  - 1] = '\0'; 
 
 	/* re-allow vt switching if it is still disabled */
 	unlock_tty_switching();
