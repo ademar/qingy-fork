@@ -2,7 +2,7 @@ qingy CVS:
 - New memory allocation/deallocation management
 - Unlock vt switching before dying (yes, this was annoying)
 - Solved a bug that made qingy crash when you switched to its
-  tty after some time it had been sitting there. Basically
+  tty after it had been sitting there for some time. Basically
   it opened a file descriptor every second and did not close
   it...
 - Now qingy reverts to text mode instead of dying when it
@@ -21,6 +21,7 @@ qingy CVS:
   want to load, and choose "Your .xsession" as session).
 - Now background image stays there when attempting to log in,
   during timeouts... It goes away only during screen saver
+- Added ./configure option to disable PAM support (--disable-pam)
 - Many fixes and clean ups
 
 qingy 0.2.3 (21 October 2003):
@@ -48,7 +49,7 @@ qingy 0.2.3 (21 October 2003):
 - Added support for comments is config file.
 - A surprise now awaits the rightful master ;-)	
 - The usual minor fixes and clean ups
-	
+
 qingy 0.2.2 (29 September 2003):
 - Starting X sessions for users with a shell other than bash
   should no longer fail with strange errors

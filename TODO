@@ -11,5 +11,4 @@
 - Allow for global and tty specific options in config file
 - Add an option to pass parameters to X server
 - Rewrite load_settings completely (it craps!)
-- Add ./configure option to disable PAM support
 - Add option to give root password to be allowed to shutdown

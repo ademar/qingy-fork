@@ -97,32 +97,36 @@ fi
 
 AC_CHECK_LIB(crypt, crypt, , , )
 
-#check for pam
-	AC_CHECK_HEADER([security/pam_appl.h],[PAM="pam"],[PAM=""],)
-	if test "$PAM" != ""; then
-		AC_CHECK_HEADER([security/pam_misc.h],[PAM="pam"],[PAM=""],)
-	fi
-	if test "$PAM" != ""; then
-		CFLAGS="$CFLAGS -DUSE_PAM"
-		LDFLAGS="$LDFLAGS -lpam -lpam_misc -ldl"
-		AC_MSG_NOTICE([pam found: enabling support in qingy])
+# Check for PAM support
+	PAM=""
+	AC_ARG_ENABLE(pam, AC_HELP_STRING([--enable-pam], [turn on PAM support (default is yes)]),, [enable_pam=yes])
+	if test "$enable_pam" == "yes"; then
+		AC_CHECK_HEADER([security/pam_appl.h],[PAM="qingy"],[PAM=""],)
+		if test "$PAM" != ""; then
+				AC_CHECK_HEADER([security/pam_misc.h],[PAM="qingy"],[PAM=""],)
+		fi
+		if test "$PAM" != ""; then
+			CFLAGS="$CFLAGS -DUSE_PAM"
+			LDFLAGS="$LDFLAGS -lpam -lpam_misc -ldl"
+			AC_MSG_NOTICE([pam found: enabling support in qingy])
+		fi		
 	fi
 	AC_SUBST(PAM,)
-#end check for pam
+# End check for PAM support
 
 CFLAGS="$CFLAGS -DLinux"
 
-#check for DirectFB >= 0.9.18
+# Check for DirectFB >= 0.9.18
 DFB_VERSION=0.9.18
 PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	AC_MSG_ERROR([$DIRECTFB_PKG_ERRORS
 *** DirectFB $DFB_VERSION or newer is required. The latest version
 *** of DirectFB is available from http://www.directfb.org/.]))
-#end check for DirectFB
+# End check for DirectFB
 
-#check for 'fbset' program
+# Check for 'fbset' program
 	AC_PATH_PROG([FBSET], [fbset], [/usr/bin/fbset], [$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin])
-#end check for 'fbset'
+# End check for 'fbset'
 
 # Let's create /etc/qingy/settings config file
 	AC_PATH_PROG([XINIT], [xinit], [/usr/X11R6/bin/xinit], [$PATH:/usr/X11R6/bin:/usr/bin/X11:/usr/bin:/usr/local/bin])
@@ -153,4 +157,4 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 PREFIX=""
 AC_PREFIX_DEFAULT ($PREFIX)
 
-AC_OUTPUT(Makefile src/Makefile src/DirectFB/Makefile media/Makefile media/default/Makefile media/sessions/Makefile media/pam/Makefile)
+AC_OUTPUT([Makefile src/Makefile src/DirectFB/Makefile media/Makefile media/default/Makefile media/sessions/Makefile media/pam/Makefile])

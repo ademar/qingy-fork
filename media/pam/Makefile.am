@@ -2,7 +2,6 @@
 
 defaultpamdatadir = $(prefix)/etc/pam.d
 
-defaultpamdata_DATA = \
-	qingy
+defaultpamdata_DATA = @PAM@
 
-EXTRA_DIST =  $(defaultpamdata_DATA)
+EXTRA_DIST = qingy
