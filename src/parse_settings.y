@@ -12,7 +12,23 @@ extern FILE* yyin;
 extern int yylex();
 extern int in_theme;
 
-static window_t wind;
+static window_t wind =
+	{	 
+		0,
+		0,
+		0,
+		0,
+		0,
+		LARGE,
+		LEFT,
+		{0, 0, 0, 0},
+		{0, 0, 0, 0},
+		UNKNOWN,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+		};
 
 %}
 
@@ -24,7 +40,7 @@ static window_t wind;
 }
 
 %token SCREENSAVER_TOK PIXEL_TOK PHOTOS_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK    
-%token THEME_TOK RAND_TOK MASK_TXT_COL_TOK TXT_CUR_COL_TOK OTHER_TXT_COL_TOK 		     
+%token THEME_TOK RAND_TOK DEFAULT_TXT_COL_TOK DEFAULT_CUR_COL_TOK OTHER_TXT_COL_TOK 		     
 %token BG_TOK FONT_TOK BUTTON_OPAC_TOK WIN_OP_TOK SEL_WIN_OP_TOK 			     
 %token SHUTDOWN_TOK EVERYONE_TOK ONLY_ROOT_TOK NO_ONE_TOK
 
@@ -155,25 +171,25 @@ wincolorprop: WTEXT_COLOR_TOK '=' COLOR_T
               }
             ;
 
-colorprop: MASK_TXT_COL_TOK '=' COLOR_T
+colorprop: DEFAULT_TXT_COL_TOK '=' COLOR_T
            {
-             MASK_TEXT_COLOR.R=$3[3]; MASK_TEXT_COLOR.G=$3[2]; 
-             MASK_TEXT_COLOR.B=$3[1]; MASK_TEXT_COLOR.A=$3[0];
+             DEFAULT_TEXT_COLOR.R=$3[3]; DEFAULT_TEXT_COLOR.G=$3[2]; 
+             DEFAULT_TEXT_COLOR.B=$3[1]; DEFAULT_TEXT_COLOR.A=$3[0];
            }
-         | MASK_TXT_COL_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T
+         | DEFAULT_TXT_COL_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T
            {
-             MASK_TEXT_COLOR.R = $3; MASK_TEXT_COLOR.G= $5;
-             MASK_TEXT_COLOR.B = $7; MASK_TEXT_COLOR.A= $9;
+             DEFAULT_TEXT_COLOR.R = $3; DEFAULT_TEXT_COLOR.G= $5;
+             DEFAULT_TEXT_COLOR.B = $7; DEFAULT_TEXT_COLOR.A= $9;
            }
-         | TXT_CUR_COL_TOK '=' COLOR_T
+         |  DEFAULT_CUR_COL_TOK '=' COLOR_T
            {
-             TEXT_CURSOR_COLOR.R=$3[3]; TEXT_CURSOR_COLOR.G=$3[2];
-             TEXT_CURSOR_COLOR.B=$3[1]; TEXT_CURSOR_COLOR.A=$3[0];
+             DEFAULT_CURSOR_COLOR.R=$3[3]; DEFAULT_CURSOR_COLOR.G=$3[2];
+             DEFAULT_CURSOR_COLOR.B=$3[1]; DEFAULT_CURSOR_COLOR.A=$3[0];
            }
-         | TXT_CUR_COL_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T
+         |  DEFAULT_CUR_COL_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T
            {
-             TEXT_CURSOR_COLOR.R = $3; TEXT_CURSOR_COLOR.G= $5; 
-             TEXT_CURSOR_COLOR.B = $7; TEXT_CURSOR_COLOR.A= $9; 
+             DEFAULT_CURSOR_COLOR.R = $3; DEFAULT_CURSOR_COLOR.G= $5; 
+             DEFAULT_CURSOR_COLOR.B = $7; DEFAULT_CURSOR_COLOR.A= $9; 
            }
          | OTHER_TXT_COL_TOK '=' COLOR_T
            {

@@ -76,8 +76,8 @@ IDirectFBSurface      *primary,                /* surface of the primary layer  
                       *panel_image     = NULL; /* background image                          */
 IDirectFBEventBuffer  *events;                 /* all input events will be stored here      */
 DeviceInfo            *devices         = NULL; /* the list of all input devices             */
-IDirectFBFont         *font_small,
-                      *font_normal,            /* fonts                                     */
+IDirectFBFont         *font_small,             /* fonts                                     */
+                      *font_normal,
                       *font_large;  
 TextBox               *username        = NULL, /* text boxes                                */
                       *password        = NULL;
@@ -772,7 +772,7 @@ void load_sessions(ComboBox *session)
   while ((temp = get_sessions()) != NULL)
   {
     session->AddItem(session, temp);
-    free(temp); temp = NULL;
+    free(temp);
   }
 }
 
@@ -780,17 +780,17 @@ int create_windows()
 {
 	DFBWindowDescription window_desc;
 	IDirectFBFont *font;
-	window_t *temp = windowsList;
+	window_t *window = windowsList;
 
 	window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
 	window_desc.caps   = DWCAPS_ALPHACHANNEL;
-	while (temp)
+	while (window)
 	{
-		window_desc.posx   = temp->x      * screen_width  / THEME_WIDTH;
-		window_desc.posy   = temp->y      * screen_height / THEME_HEIGHT;
-		window_desc.width  = temp->width  * screen_width  / THEME_WIDTH;
-		window_desc.height = temp->height * screen_height / THEME_HEIGHT;	
-		switch(temp->text_size)
+		window_desc.posx   = window->x      * screen_width  / THEME_WIDTH;
+		window_desc.posy   = window->y      * screen_height / THEME_HEIGHT;
+		window_desc.width  = window->width  * screen_width  / THEME_WIDTH;
+		window_desc.height = window->height * screen_height / THEME_HEIGHT;	
+		switch(window->text_size)
 		{
 		case SMALL:
 			font = font_small;
@@ -803,14 +803,14 @@ int create_windows()
 			font = font_large;
 			break;
 		}
-		switch (temp->type)
+		switch (window->type)
 		{
 		case LOGIN:
-			username = TextBox_Create(layer, font, &(temp->text_color), &(temp->cursor_color), &window_desc);
+			username = TextBox_Create(layer, font, &(window->text_color), &(window->cursor_color), &window_desc);
 			if (!username) return 0;
 			break;
 		case PASSWORD:
-			password = TextBox_Create(layer, font, &(temp->text_color), &(temp->cursor_color), &window_desc);
+			password = TextBox_Create(layer, font, &(window->text_color), &(window->cursor_color), &window_desc);
 			if (!password) return 0;
 			break;
 		case LABEL:
@@ -827,41 +827,41 @@ int create_windows()
 				labels->next = (Label_list *) calloc(1, sizeof(Label_list));
 				labels = labels->next;
 			}
-			labels->label = Label_Create(layer, font, &(temp->text_color), &window_desc);
+			labels->label = Label_Create(layer, font, &(window->text_color), &window_desc);
 			if (!labels->label) return 0;
 			labels->next = NULL;
-			if (temp->content)
+			if (window->content)
 			{
-				char *comm = strstr(temp->content, "<INS_CMD_HERE>");
+				char *comm = strstr(window->content, "<INS_CMD_HERE>");
 				if (comm)
 				{
 					char *message = NULL;
 					char *result  = NULL;
-					FILE *fp = popen(temp->command, "r");
+					FILE *fp = popen(window->command, "r");
 					size_t len = 0;
 
 					getline(&result, &len, fp);
 					pclose(fp);
 					if (result)
 					{
-						char *prev = strndup(temp->content, comm - temp->content);
+						char *prev = strndup(window->content, comm - window->content);
 						char len = strlen(result);
 						if (result[len-1] == '\n') result[len-1] = '\0';
 						message = StrApp((char**)NULL, prev, result, comm+14, (char*)NULL);
 						free(prev);
 						free(result);
 					}
-					labels->label->SetText(labels->label, message, temp->text_orientation);
+					labels->label->SetText(labels->label, message, window->text_orientation);
 					free(message);
 				}
-				else labels->label->SetText(labels->label, temp->content, temp->text_orientation);
+				else labels->label->SetText(labels->label, window->content, window->text_orientation);
 				labels->label->SetFocus(labels->label, 0);
 			}
-			if (temp->linkto)
+			if (window->linkto)
 			{
-				if (!strcmp(temp->linkto, "login"))    username_label = labels->label;
-				if (!strcmp(temp->linkto, "password")) password_label = labels->label;
-				if (!strcmp(temp->linkto, "session"))  session_label  = labels->label;
+				if (!strcmp(window->linkto, "login"))    username_label = labels->label;
+				if (!strcmp(window->linkto, "password")) password_label = labels->label;
+				if (!strcmp(window->linkto, "session"))  session_label  = labels->label;
 			}
 
 			break;
@@ -881,23 +881,23 @@ int create_windows()
 				buttons->next = (Button_list *) calloc(1, sizeof(Button_list));
 				buttons = buttons->next;
 			}
-			image1 = StrApp((char **)NULL, THEME_DIR, temp->content, "_normal.png",    (char *)NULL);
-			image2 = StrApp((char **)NULL, THEME_DIR, temp->content, "_mouseover.png", (char *)NULL);
+			image1 = StrApp((char **)NULL, THEME_DIR, window->content, "_normal.png",    (char *)NULL);
+			image2 = StrApp((char **)NULL, THEME_DIR, window->content, "_mouseover.png", (char *)NULL);
 			buttons->button = Button_Create(image1, image2, window_desc.posx, window_desc.posy, layer, primary, dfb);
 			if (!buttons->button) return 0;			
 			buttons->next = NULL;
 			buttons->button->MouseOver(buttons->button, 0);
 			free(image1); free(image2);
-			if (!strcmp(temp->command, "halt"       )) buttons->button->command = HALT;
-			if (!strcmp(temp->command, "reboot"     )) buttons->button->command = REBOOT;
-			if (!strcmp(temp->command, "sleep"      )) buttons->button->command = SLEEP;
-			if (!strcmp(temp->command, "screensaver")) buttons->button->command = SCREEN_SAVER;
+			if (!strcmp(window->command, "halt"       )) buttons->button->command = HALT;
+			if (!strcmp(window->command, "reboot"     )) buttons->button->command = REBOOT;
+			if (!strcmp(window->command, "sleep"      )) buttons->button->command = SLEEP;
+			if (!strcmp(window->command, "screensaver")) buttons->button->command = SCREEN_SAVER;
 			break;
 		}
 		case COMBO:
-			if (temp->type == COMBO && !strcmp(temp->command, "sessions"))
+			if (window->type == COMBO && !strcmp(window->command, "sessions"))
 			{
-				session = ComboBox_Create(layer, font, &(temp->text_color), &window_desc);
+				session = ComboBox_Create(layer, font, &(window->text_color), &window_desc);
 				if (!session) return 0;
 			}
 			break;
@@ -905,14 +905,16 @@ int create_windows()
 			return 0;
 		}
 
-		temp = temp->next;
+		window = window->next;
 	}
 
   window_desc.posx   = 0;
   window_desc.posy   = screen_height - (font_small_height);
   window_desc.width  = screen_width/5;
   window_desc.height = font_small_height;
-  lock_key_status = Label_Create(layer, font_small, &MASK_TEXT_COLOR, &window_desc);
+  lock_key_status = Label_Create(layer, font_small, &OTHER_TEXT_COLOR, &window_desc);
+	lock_key_status->SetFocus(lock_key_status, 1);
+	lock_key_status->Hide(lock_key_status);
   if (!lock_key_status) return 0;
 	lock_key_status->SetText(lock_key_status, "CAPS LOCK is pressed", CENTERBOTTOM);
 
@@ -956,7 +958,7 @@ int directfb_mode (int argc, char *argv[])
 #endif
 
   /* Stop GPM if necessary */
-  we_stopped_gpm= stop_gpm();
+  we_stopped_gpm = stop_gpm();
 
   /* we initialize directfb */
   if (silent) stderr_disable();

@@ -7,7 +7,7 @@
 - multilanguage support
 * extend theme support (for qingy 0.3 series)
 - ldap support for authentication (with pam?)
-- allow selection of alternate x server layouts
+- allow selection of alternate x server layouts / X config files
 - Allow for global and tty specific options in config file
 - Add an option to pass parameters to X server
 - Make key bindings customizable

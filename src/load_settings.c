@@ -109,15 +109,15 @@ void set_default_colors(void)
   WINDOW_OPACITY = 0x80;
   SELECTED_WINDOW_OPACITY = 0xCF;
 
-  MASK_TEXT_COLOR.R = 0xFF;
-  MASK_TEXT_COLOR.G = 0x00;
-  MASK_TEXT_COLOR.B = 0x00;
-  MASK_TEXT_COLOR.A = 0xFF;
+  DEFAULT_TEXT_COLOR.R = 0xFF;
+  DEFAULT_TEXT_COLOR.G = 0x00;
+  DEFAULT_TEXT_COLOR.B = 0x00;
+  DEFAULT_TEXT_COLOR.A = 0xFF;
 
-  TEXT_CURSOR_COLOR.R = 0x80;
-  TEXT_CURSOR_COLOR.G = 0x00;
-  TEXT_CURSOR_COLOR.B = 0x00;
-  TEXT_CURSOR_COLOR.A = 0xDD;
+  DEFAULT_CURSOR_COLOR.R = 0x80;
+  DEFAULT_CURSOR_COLOR.G = 0x00;
+  DEFAULT_CURSOR_COLOR.B = 0x00;
+  DEFAULT_CURSOR_COLOR.A = 0xDD;
 
   OTHER_TEXT_COLOR.R = 0x40;
   OTHER_TEXT_COLOR.G = 0x40;
@@ -381,6 +381,26 @@ char *parse_inittab_file(void)
 	return result;
 }
 
+void restore_default_contents(window_t *window)
+{
+	color_t color = {0, 0, 0, 0};
+
+	window->x                 = 0;
+	window->y                 = 0;
+  window->width             = 0;
+  window->height            = 0;
+  window->polltime          = 0;
+	window->text_size         = LARGE;
+	window->text_orientation  = LEFT;
+	window->text_color        = color;
+	window->cursor_color      = color;
+  window->type              = UNKNOWN;
+  window->next              = NULL;
+	window->content           = NULL;
+	window->command           = NULL;
+	window->linkto            = NULL;
+}
+
 int add_window_to_list(window_t *w)
 {
   static window_t *aux = NULL;
@@ -413,9 +433,7 @@ int add_window_to_list(window_t *w)
 				 * other settings are not used in this kind of window
 				 * so we don't bother copying them...
 				 */
-				free(w->content);
-				free(w->command);
-				free(w->linkto);
+				restore_default_contents(w);
 				return 1;
 			}
 			temp = temp->next;
@@ -450,14 +468,11 @@ int add_window_to_list(window_t *w)
 	aux->cursor_color.G   = w->cursor_color.G;
 	aux->cursor_color.B   = w->cursor_color.B;
 	aux->cursor_color.A   = w->cursor_color.A;	
-  aux->command          = strdup(w->command);   
+  aux->command          = strdup(w->command);
   aux->content          = strdup(w->content);
 	aux->linkto           = strdup(w->linkto);
   aux->next             = NULL;
-  
-  free(w->content);
-	free(w->command);
-	free(w->linkto);
+	restore_default_contents(w);
 
   return 1;
 }
@@ -485,6 +500,7 @@ int check_windows_sanity()
  
 	while(temp)
 	{
+		fprintf(stderr, "command:\"%s\"\n", temp->command);
 		switch (temp->type)
 		{
 		case LOGIN:
@@ -494,18 +510,21 @@ int check_windows_sanity()
 			got_passwd = 1;
 			break;
 		case COMBO:
-			if (!strcmp(temp->command, "sessions")) got_session = 1;
-			else
+			if (temp->command) if (!strcmp(temp->command, "sessions"))
 			{
-				fprintf(stderr, "Invalid combo window: forbidden command '%s'.\n", temp->command);
-				return 0;
+				got_session = 1;
+				break;
 			}
-			break;
+			fprintf(stderr, "Invalid combo window: forbidden command '%s'.\n", temp->command);
+			return 0;
 		case BUTTON:
-			if (!strcmp(temp->command, "halt"       )) break;
-			if (!strcmp(temp->command, "reboot"     )) break;
-			if (!strcmp(temp->command, "sleep"      )) break;
-			if (!strcmp(temp->command, "screensaver")) break;
+			if (temp->command)
+			{
+				if (!strcmp(temp->command, "halt"       )) break;
+				if (!strcmp(temp->command, "reboot"     )) break;
+				if (!strcmp(temp->command, "sleep"      )) break;
+				if (!strcmp(temp->command, "screensaver")) break;
+			}
 			fprintf(stderr, "Invalid button: command must be one of the following:\n");
 			fprintf(stderr, "halt, reboot, sleep, screensaver\n");
 			return 0;
@@ -570,8 +589,8 @@ int load_settings(void)
 	fprintf(stderr, "WINDOW_OPACITY is %d\n", WINDOW_OPACITY);
 	fprintf(stderr, "SELECTED_WINDOW_OPACITY is %d\n", SELECTED_WINDOW_OPACITY);
 	
-	fprintf(stderr, "MASK_TEXT_COLOR is %d, %d, %d, %d\n", MASK_TEXT_COLOR.R, MASK_TEXT_COLOR.G, MASK_TEXT_COLOR.B, MASK_TEXT_COLOR.A);
-	fprintf(stderr, "TEXT_CURSOR_COLOR is %d, %d, %d, %d\n", TEXT_CURSOR_COLOR.R, TEXT_CURSOR_COLOR.G, TEXT_CURSOR_COLOR.B, TEXT_CURSOR_COLOR.A);
+	fprintf(stderr, "DEFAULT_TEXT_COLOR is %d, %d, %d, %d\n", DEFAULT_TEXT_COLOR.R, DEFAULT_TEXT_COLOR.G, DEFAULT_TEXT_COLOR.B, DEFAULT_TEXT_COLOR.A);
+	fprintf(stderr, "DEFAULT_CURSOR_COLOR is %d, %d, %d, %d\n", DEFAULT_CURSOR_COLOR.R, DEFAULT_CURSOR_COLOR.G, DEFAULT_CURSOR_COLOR.B, DEFAULT_CURSOR_COLOR.A);
 	fprintf(stderr, "OTHER_TEXT_COLOR is %d, %d, %d, %d\n", OTHER_TEXT_COLOR.R, OTHER_TEXT_COLOR.G, OTHER_TEXT_COLOR.B, OTHER_TEXT_COLOR.A);
 
 	fprintf(stderr, "Allowed to shutdown: %s\n", (SHUTDOWN_POLICY==EVERYONE) ? "everyone" : (SHUTDOWN_POLICY==ROOT) ? "root only" : "no one");

@@ -23,6 +23,11 @@ qingy CVS:
   during timeouts... It goes away only during screen saver
 - Added ./configure option to disable PAM support (--disable-pam)
 - Added ./configure option to enable debug mode (--enable-debug)
+- Added support in config file to specify a shutdown policy:
+  use 'shutdown_policy = everyone' to allow everyone to shutdown
+      'shutdown_policy = root' to be asked for root password
+      'shutdown_policy = noone' to forbid shutdown completely.
+  If this option is not used, qingy defaults to 'everyone'
 - Rewrote load_settings.c (and added others ;-P). Now parsing
   of setting and theme files is done via regular expressions.
   I undestand little (but I will ;-P) of that stuff, so all

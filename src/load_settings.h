@@ -62,8 +62,8 @@ typedef struct
 	unsigned int A;
 }
 color_t;
-color_t MASK_TEXT_COLOR;
-color_t TEXT_CURSOR_COLOR;
+color_t DEFAULT_TEXT_COLOR;
+color_t DEFAULT_CURSOR_COLOR;
 color_t OTHER_TEXT_COLOR;
 
 /* Shutdown permissions policy... */
