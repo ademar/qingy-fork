@@ -43,7 +43,6 @@
 - option for selecting session based on tty, not on user
 - drop down menu for sessions
 - allow session locking
-- option for starting wms in an unique X server?!?
 - add a clock and/or uptime thingie!
 - start some apps before/after X session
 - multilanguage support
