@@ -166,7 +166,7 @@ void TextBox_SetText(TextBox *thiz, char *text)
 void TextBox_ClearText(TextBox *thiz)
 {
 	if (!thiz) return;
-	if (!!thiz->text) (thiz->text)[0] = '\0';
+	if (thiz->text) (thiz->text)[0] = '\0';
 	thiz->position = 0;
 	if (thiz->hasfocus) TextBox_KeyEvent(thiz, REDRAW, 1);
 	else TextBox_KeyEvent(thiz, REDRAW, 0);
@@ -207,7 +207,7 @@ void TextBox_Show(TextBox *thiz)
 void TextBox_Destroy(TextBox *thiz)
 {
 	if (!thiz) return;
-	if (!!(thiz->text)) free(thiz->text);
+	if (thiz->text) free(thiz->text);
 	if (thiz->surface) thiz->surface->Release (thiz->surface);
 	if (thiz->window) thiz->window->Release (thiz->window);
 	free(thiz);

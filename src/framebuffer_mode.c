@@ -74,7 +74,7 @@ void Draw_Background_Image()
 	static int panel_width, panel_height;
 
 	/* We clear the primary surface */
-	primary->Clear (primary, 0, 0, 0, 0xFF);
+	primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
 	if (!panel_image)
 	{ /* we design the surface */
 		panel_image = load_image (DATADIR "background.png", primary, dfb);
@@ -83,7 +83,7 @@ void Draw_Background_Image()
 	}
 	/* we put the backgound image in the center of the screen if it fits
 	   the screen otherwise we stretch it to make it fit                    */
-	if (!!panel_image)
+	if (panel_image)
 	{
 		if ( (panel_width <= screen_width) && (panel_height <= screen_height) )
 			primary->Blit (primary, panel_image, NULL, (screen_width - panel_width)/2, (screen_height - panel_height)/2);
@@ -481,7 +481,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 	last_symbol = ascii_code;
 	symbol_name = bsearch (&(evt->key_symbol), keynames, sizeof (keynames) / sizeof (keynames[0]) - 1, sizeof (keynames[0]), compare_symbol);
 	modifier = modifier_is_pressed(evt);
-	if (!!modifier)
+	if (modifier)
 	{
 		if (modifier == ALT)
 		{	/* we check if user press ALT-p or ALT-r to start shutdown/reboot sequence */
@@ -686,7 +686,7 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 	Create_Labels_TextBoxes_ComboBoxes();
 	password->mask_text = 1;
 	get_sessions(session);
-	if (!!lastuser)
+	if (lastuser)
 	{
 		username_label->SetFocus(username_label, 0);
 		password_label->SetFocus(password_label, 1);

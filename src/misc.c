@@ -142,10 +142,10 @@ char *print_welcome_message(char *preamble, char *postamble)
 	char *text = (char *) calloc(MAX, sizeof(char));
 	int len;
 
-	if (!!preamble) strncpy(text, preamble, MAX-1);
+	if (preamble) strncpy(text, preamble, MAX-1);
 	len = strlen(text);
 	gethostname(&(text[len]), MAX-len);
-	if (!!postamble) strncat(text, postamble, MAX-1);
+	if (postamble) strncat(text, postamble, MAX-1);
 
 	return text;
 }

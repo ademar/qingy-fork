@@ -78,9 +78,9 @@ void set_default_colors(void)
 void error(void)
 {
 	fprintf(stderr, "load_settings: parse error in settings file... using defaults\n");
-	if (!!XSESSIONS_DIRECTORY) free(XSESSIONS_DIRECTORY);
-	if (!!XINIT) free(XINIT);
-	if (!!FONT) free(FONT);
+	if (XSESSIONS_DIRECTORY) free(XSESSIONS_DIRECTORY);
+	if (XINIT) free(XINIT);
+	if (FONT) free(FONT);
 	XSESSIONS_DIRECTORY = XINIT = FONT = NULL;
 	set_default_xsession_dir();
 	set_default_xinit();
