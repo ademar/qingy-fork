@@ -73,7 +73,7 @@ static window_t wind =
 /* settings only lvals */
 %token SCREENSAVER_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK 
 %token SHUTDOWN_TOK TTY_TOK SCRSVRS_DIR_TOK THEMES_DIR_TOK X_SERVER_TOK
-%token DFB_INTERFACE_TOK RETRIES_TOK
+%token DFB_INTERFACE_TOK RETRIES_TOK X_ARGS_TOK
 
 /* windows && theme blocks */
 %token THEME_TOK WINDOW_TOK 
@@ -128,6 +128,7 @@ config: /* nothing */
 | config txtsessdir
 | config xinit
 | config x_server
+| config x_args
 | config gui_retries
 | config theme { TTY_CHECK_COND GOT_THEME=set_theme_result; }
 | config shutdown
@@ -150,6 +151,7 @@ config_tty: /* nothing */
 | config_tty txtsessdir
 | config_tty xinit
 | config_tty x_server
+| config_tty x_args
 | config_tty gui_retries
 | config_tty theme { TTY_CHECK_COND GOT_THEME=set_theme_result; }
 | config_tty shutdown
@@ -211,6 +213,13 @@ x_server: X_SERVER_TOK '=' QUOTSTR_T
 	{
 	  if(in_theme) yyerror("Setting 'xinit' is not allowed in theme file");
 	  TTY_CHECK_COND X_SERVER = strdup($3);
+	};
+
+/* args to be passed to the X server.  Note that it cannot be in theme file..  */
+x_args: X_ARGS_TOK '=' QUOTSTR_T
+	{
+	  if(in_theme) yyerror("Setting 'x_args' is not allowed in theme file");
+	  TTY_CHECK_COND X_ARGS = strdup($3);
 	};
 
 /* gui retries value.  Note that it cannot be in theme file..  */

@@ -54,6 +54,7 @@ char *X_SESSIONS_DIRECTORY;
 char *TEXT_SESSIONS_DIRECTORY;
 char *XINIT;
 char *X_SERVER;
+char *X_ARGS;
 char *FONT;
 char *BACKGROUND;
 char *THEME_DIR;

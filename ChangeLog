@@ -1,3 +1,15 @@
+2004-11-12  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* media/settings (x_args),
+	* media/qingy-mode.el (qingy-font-lock-keywords-1),
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l,
+	* src/libraries/load_settings.c (initialize_variables),
+	* src/libraries/load_settings.h (X_ARGS),
+	* src/libraries/session.c (Graph_Login):
+	Added support for passing user-defined arguments to the X server.
+	To enhance security, as a default we now pass '-nolisten tcp'...
+
 2004-10-06  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* media/pam/Makefile.am (EXTRA_DIST):
@@ -9,8 +21,8 @@
 	* media/pam/debian (removed),
 	* media/pam/default/qingy
 	* configure.in (debian):
-	Added a new PAM module that apparently works for every distro,
-	removed old modules...
+	Added a new PAM module that apparently works for every distro
+	(tested on Debian, fedora core, red hat, slackware), removed old modules...
 
 2004-10-01  Noberasco Michele  <s4t4n@gentoo.org>
 

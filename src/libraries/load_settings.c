@@ -82,6 +82,7 @@ void initialize_variables(void)
   LAST_USER               = NULL;
   SETTINGS                = NULL;	
 	X_SERVER                = NULL;
+  X_ARGS                  = NULL;
   DATADIR                 = NULL;	
   XINIT                   = NULL;
   FONT                    = NULL;

@@ -704,15 +704,27 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   args[0] = shell_base_name(pw->pw_shell);
   args[1] = strdup("-c");
 
+  // now we compose the xinit launch command line
 	args[2] = StrApp((char**)NULL, XINIT, " ", (char*)NULL);
+
+  // add the chosen X session
   if (!strcmp(session, "Your .xsession"))
     args[2] = StrApp(&(args[2]), "$HOME/.xsession -- ", (char*)NULL);
   else
     args[2] = StrApp(&(args[2]), X_SESSIONS_DIRECTORY, "\"", session, "\" -- ", (char*)NULL);
+
+  // add the chosed X server, if one was chosen
 	if (X_SERVER)
-		args[2] = StrApp(&(args[2]), X_SERVER, " :", x_server, " vt", vt, " >& /dev/null", (char*)NULL);
+		args[2] = StrApp(&(args[2]), X_SERVER, " :", x_server, " vt", vt, (char*)NULL);
 	else
-		args[2] = StrApp(&(args[2]), ":", x_server, " vt", vt, " >& /dev/null", (char*)NULL);
+		args[2] = StrApp(&(args[2]), ":", x_server, " vt", vt, (char*)NULL);
+
+  // add the supplied X server arguments, if supplied
+	if (X_ARGS)
+		args[2] = StrApp(&(args[2]), " ", X_ARGS, (char*)NULL);
+
+  // done... as a final touch we suppress verbose output
+	args[2] = StrApp(&(args[2]), " >& /dev/null", (char*)NULL);
 
   args[3] = NULL;
   free(x_server);
