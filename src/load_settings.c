@@ -319,12 +319,16 @@ char *get_action(char *action)
 	if (!action) return NULL;
 
 	/* should we shutdown? */
-	if (!strncmp(action, "/sbin/shutdown", 14))
+	temp = strstr(action, "shutdown");
+	if (temp);
 	{
-		if (strstr(action+14, "-h")) return strdup("poweroff");
-		if (strstr(action+14, "-r")) return strdup("reboot");
+		if (strstr(temp + 8, "-h")) return strdup("poweroff");
+		if (strstr(temp + 8, "-r")) return strdup("reboot");
 		return NULL;
 	}
+	if (strstr(action, "poweroff")) return strdup("poweroff");
+	if (strstr(action, "halt"))     return strdup("poweroff");
+	if (strstr(action, "reboot"))   return strdup("reboot");
 
 	/* should we print something? */
 	temp = strstr(action, "echo");
@@ -354,11 +358,12 @@ char *parse_inittab_file(void)
 	if (!fp) return NULL;
 
 	while (getline(&line, &length, fp) != -1)
-		if (!strncmp(line, "ca::ctrlaltdel:", 15))
-		{
-			result = get_action(line + 15);
-			break;
-		}
+	{
+		char *test = strstr(line, ":ctrlaltdel:");
+		if (!test) continue;
+		result = get_action(test + 12);
+		break; 
+	}
 	fclose(fp);
 
 	if (length) free(line);
