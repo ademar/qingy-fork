@@ -100,8 +100,7 @@ void Error(int fatal)
    * we give the user some time to read the message
    * and change VT before dying
    */
-  sleep(5);
-  
+  sleep(15);			/* ED (paolino): was sleep(5), too fast to read errors */
   exit(EXIT_FAILURE);
 }
 
@@ -118,7 +117,7 @@ void start_up(void)
   ClearScreen();
   
   /* Set up some stuff */
-  argv[0]= strdup("qingy");
+  argv[0]= strdup("qingy");	/**-** NOTE: get it maybe dynamic (grep strings) **-**/
   argv[1]= strdup("--dfb:no-vt-switch,bg-none");
   if (silent)    StrApp(&(argv[1]), ",quiet", (char*)NULL);
   if (fb_device) StrApp(&(argv[1]), ",fbdev=", fb_device, (char*)NULL);
@@ -156,9 +155,11 @@ void start_up(void)
   
   /* We should never get here */
   fprintf(stderr, "\nGo tell my creator that his brains went pop!\n");
+  /* NOTE (paolino): I never got here, but still your brains are gone pop! */
   exit(EXIT_FAILURE);
 }
 
+/* okeeey... Whatabout using getopt?  */
 int ParseCMDLine(int argc, char *argv[])
 {
   int i;
@@ -242,16 +243,16 @@ int main(int argc, char *argv[])
   
   /* We set up a delay of 0.5 seconds */
   delay.tv_sec  = 0;
-  delay.tv_nsec = 500000000;
+  delay.tv_nsec = 500000000;	/* that's 500M */
   
   /* We enable vt switching in case some previous session
      crashed on start and left it disabled                */
   unlock_tty_switching();
   
   /* We set up some default values */
-  initialize_variables();
+  initialize_variables();	/* NOTE: Check alot more... Macros? Structs? etc.? */
   
-  our_tty_number = ParseCMDLine(argc, argv);
+  our_tty_number = ParseCMDLine(argc, argv); /* wie gesagt: getopt? */
   
   /* We switch to tty <tty> */
   if (!switch_to_tty(our_tty_number))
@@ -275,6 +276,7 @@ int main(int argc, char *argv[])
   
   /* We should never get here */
   fprintf(stderr, "\nGo tell my creator not to smoke that stuff, next time...\n");
+  /* NOTE (paolino): indeed! */
   
   return EXIT_FAILURE;
 }

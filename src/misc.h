@@ -25,9 +25,7 @@
  *                                                                         *
  ***************************************************************************/
 
-
-#define MAX 255
-
+#include "qingy_constants.h"
 
 /* safe allocation and deallocation */
 #define calloc my_calloc

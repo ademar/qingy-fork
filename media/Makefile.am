@@ -2,6 +2,8 @@
 
 SUBDIRS = default sessions pam
 
+lisp_LISP = qingy-mode.el
+
 settingsdatadir = $(prefix)/etc/qingy
 settingsdata_DATA = \
 		settings        \
