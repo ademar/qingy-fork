@@ -40,14 +40,14 @@
 ****************************************************************************/
 
 /****** Yet to do:
+- option for selecting session based on tty, not on user
 - drop down menu for sessions
 - allow session locking
 - option for starting wms in an unique X server?!?
 - add a clock and/or uptime thingie!
 - start some apps before/after X session
 - multilanguage support
-******* Maybe these are done
-- check PAM user permissions
+- extend theme support (for qingy 0.3 series)
 *******/
 
 #include <stdio.h>
@@ -89,14 +89,16 @@ void Error()
 void text_mode()
 {
 	char *username;
+	char *welcome = print_welcome_message("\n", " login: ");
 
 	/* We fall back here if framebuffer init fails */
-	username = (char *) calloc(MAX, sizeof(char));
+	username = (char *) my_calloc(MAX, sizeof(char));
 	while (strlen(username)==0)
 	{
-		printf("%s", print_welcome_message("\n", " login: "));
+		printf("%s", welcome);
 		scanf("%s", username); /* quick and dirty */
 	}
+	if (welcome) free(welcome);
 	execl("/bin/login", "/bin/login", "--", username, (char *) 0);
 
 	/* We should never get here... */
@@ -113,9 +115,9 @@ void start_up(void)
 	/* We clear the screen */
 	ClearScreen();
 
-	argv[0]= (char *) calloc(6, sizeof(char));
+	argv[0]= (char *) my_calloc(6, sizeof(char));
+	argv[1]= (char *) my_calloc(33, sizeof(char));
 	strcpy(argv[0], "qingy");
-	argv[1]= (char *) calloc(33, sizeof(char));
 	strcpy(argv[1], "--dfb:no-vt-switch,bg-none");
 	if (silent) strcat(argv[1], ",quiet");
 	argv[2]= NULL;
@@ -168,7 +170,7 @@ int get_resolution(char *resolution)
 			default:
 				if ((*temp) > '9' || (*temp) < '0') return 0;
 				(*value) *= 10;
-				(*value) += (*temp) - '0';
+				(*value) += (int)(*temp) - (int)'0';
 		}
 	if (!width)  return 0;
 	if (!height) return 0;

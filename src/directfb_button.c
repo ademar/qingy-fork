@@ -113,7 +113,6 @@ Button *Button_Create(const char *normal, const char *mouseover, int relx, int r
 	IDirectFBWindow *window;
 	IDirectFBSurface *surface;
 	DFBWindowDescription window_desc;
-	DFBResult err;
 
 	but = (Button *) calloc (1, sizeof (Button));
 	but->normal = load_image (normal, primary, dfb);
@@ -133,7 +132,7 @@ Button *Button_Create(const char *normal, const char *mouseover, int relx, int r
 	window_desc.height = but->height;
 	window_desc.caps   = DWCAPS_ALPHACHANNEL;
 
-	DFBCHECK(layer->CreateWindow (layer, &window_desc, &window));
+	if (layer->CreateWindow (layer, &window_desc, &window) != DFB_OK) return NULL;
 	window->SetOpacity( window, 0x00 );
 	window->RaiseToTop( window );
 	window->GetSurface( window, &surface );

@@ -6,7 +6,9 @@ qingy 0.2.1 ():
 - Added option for hiding last user name
 - Added option for hiding password chars completely
 - Now ENTER in username field pass control to password
-- Many fixes and clean ups
+- Now qingy reverts back to text mode login if something
+  goes wrong with DirectFB
+- Various fixes and clean ups (memory leaks, allocation failures...)
 
 qingy 0.2 (18 July 2003):
 - Added PAM support

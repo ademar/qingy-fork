@@ -129,29 +129,36 @@ void close_framebuffer_mode (void)
 	if (power) power->Destroy(power);
 	if (reset) reset->Destroy(reset);
 	if (panel_image) panel_image->Release (panel_image);
-	welcome_label->Destroy(welcome_label);
-	lock_key_status->Destroy(lock_key_status);
-	username_label->Destroy(username_label);
-	username->Destroy(username);
-	password_label->Destroy(password_label);
-	password->Destroy(password);
-	session_label->Destroy(session_label);
-	session->Destroy(session);
-	font_small->Release (font_small);
-	font_normal->Release (font_normal);
-	font_large->Release (font_large);
-	primary->Release (primary);
-	events->Release (events);
-	layer->Release (layer);
+	if (welcome_label) welcome_label->Destroy(welcome_label);
+	if (lock_key_status) lock_key_status->Destroy(lock_key_status);
+	if (username_label) username_label->Destroy(username_label);
+	if (username) username->Destroy(username);
+	if (password_label) password_label->Destroy(password_label);
+	if (password) password->Destroy(password);
+	if (session_label) session_label->Destroy(session_label);
+	if (session) session->Destroy(session);
+	if (font_small) font_small->Release (font_small);
+	if (font_normal) font_normal->Release (font_normal);
+	if (font_large) font_large->Release (font_large);
+	if (primary) primary->Release (primary);
+	if (events) events->Release (events);
+	if (layer) layer->Release (layer);
 	while (devices)
 	{
 		DeviceInfo *next = devices->next;
 		free (devices);
 		devices = next;
 	}
-	dfb->Release (dfb);
+	if (dfb) dfb->Release (dfb);
 	if (we_stopped_gpm) start_gpm();
 }
+
+void DirectFB_Error()
+{
+	if (!silent) fprintf(stderr, "Unrecoverable DirectFB error: reverting to text mode!\n");
+	close_framebuffer_mode();
+}
+
 
 /* mouse movement in buttons area */
 void handle_buttons(int *mouse_x, int *mouse_y)
@@ -304,6 +311,7 @@ void begin_shutdown_sequence (int action)
 	DFBInputEvent evt;
 	char message[35];
 	int countdown = 5;
+	char *temp;
 
 	clear_screen();
 
@@ -333,7 +341,9 @@ void begin_shutdown_sequence (int action)
 		}
 		primary->Clear (primary, 0, 0, 0, 0);
 		strcat (message, " in ");
-		strcat (message, int_to_str (countdown));
+		temp = int_to_str (countdown);
+		strcat (message, temp);
+		if (temp) free(temp);
 		strcat (message, " seconds");
 		primary->DrawString (primary, "Press ESC key to abort", -1, 0, screen_height, DSTF_LEFT | DSTF_BOTTOM);
 		primary->DrawString (primary, message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
@@ -453,7 +463,7 @@ void start_login_sequence(DFBInputEvent *evt)
 	{
 		temp = get_last_user();
 		free_temp = 1;
-	}	
+	}
 	else temp = username->text; 	
 	if (!check_password(temp, password->text))
 	{
@@ -606,9 +616,10 @@ int handle_keyboard_event(DFBInputEvent *evt)
 	return returnstatus;
 }
 
-void Create_Labels_TextBoxes_ComboBoxes(void)
+int Create_Labels_TextBoxes_ComboBoxes(void)
 {
 	DFBWindowDescription window_desc;
+	char *temp = print_welcome_message("Welcome to ", NULL);
 
 	window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
 	window_desc.posx   = 0;
@@ -617,60 +628,72 @@ void Create_Labels_TextBoxes_ComboBoxes(void)
 	window_desc.height = 2*font_large_height;
 	window_desc.caps   = DWCAPS_ALPHACHANNEL;
 	welcome_label = Label_Create(layer, font_large, &window_desc);
-	welcome_label->SetText(welcome_label, print_welcome_message("Welcome to ", NULL), CENTER);
+	if (!welcome_label) return 0;
+	welcome_label->SetText(welcome_label, temp, CENTER);
+	if (temp) free(temp);
 	window_desc.posx = screen_width/8;
 	window_desc.posy   = 3*screen_height/8-font_large_height;
 	window_desc.width  = 3*screen_width/20;
 	username_label = Label_Create(layer, font_large, &window_desc);
+	if (!username_label) return 0;
 	username_label->SetText(username_label, "login:", RIGHT);
 	window_desc.posy   = 4*screen_height/8-font_large_height;
 	password_label = Label_Create(layer, font_large, &window_desc);
+	if (!password_label) return 0;
 	password_label->SetText(password_label, "passwd:", RIGHT);
 	window_desc.posy   = 5*screen_height/8-font_large_height;
 	session_label = Label_Create(layer, font_large, &window_desc);
+	if (!session_label) return 0;
 	session_label->SetText(session_label, "session:", RIGHT);
 	window_desc.posx   = 3*screen_width/10;
 	window_desc.posy   = 3*screen_height/8-font_large_height;
 	window_desc.width  = screen_width - window_desc.posx;
 	window_desc.height = 2*font_large_height;
 	username = TextBox_Create(layer, font_large, &window_desc);
+	if (!username) return 0;
 	window_desc.posy   = 4*screen_height/8-font_large_height;
 	password = TextBox_Create(layer, font_large, &window_desc);
+	if (!password) return 0;
 	window_desc.posy = 5*screen_height/8-font_large_height;
 	session = ComboBox_Create(layer, font_large, &window_desc);
+	if (!session) return 0;	
 	window_desc.posx   = 0;
 	window_desc.posy   = screen_height - (font_small_height);
 	window_desc.width  = screen_width/5;
 	window_desc.height = font_small_height;
 	lock_key_status = Label_Create(layer, font_small, &window_desc);
+	if (!lock_key_status) return 0;
 	lock_key_status->SetText(lock_key_status, "CAPS LOCK is pressed", CENTERBOTTOM);
+
+	return 1;
 }
 
-void set_font_sizes ()
+int set_font_sizes ()
 {
-	DFBResult err;
 	DFBFontDescription fdsc;
 	const char *fontfile = FONT;
 
 	fdsc.flags = DFDESC_HEIGHT;
 	fdsc.height = screen_width / 30;
-	DFBCHECK (dfb->CreateFont (dfb, fontfile, &fdsc, &font_large));
+	if (dfb->CreateFont (dfb, fontfile, &fdsc, &font_large) != DFB_OK) return 0;
 	font_large_height = fdsc.height;
 	fdsc.height = screen_width / 40;
-	DFBCHECK (dfb->CreateFont (dfb, fontfile, &fdsc, &font_normal));
+	if (dfb->CreateFont (dfb, fontfile, &fdsc, &font_normal) != DFB_OK) return 0;
 	font_normal_height = fdsc.height;
 	fdsc.height = screen_width / 50;
-	DFBCHECK (dfb->CreateFont (dfb, fontfile, &fdsc, &font_small));
+	if (dfb->CreateFont (dfb, fontfile, &fdsc, &font_small) != DFB_OK) return 0;
 	font_small_height = fdsc.height;
+
+	return 1;
 }
 
 int framebuffer_mode (int argc, char *argv[])
 {
-	int returnstatus = -1;      /* return value of this function...             */
-	DFBResult err;              /* the bloody macro uses it to check for errors */
-	DFBSurfaceDescription sdsc; /* description for the primary surface          */
-	DFBInputEvent evt;          /* generic input events will be stored here     */
-	char *lastuser;             /* last user logged in                    */
+	int returnstatus = -1;      /* return value of this function...         */
+	DFBSurfaceDescription sdsc; /* description for the primary surface      */
+	DFBInputEvent evt;          /* generic input events will be stored here */
+	char *lastuser;             /* last user logged in                      */
+	char *temp1, *temp2;
 
 	/* Stop GPM if necessary */
 	we_stopped_gpm= stop_gpm();
@@ -681,18 +704,30 @@ int framebuffer_mode (int argc, char *argv[])
 
 	/* we initialize directfb */
 	if (silent) stderr_disable();
-	DFBCHECK (DirectFBInit (&argc, &argv));
-	DFBCHECK (DirectFBCreate (&dfb));
+	DFBCHECK(DirectFBInit (&argc, &argv));
+	DFBCHECK(DirectFBCreate (&dfb));
 	if (silent) stderr_enable();
 
 	dfb->EnumInputDevices (dfb, enum_input_device, &devices);
-	DFBCHECK (dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &events));
-	DFBCHECK (dfb->GetDisplayLayer (dfb, DLID_PRIMARY, &layer));
+	if (dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &events) != DFB_OK)
+	{
+		DirectFB_Error();
+		return TEXT_MODE;
+	}
+	if (dfb->GetDisplayLayer (dfb, DLID_PRIMARY, &layer) != DFB_OK)
+	{
+		DirectFB_Error();
+		return TEXT_MODE;
+	}
 	layer->SetCooperativeLevel (layer, DLSCL_ADMINISTRATIVE);
 	layer->EnableCursor (layer, 0);
 	sdsc.flags = DSDESC_CAPS;
 	sdsc.caps  = DSCAPS_PRIMARY | DSCAPS_FLIPPING;
-	DFBCHECK(dfb->CreateSurface( dfb, &sdsc, &primary ));
+	if (dfb->CreateSurface( dfb, &sdsc, &primary ) != DFB_OK)
+	{
+		DirectFB_Error();
+		return TEXT_MODE;
+	}
 	if (!width && !height) primary->GetSize(primary, &screen_width, &screen_height);
 	else
 	{
@@ -700,17 +735,38 @@ int framebuffer_mode (int argc, char *argv[])
 		screen_height	= height;
 	}
 
-	set_font_sizes ();
+	if (!set_font_sizes ())
+	{
+		DirectFB_Error();
+		return TEXT_MODE;
+	}
+
 	Draw_Background_Image();
 
 	/* we create buttons */
-	power = Button_Create(StrApp((char **)0, THEME_DIR, "power_normal.png", (char *)0), StrApp((char **)0, THEME_DIR, "power_mouseover.png", (char *)0), screen_width, screen_height, layer, primary, dfb);
-	reset = Button_Create(StrApp((char **)0, THEME_DIR, "reset_normal.png", (char *)0), StrApp((char **)0, THEME_DIR, "reset_mouseover.png", (char *)0), power->xpos - 10, screen_height, layer, primary, dfb);
+	temp1 = StrApp((char **)0, THEME_DIR, "power_normal.png", (char *)0);
+	temp2 = StrApp((char **)0, THEME_DIR, "power_mouseover.png", (char *)0);
+	power = Button_Create(temp1, temp2, screen_width, screen_height, layer, primary, dfb);
+	if (temp1) free(temp1); if (temp2) free(temp2);
+	temp1 = StrApp((char **)0, THEME_DIR, "reset_normal.png", (char *)0);
+	temp2 = StrApp((char **)0, THEME_DIR, "reset_mouseover.png", (char *)0);
+	reset = Button_Create(temp1, temp2, power->xpos - 10, screen_height, layer, primary, dfb);
+	if (temp1) free(temp1); if (temp2) free(temp2);
+	if (!power || !reset)
+	{
+		DirectFB_Error();
+		return TEXT_MODE;
+	}
 	power->MouseOver(power, 0);
 	reset->MouseOver(reset, 0);
 
 	/* we create labels, textboxes and comboboxes */
-	Create_Labels_TextBoxes_ComboBoxes();
+	if (!Create_Labels_TextBoxes_ComboBoxes())
+	{
+		DirectFB_Error();
+		return TEXT_MODE;
+	}
+
 	if (!hide_password) password->mask_text = 1;
 	else password->hide_text = 1;
 	get_sessions(session);

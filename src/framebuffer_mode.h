@@ -30,12 +30,10 @@
 #define TEXT_MODE    -2
 #define REDRAW    55555
 
-int silent;
-
 /* macro for a safe call to DirectFB functions */
 #define DFBCHECK(x...)                                                  \
 {                                                                       \
-	err = x;                                                              \
+	DFBResult err = x;                                                    \
 	if (err != DFB_OK)                                                    \
 	{                                                                     \
 		if (!silent) fprintf( stderr, "%s <%d>:\n\t", __FILE__, __LINE__ ); \

@@ -38,7 +38,19 @@
 #include "misc.h"
 
 
-int log10(int n)
+void *my_calloc(size_t nmemb, size_t size)
+{
+	void *temp = calloc(nmemb, size);
+	if (!temp)
+	{
+		fprintf(stderr, "Fatal error: cannot allocate memory!\n");
+		abort();
+	}
+
+	return temp;
+}
+
+int int_log10(int n)
 {
   int temp=0;
 
@@ -53,12 +65,12 @@ char *int_to_str(int n)
   int lun;
 
   if (n<0) return NULL;
-  lun= log10(n);
-  temp= (char *) calloc(lun+2, sizeof(char));
+  lun= int_log10(n);
+  temp= (char *) my_calloc((size_t)(lun+2), sizeof(char));
   temp[lun+1]= '\0';
   while (lun>=0)
   {
-    temp[lun]= '0'+ n%10;
+    temp[lun]= (char)('0' + n%10);
     n/=10; lun--;
   }
 
@@ -131,11 +143,11 @@ int get_line(char *tmp, FILE *fp, int max)
 
 char *print_welcome_message(char *preamble, char *postamble)
 {
-	char *text = (char *) calloc(MAX, sizeof(char));
+	char *text = (char *) my_calloc(MAX, sizeof(char));
 	int len;
 
 	if (preamble) strncpy(text, preamble, MAX-1);
-	len = strlen(text);
+	len = (int)strlen(text);
 	gethostname(&(text[len]), MAX-len);
 	if (postamble) strncat(text, postamble, MAX-1);
 
@@ -178,8 +190,7 @@ char *StrApp (char **dst, ...)
 		len += strlen(pt);
 	}
 	va_end (va);
-	temp = (char *) calloc(len, sizeof(char));
-	if (!temp) return NULL;
+	temp = (char *) my_calloc((size_t)len, sizeof(char));
 	if (dst) if (*dst)
 	{
 		strcpy(temp, *dst);

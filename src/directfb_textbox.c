@@ -228,7 +228,6 @@ void TextBox_Destroy(TextBox *thiz)
 TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWindowDescription *window_desc)
 {
 	TextBox *newbox = NULL;
-	DFBResult err;
 
 	newbox = (TextBox *) calloc(1, sizeof(TextBox));
 	newbox->text       = NULL;
@@ -250,7 +249,7 @@ TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWi
 	newbox->Show       = TextBox_Show;
 	newbox->Destroy    = TextBox_Destroy;
 
-	DFBCHECK(layer->CreateWindow (layer, window_desc, &(newbox->window)));
+	if (layer->CreateWindow(layer, window_desc, &(newbox->window)) != DFB_OK) return NULL;
 	newbox->window->SetOpacity(newbox->window, 0x00 );
 	newbox->window->GetSurface(newbox->window, &(newbox->surface));
 	newbox->surface->Clear(newbox->surface, 0x00, 0x00, 0x00, 0x00);

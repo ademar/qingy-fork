@@ -120,7 +120,6 @@ void Label_Destroy(Label *thiz)
 Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWindowDescription *window_desc)
 {
 	Label *newlabel = NULL;
-	DFBResult err;
 
 	newlabel = (Label *) calloc(1, sizeof(Label));
 	newlabel->text     = NULL;
@@ -139,7 +138,7 @@ Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWindow
 	newlabel->Show     = Label_Show;
 	newlabel->Destroy  = Label_Destroy;
 
-	DFBCHECK(layer->CreateWindow (layer, window_desc, &(newlabel->window)));
+	if (layer->CreateWindow (layer, window_desc, &(newlabel->window)) != DFB_OK) return NULL;
 	newlabel->window->SetOpacity(newlabel->window, 0x00 );
 	newlabel->window->GetSurface(newlabel->window, &(newlabel->surface));
 	newlabel->surface->Clear(newlabel->surface, 0x00, 0x00, 0x00, 0x00);

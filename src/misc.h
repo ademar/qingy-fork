@@ -28,11 +28,13 @@
 
 #define MAX 255
 
+void *my_calloc(size_t nmemb, size_t size);
+
 /* Converts an unsigned inteter to a string */
 char *int_to_str(int n);
 
 /* Computes the integer part of the base 10 log */
-int log10(int n);
+int int_log10(int n);
 
 /* append any number of strings to dst */
 char *StrApp(char **dst, ...);

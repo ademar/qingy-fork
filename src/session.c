@@ -111,7 +111,7 @@ extern char **environ;
 		struct pam_response *reply;
 
 		if (appdata_ptr) {}
-		if (!(reply = calloc(num_msg, sizeof(*reply)))) return PAM_CONV_ERR;
+		if (!(reply = my_calloc(num_msg, sizeof(*reply)))) return PAM_CONV_ERR;
 
 		for (count = 0; count < num_msg; count++)
 		{
@@ -261,10 +261,11 @@ int check_password(char *username, char *user_password)
 #endif
 #endif /* End of USE_PAM */
 
-	if (user_password != NULL) password = user_password;
+	if (!username) return 0;
+	if (NULL != user_password) password = user_password;
 	else
 	{
-		password = (char *) calloc(1, sizeof(char));
+		password = (char *) my_calloc(1, sizeof(char));
 		password[0] = '\0';
 	}
 
@@ -372,7 +373,7 @@ char *shell_base_name(char *name)
 		temp++;
 	}
 
-	shellname = (char *) calloc(strlen(base)+2, sizeof(char));
+	shellname = (char *) my_calloc(strlen(base)+2, sizeof(char));
 	*shellname = '-';
 	strcat(shellname, base);
 
@@ -383,7 +384,7 @@ void setEnvironment(struct passwd *pwd)
 {
 	char *mail = StrApp((char**)0, _PATH_MAILDIR, "/", pwd->pw_name, (char*)0);
 
-	environ = (char **) calloc(2, sizeof(char *));
+	environ = (char **) my_calloc(2, sizeof(char *));
 	environ[0] = 0;
 	setenv("TERM", "linux", 0);
 	setenv("HOME", pwd->pw_dir, 1);
@@ -392,6 +393,8 @@ void setEnvironment(struct passwd *pwd)
 	setenv("LOGNAME", pwd->pw_name, 1);
 	setenv("MAIL", mail, 1);
 	chdir(pwd->pw_dir);
+
+	if (mail) free(mail);
 }
 
 void restore_tty_ownership(void)
@@ -407,8 +410,8 @@ void switchUser(struct passwd *pwd)
 {
 	char *our_tty_name = create_tty_name(current_vt);
 
-	/* Change tty ownership */
-	if (0 != chown (our_tty_name, pwd->pw_uid, pwd->pw_gid))
+	/* Change tty ownership to uid:tty */
+	if (0 != chown (our_tty_name, pwd->pw_uid, 5))
 	{
 		LogEvent(pwd, CANNOT_CHANGE_TTY_OWNER);
 		my_exit(0);
@@ -437,12 +440,14 @@ void dolastlog(struct passwd *pwd, int quiet)
 {
 	struct lastlog ll;
 	int fd;
-	char *hostname = (char *) calloc(UT_HOSTSIZE, sizeof(char));
-	char *tty_name = (char *) calloc(UT_LINESIZE, sizeof(char));
+	char *hostname = (char *) my_calloc(UT_HOSTSIZE, sizeof(char));
+	char *tty_name = (char *) my_calloc(UT_LINESIZE, sizeof(char));
+	char *temp = int_to_str(current_vt);
 
 	gethostname(hostname, UT_HOSTSIZE);
 	strncpy(tty_name, "tty", UT_LINESIZE);
-	strncat(tty_name, int_to_str(current_vt), UT_LINESIZE);
+	strncat(tty_name, temp, UT_LINESIZE);
+	if (temp) free(temp);
 
 	if ((fd = open(_PATH_LASTLOG, O_RDWR, 0)) >= 0)
 	{
@@ -534,6 +539,7 @@ int which_X_server(void)
 	FILE *fp;
 	char filename[20];
 	int num=1;
+	char *temp;
 
 	/* we start our search from server :1 (instead of :0)
 	   to allow a console user to start his own X server
@@ -545,7 +551,9 @@ int which_X_server(void)
 		num++;
 		fclose(fp);
 		strcpy(filename, "/tmp/.X");
-		strcat(filename, int_to_str(num));
+		temp = int_to_str(num);
+		strcat(filename, temp);
+		if (temp) free(temp);
 		strcat(filename, "-lock");
 	}
 
@@ -567,11 +575,16 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	if (!proc_id)
 	{
 		/* set up stuff */
+		char *temp1 = int_to_str(which_X_server());
+		char *temp2 = int_to_str(dest_vt);
 		char *args[4];
+
 		args[0] = shell_base_name(pw->pw_shell);
-		args[1] = (char *) calloc(3, sizeof(char));
+		args[1] = (char *) my_calloc(3, sizeof(char));
 		strcpy(args[1], "-c");
-		args[2] = StrApp((char **)0, XINIT, " ", XSESSIONS_DIRECTORY, session, " -- :", int_to_str(which_X_server()), " vt", int_to_str(dest_vt), " >/dev/null 2>/dev/null", (char*)0);
+		args[2] = StrApp((char **)0, XINIT, " ", XSESSIONS_DIRECTORY, session, " -- :", temp1, " vt", temp2, " >/dev/null 2>/dev/null", (char*)0);
+		if (temp1) free(temp1);
+		if (temp2) free(temp2);
 		args[3] = NULL;
 
 		/* write to system logs */

@@ -32,7 +32,7 @@
 #include <directfb_keynames.h>
 
 #include "directfb_utils.h"
-
+#include "load_settings.h"
 
 int lock_is_pressed(DFBInputEvent *evt)
 {

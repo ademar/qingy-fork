@@ -159,7 +159,6 @@ void ComboBox_Destroy(ComboBox *thiz)
 ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWindowDescription *window_desc)
 {
 	ComboBox *newbox = NULL;
-	DFBResult err;
 
 	newbox = (ComboBox *) calloc(1, sizeof(ComboBox));
 	newbox->items      = NULL;
@@ -180,7 +179,7 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFB
 	newbox->Show       = ComboBox_Show;
 	newbox->Destroy    = ComboBox_Destroy;
 
-	DFBCHECK(layer->CreateWindow (layer, window_desc, &(newbox->window)));
+	if (layer->CreateWindow (layer, window_desc, &(newbox->window)) != DFB_OK) return NULL;
 	newbox->window->SetOpacity(newbox->window, 0x00 );
 	newbox->window->GetSurface(newbox->window, &(newbox->surface));
 	newbox->surface->Clear(newbox->surface, 0x00, 0x00, 0x00, 0x00);
