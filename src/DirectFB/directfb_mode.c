@@ -56,6 +56,11 @@
 typedef struct label_t
 {
 	Label *label;
+	int    polltime;
+	int    countdown;
+	char  *content;
+	char  *command;
+	int    text_orientation;
 	struct label_t *next;
 } Label_list;
 Label_list *Labels = NULL;
@@ -776,6 +781,63 @@ void load_sessions(ComboBox *session)
   }
 }
 
+char *assemble_message(char *content, char *command)
+{
+	char *where;
+	char *message = NULL;
+	char *result  = NULL;	
+	char *prev    = NULL;	
+	size_t len     = 0;
+	FILE *fp;
+
+
+	if (!content) return NULL;
+	if (!command) return content;
+	
+	where = strstr(content, "<INS_CMD_HERE>");
+	if (!where) return content;
+
+	fp = popen(command, "r");
+	getline(&result, &len, fp);
+	pclose(fp);
+
+	if (!result) return content;
+
+	prev = strndup(content, where - content);
+	len = strlen(result);
+	if (result[len-1] == '\n') result[len-1] = '\0';
+	message = StrApp((char**)NULL, prev, result, where+14, (char*)NULL);
+	free(prev);
+	free(result);
+
+	return message;
+}
+
+void update_labels()
+{
+	Label_list *labels = Labels;
+
+	while (labels)
+	{
+		if (labels->polltime)
+		{
+			if (!labels->countdown)
+			{
+				if (!labels->command || !labels->content) labels->polltime = 0;
+				else
+				{
+					char *message = assemble_message(labels->content, labels->command);
+					labels->label->SetText(labels->label, message, labels->text_orientation);
+					free(message);
+				}			 
+				labels->countdown = labels->polltime;
+			}
+			else labels->countdown--;
+		}
+		labels = labels->next;
+	}
+}
+
 int create_windows()
 {
 	DFBWindowDescription window_desc;
@@ -803,6 +865,7 @@ int create_windows()
 			font = font_large;
 			break;
 		}
+		/* what kind of window are we going to create? */
 		switch (window->type)
 		{
 		case LOGIN:
@@ -828,42 +891,27 @@ int create_windows()
 				labels = labels->next;
 			}
 			labels->label = Label_Create(layer, font, window->text_color, &window_desc);
-			if (!labels->label) return 0;
-			labels->next = NULL;
-			if (window->content)
+			if (!labels->label) return 0;			
+			labels->content          = window->content;
+			labels->command          = window->command;
+			labels->polltime         = window->polltime * 2;
+			labels->text_orientation = window->text_orientation;
+			labels->countdown        = 0;
+			labels->next             = NULL;
+			if (!labels->polltime && window->command)
 			{
-				char *comm = strstr(window->content, "<INS_CMD_HERE>");
-				if (comm)
-				{
-					char *message = NULL;
-					char *result  = NULL;
-					FILE *fp = popen(window->command, "r");
-					size_t len = 0;
-
-					getline(&result, &len, fp);
-					pclose(fp);
-					if (result)
-					{
-						char *prev = strndup(window->content, comm - window->content);
-						char len = strlen(result);
-						if (result[len-1] == '\n') result[len-1] = '\0';
-						message = StrApp((char**)NULL, prev, result, comm+14, (char*)NULL);
-						free(prev);
-						free(result);
-					}
-					labels->label->SetText(labels->label, message, window->text_orientation);
-					free(message);
-				}
-				else labels->label->SetText(labels->label, window->content, window->text_orientation);
-				labels->label->SetFocus(labels->label, 0);
+				char *message = assemble_message(labels->content, labels->command);
+				labels->label->SetText(labels->label, message, labels->text_orientation);
+				free(message);
 			}
+			else labels->label->SetText(labels->label, window->content, window->text_orientation);
+			labels->label->SetFocus(labels->label, 0);
 			if (window->linkto)
 			{
 				if (!strcmp(window->linkto, "login"))    username_label = labels->label;
 				if (!strcmp(window->linkto, "password")) password_label = labels->label;
 				if (!strcmp(window->linkto, "session"))  session_label  = labels->label;
 			}
-
 			break;
 		}
 		case BUTTON:
@@ -1083,6 +1131,7 @@ int directfb_mode (int argc, char *argv[])
 					password->KeyEvent(password, REDRAW, flashing_cursor);
 				flashing_cursor = !flashing_cursor;
 				if (use_screensaver) screensaver_countdown--;
+				update_labels();
       }
       if (!screensaver_countdown)
       {

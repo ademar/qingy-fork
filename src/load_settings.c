@@ -568,24 +568,6 @@ int load_settings(void)
 
   if (!FONT) set_default_font();
 
-#ifdef DEBUG
-	fprintf(stderr, "XINIT is '%s'\n", XINIT);
-	fprintf(stderr, "X_SESSIONS_DIRECTORY is '%s'\n", X_SESSIONS_DIRECTORY);
-	fprintf(stderr, "TEXT_SESSIONS_DIRECTORY is '%s'\n",  TEXT_SESSIONS_DIRECTORY);
-	fprintf(stderr, "FONT is '%s'\n", FONT);
-	fprintf(stderr, "BACKGROUND is '%s'\n", BACKGROUND);
-	
-	fprintf(stderr, "BUTTON_OPACITY is %d\n", BUTTON_OPACITY);
-	fprintf(stderr, "WINDOW_OPACITY is %d\n", WINDOW_OPACITY);
-	fprintf(stderr, "SELECTED_WINDOW_OPACITY is %d\n", SELECTED_WINDOW_OPACITY);
-	
-	fprintf(stderr, "DEFAULT_TEXT_COLOR is %d, %d, %d, %d\n", DEFAULT_TEXT_COLOR.R, DEFAULT_TEXT_COLOR.G, DEFAULT_TEXT_COLOR.B, DEFAULT_TEXT_COLOR.A);
-	fprintf(stderr, "DEFAULT_CURSOR_COLOR is %d, %d, %d, %d\n", DEFAULT_CURSOR_COLOR.R, DEFAULT_CURSOR_COLOR.G, DEFAULT_CURSOR_COLOR.B, DEFAULT_CURSOR_COLOR.A);
-	fprintf(stderr, "OTHER_TEXT_COLOR is %d, %d, %d, %d\n", OTHER_TEXT_COLOR.R, OTHER_TEXT_COLOR.G, OTHER_TEXT_COLOR.B, OTHER_TEXT_COLOR.A);
-
-	fprintf(stderr, "Allowed to shutdown: %s\n", (SHUTDOWN_POLICY==EVERYONE) ? "everyone" : (SHUTDOWN_POLICY==ROOT) ? "root only" : "no one");
-#endif
-
 	if (!check_windows_sanity())
 	{
 		fprintf(stderr, "Error in windows configuration:\n");
@@ -595,41 +577,3 @@ int load_settings(void)
 
   return 1;
 }
-
-#ifdef DEBUG
-char *print_window_type(window_types_t type)
-{
-	switch (type)
-	{
-	case LABEL:    return "label";
-	case BUTTON:   return "button";
-	case LOGIN:    return "login";
-	case PASSWORD: return "password";
-	case COMBO:    return "combo";
-	case UNKNOWN:  /* fall trough */	
-	default:       return "invalid type!";
-	} 
-}
-
-void show_windows_list(void)
-{
-	window_t* temp = windowsList;
-
-	while (temp)
-	{
-		fprintf(stderr, "Found new window definition:\n");
-		fprintf(stderr, "\tx pos  is '%d'.\n", temp->x);
-		fprintf(stderr, "\ty pos  is '%d'.\n", temp->y);
-		fprintf(stderr, "\twidth  is '%d'.\n", temp->width);
-		fprintf(stderr, "\theight is '%d'.\n", temp->height);
-		fprintf(stderr, "\tpolling time is '%d' seconds.\n", temp->polltime);
-		fprintf(stderr, "\tcommand is '%s'.\n", temp->command);
-		fprintf(stderr, "\tcontent is '%s'.\n", temp->content);
-		fprintf(stderr, "\twindow type is '%s'.\n", print_window_type(temp->type));
-		fprintf(stderr, "\twindow text size is '%s'.\n", (temp->text_size==SMALL)? "small": ((temp->text_size==MEDIUM)? "medium":"large"));
-		fprintf(stderr, "\twindow text color is: %d, %d, %d, %d.\n", temp->text_color.R, temp->text_color.G, temp->text_color.B, temp->text_color.A);
-		fprintf(stderr, "\twindow cursor color is: %d, %d, %d, %d.\n", temp->cursor_color.R, temp->cursor_color.G, temp->cursor_color.B, temp->cursor_color.A);
-		temp = temp->next;
-	}
-}
-#endif
