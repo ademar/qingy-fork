@@ -1,8 +1,8 @@
 /***************************************************************************
-                           chvt.h  -  description
+                       tty_guardian.h  -  description
                             --------------------
-    begin                : Apr 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
+    begin                : Feb 04 2004
+    copyright            : (C) 2004 by Noberasco Michele
     e-mail               : noberasco.gnu@disi.unige.it
  ***************************************************************************/
 
@@ -25,42 +25,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef CHVT_H
-#define CHVT_H
+#define NO_TTY 0
 
-/* NOTE: should be an inline func, and StrApp should be probably fixed */
-#define create_tty_name(tty) StrApp((char**)0, "/dev/tty", int_to_str(tty), (char*)0)
- 
-/* change stdin, stdout and stderr to a new tty */
-int switch_to_tty(int tty);
-
-/* get the currently active tty */
-int get_active_tty(void);
-
-/* jump to another tty */
-int set_active_tty(int tty);
-
-/* get the number of an unused tty */
-int get_available_tty(void);
-
-/* allow of block tty switching */
-int lock_tty_switching(void);
-int unlock_tty_switching(void);
-
-/* Redraw active tty contents */
-void tty_redraw(void);
-
-/* disallocate tty */
-int disallocate_tty(int tty);
-
-/* enable or disable stderr */
-void stderr_disable(void);
-void stderr_enable(void);
-
-/* get console framebuffer resolution */
-char *get_fb_resolution(char *fb_device);
-
-/* get user name of tty owner */
-char *get_tty_owner(int tty);
-
-#endif /* !CHVT_H */
+/* guard specified ttys from unauthorized access */
+void ttyWatchDog(pid_t child, char *username, int tty_watch1, int tty_watch2);

@@ -21,6 +21,9 @@ qingy CVS:
   "logging in user...".
 - Added support for tty specific options. See the new settings file
   for an example on how this works.
+- Added a file, /etc/qingy/welcomes, where you can put personalized
+  welcome messages (like the 'Greetings, Master...' when you log in
+  as root).
 
 qingy 0.3.0 (09 January 2004):
 - New memory allocation/deallocation management

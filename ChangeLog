@@ -1,3 +1,20 @@
+2004-02-06  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/chvt.c (get_tty_owner),
+	* src/chvt.h (get_tty_owner): 
+	added this function (needed in tty_guardian.c) that checks
+	who owns a certain /dev/tty<n> file.
+
+	* src/tty_guardian.c,
+	* src/tty_guardian.h:
+	Added these which contain all the necessary stuff to handle session
+	locking. NOTE that this isn't quite functional, yet. More work needs
+	to be done.
+
+	* src/main.c (ParseCMDLine): make use of getopt_long()
+	instead of parsing command line arguments 'by hand'.
+	Various small fixes and clean ups.
+
 2004-02-04  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* src/scan_settings.l,

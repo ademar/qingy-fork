@@ -2,7 +2,7 @@
                            main.c  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
+    copyright            : (C) 2003,2004 by Noberasco Michele
     e-mail               : noberasco.gnu@disi.unige.it
 ***************************************************************************/
 
@@ -39,6 +39,7 @@
      user name and passing control to passwd
 ****************************************************************************/
 
+#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,38 +51,46 @@
 #include "directfb_mode.h"
 #include "load_settings.h"
 
+#define Switch_TTY                                                                          \
+	if (!switch_to_tty(our_tty_number))                                                       \
+	{                                                                                         \
+		fprintf(stderr, "\nUnable to switch to virtual terminal /dev/tty%d\n", our_tty_number); \
+		exit(EXIT_FAILURE);                                                                     \
+	}
+
+
 char *fb_device = NULL;
+
 
 void PrintUsage()
 {
   printf("\nqingy version %s\n", VERSION);
   printf("\nusage: ginqy <ttyname> [options]\n");
   printf("Options:\n");
-  printf("\t--fb-device <device>\n");
+  printf("\t-f <device>, --fb-device <device>\n");
   printf("\tUse <device> as framebuffer device.\n\n");
-  printf("\t--hide-password\n");
+  printf("\t-p, --hide-password\n");
   printf("\tDo not show password asterisks.\n\n");
-  printf("\t--hide-lastuser\n");
+  printf("\t-l, --hide-lastuser\n");
   printf("\tDo not display last user name.\n\n");
-  printf("\t--disable-lastuser\n");
+  printf("\t-d, --disable-lastuser\n");
   printf("\tDo not remember last user name.\n\n");
-  printf("\t--verbose\n");
+  printf("\t-v, --verbose\n");
   printf("\tDisplay some diagnostic messages on stderr.\n\n");
-  printf("\t--no-shutdown-screen\n");
+  printf("\t-n, --no-shutdown-screen\n");
   printf("\tClose DirectFB mode before shutting down.\n");
   printf("\tThis way you will see system shutdown messages.\n\n");
-  printf("\t--screensaver <timeout>\n");
+  printf("\t-s <timeout>, --screensaver <timeout>\n");
   printf("\tActivate screensaver after <timeout> minutes (default is 5).\n");
   printf("\tA value of 0 disables screensaver completely.\n\n");
-  printf("\t--black-screen-workaround\n");
+  printf("\t-b, --black-screen-workaround\n");
   printf("\tTry this if you get a black screen instead of a text console.\n");
-  printf("\tNote: switching to another vt and back");
-  printf("also solves the problem.\n\n");
+  printf("\tNote: switching to another vt and back also solves the problem.\n\n");
 }
 
 void text_mode()
 {
-  execl("/bin/login", "/bin/login", (char *) 0);
+  execl("/bin/login", "/bin/login", NULL);
 
   /* We should never get here... */
   fprintf(stderr, "\nCannot exec \"/bin/login\"...\n");
@@ -90,6 +99,8 @@ void text_mode()
 
 void Error(int fatal)
 {
+	int countdown = 16;
+
   /* We reenable VT switching if it is disabled */
   unlock_tty_switching();   
   
@@ -100,7 +111,14 @@ void Error(int fatal)
    * we give the user some time to read the message
    * and change VT before dying
    */
-  sleep(15);			/* ED (paolino): was sleep(5), too fast to read errors */
+	/* ED (paolino): was sleep(5), too fast to read errors */
+	/* ED (michele): all right, but we should let them know what's happening! */
+	while (--countdown)
+	{
+		fprintf(stderr, "%s will be restarted automatically in %d seconds\r", program_name, countdown);
+		fflush(stderr);
+		sleep(1);
+	}
   exit(EXIT_FAILURE);
 }
 
@@ -118,18 +136,18 @@ void start_up(void)
   ClearScreen();
 
 	/* get resolution of console framebuffer */
-	if (!fb_device) resolution = get_fb_resolution("/dev/fb0");
-	else            resolution = get_fb_resolution(fb_device);
+	resolution = get_fb_resolution( (fb_device) ? fb_device : "/dev/fb0" );
 	if (!silent && resolution) fprintf(stderr, "framebuffer resolution is '%s'.\n", resolution);
   
   /* Set up some stuff */
-  argv[0]= strdup("qingy");	/**-** NOTE: get it maybe dynamic (grep strings) **-**/
+  argv[0]= strdup(program_name);	/* NOTE: get it maybe dynamic (grep strings)... Done! ;-P */
   argv[1]= strdup("--dfb:no-vt-switch,bg-none");
   if (silent)     StrApp(&(argv[1]), ",quiet", (char*)NULL);
-  if (fb_device)  StrApp(&(argv[1]), ",fbdev=", fb_device, (char*)NULL);
-	if (resolution) StrApp(&(argv[1]), ",mode=", resolution, (char*)NULL);
+  if (fb_device)  StrApp(&(argv[1]), ",fbdev=", fb_device,  (char*)NULL);
+	if (resolution) StrApp(&(argv[1]), ",mode=",  resolution, (char*)NULL);
   argv[2]= NULL;
 	if (resolution) free(resolution);
+	if (fb_device)  free(fb_device);
   
   /* Now we try to initialize the framebuffer */
   returnstatus = directfb_mode(argc, argv);		
@@ -168,76 +186,86 @@ void start_up(void)
 }
 
 /* okeeey... Whatabout using getopt?  */
+/* okeeey... But you do be tiresome!  */
 int ParseCMDLine(int argc, char *argv[])
 {
-  int i;
+	extern char *optarg;
+	extern int optind, opterr, optopt;
+	const char optstring[] = "f:pldvns:b";
+	const struct option longopts[] =
+	{
+		{"fb-device",               required_argument, NULL, 'f'},
+		{"hide-password",           no_argument,       NULL, 'p'},
+		{"hide-lastuser",           no_argument,       NULL, 'l'},
+		{"disable-lastuser",        no_argument,       NULL, 'd'},
+		{"verbose",                 no_argument,       NULL, 'v'},
+		{"no-shutdown-screen",      no_argument,       NULL, 'n'},
+		{"screensaver",             required_argument, NULL, 's'},
+		{"black-screen-workaround", no_argument,       NULL, 'b'},
+		{0, 0, 0, 0}
+	};
   char *tty;
   int our_tty_number;
-  
+	
   if (argc < 2) Error(1);
   tty= argv[1];
   if (strncmp(tty, "tty", 3) != 0) Error(1);
   our_tty_number= atoi(tty+3);
   if (our_tty_number < 1) Error(1);
   
-  for (i=2; i<argc; i++)
+	while (1)
 	{
-		if (!strcmp(argv[i], "--fb-device"))
+		int retval = getopt_long(argc, argv, optstring, longopts, NULL);
+
+		if (retval == -1) break;
+		switch (retval)
 		{
-			if (i == argc) Error(0);
-			fb_device = argv[++i];
-			continue;
+			case 'f': /* use this framebuffer device */
+				fb_device = strdup(optarg);
+				break;
+			case 'p': /* hide password */
+				hide_password = 1;
+				break;
+			case 'l': /* hide lastuser */
+				hide_last_user = 1;
+				break;
+			case 'd': /* disable lastuder */
+				disable_last_user = 1;
+				break;
+			case 'v': /* verbose */
+				silent = 0;
+				break;
+			case 'n': /* no shutdown screen */
+				no_shutdown_screen = 1;
+				break;
+			case 's': /* screen_saver */
+			{
+				int temp = atoi(optarg);
+				if (temp < 0)
+				{
+					Switch_TTY;
+					ClearScreen();
+					fprintf(stderr, "%s: invalid screen saver timeout: fall back to text mode.\n", program_name);
+					Error(0);
+				}
+				if (!temp)
+				{
+					use_screensaver = 0;
+					break;
+				}
+				use_screensaver = 1;
+				screensaver_timeout = temp;
+				break;
+			}
+			case 'b': /* black-screen-workaround */
+				black_screen_workaround = 1;
+				break;
+			default:
+				Switch_TTY;
+				ClearScreen();
+				fprintf(stderr, "%s: error in command line options: fall back to text mode.\n", program_name);
+				Error(0);
 		}
-      
-		if (!strcmp(argv[i], "--screensaver"))
-		{
-			int temp;
-	  
-			if (i == argc) Error(0);
-			temp = atoi(argv[++i]);
-			if (temp < 0) Error(0);
-			if (!temp)
-	    {
-	      use_screensaver = 0;
-	      continue;
-	    }
-			use_screensaver = 1;
-			screensaver_timeout = temp;
-			continue;
-		}
-      
-		if (!strcmp(argv[i], "--verbose"))
-		{
-			silent = 0;
-			continue;
-		}
-		if (!strcmp(argv[i], "--black-screen-workaround"))
-		{
-			black_screen_workaround = 1;
-			continue;
-		}
-		if (!strcmp(argv[i], "--hide-password"))
-		{
-			hide_password = 1;
-			continue;
-		}
-		if (!strcmp(argv[i], "--hide-lastuser"))
-		{
-			hide_last_user = 1;
-			continue;
-		}
-		if (!strcmp(argv[i], "--disable-lastuser"))
-		{
-			disable_last_user = 1;
-			continue;
-		}
-		if (!strcmp(argv[i], "--no-shutdown-screen"))
-		{
-			no_shutdown_screen = 1;
-			continue;
-		}
-      
-		Error(0);
 	}
   
   return our_tty_number;
@@ -253,22 +281,21 @@ int main(int argc, char *argv[])
   delay.tv_sec  = 0;
   delay.tv_nsec = 500000000;	/* that's 500M */
   
-  /* We enable vt switching in case some previous session
-     crashed on start and left it disabled                */
+  /*
+	 * We enable vt switching in case some previous session
+	 * crashed on start and left it disabled
+	 */
   unlock_tty_switching();
   
   /* We set up some default values */
-  initialize_variables();	/* NOTE: Check alot more... Macros? Structs? etc.? */
+  initialize_variables(); /* NOTE: Check alot more... Macros? Structs? etc.? */
+	program_name = argv[0];
   
-  our_tty_number = ParseCMDLine(argc, argv); /* wie gesagt: getopt? */
+  our_tty_number = ParseCMDLine(argc, argv); /* wie gesagt: getopt? Done, done ;-P */
 	current_tty    = our_tty_number;
   
   /* We switch to tty <tty> */
-  if (!switch_to_tty(our_tty_number))
-	{
-		fprintf(stderr, "\nUnable to switch to virtual terminal %s\n", argv[1]);
-		return EXIT_FAILURE;
-	}
+	Switch_TTY;
   
   /* Main loop: we wait until the user switches to the tty we are running in */
   while (1)

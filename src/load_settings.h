@@ -41,6 +41,7 @@ int current_tty;
 int lock_sessions;
 
 /* NOTE: some of these should become #defines through autoconf... */
+char *program_name;
 char *DATADIR;
 char *SETTINGS;
 char *LAST_USER;

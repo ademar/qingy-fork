@@ -75,6 +75,7 @@
 #include "chvt.h"
 #include "misc.h"
 #include "load_settings.h"
+#include "tty_guardian.h"
 
 #define UNKNOWN_USER            0
 #define WRONG_PASSWORD          1
@@ -586,10 +587,13 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 		exit(0);
 	}
   set_last_user(username);
-  set_last_session(username, session);	  
-	free(username); free(session);
+  set_last_session(username, session);	  	
   
-  wait(NULL);	
+  if (!lock_sessions) wait(NULL);
+	else ttyWatchDog(proc_id, username, current_vt, NO_TTY);
+	
+	free(username); free(session);
+	
 #ifdef USE_PAM
   pam_setcred(pamh, PAM_DELETE_CRED);
   retval = pam_close_session(pamh, 0);
@@ -600,7 +604,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 #endif
   
 	remove_utmp_wtmp_entry();	
-
+	
   /* Restore tty ownership to root:tty */
   restore_tty_ownership();
   
@@ -699,7 +703,6 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	}
   set_last_user(username);
   set_last_session(username, session);  
-	free(username); free(session);
   
   /* wait a bit, then clear console from X starting messages */
   sleep(3);
@@ -708,18 +711,23 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   
   /* while X server is active, we wait for user
      to switch to our tty and redirect him there */
-  while(1)
-	{
-		pid_t result;
-      
-		result = waitpid(-1, NULL, WNOHANG);
-		if (!result || result == -1)
+
+  if (!lock_sessions)
+		while(1)
 		{
-			if (get_active_tty() == current_vt) set_active_tty(dest_vt);
-			sleep(1);
+			pid_t result;
+      
+			result = waitpid(-1, NULL, WNOHANG);
+			if (!result || result == -1)
+			{
+				if (get_active_tty() == current_vt) set_active_tty(dest_vt);
+				sleep(1);
+			}
+			else break;
 		}
-		else break;
-	}
+	else ttyWatchDog(proc_id, username, current_vt, dest_vt);
+
+	free(username); free(session);
 		
 #ifdef USE_PAM
   pam_setcred(pamh, PAM_DELETE_CRED);

@@ -28,6 +28,7 @@
 /* Working to make it compliant to GNU Standards :P ------------------------- */
 
 #include <fcntl.h>
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -35,6 +36,8 @@
 #include <linux/kd.h>
 #include <linux/vt.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include "misc.h"
 #include "chvt.h"
@@ -248,4 +251,20 @@ char *get_fb_resolution(char *fb_device)
 	free(temp1); free(temp2);
 
 	return result;
+}
+
+/* get user name of tty owner */
+char *get_tty_owner(int tty)
+{
+	struct stat desc;
+	char *device = create_tty_name(tty);
+	struct passwd *pwd;
+
+	if (!device) return NULL;
+	if (stat(device, &desc) == -1) return NULL;
+	
+	pwd = getpwuid(desc.st_uid);
+	if (!pwd) return NULL;
+
+	return strdup(pwd->pw_name);
 }
