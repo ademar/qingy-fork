@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 
+/* system and DirectFB library stuff */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +34,13 @@
 #include <directfb.h>
 #include <directfb_keynames.h>
 
-/* DirectFB custom objects */
+/* misc stuff */
+#include "chvt.h"
+#include "misc.h"
+#include "session.h"
+#include "load_settings.h"
+
+/* my custom DirectFB stuff */
 #include "directfb_mode.h"
 #include "button.h"
 #include "utils.h"
@@ -42,10 +49,6 @@
 #include "label.h"
 #include "screen_saver.h"
 
-#include "chvt.h"
-#include "misc.h"
-#include "session.h"
-#include "load_settings.h"
 
 #define POWEROFF 0
 #define REBOOT   1
@@ -74,7 +77,6 @@ void Draw_Background_Image()
 {
   /* width and height of the background image */
   static int panel_width, panel_height;
-
   /* We clear the primary surface */
   primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
   if (!panel_image)
@@ -117,9 +119,9 @@ void set_user_session(char *user)
     {
       if (strcmp(user_session, temp->name) == 0)
       {
-	session->selected = temp;
-	session->KeyEvent(session, REDRAW);
-	return;
+				session->selected = temp;
+				session->KeyEvent(session, REDRAW);
+				return;
       }
       temp = temp->next;
       if (temp == session->items) break;
@@ -172,9 +174,9 @@ void handle_buttons(int *mouse_x, int *mouse_y)
     {
       if (!power->mouse)
       {
-	power->MouseOver(power, 1);
-	if (reset->mouse) reset->MouseOver(reset, 0);
-	return;
+				power->MouseOver(power, 1);
+				if (reset->mouse) reset->MouseOver(reset, 0);
+				return;
       }
       else return;		/* we already plotted this event */
     }
@@ -185,9 +187,9 @@ void handle_buttons(int *mouse_x, int *mouse_y)
     {
       if (!reset->mouse)
       {
-	reset->MouseOver(reset, 1);
-	if (power->mouse) power->MouseOver(power, 0);
-	return;
+				reset->MouseOver(reset, 1);
+				if (power->mouse) power->MouseOver(power, 0);
+				return;
       }
       else return;		/* we already plotted this event */
     }
@@ -323,11 +325,11 @@ void begin_shutdown_sequence (int action)
   {
     while ((events->GetEvent (events, DFB_EVENT (&evt))) == DFB_OK)
       if (evt.type == DIET_KEYPRESS)
-	if (evt.key_symbol == DIKS_ESCAPE)
-	{ /* user aborted sequence */
-	  reset_screen(&evt);
-	  return;
-	}
+				if (evt.key_symbol == DIKS_ESCAPE)
+				{ /* user aborted sequence */
+					reset_screen(&evt);
+					return;
+				}
     if (!countdown) break;
     strcpy (message, "system ");
     switch (action)
@@ -399,7 +401,7 @@ void handle_mouse_event (DFBInputEvent *evt)
   {	/* mouse button press or release */
     if (left_mouse_button_down (evt))
     {	/* left mouse button is down:
-	   we check wether mouse pointer is over a specific area */
+				 we check wether mouse pointer is over a specific area */
       if (power->mouse) status = 1;
       if (reset->mouse) status = 2;
       if (username_area_mouse) status = 3;
@@ -408,37 +410,37 @@ void handle_mouse_event (DFBInputEvent *evt)
     }
     else
     {	/* left mouse button is up:
-	   if it was on a specific area when down we check if it is still there */
+				 if it was on a specific area when down we check if it is still there */
       if ((power->mouse) && (status == 1))	/* power button has been clicked! */
-	begin_shutdown_sequence (POWEROFF);
+				begin_shutdown_sequence (POWEROFF);
       if ((reset->mouse) && (status == 2))	/* reset button has been clicked! */
-	begin_shutdown_sequence (REBOOT);
+				begin_shutdown_sequence (REBOOT);
       if (username_area_mouse && status == 3)
       {	/* username area has been clicked! */
-	username->SetFocus(username, 1);
-	username_label->SetFocus(username_label, 1);
-	password->SetFocus(password, 0);
-	password_label->SetFocus(password_label, 0);
-	session->SetFocus(session, 0);
-	session_label->SetFocus(session_label, 0);
+				username->SetFocus(username, 1);
+				username_label->SetFocus(username_label, 1);
+				password->SetFocus(password, 0);
+				password_label->SetFocus(password_label, 0);
+				session->SetFocus(session, 0);
+				session_label->SetFocus(session_label, 0);
       }
       if (password_area_mouse && status == 4)
       {	/* password area has been clicked! */
-	username->SetFocus(username, 0);
-	username_label->SetFocus(username_label, 0);
-	password->SetFocus(password, 1);
-	password_label->SetFocus(password_label, 1);
-	session->SetFocus(session, 0);
-	session_label->SetFocus(session_label, 0);
+				username->SetFocus(username, 0);
+				username_label->SetFocus(username_label, 0);
+				password->SetFocus(password, 1);
+				password_label->SetFocus(password_label, 1);
+				session->SetFocus(session, 0);
+				session_label->SetFocus(session_label, 0);
       }
       if (session_area_mouse && status == 5)
       {	/* session area has been clicked! */
-	username->SetFocus(username, 0);
-	username_label->SetFocus(username_label, 0);
-	password->SetFocus(password, 0);
-	password_label->SetFocus(password_label, 0);
-	session->SetFocus(session, 1);
-	session_label->SetFocus(session_label, 1);
+				username->SetFocus(username, 0);
+				username_label->SetFocus(username_label, 0);
+				password->SetFocus(password, 0);
+				password_label->SetFocus(password_label, 0);
+				session->SetFocus(session, 1);
+				session_label->SetFocus(session_label, 1);
       }
       status = 0;		/* we reset click status because button went up */
     }
@@ -528,15 +530,15 @@ int handle_keyboard_event(DFBInputEvent *evt)
     }
     if (modifier == ALT || modifier == CTRLALT)
     { /* we check if the user is pressing [CTRL-]ALT-number with 1 <= number <= 12
-	 if so we close directfb mode and send him to that tty              */
+				 if so we close directfb mode and send him to that tty              */
       if (symbol_name)
-	if ((strlen (symbol_name->name) <= 3) && (strncmp (symbol_name->name, "F", 1) == 0))
-	{
-	  temp = atoi (symbol_name->name + 1);
-	  if ((temp > 0) && (temp < 13))
-	    if (get_active_tty () != temp)
-	      return temp;
-	}
+				if ((strlen (symbol_name->name) <= 3) && (strncmp (symbol_name->name, "F", 1) == 0))
+				{
+					temp = atoi (symbol_name->name + 1);
+					if ((temp > 0) && (temp < 13))
+						if (get_active_tty () != temp)
+							return temp;
+				}
       return returnstatus;
     }
   }
@@ -551,24 +553,24 @@ int handle_keyboard_event(DFBInputEvent *evt)
     {
       if (ascii_code == TAB || ascii_code == RETURN)
       {
-	allow_tabbing = 0;
-	username_label->SetFocus(username_label, 0);
-	username->SetFocus(username, 0);
-	if (modifier_is_pressed(evt) != SHIFT)
-	{
-	  password_label->SetFocus(password_label, 1);
-	  password->SetFocus(password, 1);
-	}
-	else
-	{
-	  session_label->SetFocus(session_label, 1);
-	  session->SetFocus(session, 1);
-	}
+				allow_tabbing = 0;
+				username_label->SetFocus(username_label, 0);
+				username->SetFocus(username, 0);
+				if (modifier_is_pressed(evt) != SHIFT)
+				{
+					password_label->SetFocus(password_label, 1);
+					password->SetFocus(password, 1);
+				}
+				else
+				{
+					session_label->SetFocus(session_label, 1);
+					session->SetFocus(session, 1);
+				}
       }
       else
       {
-	username->KeyEvent(username, ascii_code, 1);
-	set_user_session(username->text);
+				username->KeyEvent(username, ascii_code, 1);
+				set_user_session(username->text);
       }
     }
 
@@ -577,19 +579,19 @@ int handle_keyboard_event(DFBInputEvent *evt)
     {
       if (ascii_code == TAB)
       {
-	allow_tabbing = 0;
-	password_label->SetFocus(password_label, 0);
-	password->SetFocus(password, 0);
-	if (modifier_is_pressed(evt) != SHIFT)
-	{
-	  session_label->SetFocus(session_label, 1);
-	  session->SetFocus(session, 1);
-	}
-	else
-	{
-	  username_label->SetFocus(username_label, 1);
-	  username->SetFocus(username, 1);
-	}
+				allow_tabbing = 0;
+				password_label->SetFocus(password_label, 0);
+				password->SetFocus(password, 0);
+				if (modifier_is_pressed(evt) != SHIFT)
+				{
+					session_label->SetFocus(session_label, 1);
+					session->SetFocus(session, 1);
+				}
+				else
+				{
+					username_label->SetFocus(username_label, 1);
+					username->SetFocus(username, 1);
+				}
       }
       else password->KeyEvent(password, ascii_code, 1);
     }
@@ -601,19 +603,19 @@ int handle_keyboard_event(DFBInputEvent *evt)
       if (ascii_code == ARROW_DOWN) session->KeyEvent(session, DOWN);
       if (ascii_code == TAB)
       {
-	allow_tabbing = 0;
-	session_label->SetFocus(session_label, 0);
-	session->SetFocus(session, 0);
-	if (modifier_is_pressed(evt) != SHIFT)
-	{
-	  username_label->SetFocus(username_label, 1);
-	  username->SetFocus(username, 1);
-	}
-	else
-	{
-	  password_label->SetFocus(password_label, 1);
-	  password->SetFocus(password, 1);
-	}
+				allow_tabbing = 0;
+				session_label->SetFocus(session_label, 0);
+				session->SetFocus(session, 0);
+				if (modifier_is_pressed(evt) != SHIFT)
+				{
+					username_label->SetFocus(username_label, 1);
+					username->SetFocus(username, 1);
+				}
+				else
+				{
+					password_label->SetFocus(password_label, 1);
+					password->SetFocus(password, 1);
+				}
       }
     }
   }
@@ -712,17 +714,18 @@ int directfb_mode (int argc, char *argv[])
   char *temp1, *temp2;
   ScreenSaver screen_saver;
 
-  /* Stop GPM if necessary */
-  we_stopped_gpm= stop_gpm();
-
   /* load settings from file */
   load_settings();
   lastuser = get_last_user();
 
+  /* Stop GPM if necessary */
+  we_stopped_gpm= stop_gpm();
+
   /* we initialize directfb */
   if (silent) stderr_disable();
   DFBCHECK(DirectFBInit (&argc, &argv));
-  DFBCHECK(DirectFBCreate (&dfb));
+	DirectFBSetOption("session","-1");
+  DFBCHECK(DirectFBCreate (&dfb));  
   if (silent) stderr_enable();
 
   dfb->EnumInputDevices (dfb, enum_input_device, &devices);
@@ -807,10 +810,9 @@ int directfb_mode (int argc, char *argv[])
   layer->EnableCursor (layer, 1);
 
   /* init screen saver stuff */
-  screen_saver.kind = PIXEL_SCREENSAVER;
-  screen_saver.seconds = 0;
-  screen_saver.milli_seconds = 500;
+  screen_saver.kind = SCREENSAVER;
   screen_saver.surface = primary;
+	screen_saver.dfb = dfb;
   screen_saver.events = events;
 
   /* it should be now safe to unlock vt switching again */
@@ -822,28 +824,33 @@ int directfb_mode (int argc, char *argv[])
     static int screensaver_active = 0;
     static int screensaver_countdown = 0;
 
-    if (!screensaver_countdown) screensaver_countdown = screensaver_timeout * 120;
+    if (!screensaver_countdown) screensaver_countdown = screensaver_timeout * 120;		
 
     /* we wait for an input event... */
     if (!screensaver_active) events->WaitForEventWithTimeout(events, 0, 500);
-    else activate_screen_saver(&screen_saver);
+    else
+		{
+			primary->SetFont (primary, font_large);
+			primary->SetColor (primary, OTHER_TEXT_COLOR_R, OTHER_TEXT_COLOR_G, OTHER_TEXT_COLOR_B, OTHER_TEXT_COLOR_A);
+			activate_screen_saver(&screen_saver);
+		}
 
     if (events->HasEvent(events) == DFB_OK)
     { /* ...got that! */
       events->GetEvent (events, DFB_EVENT (&evt));
-      screensaver_countdown = screensaver_timeout * 120;
+      screensaver_countdown = screensaver_timeout * 120;			
       if (screensaver_active)
       {
-	screensaver_active = 0;
-	reset_screen(&evt);
+				screensaver_active = 0;
+				reset_screen(&evt);
       }
       if ((evt.type == DIET_AXISMOTION) || (evt.type == DIET_BUTTONPRESS) || (evt.type == DIET_BUTTONRELEASE))
       {	/* handle mouse */
-	handle_mouse_event (&evt);
+				handle_mouse_event (&evt);
       }
       if (evt.type == DIET_KEYPRESS)
       {	/* manage keystrokes */
-	returnstatus= handle_keyboard_event(&evt);
+				returnstatus= handle_keyboard_event(&evt);
       }
     }
     else
@@ -852,17 +859,17 @@ int directfb_mode (int argc, char *argv[])
 
       if (!screensaver_active)
       {
-	if (username->hasfocus)
-	  username->KeyEvent(username, REDRAW, flashing_cursor);
-	if (password->hasfocus)
-	  password->KeyEvent(password, REDRAW, flashing_cursor);
-	flashing_cursor = !flashing_cursor;
-	if (use_screensaver) screensaver_countdown--;
+				if (username->hasfocus)
+					username->KeyEvent(username, REDRAW, flashing_cursor);
+				if (password->hasfocus)
+					password->KeyEvent(password, REDRAW, flashing_cursor);
+				flashing_cursor = !flashing_cursor;
+				if (use_screensaver) screensaver_countdown--;
       }
       if (!screensaver_countdown)
       {
-	screensaver_active = 1;
-	clear_screen();
+				screensaver_active = 1;
+				clear_screen();
       }
     }
   }

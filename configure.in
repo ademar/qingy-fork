@@ -11,7 +11,7 @@ AC_PROG_RANLIB
 # Set my own flags for gcc
 if test "x$GCC" = "xyes"; then
 	CPULAGS=""
-	CFLAGS="-O3 -fomit-frame-pointer -pipe -fforce-addr -W -Wall"
+	CFLAGS="-Os -fomit-frame-pointer -pipe -W -Wall"
 	GCC_TEST_MESSAGE="Checking for gcc version"
 	AC_MSG_CHECKING([$GCC_TEST_MESSAGE])
 	GCCVERSION="`$CC -dumpversion`"
@@ -128,8 +128,10 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	if test -f "media/settings"; then
 		rm media/settings
 	fi
-	echo "XSESSIONS_DIRECTORY /etc/X11/Sessions/" >> media/settings
+	echo "X_SESSIONS_DIRECTORY /etc/X11/Sessions/" >> media/settings
+	echo "TEXT_SESSIONS_DIRECTORY /etc/qingy/sessions/" >> media/settings
 	echo "XINIT $XINIT" >> media/settings
+	echo "SCREEN_SAVER pixel" >> media/settings
 	echo "THEME default" >> media/settings
 	echo "done"
 # End creation of config files

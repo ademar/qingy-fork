@@ -26,20 +26,13 @@
  ***************************************************************************/
 
 
-typedef enum _kinds
-{
-  PIXEL_SCREENSAVER,
-  PHOTO_SCREENSAVER
-} kinds;
-
 typedef struct _screen_saver
 {
   /* which screen saver do you want to run? */
-  kinds kind;
+  screensaver_kinds kind;
 
-  /* update rate of screen saver */
-  unsigned int seconds;
-  unsigned int milli_seconds;
+	/* Guess what ;-P */
+	IDirectFB *dfb;
 
   /* surface to run the screen saver into */
   IDirectFBSurface *surface;

@@ -1,6 +1,6 @@
 ## Makefile.am for qingy/media/default
 
-defaultthemedatadir = $(prefix)/etc/qingy/default
+defaultthemedatadir = $(prefix)/etc/qingy/themes/default
 
 defaultthemedata_DATA = \
 	theme                 \

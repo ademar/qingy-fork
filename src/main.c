@@ -4,7 +4,7 @@
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
     e-mail               : noberasco.gnu@educ.disi.unige.it
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -63,8 +63,8 @@ void Error()
   printf("\tDo not show password asterisks.\n\n");
   printf("\t--hide-lastuser\n");
   printf("\tDo not display last user name.\n\n");
-  printf("\t--silent\n");
-  printf("\tDo not display diagnostic messages on stderr.\n\n");
+  printf("\t--verbose\n");
+  printf("\tDisplay some diagnostic messages on stderr.\n\n");
   printf("\t--no-shutdown-screen\n");
   printf("\tClose DirectFB mode before shutting down.\n");
   printf("\tThis way you will see system shutdown messages.\n\n");
@@ -99,6 +99,7 @@ void start_up(void)
   /* We clear the screen */
   ClearScreen();
 
+  /* Set up some stuff */
   argv[0]= (char *) my_calloc(6,  sizeof(char));
   argv[1]= (char *) my_calloc(50, sizeof(char));
   strcpy(argv[0], "qingy");
@@ -117,10 +118,10 @@ void start_up(void)
   /* We get here only if directfb fails or user wants to change tty */
   free(argv[1]); free(argv[0]); argv[1]= argv[0]= NULL;
 
-  /* re-allow vt switching is still disabled */
+  /* re-allow vt switching if it is still disabled */
   unlock_tty_switching();
 
-  /* this if user wants to switch to another tty */
+  /* if user wants to switch to another tty ... */
   if (returnstatus != TEXT_MODE)
   {
     if (set_active_tty(returnstatus) == 0)
@@ -128,10 +129,10 @@ void start_up(void)
       fprintf(stderr, "\nfatal error: unable to change active tty!\n");
       exit(EXIT_FAILURE);
     }
-    exit(EXIT_SUCCESS); /* init will restart us in listen mode */
+    exit(EXIT_SUCCESS); /* init will restart us in listen mode */    
   }
 
-  /* we get here if framebuffer init failed: we revert to text mode   */
+  /* framebuffer init failed! We revert to text mode */
   if (black_screen_workaround != -1)
   {
     /* This is to avoid a black display after framebuffer dies */
@@ -177,17 +178,17 @@ int ParseCMDLine(int argc, char *argv[])
       if (temp < 0) Error();
       if (!temp)
       {
-	use_screensaver = 0;
-	continue;
+				use_screensaver = 0;
+				continue;
       }
       use_screensaver = 1;
       screensaver_timeout = temp;
       continue;
     }
 	  
-    if (strcmp(argv[i], "--silent") == 0)
+    if (strcmp(argv[i], "--verbose") == 0)
     {
-      silent = 1;
+      silent = 0;
       continue;
     }
     if (strcmp(argv[i], "--black-screen-workaround") == 0)
@@ -227,14 +228,20 @@ int main(int argc, char *argv[])
   delay.tv_sec= 0;
   delay.tv_nsec= 500000000;
   
+  /* We enable vt switching in case some previous session
+     crashed on start and left it disabled                */
+  unlock_tty_switching();
+
   /* We set up some default values */
+	image_paths = NULL;
   black_screen_workaround = -1;
-  silent = 0;
+  silent = 1;
   hide_password = 0;
   hide_last_user = 0;
   no_shutdown_screen = 0;
   use_screensaver = 1;
   screensaver_timeout = 5;
+	SCREENSAVER = PIXEL_SCREENSAVER;
   max_tty_number = 12;
   
   our_tty_number = ParseCMDLine(argc, argv);
@@ -245,6 +252,10 @@ int main(int argc, char *argv[])
     fprintf(stderr, "\nUnable to switch to virtual terminal %s\n", argv[1]);
     return EXIT_FAILURE;
   }
+
+  /* we sleep a cycle to allow user to chance vt in case
+     settings file or config options are badly broken    */
+  nanosleep(&delay, NULL);
 
   /* Main loop: we wait until the user switches to the tty we are running in */
   while (1)

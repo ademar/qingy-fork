@@ -117,6 +117,7 @@ void error(char *where)
 char *get_random_theme()
 {
   DIR *dir;
+  char *themes_dir = StrApp((char**)0, DATADIR, "themes/", (char*)0);
   struct dirent *entry;
   char *temp = NULL;
   int n_themes = 0;
@@ -125,7 +126,7 @@ char *get_random_theme()
   struct tm curr_time;
   int i;
 
-  dir= opendir(DATADIR);
+  dir= opendir(themes_dir);
   if (!dir)
   {
     temp = (char *) calloc(8, sizeof(char));
@@ -136,11 +137,10 @@ char *get_random_theme()
   while ((entry= readdir(dir)))
   {
     if (!strcmp(entry->d_name, "." )) continue;
-    if (!strcmp(entry->d_name, "..")) continue;
-    if (!strcmp(entry->d_name, "sessions")) continue;;
+    if (!strcmp(entry->d_name, "..")) continue;    
 
-    temp = (char *) calloc(strlen(DATADIR)+strlen(entry->d_name)+1, sizeof(char));
-    strcpy(temp, DATADIR);
+    temp = (char *) calloc(strlen(themes_dir)+strlen(entry->d_name)+1, sizeof(char));
+    strcpy(temp, themes_dir);
     strcat(temp, entry->d_name);
     if (is_a_directory(temp))
     {
@@ -177,9 +177,9 @@ int load_settings(void)
   LAST_USER = (char *) calloc(9+strlen(DATADIR), sizeof(char));
   strcpy(LAST_USER, DATADIR);
   strcat(LAST_USER, "lastuser");
-  DEFAULT_THEME = (char *) calloc(9+strlen(DATADIR), sizeof(char));
+  DEFAULT_THEME = (char *) calloc(16+strlen(DATADIR), sizeof(char));
   strcpy(DEFAULT_THEME, DATADIR);
-  strcat(DEFAULT_THEME, "default/");
+  strcat(DEFAULT_THEME, "themes/default/");
 
   fp = fopen(SETTINGS, "r");
   if (!fp)
@@ -197,12 +197,66 @@ int load_settings(void)
     int err = 0;
     int found = 0;
 
+		if (strcmp(tmp, "SCREEN_SAVER") == 0)
+		{
+      if (fscanf(fp, "%s", tmp) == EOF)
+      {
+				err = 1;
+				break;
+      }
+			if (!strcmp(tmp, "pixel")) SCREENSAVER = PIXEL_SCREENSAVER;
+			if (!strcmp(tmp, "photo")) SCREENSAVER = PHOTO_SCREENSAVER;
+      found=1;
+		}
+    if (strcmp(tmp, "IMAGES_PATH") == 0)
+    {
+			struct _image_paths *paths = image_paths;
+			char temp[512];
+			char *path;
+			int len;
+			
+			path = fgets(temp, 512, fp);
+			if (!path)
+			{
+				err = 1;
+				break;
+			}
+			while (path)
+			{
+				if (path[0] == ' ')  {path++; continue;}
+				if (path[0] == '\t') {path++; continue;}
+				if (path[0] == '"')  path++;
+				if (path[0] == '\n') err = 1;
+				break;
+			}
+			if (err == 1) break;
+			len = strlen(path);
+			if (path[len-1] == '\n') path[--len] = '\0';
+			if (path[len-1] == '"') path[--len] = '\0';
+
+			if (!paths)
+			{
+				image_paths = (struct _image_paths *) calloc(1, sizeof(struct _image_paths));
+				paths = image_paths;
+			}
+			else
+			{
+				while (paths->next != NULL) paths = paths->next;
+				paths->next = (struct _image_paths *) calloc(1, sizeof(struct _image_paths));
+				paths = paths->next;
+			}
+			paths->path = (char *) calloc(len+1, sizeof(char));
+			strcpy(paths->path, path);
+			paths->next = NULL;
+      found=1;
+			if (!silent) fprintf(stderr, "Added '%s' to the image paths\n", paths->path);
+    }
     if (strcmp(tmp, "X_SESSIONS_DIRECTORY") == 0)
     {
       if (fscanf(fp, "%s", tmp) == EOF)
       {
-	err = 1;
-	break;
+				err = 1;
+				break;
       }
       X_SESSIONS_DIRECTORY = (char *) calloc(strlen(tmp)+1, sizeof(char));
       strcpy(X_SESSIONS_DIRECTORY, tmp);
@@ -212,8 +266,8 @@ int load_settings(void)
     {
       if (fscanf(fp, "%s", tmp) == EOF)
       {
-	err = 1;
-	break;
+				err = 1;
+				break;
       }
       TEXT_SESSIONS_DIRECTORY = (char *) calloc(strlen(tmp)+1, sizeof(char));
       strcpy(TEXT_SESSIONS_DIRECTORY, tmp);
@@ -223,8 +277,8 @@ int load_settings(void)
     {
       if (fscanf(fp, "%d", &max_tty_number) == EOF)
       {
-	err = 1;
-	break;
+				err = 1;
+				break;
       }
       found = 1;
     }
@@ -232,8 +286,8 @@ int load_settings(void)
     {
       if (fscanf(fp, "%s", tmp) == EOF)
       {
-	err = 1;
-	break;
+				err = 1;
+				break;
       }
       XINIT = (char *) calloc(strlen(tmp)+1, sizeof(char));
       strcpy(XINIT, tmp);
@@ -243,20 +297,21 @@ int load_settings(void)
     {
       if (fscanf(fp, "%s", tmp) == EOF)
       {
-	err = 1;
-	break;
+				err = 1;
+				break;
       }
       if (!strcmp(tmp, "random") || !strcmp(tmp, "RANDOM") || !strcmp(tmp, "Random"))
       {
-	char *temp = get_random_theme();
-	strcpy(tmp, temp);
-	free(temp);
+				char *temp = get_random_theme();
+				strcpy(tmp, temp);
+				free(temp);
       }
-      THEME_DIR = (char *) calloc(strlen(DATADIR)+strlen(tmp)+2, sizeof(char));
+      THEME_DIR = (char *) calloc(strlen(DATADIR)+strlen(tmp)+9, sizeof(char));
       strcpy(THEME_DIR, DATADIR);
+      strcat(THEME_DIR, "themes/");
       strcat(THEME_DIR, tmp);
       if (THEME_DIR[strlen(THEME_DIR)-1] != '/')
-	THEME_DIR[strlen(THEME_DIR)] = '/';
+				THEME_DIR[strlen(THEME_DIR)] = '/';
       theme = (char *) calloc(strlen(THEME_DIR)+6, sizeof(char));
       strcpy(theme, THEME_DIR);
       strcat(theme, "theme");
@@ -304,8 +359,8 @@ int load_settings(void)
     {
       if (fscanf(fp, "%s", tmp) == EOF)
       {
-	err = 1;
-	break;
+				err = 1;
+				break;
       }
       FONT = (char *) calloc(strlen(THEME_DIR)+strlen(tmp)+1, sizeof(char));
       strcpy(FONT, THEME_DIR);
@@ -316,8 +371,8 @@ int load_settings(void)
     {
       if (fscanf(fp, "%d", &(temp[0])) == EOF)
       {
-	err = 1;
-	break;
+				err = 1;
+				break;
       }
       BUTTON_OPACITY = temp[0];
       found = 1;
@@ -326,8 +381,8 @@ int load_settings(void)
     {
       if (fscanf(fp, "%d", &(temp[0])) == EOF)
       {
-	err = 1;
-	break;
+				err = 1;
+				break;
       }
       WINDOW_OPACITY = temp[0];
       found = 1;
@@ -336,8 +391,8 @@ int load_settings(void)
     {
       if (fscanf(fp, "%d", &(temp[0])) == EOF)
       {
-	err = 1;
-	break;
+				err = 1;
+				break;
       }			
       SELECTED_WINDOW_OPACITY = temp[0];
       found = 1;
@@ -346,8 +401,8 @@ int load_settings(void)
     {
       if (fscanf(fp, "%d%d%d%d", &(temp[0]), &(temp[1]), &(temp[2]), &(temp[3])) == EOF)
       {
-	err = 1;
-	break;
+				err = 1;
+				break;
       }
       MASK_TEXT_COLOR_R = temp[0];
       MASK_TEXT_COLOR_G = temp[1];
@@ -359,8 +414,8 @@ int load_settings(void)
     {
       if (fscanf(fp, "%d%d%d%d", &(temp[0]), &(temp[1]), &(temp[2]), &(temp[3])) == EOF)
       {
-	err = 1;
-	break;
+				err = 1;
+				break;
       }
       TEXT_CURSOR_COLOR_R = temp[0];
       TEXT_CURSOR_COLOR_G = temp[1];
@@ -372,8 +427,8 @@ int load_settings(void)
     {
       if (fscanf(fp, "%d%d%d%d", &(temp[0]), &(temp[1]), &(temp[2]), &(temp[3])) == EOF)
       {
-	err = 1;
-	break;
+				err = 1;
+				break;
       }
       OTHER_TEXT_COLOR_R = temp[0];
       OTHER_TEXT_COLOR_G = temp[1];

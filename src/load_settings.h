@@ -26,7 +26,6 @@
  ***************************************************************************/
 
 
-/*int width, height;*/
 int black_screen_workaround;
 int silent;
 int hide_password;
@@ -64,6 +63,22 @@ int OTHER_TEXT_COLOR_R;
 int OTHER_TEXT_COLOR_G;
 int OTHER_TEXT_COLOR_B;
 int OTHER_TEXT_COLOR_A;
+
+/* screen saver stuff */
+struct _image_paths
+{
+	char *path;
+	struct _image_paths *next;
+};
+struct _image_paths *image_paths;
+typedef enum _kinds
+{
+  PIXEL_SCREENSAVER,
+  PHOTO_SCREENSAVER
+} screensaver_kinds;
+screensaver_kinds SCREENSAVER;
+
+
 
 /* get program settings from config file */
 int load_settings(void);

@@ -53,7 +53,7 @@
 #endif
 
 #include "misc.h"
-
+#include "load_settings.h"
 
 void *my_calloc(size_t nmemb, size_t size)
 {
@@ -92,33 +92,6 @@ char *int_to_str(int n)
   }
 
   return temp;
-}
-
-int stop_gpm(void)
-{
-  int retval;
-
-  retval = system("/etc/init.d/gpm stop >/dev/null 2>/dev/null");
-  if (retval == 0) return 1;
-
-  return 0;
-}
-
-int start_gpm(void)
-{
-  int retval;
-  struct timespec delay;
-
-  /* We set up a delay of 0.5 seconds */
-  delay.tv_sec= 0;
-  delay.tv_nsec= 500000000;
-
-  retval = system("/etc/init.d/gpm start >/dev/null 2>/dev/null");
-  /* let's give gpm some time to initialize correctly */
-  nanosleep(&delay, NULL);
-  if (retval == 0) return 1;
-
-  return 0;
 }
 
 void ClearScreen(void)
@@ -237,6 +210,66 @@ int is_a_directory(char *what)
   closedir(dir);
 
   return 1;
+}
+
+int stop_gpm(void)
+{
+  int retval;
+  char *filename = StrApp((char**)0, DATADIR, "gpm", (char*)0);
+  FILE *fp;
+  
+  retval = system("/etc/init.d/gpm stop >/dev/null 2>/dev/null");
+  if (!retval)
+  {
+    /* we create this file so that even if we crash
+       our next instance will know that gpm is to be restarted */
+    if (filename)
+    {
+      fp = fopen(filename, "w");
+      fclose(fp);
+      free(filename);
+    }
+    return 1;
+  }
+
+  /* we then check wether a 'restart gpm' file exists...
+     ... see above, in case we crashed                   */
+  if (filename)
+  {
+    int does_not_exist = access(filename, F_OK);
+    free(filename);
+    if (!does_not_exist) return 1;
+  }
+
+  return 0;
+}
+
+int start_gpm(void)
+{
+  int retval;
+  struct timespec delay;
+  char *filename = StrApp((char**)0, DATADIR, "gpm", (char*)0);
+
+  /* We set up a delay of 0.5 seconds */
+  delay.tv_sec= 0;
+  delay.tv_nsec= 500000000;
+
+  retval = system("/etc/init.d/gpm start >/dev/null 2>/dev/null");
+  /* let's give gpm some time to initialize correctly */
+  nanosleep(&delay, NULL);
+  if (!retval)
+  {
+    /* let's remove the gpm file if it exists... */
+    if (filename)
+    {
+      remove (filename);
+      free(filename);
+    }
+    return 1;
+  }
+  if (filename) free(filename);
+
+  return 0;
 }
 
 #ifdef USE_PAM

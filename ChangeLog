@@ -5,7 +5,21 @@ qingy CVS:
   (you can safely remove file /etc/qingy/seed if it exists)
 - Added support for text mode sessions
   (just add your session script in /etc/qingy/sessions)
-- A surprise awaits the rightful master ;-)
+- Moved themes directory to /etc/qingy/themes
+  (note that you do not need to change your /etc/qingy/settings)
+- Added some code to allow restarting of gpm even if it was
+  stopped by a previous session of qingy (that crashed ;-P)
+- Removed '--silent' option. Now qingy is silent by default.
+  If you still want to get diagnostic messages on stderr
+  you have to use the '--verbose' option
+- Added photo screen saver (it displays a slide show of photos)
+- Added option 'SCREEN_SAVER' to config file. You can specify
+  'pixel' or 'photo' to select which screen saver you want
+- Added option 'IMAGES_PATH' to config file. Use it to specify 
+  a directory containing images to use with photo screen saver.
+  Note: you can specify more than one path by putting
+  several 'IMAGES_PATH' lines into the config file.
+- A surprise now awaits the rightful master ;-)
 	
 qingy 0.2.2 (29 September 2003):
 - Starting X sessions for users with a shell other than bash

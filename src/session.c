@@ -201,10 +201,10 @@ char *get_sessions(void)
     {
       if (!(entry= readdir(dir))) break;
       if (!strcmp(entry->d_name, "." )) continue;
-      if (!strcmp(entry->d_name, "..")) continue;
-      if (dirname == X_SESSIONS_DIRECTORY && !strcmp(entry->d_name, "Xsession")) continue;
+      if (!strcmp(entry->d_name, "..")) continue;      
       if (dirname == X_SESSIONS_DIRECTORY)
       {
+	if (!strcmp(entry->d_name, "Xsession")) continue;
 	temp = (char *) calloc(strlen(entry->d_name)+1, sizeof(char));
 	strcpy(temp, entry->d_name);
       }
