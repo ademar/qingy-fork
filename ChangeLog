@@ -1,5 +1,10 @@
 2005-03-09  Noberasco Michele  <s4t4n@gentoo.org>
 
+	* src/main.c (start_up):
+	Added 'no-vt-switching' to the args we pass to DirectFB to
+	prevent it from allowing a user to press ALT-F<num> to change
+	vts, as we handle that stuff ourselves...
+
 	* src/DirectFB/directfb_mode.c,
 	* src/DirectFB/objects/combobox.h,
 	* src/DirectFB/objects/combobox.c:

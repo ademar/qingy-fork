@@ -93,7 +93,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		interface = StrApp((char**)NULL, DFB_INTERFACE, (char*)NULL);
 		for (i=1; i<argc; i++)
 			StrApp(&interface, " ", argv[i], (char*)NULL);
-		StrApp(&interface, " --dfb:vt-switch,bg-none", (char*)NULL);
+		StrApp(&interface, " --dfb:vt-switch,no-vt-switching,bg-none", (char*)NULL);
 		if (silent)     StrApp(&interface, ",quiet", (char*)NULL);
 		if (fb_device)  StrApp(&interface, ",fbdev=", fb_device,  (char*)NULL);
 		if (resolution) StrApp(&interface, ",mode=",  resolution, (char*)NULL);
