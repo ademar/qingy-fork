@@ -1,6 +1,13 @@
 2004-08-19  Noberasco Michele  <s4t4n@gentoo.org>
 
+	* src/libraries/misc.c:
+	Fix typo...
+	
 	* src/libraries/load_settings.c (ParseCMDLine),
+	* src/libraries/misc.c (PrintUsage),
+	* src/libraries/misc.h:
+	Add '-h' command line arg to display usage info.
+
 	* configure.in:
 	Fix the fix, or brown paper bag release!
 	Correct bug I just introduced not allowing to run qingy any more

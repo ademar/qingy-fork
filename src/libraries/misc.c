@@ -309,7 +309,7 @@ char *assemble_message(char *content, char *command)
 void PrintUsage()
 {
   printf("\nqingy version %s\n", PACKAGE_VERSION);
-  printf("\nusage: ginqy <ttyname> [options]\n");
+  printf("\nusage: qinqy <ttyname> [options]\n");
   printf("Options:\n");
   printf("\t-f <device>, --fb-device <device>\n");
   printf("\tUse <device> as framebuffer device.\n\n");
@@ -329,6 +329,8 @@ void PrintUsage()
   printf("\tA value of 0 disables screensaver completely.\n\n");
 	printf("\t-r <xres>x<yres>, --resolution <xres>x<yres>\n");
 	printf("\tDo not detect framebuffer resolution, use this one instead.\n\n");
+	printf("\t-h, --help\n");
+	printf("\tPrint this help.\n\n");
 }
 
 

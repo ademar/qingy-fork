@@ -699,10 +699,24 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 	if (!paranoia)
 		opterr = 0;
 	else
-		if (argc < 2) Error(1);
+		if (argc < 2)	Error(1);
 
   tty= argv[1];
-	if (paranoia && strncmp(tty, "tty", 3)) Error(1);
+	if (paranoia)
+	{
+		if (!strcmp(tty, "-h") || !strcmp(tty, "--help"))
+		{
+			/*
+			 * Print usage info...
+			 * I put this here as it would never have a change of
+			 * being parsed bt getopt_long() because of the
+			 * checks below...
+			 */
+			PrintUsage();
+			exit(EXIT_SUCCESS);
+		}
+		if (strncmp(tty, "tty", 3)) Error(1);
+	}
   our_tty_number= atoi(tty+3);
 	if (paranoia)
 		if ( (our_tty_number < 1) || (our_tty_number > 63) )
