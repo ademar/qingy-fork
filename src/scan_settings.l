@@ -35,7 +35,7 @@ char *string_buf_ptr;
 
 %%
 
-/* quted string defn */
+	/* quted string defn */
 
 \"      string_buf_ptr = string_buf; BEGIN(stringa);
 
@@ -84,9 +84,9 @@ char *string_buf_ptr;
   while ( *yptr )
     *string_buf_ptr++ = *yptr++;
 }
-/* end of quoted string defn */
+ /* end of quoted string defn */
 
-/* keywords */
+ /* keywords */
 screensaver             return SCREENSAVER_TOK;
 pixel                   return PIXEL_TOK;
 photos                  return PHOTOS_TOK;
@@ -129,10 +129,10 @@ right                   return WTEXT_RIGHT_TOK;
 
 "#"[^\n]*"\n" ;			/* skip comments */
 
-/* numbers */
+ /* numbers */
 [0-9]+	   {  sscanf(yytext, "%i", &(yylval.ival)); return ANUM_T;}	
 
-/* colors */
+ /* colors */
 "\["[0-9a-fA-F]{8}"\]" { sscanf(yytext, "[%x]", (unsigned int *)yylval.color); return COLOR_T;}
 
 [ \n\t] ; 			/* skip blanks */
@@ -141,5 +141,5 @@ right                   return WTEXT_RIGHT_TOK;
 
 %%
 
-/* do nothing at EOF */
+ /* do nothing at EOF */
 int yywrap(){return 1;}
