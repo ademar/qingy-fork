@@ -21,7 +21,17 @@ qingy CVS:
   want to load, and choose "Your .xsession" as session).
 - Now background image stays there when attempting to log in,
   during timeouts... It goes away only during screen saver
+- Added support in config file to specify a shutdown policy:
+  use 'shutdown_policy = everyone' to allow everyone to shutdown
+      'shutdown_policy = root' to be asked for root password
+      'shutdown_policy = noone' to forbid shutdown completely
+  If this option is not used, qingy defaults to 'everyone'
 - Added ./configure option to disable PAM support (--disable-pam)
+- Added ./configure option to enable debug mode (--enable-debug)
+- Rewrote load_settings.c (and added others ;-P). Now parsing
+  of setting and theme files is done via regular expressions.
+  I undestand little (but I will ;-P) of that stuff, so all
+  the praise goes to Paolino <paolino.gnu@disi.unige.it>...
 - Many fixes and clean ups
 
 qingy 0.2.3 (21 October 2003):

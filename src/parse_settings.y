@@ -25,6 +25,7 @@ static window_t wind;
 %token SCREENSAVER_TOK PIXEL_TOK PHOTOS_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK    
 %token THEME_TOK RAND_TOK MASK_TXT_COL_TOK TXT_CUR_COL_TOK OTHER_TXT_COL_TOK 		     
 %token BG_TOK FONT_TOK BUTTON_OPAC_TOK WIN_OP_TOK SEL_WIN_OP_TOK 			     
+%token SHUTDOWN_TOK EVERYONE_TOK ONLY_ROOT_TOK NO_ONE_TOK
 
 %token <ival>  ANUM_T  LONGNUM_T
 %token <str>   QUOTSTR_T
@@ -38,6 +39,7 @@ config:
 	| config txtsessdir
 	| config xinit
 	| config theme
+	| config shutdown
 ;
 
 ssav:	SCREENSAVER_TOK PIXEL_TOK { SCREENSAVER=PIXEL_SCREENSAVER; }
@@ -45,6 +47,7 @@ ssav:	SCREENSAVER_TOK PIXEL_TOK { SCREENSAVER=PIXEL_SCREENSAVER; }
 
 photos: QUOTSTR_T	{add_to_paths($1); }		/* nothing */
 	| photos ',' QUOTSTR_T { add_to_paths($3); };
+
 
 xsessdir: XSESSION_DIR_TOK '=' QUOTSTR_T { if(in_theme){ yyerror("Setting 'x_sessions' is not allowed in theme file.");}  X_SESSIONS_DIRECTORY=strdup($3); };
 
@@ -61,6 +64,11 @@ themedefn: 			/* nothing */
 	| themedefn strprop
 	| themedefn anumprop
 	| themedefn colorprop
+	;
+
+shutdown:  SHUTDOWN_TOK '=' EVERYONE_TOK { if(in_theme){ yyerror("Setting 'shutdown_policy' is not allowed in theme file.");}  SHUTDOWN_POLICY=EVERYONE; }
+	| SHUTDOWN_TOK '=' ONLY_ROOT_TOK { if(in_theme){ yyerror("Setting 'shutdown_policy' is not allowed in theme file.");}  SHUTDOWN_POLICY=ROOT; }
+	| SHUTDOWN_TOK '=' NO_ONE_TOK { if(in_theme){ yyerror("Setting 'shutdown_policy' is not allowed in theme file.");}  SHUTDOWN_POLICY=NOONE; }
 	;
 
 window: WINDOW_TOK '{' windefns '}' ;

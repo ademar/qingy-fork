@@ -150,16 +150,14 @@ void ClearScreen(void)
 
 char *get_home_dir(char *user)
 {
-  char *homedir;
   struct passwd *pwd;
 
   if (!user) return NULL;
   pwd = getpwnam(user);
   endpwent();
-  if (!pwd) return NULL;
-  homedir = pwd->pw_dir;
+  if (!pwd) return NULL;  
 
-  return homedir;
+  return strdup(pwd->pw_dir);
 }
 
 int get_line(char *tmp, FILE *fp, int max)

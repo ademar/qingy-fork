@@ -80,6 +80,11 @@ font                    return FONT_TOK;
 button_opacity          return BUTTON_OPAC_TOK;
 window_opacity          return WIN_OP_TOK;
 selected_window_opacity return SEL_WIN_OP_TOK;
+shutdown_policy         return SHUTDOWN_TOK;
+everyone                return EVERYONE_TOK;
+root                    return ONLY_ROOT_TOK;
+noone                   return NO_ONE_TOK;
+
 
 "#"[^\n]*"\n" ;			/* skip comments */
 

@@ -114,6 +114,14 @@ AC_CHECK_LIB(crypt, crypt, , , )
 	AC_SUBST(PAM,)
 # End check for PAM support
 
+# Check for DEBUG mode
+	AC_ARG_ENABLE(debug, AC_HELP_STRING([--enable-debug], [turn on debugging mode (default is no)]),,)
+	if test "$enable_debug" == "yes"; then
+		echo "Compiling in DEBUG mode"
+		CFLAGS="$CFLAGS -DDEBUG"
+	fi
+# End check for DEBUG mode
+
 CFLAGS="$CFLAGS -DLinux"
 
 # Check for DirectFB >= 0.9.18

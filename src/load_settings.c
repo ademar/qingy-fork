@@ -82,6 +82,7 @@ void initialize_variables(void)
   hide_last_user          = 0;
   hide_password           = 0;
   silent                  = 1;
+	SHUTDOWN_POLICY         = EVERYONE;
 }
 
 void set_default_session_dirs(void)
@@ -277,23 +278,23 @@ int load_settings(void)
 
   if (!FONT) set_default_font();
 
-	/* let's display some info */
-	if (!silent)
-	{
-		fprintf(stderr, "XINIT is '%s'\n", XINIT);
-		fprintf(stderr, "X_SESSIONS_DIRECTORY is '%s'\n", X_SESSIONS_DIRECTORY);
-		fprintf(stderr, "TEXT_SESSIONS_DIRECTORY is '%s'\n",  TEXT_SESSIONS_DIRECTORY);
-		fprintf(stderr, "FONT is '%s'\n", FONT);
-		fprintf(stderr, "BACKGROUND is '%s'\n", BACKGROUND);
+#ifdef DEBUG
+	fprintf(stderr, "XINIT is '%s'\n", XINIT);
+	fprintf(stderr, "X_SESSIONS_DIRECTORY is '%s'\n", X_SESSIONS_DIRECTORY);
+	fprintf(stderr, "TEXT_SESSIONS_DIRECTORY is '%s'\n",  TEXT_SESSIONS_DIRECTORY);
+	fprintf(stderr, "FONT is '%s'\n", FONT);
+	fprintf(stderr, "BACKGROUND is '%s'\n", BACKGROUND);
+	
+	fprintf(stderr, "BUTTON_OPACITY is %d\n", BUTTON_OPACITY);
+	fprintf(stderr, "WINDOW_OPACITY is %d\n", WINDOW_OPACITY);
+	fprintf(stderr, "SELECTED_WINDOW_OPACITY is %d\n", SELECTED_WINDOW_OPACITY);
+	
+	fprintf(stderr, "MASK_TEXT_COLOR is %d, %d, %d, %d\n", MASK_TEXT_COLOR_R, MASK_TEXT_COLOR_G, MASK_TEXT_COLOR_B, MASK_TEXT_COLOR_A);
+	fprintf(stderr, "TEXT_CURSOR_COLOR is %d, %d, %d, %d\n", TEXT_CURSOR_COLOR_R, TEXT_CURSOR_COLOR_G, TEXT_CURSOR_COLOR_B, TEXT_CURSOR_COLOR_A);
+	fprintf(stderr, "OTHER_TEXT_COLOR is %d, %d, %d, %d\n", OTHER_TEXT_COLOR_R, OTHER_TEXT_COLOR_G, OTHER_TEXT_COLOR_B, OTHER_TEXT_COLOR_A);
 
-		fprintf(stderr, "BUTTON_OPACITY is %d\n", BUTTON_OPACITY);
-		fprintf(stderr, "WINDOW_OPACITY is %d\n", WINDOW_OPACITY);
-		fprintf(stderr, "SELECTED_WINDOW_OPACITY is %d\n", SELECTED_WINDOW_OPACITY);
-
-		fprintf(stderr, "MASK_TEXT_COLOR is %d, %d, %d, %d\n", MASK_TEXT_COLOR_R, MASK_TEXT_COLOR_G, MASK_TEXT_COLOR_B, MASK_TEXT_COLOR_A);
-		fprintf(stderr, "TEXT_CURSOR_COLOR is %d, %d, %d, %d\n", TEXT_CURSOR_COLOR_R, TEXT_CURSOR_COLOR_G, TEXT_CURSOR_COLOR_B, TEXT_CURSOR_COLOR_A);
-		fprintf(stderr, "OTHER_TEXT_COLOR is %d, %d, %d, %d\n", OTHER_TEXT_COLOR_R, OTHER_TEXT_COLOR_G, OTHER_TEXT_COLOR_B, OTHER_TEXT_COLOR_A);
-	}
+	fprintf(stderr, "Allowed to shutdown: %s\n", (SHUTDOWN_POLICY==EVERYONE) ? "everyone" : (SHUTDOWN_POLICY==ROOT) ? "root only" : "no one");
+#endif
 
   return 1;
 }
@@ -328,23 +329,22 @@ int set_last_user(char *user)
 
 char *get_last_session(char *user)
 {
-  char *homedir = get_home_dir(user);
-  char *filename;
+  char *homedir;
+  char filename[MAX];
   char tmp[MAX];
   FILE *fp;
 
-  if (!user)    return NULL;  
+  if (!user) return NULL;  
+	homedir = get_home_dir(user);
   if (!homedir) return NULL;
 
-  filename = (char *) calloc(strlen(homedir)+8, sizeof(char));
   strcpy(filename, homedir);
 	free(homedir);
   if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
   strcat(filename, ".qingy");
   fp = fopen(filename, "r");
-	free(filename);
   if (!fp) return NULL;
-  if (get_line(tmp, fp, MAX) == 0)
+  if (!get_line(tmp, fp, MAX))
   {
     fclose(fp);
     return NULL;

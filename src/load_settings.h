@@ -64,6 +64,15 @@ unsigned int OTHER_TEXT_COLOR_G;
 unsigned int OTHER_TEXT_COLOR_B;
 unsigned int OTHER_TEXT_COLOR_A;
 
+/* Shutdown permissions policy... */
+typedef enum 
+{
+	EVERYONE=0,
+	ROOT,
+	NOONE
+} shutdown_policies;
+shutdown_policies SHUTDOWN_POLICY;
+
 /* screen saver stuff */
 struct _image_paths
 {
@@ -95,17 +104,28 @@ screensaver_kinds SCREENSAVER;
    holds command, content holds path/to/file/of/values. command is
    executed as `command selected-option` 
  */
-typedef enum {UNKOWN=0, TEXT, LABEL, BUTTON, LOGIN, PASSWORD, 
-	      COMBO} window_types;
+typedef enum 
+{
+	UNKOWN=0,
+	TEXT,
+	LABEL,
+	BUTTON,
+	LOGIN,
+	PASSWORD, 
+	COMBO
+} window_types;
 
 /* a window structure */
-typedef struct _window {
-  struct _window *next;
+typedef struct _window
+{  
   int x;
   int y;
+	int width;
+	int height;
   int type;
-  char* command;
-  char* content;
+  char *command;
+  char *content;
+	struct _window *next;
 } window_t;
 
 window_t* windowsList;

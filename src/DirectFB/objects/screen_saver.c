@@ -137,7 +137,6 @@ int is_image(char *filename)
 
 	temp = filename + lun - 4;
 	if (!strcmp(temp, ".png")) return 1;
-	if (!strcmp(temp, ".bmp")) return 1;
 	if (!strcmp(temp, ".jpg")) return 1;
 
 	return 0;	
