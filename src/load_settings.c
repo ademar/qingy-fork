@@ -72,7 +72,7 @@ void initialize_variables(void)
   DATADIR                 = NULL;
   XINIT                   = NULL;
   FONT                    = NULL;
-  image_paths             = NULL;	
+	screensaver_options     = NULL;
   windowsList             = NULL;
   black_screen_workaround = 0;
   screensaver_timeout     = 5;
@@ -125,25 +125,25 @@ void set_default_colors(void)
   OTHER_TEXT_COLOR.A = 0xFF;
 }
 
-void add_to_paths(char *path)
+void add_to_options(char *option)
 {
-  static struct _image_paths *temp = NULL;
+  static struct _screensaver_options *temp = NULL;
   
-  if (!path) return;
+  if (!option) return;
   if (!temp)
     {
-      image_paths = (struct _image_paths *) calloc(1, sizeof(struct _image_paths));
-      temp = image_paths;
+      screensaver_options = (struct _screensaver_options *) calloc(1, sizeof(struct _screensaver_options));
+      temp = screensaver_options;
     }
   else
     {
-      temp->next = (struct _image_paths *) calloc(1, sizeof(struct _image_paths));
+      temp->next = (struct _screensaver_options *) calloc(1, sizeof(struct _screensaver_options));
       temp = temp->next;
     }
   
-  temp->path = strdup(path);
+  temp->option = strdup(option);
   temp->next = NULL;
-  if (!silent) fprintf(stderr, "Added '%s' to image paths...\n", path);
+  if (!silent) fprintf(stderr, "Added '%s' to screen saver options...\n", option);
 }
 
 char *get_random_theme()

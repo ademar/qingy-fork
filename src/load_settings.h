@@ -77,12 +77,12 @@ typedef enum
 shutdown_policies SHUTDOWN_POLICY;
 
 /* screen saver stuff */
-struct _image_paths
+struct _screensaver_options
 {
-  char *path;
-  struct _image_paths *next;
+  char *option;
+  struct _screensaver_options *next;
 };
-struct _image_paths *image_paths;
+struct _screensaver_options *screensaver_options;
 
 /* screensaver name */
 char* SCREENSAVER;
@@ -182,7 +182,7 @@ char *get_random_theme();
 
 /* stuff you don't want to know about ;-P */
 void yyerror(char *where);
-void add_to_paths(char *path);
+void add_to_options(char *option);
 
 #ifdef DEBUG
 void show_windows_list(void);

@@ -113,8 +113,8 @@ ssav:	SCREENSAVER_TOK QUOTSTR_T { SCREENSAVER = $2;}
 | SCREENSAVER_TOK QUOTSTR_T '=' photos  { SCREENSAVER = $2;}
 ;
 
-photos: QUOTSTR_T	{ add_to_paths($1); }
-| photos ',' QUOTSTR_T { add_to_paths($3); }
+photos: QUOTSTR_T	{ add_to_options($1); }
+| photos ',' QUOTSTR_T { add_to_options($3); }
 ;
 
 /* Directory where to look for xsessions. Note that it cannot be in theme file.. */

@@ -1,9 +1,10 @@
 /***************************************************************************
                        screen_saver.c  -  description
                             --------------------
-    begin                : Apr 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : noberasco.gnu@disi.unige.it
+    begin            : Apr 10 2003
+    copyright        : (C) 2003,2004 by Noberasco Michele, Paolo Gianrossi
+    e-mail           : noberasco.gnu@disi.unige.it
+                       paolino.gnu@disi.unige.it
 ***************************************************************************/
 
 /***************************************************************************
@@ -41,7 +42,7 @@
 #include "screen_saver.h"
 #include "screensaver_module.h"
 
-char** il2cc(struct _image_paths *paths)
+char** il2cc(struct _screensaver_options *options)
 {
   int max=15;
   int n_str=0;
@@ -49,26 +50,26 @@ char** il2cc(struct _image_paths *paths)
   char* holder;
   
   tbl=(char**)malloc(sizeof(char*) * (max +1));
-  for (; paths; paths=paths->next)
-    {
-      if (!paths->path) continue;
-
-      holder=strdup(paths->path);
-      if (n_str == max)
+  for (; options; options=options->next)
 	{
-	  char **temp;
-	  max+= 16;
-	  temp = (char **) realloc(tbl, (max+1)*sizeof(char *));
-	  if (!temp)
+		if (!options->option) continue;
+
+		holder=strdup(options->option);
+		if (n_str == max)
+		{
+			char **temp;
+			max+= 16;
+			temp = (char **) realloc(tbl, (max+1)*sizeof(char *));
+			if (!temp)
 	    {
 	      fprintf(stderr, "screen_saver: memory allocation failure!\n");
 	      abort();
 	    }
-	  tbl = temp;
+			tbl = temp;
+		}
+		*(tbl + n_str) = holder;
+		n_str++;
 	}
-      *(tbl + n_str) = holder;
-      n_str++;
-    }
   *(tbl + n_str)= NULL;
   return tbl;
 }
@@ -76,8 +77,6 @@ char** il2cc(struct _image_paths *paths)
 void activate_screen_saver(void)
 {
   void* handle;
-  int screen_width;
-  int screen_height;
   char* ssv_name = NULL;
   char* error;
   
@@ -93,7 +92,7 @@ void activate_screen_saver(void)
   screenEnv.surface=screen_saver_surface;
   screenEnv.dfb=screen_saver_dfb;
   screenEnv.screen_saver_events=screen_saver_events;
-  screenEnv.params=il2cc(image_paths);
+  screenEnv.params=il2cc(screensaver_options);
 
   /* get what screensaver we want and load it */
   ssv_name=StrApp((char **)NULL, DATADIR, "screensavers/", SCREENSAVER, ".qss", (char*)NULL);
@@ -101,8 +100,8 @@ void activate_screen_saver(void)
   if (!handle) { 
     clear_screen();
     screen_saver_surface->DrawString (screen_saver_surface, 
-				      "Not able to open screensaver.",
-				      -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+																			"Not able to open screensaver.",
+																			-1, screenEnv.screen_width / 2, screenEnv.screen_height / 2, DSTF_CENTER);
     screen_saver_surface->Flip (screen_saver_surface, NULL, 0);
     sleep(2);
     return;
@@ -112,7 +111,7 @@ void activate_screen_saver(void)
   if((error = dlerror()) != NULL)  {
     clear_screen();
     screen_saver_surface->DrawString (screen_saver_surface, "Not able to launch screensaver.", 
-				      -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+																			-1, screenEnv.screen_width / 2, screenEnv.screen_height / 2, DSTF_CENTER);
     screen_saver_surface->Flip (screen_saver_surface, NULL, 0);
     sleep(2);
     return;
