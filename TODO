@@ -11,3 +11,4 @@
 - add more screen savers
 - ldap support for authentication (with pam?)
 - allow selection of alternate x server layouts
+- add a /etc/qingy/sessions to hold scripts to start console sessions
