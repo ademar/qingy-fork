@@ -28,7 +28,6 @@
 
 #include <fcntl.h>
 #include <stdio.h>
-#include <string.h>
 #include <unistd.h>
 #include <linux/kd.h>
 #include <linux/vt.h>

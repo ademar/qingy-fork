@@ -1,4 +1,4 @@
-qingy 0.2 (17 July 2003):
+qingy 0.2 (18 July 2003):
 - Added PAM support
 - Added --silent option to avoid diagnostic messages on stderr
 - Various clean ups
