@@ -69,6 +69,11 @@
 - make the GPM start/stop stuff work for distros other
   than Gentoo, too...
 
+- extend the --verbose option to virtually report all that can be reported ;-)
+
+- someone reported that user gets increased when logging in, but not
+  decreased when logging out!
+
 --
 Items marked as * are those we are currently working on.
 For stuff already done, see NEWS file...
