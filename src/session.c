@@ -117,11 +117,11 @@ int PAM_conv (int num_msg, pam_message_type **msg, struct pam_response **resp, v
     {
     case PAM_TEXT_INFO:
       if (!StrApp(&infostr, msg[count]->msg, "\n", (char *)0))
-	goto conv_err;
+				goto conv_err;
       break;
     case PAM_ERROR_MSG:
       if (!StrApp(&errstr, msg[count]->msg, "\n", (char *)0))
-	goto conv_err;
+				goto conv_err;
       break;
     case PAM_PROMPT_ECHO_OFF:
       /* wants password */
@@ -148,11 +148,11 @@ conv_err:
       case PAM_ERROR_MSG:
       case PAM_TEXT_INFO:
       case PAM_PROMPT_ECHO_ON:
-	free(reply[count].resp);
-	break;
+				free(reply[count].resp);
+				break;
       case PAM_PROMPT_ECHO_OFF:
-	free_stuff(1, reply[count].resp);
-	break;
+				free(reply[count].resp);
+				break;
       }
       reply[count].resp = 0;
     }
@@ -204,15 +204,15 @@ char *get_sessions(void)
       if (!strcmp(entry->d_name, "..")) continue;      
       if (dirname == X_SESSIONS_DIRECTORY)
       {
-	if (!strcmp(entry->d_name, "Xsession")) continue;
-	temp = (char *) calloc(strlen(entry->d_name)+1, sizeof(char));
-	strcpy(temp, entry->d_name);
+				if (!strcmp(entry->d_name, "Xsession")) continue;
+				temp = (char *) calloc(strlen(entry->d_name)+1, sizeof(char));
+				strcpy(temp, entry->d_name);
       }
       else
       {
-	temp = (char *) calloc(strlen(entry->d_name)+7, sizeof(char));
-	strcpy(temp, "Text: ");
-	strcat(temp, entry->d_name);
+				temp = (char *) calloc(strlen(entry->d_name)+7, sizeof(char));
+				strcpy(temp, "Text: ");
+				strcat(temp, entry->d_name);
       }
       return temp;
     }
@@ -489,11 +489,11 @@ void dolastlog(struct passwd *pwd, int quiet)
     {
       if (read(fd, (char *)&ll, sizeof(ll)) == sizeof(ll) && ll.ll_time != 0)
       {
-	printf("Last login: %.*s ", 24-5, (char *)ctime(&ll.ll_time));
-	if (*ll.ll_host != '\0')
-	  printf("from %.*s\n", (int)sizeof(ll.ll_host), ll.ll_host);
-	else
-	  printf("on %.*s\n", (int)sizeof(ll.ll_line), ll.ll_line);
+				printf("Last login: %.*s ", 24-5, (char *)ctime(&ll.ll_time));
+				if (*ll.ll_host != '\0')
+					printf("from %.*s\n", (int)sizeof(ll.ll_host), ll.ll_host);
+				else
+					printf("on %.*s\n", (int)sizeof(ll.ll_line), ll.ll_line);
       }
       lseek(fd, (off_t)pwd->pw_uid * sizeof(ll), SEEK_SET);
     }

@@ -168,45 +168,11 @@ char *get_random_theme()
   return result;
 }
 
-int load_settings(void)
+int get_theme(char *theme)
 {
-	char *theme = NULL;
-
-  TEXT_SESSIONS_DIRECTORY = NULL;
-	X_SESSIONS_DIRECTORY    = NULL;
-	THEME_DIR               = NULL;
-	XINIT                   = NULL;
-	FONT                    = NULL;
-
-  DATADIR       = strdup("/etc/qingy/");
-	SETTINGS      = StrApp((char**)NULL, DATADIR, "settings",        (char*)NULL);
-  LAST_USER     = StrApp((char**)NULL, DATADIR, "lastuser",        (char*)NULL);
-  DEFAULT_THEME = StrApp((char**)NULL, DATADIR, "themes/default/", (char*)NULL);
-
-  yyin = fopen(SETTINGS, "r");
-  if (!yyin)
-  {
-    if (!silent) fprintf(stderr, "load_Settings: settings file not found...\nusing internal defaults\n");
-    set_default_session_dirs();
-    set_default_xinit();
-    set_default_font();
-    set_default_colors();
-    free(DEFAULT_THEME); DEFAULT_THEME = NULL;
-    return 0;
-  }
-  yyparse();
-  fclose(yyin);
-
-  if (!X_SESSIONS_DIRECTORY) set_default_session_dirs();
-  if (!XINIT) set_default_xinit();
-  if (!theme)
-  {
-    THEME_DIR = (char *) calloc(strlen(DEFAULT_THEME)+1, sizeof(char));
-    strcpy(THEME_DIR, DEFAULT_THEME);
-    theme = (char *) calloc(strlen(THEME_DIR)+6, sizeof(char));
-    strcpy(theme, THEME_DIR);
-    strcat(theme, "theme");
-  }
+	FILE *fp;
+	char tmp[MAX] = {'\0'};
+	int temp[4];
 
   fp = fopen(theme, "r");
   if (!fp)
@@ -315,6 +281,48 @@ int load_settings(void)
     }
   }
   fclose(fp);
+}
+
+int load_settings(void)
+{
+	char *theme = NULL;
+
+  TEXT_SESSIONS_DIRECTORY = NULL;
+	X_SESSIONS_DIRECTORY    = NULL;
+	THEME_DIR               = NULL;
+	XINIT                   = NULL;
+	FONT                    = NULL;
+
+  DATADIR       = strdup("/etc/qingy/");
+	SETTINGS      = StrApp((char**)NULL, DATADIR, "settings",        (char*)NULL);
+  LAST_USER     = StrApp((char**)NULL, DATADIR, "lastuser",        (char*)NULL);
+  DEFAULT_THEME = StrApp((char**)NULL, DATADIR, "themes/default/", (char*)NULL);
+
+  yyin = fopen(SETTINGS, "r");
+  if (!yyin)
+  {
+    if (!silent) fprintf(stderr, "load_Settings: settings file not found...\nusing internal defaults\n");
+    set_default_session_dirs();
+    set_default_xinit();
+    set_default_font();
+    set_default_colors();
+    free(DEFAULT_THEME); DEFAULT_THEME = NULL;
+    return 0;
+  }
+  yyparse();
+  fclose(yyin);
+
+  if (!X_SESSIONS_DIRECTORY) set_default_session_dirs();
+  if (!XINIT) set_default_xinit();
+  if (!theme)
+  {
+    THEME_DIR = (char *) calloc(strlen(DEFAULT_THEME)+1, sizeof(char));
+    strcpy(THEME_DIR, DEFAULT_THEME);
+    theme = (char *) calloc(strlen(THEME_DIR)+6, sizeof(char));
+    strcpy(theme, THEME_DIR);
+    strcat(theme, "theme");
+  }
+
 
   if (FONT == NULL) set_default_font();
   free(DEFAULT_THEME); DEFAULT_THEME = NULL;

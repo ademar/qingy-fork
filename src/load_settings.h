@@ -92,5 +92,5 @@ int set_last_user(char *user);
 char *get_last_session(char *user);
 int set_last_session(char *user, char *session);
 
-/* exit program deallocating stuff */
-void my_exit(int n);
+/* load a theme */
+int get_theme(char *theme);
