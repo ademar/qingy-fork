@@ -10,7 +10,7 @@ directfbrc_DATA = directfbrc.qingy
 
 BUILT_SOURCES = directfbrc.qingy
 directfbrc.qingy: creatercfile
-	./creatercfile directfbrc.qingy /usr/bin/fbset
+	./creatercfile directfbrc.qingy @FBSET@
 
 noinst_PROGRAMS = creatercfile
 creatercfile_SOURCES = creatercfile.c
