@@ -85,6 +85,8 @@ selected_window_opacity return SEL_WIN_OP_TOK;
 
 [0-9]{1,3} { sscanf(yytext, "%i", &(yylval.ival)); return ANUM_T;}
 
+[0-9]+	   {  sscanf(yytext, "%i", &(yylval.ival)); return LONGNUM_T;}	
+
 "\["[0-9a-fA-F]{8}"\]" { sscanf(yytext, "[%x]", (unsigned int *)yylval.color); return COLOR_T;}
 
 [ \n\t] ; 			/* skip blanks */

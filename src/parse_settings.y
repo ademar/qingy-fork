@@ -12,6 +12,7 @@ extern FILE* yyin;
 extern int yylex();
 extern int in_theme;
 
+static window_t wind;
 %}
 
 %union
@@ -25,7 +26,7 @@ extern int in_theme;
 %token THEME_TOK RAND_TOK MASK_TXT_COL_TOK TXT_CUR_COL_TOK OTHER_TXT_COL_TOK 		     
 %token BG_TOK FONT_TOK BUTTON_OPAC_TOK WIN_OP_TOK SEL_WIN_OP_TOK 			     
 
-%token <ival>  ANUM_T 									     
+%token <ival>  ANUM_T  LONGNUM_T
 %token <str>   QUOTSTR_T
 %token <color> COLOR_T                                                                       
 
@@ -61,6 +62,14 @@ themedefn: 			/* nothing */
 	| themedefn anumprop
 	| themedefn colorprop
 	;
+
+window: WINDOW_TOK '{' windefns '}' ;
+
+windefns: windefn | windefns windefn ;
+
+windefn: 'x' '=' LONGNUM_T { wind.x=$3; }
+|	 'y' '=' LONGNUM_T { wind.y=$3; }
+|  WTYPE_TOK = 
 
 colorprop: MASK_TXT_COL_TOK '=' COLOR_T { MASK_TEXT_COLOR_R=$3[3]; MASK_TEXT_COLOR_G=$3[2]; 
 					  MASK_TEXT_COLOR_B=$3[1]; MASK_TEXT_COLOR_A=$3[0];}
