@@ -50,6 +50,9 @@ endif
 	@echo "# Allowed options are 'everyone', 'root', 'noone'" >> settings
 	@echo "# shutdown_policy = everyone" >> settings
 	@echo "" >> settings
+	@echo "# What happens when we press the 'sleep' button?" >> settings
+	@echo "#sleep = \"/usr/local/sbin/hibernate\"" >> settings
+	@echo "" >> settings
 	@echo "# wether we should clear background image during dialogs (default is no)..." >> settings
 	@echo "# this is the default setting, it gets overridden if the theme you are using" >> settings
 	@echo "# sets the same setting differently..." >> settings

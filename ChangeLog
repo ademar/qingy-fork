@@ -1,5 +1,6 @@
 2004-12-21  Noberasco Michele  <s4t4n@gentoo.org>
 
+	* media/Makefile.am (settings),
 	* media/qingy-mode.el,
 	* src/main.c (start_up),
 	* src/DirectFB/directfb_mode.c (begin_shutdown_sequence),
