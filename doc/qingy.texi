@@ -591,7 +591,7 @@ The fields you can set are the following:
      @tab @code{"content"}
      @tab Content of the widget (see below)
 @item
-     @item @code{polltime} =
+     @item @code{time} =
      @tab @code{number}
      @tab Seconds interval for command polling (see below)
 @end multitable
@@ -605,7 +605,7 @@ Displays a text label with a certain text at given position.
 The displayed text can be either static, given as the @code{content}
 field or dynamic, as the output of a shell command, given in the
 @code{command} field. In this case, the command is run every
-@code{polltime} seconds and its output redisplayed. If polltime is set
+@code{time} seconds and its output redisplayed. If time is set
 to 0, command is executed just once.
 
 @item button
