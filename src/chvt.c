@@ -97,7 +97,6 @@ int switch_to_tty(int tty)
   return 1;
 }
 
-/* get the currently active tty */
 int get_active_tty(void)
 {
   int tty_file_descriptor;
@@ -110,7 +109,6 @@ int get_active_tty(void)
   return terminal_status.v_active;
 }
 
-/* jump to another tty */
 int set_active_tty(int tty)
 {
   int fd;
@@ -124,7 +122,6 @@ int set_active_tty(int tty)
   return 1;
 }
 
-/* get the number of an unused tty */
 int get_available_tty(void)
 {
 	int fd;
@@ -136,7 +133,6 @@ int get_available_tty(void)
 	return available;
 }
 
-/* Redraw active tty contents */
 void tty_redraw(void)
 {
 	int active_tty = get_active_tty();
@@ -152,7 +148,6 @@ void tty_redraw(void)
 	set_active_tty(active_tty);
 }
 
-/* disallocate tty */
 int disallocate_tty(int tty)
 {
   int fd;
@@ -165,7 +160,6 @@ int disallocate_tty(int tty)
   return 1;
 }
 
-/* block tty switching */
 int lock_tty_switching(void)
 {
   int fd;
@@ -177,7 +171,6 @@ int lock_tty_switching(void)
   return 1;
 }
 
-/* allow tty switching */
 int unlock_tty_switching(void)
 {
   int fd;
