@@ -26,7 +26,7 @@
  ***************************************************************************/
 
 
-int width, height;
+/*int width, height;*/
 int black_screen_workaround;
 int silent;
 int hide_password;

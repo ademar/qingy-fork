@@ -728,12 +728,13 @@ int framebuffer_mode (int argc, char *argv[])
 		DirectFB_Error();
 		return TEXT_MODE;
 	}
-	if (!width && !height) primary->GetSize(primary, &screen_width, &screen_height);
-	else
+	/*if (!width && !height)*/
+		primary->GetSize(primary, &screen_width, &screen_height);
+	/*else
 	{
 		screen_width  = width;
 		screen_height	= height;
-	}
+	}*/
 
 	if (!set_font_sizes ())
 	{

@@ -479,6 +479,10 @@ void Text_Login(struct passwd *pw, char *username)
 {
 	pid_t proc_id;
 	int retval;
+	char *args[2];
+
+	args[0] = shell_base_name(pw->pw_shell);
+	args[1] = NULL;
 
 	proc_id = fork();
 	if (proc_id == -1)
@@ -488,11 +492,6 @@ void Text_Login(struct passwd *pw, char *username)
 	}
 	if (!proc_id)
 	{
-		/* set up stuff */
-		char *args[2];
-		args[0] = shell_base_name(pw->pw_shell);
-		args[1] = NULL;
-
 		/* write to system logs */
 		dolastlog(pw, 0);
 #ifdef USE_PAM
@@ -529,6 +528,7 @@ void Text_Login(struct passwd *pw, char *username)
 	/* Restore tty ownership to root:tty */
 	restore_tty_ownership();
 
+	if (args[0]) free(args[0]);
 	my_exit(0);
 }
 
@@ -565,6 +565,17 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	pid_t proc_id;
 	int dest_vt = current_vt + 20;
 	int retval;
+	char *temp1 = int_to_str(which_X_server());
+	char *temp2 = int_to_str(dest_vt);
+	char *args[4];
+
+	args[0] = shell_base_name(pw->pw_shell);
+	args[1] = (char *) my_calloc(3, sizeof(char));
+	strcpy(args[1], "-c");
+	args[2] = StrApp((char **)0, XINIT, " ", XSESSIONS_DIRECTORY, session, " -- :", temp1, " vt", temp2, " >/dev/null 2>/dev/null", (char*)0);
+	if (temp1) free(temp1);
+	if (temp2) free(temp2);
+	args[3] = NULL;
 
 	proc_id = fork();
 	if (proc_id == -1)
@@ -574,19 +585,6 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	}
 	if (!proc_id)
 	{
-		/* set up stuff */
-		char *temp1 = int_to_str(which_X_server());
-		char *temp2 = int_to_str(dest_vt);
-		char *args[4];
-
-		args[0] = shell_base_name(pw->pw_shell);
-		args[1] = (char *) my_calloc(3, sizeof(char));
-		strcpy(args[1], "-c");
-		args[2] = StrApp((char **)0, XINIT, " ", XSESSIONS_DIRECTORY, session, " -- :", temp1, " vt", temp2, " >/dev/null 2>/dev/null", (char*)0);
-		if (temp1) free(temp1);
-		if (temp2) free(temp2);
-		args[3] = NULL;
-
 		/* write to system logs */
 		dolastlog(pw, 1);
 #ifdef USE_PAM
@@ -643,6 +641,9 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	/* Restore tty ownership to root:tty */
 	restore_tty_ownership();
 
+	if (args[0]) free(args[0]);
+	if (args[1]) free(args[1]);
+	if (args[2]) free(args[2]);
 	my_exit(0);
 }
 
