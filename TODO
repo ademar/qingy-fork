@@ -90,6 +90,8 @@
 
 - Add a timeout (with fading) to the mouseover effect
 
+- support also the /dev/vc* in spite of /dev/tty*
+
 --
 Items marked as * are those we are currently working on.
 For stuff already done, see NEWS file...
