@@ -79,31 +79,22 @@ DeviceInfo            *devices         = NULL; /* the list of all input devices 
 IDirectFBFont         *font_small,
                       *font_normal,            /* fonts                                     */
                       *font_large;  
-
-
-
-/* Button                *power,                  /\* buttons                                   *\/ */
-/*                       *reset; */
 TextBox               *username        = NULL, /* text boxes                                */
                       *password        = NULL;
-/* Label                 *welcome_label   = NULL, /\* text labels                               *\/ */
-/*                       *username_label  = NULL, */
-/*                       *password_label  = NULL, */
-/*                       *session_label   = NULL, */
-Label                      *lock_key_status = NULL;
-
-
-
+Label                 *username_label  = NULL, /* labels                                    */
+                      *password_label  = NULL,
+                      *session_label   = NULL,
+                      *lock_key_status = NULL;
 ComboBox              *session         = NULL; /* combo boxes                               */
 int                   we_stopped_gpm,          /* wether this program stopped gpm or not    */
                       screen_width,            /* screen resolution                         */
                       screen_height,
                       font_small_height,       /* font sizes                                */
                       font_normal_height,
- 	font_large_height;
-/*                       username_area_mouse = 0, /\* sensible area for mouse cursor to be in   *\/ */
-/*                       password_area_mouse = 0, /\* sensible area for mouse cursor to be in   *\/ */
-/*                       session_area_mouse  = 0; /\* sensible area for mouse cursor to be in   *\/ */
+                      font_large_height,
+                      username_area_mouse = 0, /* sensible areas for mouse cursor to be in  */
+                      password_area_mouse = 0,
+                      session_area_mouse  = 0;
 
 void Draw_Background_Image()
 {
@@ -178,17 +169,20 @@ void close_framebuffer_mode (void)
 		temp->next = NULL;
 		free(temp);
 	}
+	/* destroy all buttons */
+	while (Buttons)
+	{
+		Button_list *temp = Buttons;
+		Buttons = Buttons->next;
+		temp->button->Destroy(temp->button);
+		temp->next = NULL;
+		free(temp);
+	}
 
-/*   if (power) power->Destroy(power); */
-/*   if (reset) reset->Destroy(reset); */
   if (panel_image) panel_image->Release (panel_image);
-/*   if (welcome_label) welcome_label->Destroy(welcome_label); */
   if (lock_key_status) lock_key_status->Destroy(lock_key_status);
-/*   if (username_label) username_label->Destroy(username_label); */
   if (username) username->Destroy(username);
-/*   if (password_label) password_label->Destroy(password_label); */
   if (password) password->Destroy(password);
-/*   if (session_label) session_label->Destroy(session_label); */
   if (session) session->Destroy(session);
   if (font_small) font_small->Release (font_small);
   if (font_normal) font_normal->Release (font_normal);
@@ -216,105 +210,109 @@ void DirectFB_Error()
 /* mouse movement in buttons area */
 void handle_buttons(int *mouse_x, int *mouse_y)
 {
-/*   /\* mouse over power button *\/ */
-/*   if ((*mouse_x >= power->xpos) && (*mouse_x <= (power->xpos + (int) power->width))) */
-/*     if ((*mouse_y >= power->ypos) && (*mouse_y <= (power->ypos + (int) power->height))) */
-/*     { */
-/*       if (!power->mouse) */
-/*       { */
-/* 				power->MouseOver(power, 1); */
-/* 				if (reset->mouse) reset->MouseOver(reset, 0); */
-/* 				return; */
-/*       } */
-/*       else return;		/\* we already plotted this event *\/ */
-/*     } */
+	Button_list *buttons       = Buttons;
+	Button_list *other_buttons = Buttons;
 
-/*   /\* mouse over reset button *\/ */
-/*   if ((*mouse_x >= reset->xpos) && (*mouse_x <= (reset->xpos + (int) reset->width))) */
-/*     if ((*mouse_y >= reset->ypos) && (*mouse_y <= (reset->ypos + (int) reset->height))) */
-/*     { */
-/*       if (!reset->mouse) */
-/*       { */
-/* 				reset->MouseOver(reset, 1); */
-/* 				if (power->mouse) power->MouseOver(power, 0); */
-/* 				return; */
-/*       } */
-/*       else return;		/\* we already plotted this event *\/ */
-/*     } */
+	/* let's check wether mouse is over a button... */
+	while (buttons)
+	{
+		if ((*mouse_x >= buttons->button->xpos) && (*mouse_x <= (buttons->button->xpos + (int) buttons->button->width)))
+			if ((*mouse_y >= buttons->button->ypos) && (*mouse_y <= (buttons->button->ypos + (int) buttons->button->height)))
+			{
+				if (!buttons->button->mouse)
+				{
+					buttons->button->MouseOver(buttons->button, 1);
+					while (other_buttons)
+					{
+						if (other_buttons->button->mouse && other_buttons->button != buttons->button) other_buttons->button->MouseOver(other_buttons->button, 0);
+						other_buttons = other_buttons->next;
+					}
+					return;
+				}
+				else return;		/* we already plotted this event */
+			}
+		buttons = buttons->next;
+	}
 
-/*   /\* mouse not over any power button *\/ */
-/*   if (power->mouse) power->MouseOver(power, 0); */
-/*   if (reset->mouse) reset->MouseOver(reset, 0); */
+  /* mouse not over any button */
+	while (other_buttons)
+	{
+		if (other_buttons->button->mouse) other_buttons->button->MouseOver(other_buttons->button, 0);
+		other_buttons = other_buttons->next;
+	}
 }
 
 /* mouse movement in textboxes and comboboxes area */
 void handle_text_combo_boxes(int *mouse_x, int *mouse_y)
 {
-/*   /\* mouse over username area *\/ */
-/*   if ( (*mouse_x >= (int) username->xpos) && (*mouse_x <= (int) username->xpos + (int) username->width) ) */
-/*     if ( (*mouse_y >= (int) username->ypos) && (*mouse_y <= (int) username->ypos + (int) username->height) ) */
-/*     { */
-/*       username_area_mouse = 1; */
-/*       return; */
-/*     } */
+  /* mouse over username area */
+  if ( (*mouse_x >= (int) username->xpos) && (*mouse_x <= (int) username->xpos + (int) username->width) )
+    if ( (*mouse_y >= (int) username->ypos) && (*mouse_y <= (int) username->ypos + (int) username->height) )
+    {
+      username_area_mouse = 1;
+      return;
+    }
 
-/*   /\* mouse over password area *\/ */
-/*   if ( (*mouse_x >= (int) password->xpos) && (*mouse_x <= (int) password->xpos + (int) password->width) ) */
-/*     if ( (*mouse_y >= (int) password->ypos) && (*mouse_y <= (int) password->ypos + (int) password->height) ) */
-/*     { */
-/*       password_area_mouse = 1; */
-/*       return; */
-/*     } */
+  /* mouse over password area */
+  if ( (*mouse_x >= (int) password->xpos) && (*mouse_x <= (int) password->xpos + (int) password->width) )
+    if ( (*mouse_y >= (int) password->ypos) && (*mouse_y <= (int) password->ypos + (int) password->height) )
+    {
+      password_area_mouse = 1;
+      return;
+    }
 
-/*   /\* mouse over session area *\/ */
-/*   if ( (*mouse_x >= (int) session->xpos) && (*mouse_x <= (int) session->xpos + (int) session->width) ) */
-/*     if ( (*mouse_y >= (int) session->ypos) && (*mouse_y <= (int) session->ypos + (int) session->height) ) */
-/*     { */
-/*       session_area_mouse = 1; */
-/*       return; */
-/*     } */
+  /* mouse over session area */
+  if ( (*mouse_x >= (int) session->xpos) && (*mouse_x <= (int) session->xpos + (int) session->width) )
+    if ( (*mouse_y >= (int) session->ypos) && (*mouse_y <= (int) session->ypos + (int) session->height) )
+    {
+      session_area_mouse = 1;
+      return;
+    }
 }
 
 /* mouse movement in labels area */
 void handle_labels(int *mouse_x, int *mouse_y)
 {
-/*   /\* mouse over username area *\/ */
-/*   if ( (*mouse_x >= (int) username_label->xpos) && (*mouse_x <= (int) username_label->xpos + (int) username_label->width) ) */
-/*     if ( (*mouse_y >= (int) username_label->ypos) && (*mouse_y <= (int) username_label->ypos + (int) username_label->height) ) */
-/*     { */
-/*       username_area_mouse = 1; */
-/*       return; */
-/*     } */
+  /* mouse over username area */
+	if (username_label)
+		if ( (*mouse_x >= (int) username_label->xpos) && (*mouse_x <= (int) username_label->xpos + (int) username_label->width) )
+			if ( (*mouse_y >= (int) username_label->ypos) && (*mouse_y <= (int) username_label->ypos + (int) username_label->height) )
+			{
+				username_area_mouse = 1;
+				return;
+			}
 
-/*   /\* mouse over password area *\/ */
-/*   if ( (*mouse_x >= (int) password_label->xpos) && (*mouse_x <= (int) password_label->xpos + (int) password_label->width) ) */
-/*     if ( (*mouse_y >= (int) password_label->ypos) && (*mouse_y <= (int) password_label->ypos + (int) password_label->height) ) */
-/*     { */
-/*       password_area_mouse = 1; */
-/*       return; */
-/*     } */
+  /* mouse over password area */
+	if (password_label)
+		if ( (*mouse_x >= (int) password_label->xpos) && (*mouse_x <= (int) password_label->xpos + (int) password_label->width) )
+			if ( (*mouse_y >= (int) password_label->ypos) && (*mouse_y <= (int) password_label->ypos + (int) password_label->height) )
+			{
+				password_area_mouse = 1;
+				return;
+			}
 
-/*   /\* mouse over session area *\/ */
-/*   if ( (*mouse_x >= (int) session_label->xpos) && (*mouse_x <= (int) session_label->xpos + (int) session_label->width) ) */
-/*     if ( (*mouse_y >= (int) session_label->ypos) && (*mouse_y <= (int) session_label->ypos + (int) session_label->height) ) */
-/*     { */
-/*       session_area_mouse = 1; */
-/*       return; */
-/*     } */
+  /* mouse over session area */
+	if (session_label)
+		if ( (*mouse_x >= (int) session_label->xpos) && (*mouse_x <= (int) session_label->xpos + (int) session_label->width) )
+			if ( (*mouse_y >= (int) session_label->ypos) && (*mouse_y <= (int) session_label->ypos + (int) session_label->height) )
+			{
+				session_area_mouse = 1;
+				return;
+			}
 }
 
 void handle_mouse_movement (void)
 {
-/*   int mouse_x, mouse_y; */
+  int mouse_x, mouse_y;
 
-/*   username_area_mouse = 0; */
-/*   password_area_mouse = 0; */
-/*   session_area_mouse = 0; */
+  username_area_mouse = 0;
+  password_area_mouse = 0;
+  session_area_mouse  = 0;
 
-/*   layer->GetCursorPosition (layer, &mouse_x, &mouse_y); */
-/*   handle_buttons(&mouse_x, &mouse_y); */
-/*   handle_text_combo_boxes(&mouse_x, &mouse_y); */
-/*   handle_labels(&mouse_x, &mouse_y); */
+  layer->GetCursorPosition (layer, &mouse_x, &mouse_y);
+  handle_buttons(&mouse_x, &mouse_y);
+  handle_text_combo_boxes(&mouse_x, &mouse_y);
+  handle_labels(&mouse_x, &mouse_y);
 }
 
 void show_lock_key_status(DFBInputEvent *evt)
@@ -343,13 +341,6 @@ void reset_screen(DFBInputEvent *evt)
 		buttons = buttons->next;
 	}
 
-
-/*   power->Show(power); */
-/*   reset->Show(reset); */
-/*   welcome_label->Show(welcome_label); */
-/*   username_label->Show(username_label); */
-/*   password_label->Show(password_label); */
-/*   session_label->Show(session_label); */
   username->Show(username);
   password->Show(password);
   session->Show(session);
@@ -376,15 +367,8 @@ void clear_screen(void)
 		buttons = buttons->next;
 	}
 
-
-/*   power->Hide(power); */
-/*   reset->Hide(reset); */
-/*   welcome_label->Hide(welcome_label); */
   username->Hide(username);
   password->Hide(password);
-/*   username_label->Hide(username_label); */
-/*   password_label->Hide(password_label); */
-/*   session_label->Hide(session_label); */
   lock_key_status->Hide(lock_key_status);
   session->Hide(session);
   layer->EnableCursor (layer, 0);
@@ -520,58 +504,84 @@ void do_ctrl_alt_del(DFBInputEvent *evt)
 
 void handle_mouse_event (DFBInputEvent *evt)
 {
-/*   static int status = 0; */
+	static Button *button = NULL;
+  static int status = 0;
 
-/*   if (evt->type == DIET_AXISMOTION) */
-/*     handle_mouse_movement (); */
-/*   else */
-/*   {	/\* mouse button press or release *\/ */
-/*     if (left_mouse_button_down (evt)) */
-/*     {	/\* left mouse button is down: */
-/* 				 we check wether mouse pointer is over a specific area *\/ */
-/*       if (power->mouse) status = 1; */
-/*       if (reset->mouse) status = 2; */
-/*       if (username_area_mouse) status = 3; */
-/*       if (password_area_mouse) status = 4; */
-/*       if (session_area_mouse) status = 5; */
-/*     } */
-/*     else */
-/*     {	/\* left mouse button is up: */
-/* 				 if it was on a specific area when down we check if it is still there *\/ */
-/*       if ((power->mouse) && (status == 1))	/\* power button has been clicked! *\/ */
-/* 				begin_shutdown_sequence (POWEROFF); */
-/*       if ((reset->mouse) && (status == 2))	/\* reset button has been clicked! *\/ */
-/* 				begin_shutdown_sequence (REBOOT); */
-/*       if (username_area_mouse && status == 3) */
-/*       {	/\* username area has been clicked! *\/ */
-/* 				username->SetFocus(username, 1); */
-/* 				username_label->SetFocus(username_label, 1); */
-/* 				password->SetFocus(password, 0); */
-/* 				password_label->SetFocus(password_label, 0); */
-/* 				session->SetFocus(session, 0); */
-/* 				session_label->SetFocus(session_label, 0); */
-/*       } */
-/*       if (password_area_mouse && status == 4) */
-/*       {	/\* password area has been clicked! *\/ */
-/* 				username->SetFocus(username, 0); */
-/* 				username_label->SetFocus(username_label, 0); */
-/* 				password->SetFocus(password, 1); */
-/* 				password_label->SetFocus(password_label, 1); */
-/* 				session->SetFocus(session, 0); */
-/* 				session_label->SetFocus(session_label, 0); */
-/*       } */
-/*       if (session_area_mouse && status == 5) */
-/*       {	/\* session area has been clicked! *\/ */
-/* 				username->SetFocus(username, 0); */
-/* 				username_label->SetFocus(username_label, 0); */
-/* 				password->SetFocus(password, 0); */
-/* 				password_label->SetFocus(password_label, 0); */
-/* 				session->SetFocus(session, 1); */
-/* 				session_label->SetFocus(session_label, 1); */
-/*       } */
-/*       status = 0;		/\* we reset click status because button went up *\/ */
-/*     } */
-/*   } */
+  if (evt->type == DIET_AXISMOTION)
+    handle_mouse_movement ();
+  else
+  {	/* mouse button press or release */
+    if (left_mouse_button_down (evt))
+    { /*
+			 * left mouse button is down:
+			 * we check wether mouse pointer is over a specific area
+			 */
+			Button_list *buttons = Buttons;
+
+      if (username_area_mouse) status = 1;
+      if (password_area_mouse) status = 2;
+      if (session_area_mouse)  status = 3;
+			while (buttons)
+			{
+				if (buttons->button->mouse)
+				{
+					button = buttons->button;
+					break;
+				}
+				buttons = buttons->next;
+			}
+    }
+    else
+    {	/* 
+			 * left mouse button is up:
+			 * if it was on a specific area when down we check if it is still there
+			 */
+			if (button)
+				if (button->mouse)
+					switch (button->command)
+					{
+					case HALT:
+						begin_shutdown_sequence (POWEROFF);
+						break;
+					case REBOOT:
+						begin_shutdown_sequence (REBOOT);
+						break;
+					case SLEEP: case SCREEN_SAVER:
+						/* we do nothing here... */
+						break;
+					}
+
+      if (username_area_mouse && status == 1)
+      {	/* username area has been clicked! */
+				username->SetFocus(username, 1);
+				if (username_label) username_label->SetFocus(username_label, 1);
+				password->SetFocus(password, 0);
+				if (password_label) password_label->SetFocus(password_label, 0);
+				session->SetFocus(session, 0);
+				if (session_label) session_label->SetFocus(session_label, 0);
+      }
+      if (password_area_mouse && status == 2)
+      {	/* password area has been clicked! */
+				username->SetFocus(username, 0);
+				if (username_label) username_label->SetFocus(username_label, 0);
+				password->SetFocus(password, 1);
+				if (password_label) password_label->SetFocus(password_label, 1);
+				session->SetFocus(session, 0);
+				if (session_label) session_label->SetFocus(session_label, 0);
+      }
+      if (session_area_mouse && status == 3)
+      {	/* session area has been clicked! */
+				username->SetFocus(username, 0);
+				if (username_label) username_label->SetFocus(username_label, 0);
+				password->SetFocus(password, 0);
+				if (password_label) password_label->SetFocus(password_label, 0);
+				session->SetFocus(session, 1);
+				if (session_label) session_label->SetFocus(session_label, 1);
+      }
+      status = 0;		/* we reset click status because button went up */
+			button = NULL;
+    }
+  }
 }
 
 void start_login_sequence(DFBInputEvent *evt)
@@ -687,16 +697,16 @@ int handle_keyboard_event(DFBInputEvent *evt)
       if (ascii_code == TAB || ascii_code == RETURN)
       {
 				allow_tabbing = 0;
-/* 				username_label->SetFocus(username_label, 0); */
+				if (username_label) username_label->SetFocus(username_label, 0);
 				username->SetFocus(username, 0);
 				if (modifier_is_pressed(evt) != SHIFT)
 				{
-/* 					password_label->SetFocus(password_label, 1); */
+					if (password_label) password_label->SetFocus(password_label, 1);
 					password->SetFocus(password, 1);
 				}
 				else
 				{
-/* 					session_label->SetFocus(session_label, 1); */
+					if (session_label) session_label->SetFocus(session_label, 1);
 					session->SetFocus(session, 1);
 				}
       }
@@ -713,16 +723,16 @@ int handle_keyboard_event(DFBInputEvent *evt)
       if (ascii_code == TAB)
       {
 				allow_tabbing = 0;
-/* 				password_label->SetFocus(password_label, 0); */
+				if (password_label) password_label->SetFocus(password_label, 0);
 				password->SetFocus(password, 0);
 				if (modifier_is_pressed(evt) != SHIFT)
 				{
-/* 					session_label->SetFocus(session_label, 1); */
+					if (session_label) session_label->SetFocus(session_label, 1);
 					session->SetFocus(session, 1);
 				}
 				else
 				{
-/* 					username_label->SetFocus(username_label, 1); */
+					if (username_label) username_label->SetFocus(username_label, 1);
 					username->SetFocus(username, 1);
 				}
       }
@@ -737,16 +747,16 @@ int handle_keyboard_event(DFBInputEvent *evt)
       if (ascii_code == TAB)
       {
 				allow_tabbing = 0;
-/* 				session_label->SetFocus(session_label, 0); */
+				if (session_label) session_label->SetFocus(session_label, 0);
 				session->SetFocus(session, 0);
 				if (modifier_is_pressed(evt) != SHIFT)
 				{
-/* 					username_label->SetFocus(username_label, 1); */
+					if (username_label) username_label->SetFocus(username_label, 1);
 					username->SetFocus(username, 1);
 				}
 				else
 				{
-/* 					password_label->SetFocus(password_label, 1); */
+					if (password_label) password_label->SetFocus(password_label, 1);
 					password->SetFocus(password, 1);
 				}
       }
@@ -766,58 +776,6 @@ void load_sessions(ComboBox *session)
     free(temp); temp = NULL;
   }
 }
-
-/* int Create_Labels_TextBoxes_ComboBoxes(void) */
-/* { */
-/*   DFBWindowDescription window_desc; */
-/*   char *temp = print_welcome_message("Welcome to ", NULL); */
-
-/*   window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS ); */
-/*   window_desc.posx   = 0; */
-/*   window_desc.posy   = screen_height/8; */
-/*   window_desc.width  = screen_width; */
-/*   window_desc.height = 2*font_large_height; */
-/*   window_desc.caps   = DWCAPS_ALPHACHANNEL; */
-/*   welcome_label = Label_Create(layer, font_large, &window_desc); */
-/*   if (!welcome_label) return 0; */
-/*   welcome_label->SetText(welcome_label, temp, CENTER); */
-/*   if (temp) free(temp); */
-/*   window_desc.posx = screen_width/8; */
-/*   window_desc.posy   = 3*screen_height/8-font_large_height; */
-/*   window_desc.width  = 3*screen_width/20; */
-/*   username_label = Label_Create(layer, font_large, &window_desc); */
-/*   if (!username_label) return 0; */
-/*   username_label->SetText(username_label, "login:", RIGHT); */
-/*   window_desc.posy   = 4*screen_height/8-font_large_height; */
-/*   password_label = Label_Create(layer, font_large, &window_desc); */
-/*   if (!password_label) return 0; */
-/*   password_label->SetText(password_label, "passwd:", RIGHT); */
-/*   window_desc.posy   = 5*screen_height/8-font_large_height; */
-/*   session_label = Label_Create(layer, font_large, &window_desc); */
-/*   if (!session_label) return 0; */
-/*   session_label->SetText(session_label, "session:", RIGHT); */
-/*   window_desc.posx   = 3*screen_width/10; */
-/*   window_desc.posy   = 3*screen_height/8-font_large_height; */
-/*   window_desc.width  = screen_width - window_desc.posx; */
-/*   window_desc.height = 2*font_large_height; */
-/*   username = TextBox_Create(layer, font_large, &window_desc); */
-/*   if (!username) return 0; */
-/*   window_desc.posy   = 4*screen_height/8-font_large_height; */
-/*   password = TextBox_Create(layer, font_large, &window_desc); */
-/*   if (!password) return 0; */
-/*   window_desc.posy = 5*screen_height/8-font_large_height; */
-/*   session = ComboBox_Create(layer, font_large, &window_desc); */
-/*   if (!session) return 0; */
-/*   window_desc.posx   = 0; */
-/*   window_desc.posy   = screen_height - (font_small_height); */
-/*   window_desc.width  = screen_width/5; */
-/*   window_desc.height = font_small_height; */
-/*   lock_key_status = Label_Create(layer, font_small, &window_desc); */
-/*   if (!lock_key_status) return 0; */
-/*   lock_key_status->SetText(lock_key_status, "CAPS LOCK is pressed", CENTERBOTTOM); */
-
-/*   return 1; */
-/* } */
 
 int create_windows()
 {
@@ -873,6 +831,40 @@ int create_windows()
 			labels->label = Label_Create(layer, font, &(temp->text_color), &window_desc);
 			if (!labels->label) return 0;
 			labels->next = NULL;
+			if (temp->content)
+			{
+				char *comm = strstr(temp->content, "<INS_CMD_HERE>");
+				if (comm)
+				{
+					char *message = NULL;
+					char *result  = NULL;
+					FILE *fp = popen(temp->command, "r");
+					size_t len = 0;
+
+					getline(&result, &len, fp);
+					pclose(fp);
+					if (result)
+					{
+						char *prev = strndup(temp->content, comm - temp->content);
+						char len = strlen(result);
+						if (result[len-1] == '\n') result[len-1] = '\0';
+						message = StrApp((char**)NULL, prev, result, comm+14, (char*)NULL);
+						free(prev);
+						free(result);
+					}
+					labels->label->SetText(labels->label, message, temp->text_orientation);
+					free(message);
+				}
+				else labels->label->SetText(labels->label, temp->content, temp->text_orientation);
+				labels->label->SetFocus(labels->label, 0);
+			}
+			if (temp->linkto)
+			{
+				if (!strcmp(temp->linkto, "login"))    username_label = labels->label;
+				if (!strcmp(temp->linkto, "password")) password_label = labels->label;
+				if (!strcmp(temp->linkto, "session"))  session_label  = labels->label;
+			}
+
 			break;
 		}
 		case BUTTON:
@@ -890,15 +882,17 @@ int create_windows()
 				buttons->next = (Button_list *) calloc(1, sizeof(Button_list));
 				buttons = buttons->next;
 			}
+			image1 = StrApp((char **)NULL, THEME_DIR, temp->content, "_normal.png",    (char *)NULL);
+			image2 = StrApp((char **)NULL, THEME_DIR, temp->content, "_mouseover.png", (char *)NULL);
+			buttons->button = Button_Create(image1, image2, window_desc.posx, window_desc.posy, layer, primary, dfb);
+			if (!buttons->button) return 0;			
+			buttons->next = NULL;
+			buttons->button->MouseOver(buttons->button, 0);
+			free(image1); free(image2);
 			if (!strcmp(temp->command, "halt"       )) buttons->button->command = HALT;
 			if (!strcmp(temp->command, "reboot"     )) buttons->button->command = REBOOT;
 			if (!strcmp(temp->command, "sleep"      )) buttons->button->command = SLEEP;
 			if (!strcmp(temp->command, "screensaver")) buttons->button->command = SCREEN_SAVER;
-			image1 = StrApp((char **)NULL, THEME_DIR, temp->content, "_normal.png",    (char *)NULL);
-			image2 = StrApp((char **)NULL, THEME_DIR, temp->content, "_mouseover.png", (char *)NULL);
-			buttons->button = Button_Create(image1, image2, screen_width, screen_height, layer, primary, dfb);
-			free(image1); free(image2);
-			buttons->next = NULL;
 			break;
 		}
 		case COMBO:
@@ -921,6 +915,7 @@ int create_windows()
   window_desc.height = font_small_height;
   lock_key_status = Label_Create(layer, font_small, &MASK_TEXT_COLOR, &window_desc);
   if (!lock_key_status) return 0;
+	lock_key_status->SetText(lock_key_status, "CAPS LOCK is pressed", CENTERBOTTOM);
 
 	return 1;
 }
@@ -951,7 +946,6 @@ int directfb_mode (int argc, char *argv[])
   DFBInputEvent evt;            /* generic input events will be stored here */
 	DFBResult result;             /* we store eventual errors here            */
   char *lastuser=NULL;          /* latest user who logged in                */
-  char *temp1, *temp2;
   ScreenSaver screen_saver;
 
   /* load settings from file */
@@ -1001,55 +995,6 @@ int directfb_mode (int argc, char *argv[])
   }
   Draw_Background_Image();
 
-  /* we create buttons */
-/*   temp1 = StrApp((char **)0, THEME_DIR, "power_normal.png", (char *)0); */
-/*   temp2 = StrApp((char **)0, THEME_DIR, "power_mouseover.png", (char *)0); */
-/*   power = Button_Create(temp1, temp2, screen_width, screen_height, layer, primary, dfb); */
-/*   free(temp1); free(temp2); */
-/*   temp1 = StrApp((char **)0, THEME_DIR, "reset_normal.png", (char *)0); */
-/*   temp2 = StrApp((char **)0, THEME_DIR, "reset_mouseover.png", (char *)0); */
-/*   reset = Button_Create(temp1, temp2, power->xpos - 10, screen_height, layer, primary, dfb); */
-/*   free(temp1); free(temp2); */
-/*   if (!power || !reset) */
-/*   { */
-/*     DirectFB_Error(); */
-/*     return TEXT_MODE; */
-/*   } */
-/*   power->MouseOver(power, 0); */
-/*   reset->MouseOver(reset, 0); */
-
-  /* we create labels, textboxes and comboboxes */
-/*   if (!Create_Labels_TextBoxes_ComboBoxes()) */
-/*   { */
-/*     DirectFB_Error(); */
-/*     return TEXT_MODE; */
-/*   } */
-
-/*   if (!hide_password) password->mask_text = 1; */
-/*   else password->hide_text = 1; */
-/*   load_sessions(session); */
-/*   if (lastuser) */
-/*   { */
-/*     username_label->SetFocus(username_label, 0); */
-/*     password_label->SetFocus(password_label, 1); */
-/*     if (!hide_last_user) username->SetText(username, lastuser); */
-/*     else username->SetText(username, "lastuser"); */
-/*     username->SetFocus(username, 0); */
-/*     password->SetFocus(password, 1); */
-/*     set_user_session(lastuser); */
-/*     free(lastuser); */
-/*     lastuser = NULL; */
-/*   } */
-/*   else */
-/*   { */
-/*     username_label->SetFocus(username_label, 1); */
-/*     password_label->SetFocus(password_label, 0); */
-/*     username->SetFocus(username, 1); */
-/*   } */
-/*   welcome_label->SetFocus(welcome_label, 0); */
-/*   session_label->SetFocus(session_label, 0); */
-/*   session->SetFocus(session, 0); */
-
 	if (!create_windows())
 	{
     DirectFB_Error();
@@ -1060,6 +1005,8 @@ int directfb_mode (int argc, char *argv[])
   load_sessions(session);
   if (lastuser)
   {
+    if (username_label) username_label->SetFocus(username_label, 0);
+    if (password_label) password_label->SetFocus(password_label, 1);
     if (!hide_last_user) username->SetText(username, lastuser);
     else username->SetText(username, "lastuser");
     username->SetFocus(username, 0);
@@ -1070,8 +1017,11 @@ int directfb_mode (int argc, char *argv[])
   }
   else
   {
+    if (username_label) username_label->SetFocus(username_label, 1);
+    if (password_label) password_label->SetFocus(password_label, 0);
     username->SetFocus(username, 1);
   }
+  if (session_label) session_label->SetFocus(session_label, 0);
   session->SetFocus(session, 0);
 
   layer->EnableCursor (layer, 1);

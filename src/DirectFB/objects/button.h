@@ -62,7 +62,7 @@ Button *Button_Create
 (
 	const char *normal,
 	const char *mouseover,
-	int relx, int rely,
+	int xpos,  int ypos,
 	IDirectFBDisplayLayer *layer,
 	IDirectFBSurface *primary,
 	IDirectFB *dfb

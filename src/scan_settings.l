@@ -114,10 +114,17 @@ window                  return WINDOW_TOK;
 time                    return WPOLL_TIME_TOK;
 text_color              return WTEXT_COLOR_TOK;
 cursor_color            return WCURSOR_COLOR_TOK;
+linkto                  return WINDOW_LINK_TOK;
 text_size               return WTEXT_SIZE_TOK;
 small                   return WTEXT_SMALL_TOK;
 medium                  return WTEXT_MEDIUM_TOK;
 large                   return WTEXT_LARGE_TOK;
+text_orientation        return WTEXT_ORIENTATION;
+left                    return WTEXT_LEFT_TOK;
+center                  return WTEXT_CENTER_TOK;
+right                   return WTEXT_RIGHT_TOK;
+
+
 
 "#"[^\n]*"\n" ;			/* skip comments */
 

@@ -93,6 +93,9 @@ screensaver_kinds SCREENSAVER;
    - UNKNOWN: default value, treat as error.
    - LABEL: display static text. if command is empty, not executable
    or error returning, display content. Otherwise, command output.
+	 If polltime is 0, do not update window content. You can also specify
+	 "%s" somewhere inside content: that "%s" will be converted into
+	 the output of command...
    - BUTTON: execute command when mouse pressed (key 1). content has
 	 button file name prefix, i.e. "reset" if button image names are
 	 "reset_normal.png" and "reset_mouseover.png".   
@@ -121,6 +124,14 @@ typedef enum
 	LARGE
 } text_size_t;
 
+typedef enum
+{
+	LEFT=0,
+	CENTER,
+	RIGHT
+}
+text_orient_t;
+
 /* a window structure */
 typedef struct _window
 {  
@@ -130,17 +141,19 @@ typedef struct _window
   int height;
   int polltime;
 	text_size_t text_size;
+	text_orient_t text_orientation;
 	color_t text_color;
 	color_t cursor_color;
   window_types_t type;
   char *command;
   char *content;
+	char *linkto;
   struct _window *next;
 } window_t;
 
 window_t* windowsList;
 
-int add_window_to_list(window_t w);
+int add_window_to_list(window_t *w);
 int get_win_type(const char* name);
 
 

@@ -185,6 +185,10 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, col
   newbox->position     = 0;
   newbox->window       = NULL;
   newbox->surface      = NULL;
+	newbox->text_color.R = text_color->R;
+	newbox->text_color.G = text_color->G;
+	newbox->text_color.B = text_color->B;
+	newbox->text_color.A = text_color->A;
 	newbox->SetTextColor = ComboBox_SetTextColor;
   newbox->KeyEvent     = ComboBox_KeyEvent;
   newbox->SetFocus     = ComboBox_SetFocus;

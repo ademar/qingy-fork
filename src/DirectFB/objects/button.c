@@ -108,7 +108,7 @@ IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, ID
 	return surface;
 }
 
-Button *Button_Create(const char *normal, const char *mouseover, int relx, int rely, IDirectFBDisplayLayer *layer, IDirectFBSurface *primary, IDirectFB *dfb)
+Button *Button_Create(const char *normal, const char *mouseover, int xpos, int ypos, IDirectFBDisplayLayer *layer, IDirectFBSurface *primary, IDirectFB *dfb)
 {
 	Button *but;
 	IDirectFBWindow *window;
@@ -119,8 +119,8 @@ Button *Button_Create(const char *normal, const char *mouseover, int relx, int r
 	but->normal = load_image (normal, primary, dfb);
 	but->normal->GetSize (but->normal, (int *)&(but->width), (int *)&(but->height));
 	but->mouseover = load_image (mouseover, primary, dfb);
-	but->xpos = relx - but->width;
-	but->ypos = rely - but->height;
+	but->xpos      = xpos;
+	but->ypos      = ypos;
 	but->Destroy   = Button_Destroy;
 	but->MouseOver = Button_MouseOver;
 	but->Show      = Button_Show;

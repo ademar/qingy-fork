@@ -13,6 +13,7 @@ extern int yylex();
 extern int in_theme;
 
 static window_t wind;
+
 %}
 
 %union
@@ -27,9 +28,11 @@ static window_t wind;
 %token BG_TOK FONT_TOK BUTTON_OPAC_TOK WIN_OP_TOK SEL_WIN_OP_TOK 			     
 %token SHUTDOWN_TOK EVERYONE_TOK ONLY_ROOT_TOK NO_ONE_TOK
 
-%token WINDOW_TOK WPOLL_TIME_TOK WTEXT_COLOR_TOK WCURSOR_COLOR_TOK
+%token WINDOW_TOK WPOLL_TIME_TOK WTEXT_COLOR_TOK WCURSOR_COLOR_TOK WINDOW_LINK_TOK
 %token WTYPE_TOK WWIDTH_TOK WHEIGHT_TOK WCOMMAND_TOK WCONTENT_TOK
 %token WTEXT_SIZE_TOK WTEXT_SMALL_TOK WTEXT_MEDIUM_TOK WTEXT_LARGE_TOK
+%token WTEXT_ORIENTATION WTEXT_LEFT_TOK WTEXT_CENTER_TOK WTEXT_RIGHT_TOK
+
 
 %token <ival>  ANUM_T 
 %token <str>   QUOTSTR_T
@@ -102,21 +105,28 @@ shutdown: SHUTDOWN_TOK '=' EVERYONE_TOK
           }
         ;
 
-window: WINDOW_TOK '{' windefns '}' { add_window_to_list(wind); }; 
+window: WINDOW_TOK '{' windefns '}' { add_window_to_list(&wind); }; 
 
 windefns: windefn | windefns windefn;
 
-windefn: 'x'            '=' ANUM_T    { wind.x=$3;                        }
-       | 'y'            '=' ANUM_T    { wind.y=$3;                        }
-       | WTYPE_TOK      '=' QUOTSTR_T { wind.type     = get_win_type($3); }
-       | WWIDTH_TOK     '=' ANUM_T    { wind.width    = $3;               }
-       | WHEIGHT_TOK    '=' ANUM_T    { wind.height   = $3;               }
-       | WCOMMAND_TOK   '=' QUOTSTR_T { wind.command  = strdup($3);       }
-       | WCONTENT_TOK   '=' QUOTSTR_T { wind.content  = strdup($3);       }
-       | WPOLL_TIME_TOK '=' ANUM_T    { wind.polltime = $3;               }
-       | WTEXT_SIZE_TOK '=' wintextsize
+windefn: 'x'               '=' ANUM_T    { wind.x=$3;                        }
+       | 'y'               '=' ANUM_T    { wind.y=$3;                        }
+       | WTYPE_TOK         '=' QUOTSTR_T { wind.type     = get_win_type($3); }
+       | WWIDTH_TOK        '=' ANUM_T    { wind.width    = $3;               }
+       | WHEIGHT_TOK       '=' ANUM_T    { wind.height   = $3;               }
+       | WCOMMAND_TOK      '=' QUOTSTR_T { wind.command  = strdup($3);       }
+       | WCONTENT_TOK      '=' QUOTSTR_T { wind.content  = strdup($3);       }
+       | WINDOW_LINK_TOK   '=' QUOTSTR_T { wind.linkto   = strdup($3);       }
+       | WPOLL_TIME_TOK    '=' ANUM_T    { wind.polltime = $3;               }
+       | WTEXT_ORIENTATION '=' textorientation
+       | WTEXT_SIZE_TOK    '=' wintextsize
        | wincolorprop
        ;
+
+textorientation: WTEXT_LEFT_TOK   { wind.text_orientation = LEFT;   }
+               | WTEXT_CENTER_TOK { wind.text_orientation = CENTER; }
+               | WTEXT_RIGHT_TOK  { wind.text_orientation = RIGHT;  }
+               ;
 
 wintextsize: WTEXT_SMALL_TOK  { wind.text_size = SMALL;  }
 	         | WTEXT_MEDIUM_TOK { wind.text_size = MEDIUM; }

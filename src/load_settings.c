@@ -381,38 +381,41 @@ char *parse_inittab_file(void)
 	return result;
 }
 
-int add_window_to_list(window_t w)
+int add_window_to_list(window_t *w)
 {
   static window_t *aux = NULL;
 
+	if (!w) return 0;
+
 	/* there can be only one login, one password and one session window... */
-	if (windowsList && (w.type == LOGIN || w.type == PASSWORD || (w.type == COMBO && !strcmp(w.command,"sessions"))))
+	if (windowsList && (w->type == LOGIN || w->type == PASSWORD || (w->type == COMBO && !strcmp(w->command, "sessions"))))
 	{ /* we search for an already-defined one */
 		window_t *temp = windowsList;
 
 		while (temp)
 		{
-			if (temp->type == w.type)
+			if (temp->type == w->type)
 			{ /* we overwrite old settings with new ones */
-				temp->x              = w.x;
-				temp->y              = w.y;
-				temp->width          = w.width;
-				temp->height         = w.height;
-				temp->text_size      = w.text_size;
-				temp->text_color.R   = w.text_color.R;
-				temp->text_color.G   = w.text_color.G;
-				temp->text_color.B   = w.text_color.B;
-				temp->text_color.A   = w.text_color.A;
-				temp->cursor_color.R = w.cursor_color.R;
-				temp->cursor_color.G = w.cursor_color.G;
-				temp->cursor_color.B = w.cursor_color.B;
-				temp->cursor_color.A = w.cursor_color.A;
+				temp->x              = w->x;
+				temp->y              = w->y;
+				temp->width          = w->width;
+				temp->height         = w->height;
+				temp->text_size      = w->text_size;
+				temp->text_color.R   = w->text_color.R;
+				temp->text_color.G   = w->text_color.G;
+				temp->text_color.B   = w->text_color.B;
+				temp->text_color.A   = w->text_color.A;
+				temp->cursor_color.R = w->cursor_color.R;
+				temp->cursor_color.G = w->cursor_color.G;
+				temp->cursor_color.B = w->cursor_color.B;
+				temp->cursor_color.A = w->cursor_color.A;
 				/*
 				 * other settings are not used in this kind of window
 				 * so we don't bother copying them...
 				 */
-				free(w.content);
-				free(w.command);
+				free(w->content);
+				free(w->command);
+				free(w->linkto);
 				return 1;
 			}
 			temp = temp->next;
@@ -431,27 +434,30 @@ int add_window_to_list(window_t w)
 		aux = aux->next;
 	}
 
-  aux->type           = w.type;
-  aux->x              = w.x;
-  aux->y              = w.y;
-  aux->width          = w.width;
-  aux->height         = w.height;
-	aux->polltime       = w.polltime;
-	aux->text_size      = w.text_size;
-	aux->text_color.R   = w.text_color.R;
-	aux->text_color.G   = w.text_color.G;
-	aux->text_color.B   = w.text_color.B;
-	aux->text_color.A   = w.text_color.A;
-	aux->cursor_color.R = w.cursor_color.R;
-	aux->cursor_color.G = w.cursor_color.G;
-	aux->cursor_color.B = w.cursor_color.B;
-	aux->cursor_color.A = w.cursor_color.A;	
-  aux->command        = strdup(w.command);   
-  aux->content        = strdup(w.content);
-  aux->next           = NULL;
+  aux->type             = w->type;
+  aux->x                = w->x;
+  aux->y                = w->y;
+  aux->width            = w->width;
+  aux->height           = w->height;
+	aux->polltime         = w->polltime;
+	aux->text_size        = w->text_size;
+	aux->text_orientation = w->text_orientation;
+	aux->text_color.R     = w->text_color.R;
+	aux->text_color.G     = w->text_color.G;
+	aux->text_color.B     = w->text_color.B;
+	aux->text_color.A     = w->text_color.A;
+	aux->cursor_color.R   = w->cursor_color.R;
+	aux->cursor_color.G   = w->cursor_color.G;
+	aux->cursor_color.B   = w->cursor_color.B;
+	aux->cursor_color.A   = w->cursor_color.A;	
+  aux->command          = strdup(w->command);   
+  aux->content          = strdup(w->content);
+	aux->linkto           = strdup(w->linkto);
+  aux->next             = NULL;
   
-  free(w.content);
-	free(w.command);
+  free(w->content);
+	free(w->command);
+	free(w->linkto);
 
   return 1;
 }
@@ -500,6 +506,8 @@ int check_windows_sanity()
 			if (!strcmp(temp->command, "reboot"     )) break;
 			if (!strcmp(temp->command, "sleep"      )) break;
 			if (!strcmp(temp->command, "screensaver")) break;
+			fprintf(stderr, "Invalid button: command must be one of the following:\n");
+			fprintf(stderr, "halt, reboot, sleep, screensaver\n");
 			return 0;
 		case LABEL:
 			break;
@@ -521,7 +529,7 @@ int load_settings(void)
 	XINIT                   = NULL;
 	FONT                    = NULL;
 
-  DATADIR   = strdup("/etc/qingy/");
+  DATADIR   = strdup("/etc/qingy_new/");
 	SETTINGS  = StrApp((char**)NULL, DATADIR, "settings", (char*)NULL);
   LAST_USER = StrApp((char**)NULL, DATADIR, "lastuser", (char*)NULL);  
 
