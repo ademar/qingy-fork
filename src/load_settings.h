@@ -93,4 +93,4 @@ char *get_last_session(char *user);
 int set_last_session(char *user, char *session);
 
 /* load a theme */
-int get_theme(char *theme);
+int set_theme(char *theme);

@@ -167,21 +167,30 @@ char *get_random_theme()
   return result;
 }
 
-int get_theme(char *theme)
+int set_theme(char *theme)
 {
-	FILE *fp;
-	char tmp[MAX] = {'\0'};
-	int temp[4];
+	char *file;
+	FILE *oldfile = yyin;
+	/*char tmp[MAX] = {'\0'};
+		int temp[4];*/
 
-  fp = fopen(theme, "r");
-  if (!fp)
+	if (!theme) return 0;
+
+	THEME_DIR = StrApp((char**)NULL, DATADIR, "themes/", theme, "/", (char*)NULL);
+	file = StrApp((char**)NULL, THEME_DIR, "theme", (char*)NULL);
+
+  yyin = fopen(file, "r");
+  if (!yyin)
   {
     if (!silent) fprintf(stderr, "load_settings: selected theme does not exist. Using internal defaults\n");
     error("");
-    free(DEFAULT_THEME); DEFAULT_THEME = NULL;
+		yyin = oldfile;
     return 0;
   }
-
+	yyparse();
+  fclose(yyin);
+	yyin = oldfile;
+/*
   BACKGROUND = (char *) calloc(strlen(THEME_DIR)+15, sizeof(char));
   strcpy(BACKGROUND, THEME_DIR);
   strcat(BACKGROUND, "background.png");
@@ -277,19 +286,8 @@ int get_theme(char *theme)
       fclose(fp);
       return 0;
     }
-  }
-  fclose(fp);
+		}*/
 }
-
-void set_default_theme(void)
-{
-	char *theme = StrApp((char**)NULL, DATADIR, "themes/default/theme", (char*)NULL);
-
-	THEME_DIR = StrApp((char**)NULL, DATADIR, "themes/default/", (char*)NULL);
-	get_theme(theme);
-	free(theme);
-}
-
 
 int load_settings(void)
 {
@@ -318,7 +316,13 @@ int load_settings(void)
 
   if (!X_SESSIONS_DIRECTORY) set_default_session_dirs();
   if (!XINIT) set_default_xinit();
-  if (!GOT_THEME) set_default_theme();
+  if (!GOT_THEME)
+	{
+		char *theme = strdup("default");
+		set_theme(theme);
+		free(theme);
+	}
+
   if (!FONT) set_default_font();
 
   return 1;
