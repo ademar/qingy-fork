@@ -1,3 +1,8 @@
+2004-01-22  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/parse_settings.y: Fixed a bug where a pointer got displayed
+	instead of the value it pointed to...
+
 2004-01-21  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
 
 	* src/scan_settings.l (set_theme): bug fixed. Now it looks like
