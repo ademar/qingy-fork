@@ -97,19 +97,20 @@ void initialize_variables(void)
 void set_default_session_dirs(void)
 {
   TEXT_SESSIONS_DIRECTORY = strdup("/etc/qingy/sessions");
-  if(!TEXT_SESSIONS_DIRECTORY)
-    perror("Qingy error");
-  X_SESSIONS_DIRECTORY = strdup("/etc/X11/Sessions/"); 
-  if(!X_SESSIONS_DIRECTORY)
-    perror("Qingy error");
-
+	X_SESSIONS_DIRECTORY    = strdup("/etc/X11/Sessions/"); 
+	/*
+	 * (michele): no need to check strdup return values,
+	 *            it is done automatically in memmgmt.c!
+	 */  
 }
 
 void set_default_xinit(void)
 {
   XINIT = strdup("/usr/X11R6/bin/xinit");
-  if(!XINIT)
-    perror("Qingy error");
+	/*
+	 * (michele): no need to check strdup return values,
+	 *            it is done automatically in memmgmt.c!
+	 */  
 }
 
 void set_default_font(void)
@@ -186,18 +187,26 @@ char *get_random_theme()
   int i;
 
   dir= opendir(themes_dir);	
-  if (!dir) {
-    perror("Qingy error");
+  if (!dir)
+	{		
+    /* perror("Qingy error"); */
+		/* This is not a qingy error ;-P */
+		fprintf(stderr, "qingy: get_random_theme(): cannot open directory \"%s\"!\n", themes_dir);
     return strdup("default");
   }
 
   while ((entry= readdir(dir)))
   {
-    if(!entry){
-      perror("Qingy error");
-      break;
-    }
-    char *temp;
+		char *temp;
+		/*
+			To the genius who wrote this snippet:
+			if(!entry){
+			  perror("Qingy error");
+			  break;
+			}
+			It will never be executed!
+			(See above while() condition ;-P)
+		*/
     if (!strcmp(entry->d_name, "." )) continue;
     if (!strcmp(entry->d_name, "..")) continue;    
     
@@ -209,8 +218,12 @@ char *get_random_theme()
 		}
     free(temp);
   }
-  if(closedir(dir)== -1) 
-    perror("Qingy error");
+	closedir(dir);
+	/* If the opendir() some lines above didn't fail,
+	 * there is no reason to think closedir() will:
+	 * if(closedir(dir)== -1)
+	 *   perror("Qingy error");
+	 */
   free(themes_dir);
   
   if (!n_themes) return strdup("default");
@@ -292,17 +305,24 @@ char *get_last_session(char *user)
   if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
   strcat(filename, ".qingy");
   fp = fopen(filename, "r");
-  if (!fp){ 
-    perror("Qingy error"); 
+  if (!fp)
+    /* perror("Qingy error"); */
+		/* (MICHELE): Bloody hell, this is NOT an error!
+		 * it just means that there is no previously recorded
+		 * session for this user!
+		 */
     return NULL;
-  }
   if (!get_line(tmp, fp, MAX))
 	{
-		if(fclose(fp)==EOF) 
-			perror("Qingy error");
+		/* (MICHELE) if it did open it,
+		 * it will also close it without problems!
+		 * if(fclose(fp)==EOF)
+		 * perror("Qingy error");
+		 */
+		fclose(fp);
 		return NULL;
 	}
-  if(fclose(fp)==EOF) perror("Qingy error");
+  fclose(fp);
   return strdup(tmp);
 }
 
@@ -324,12 +344,18 @@ int set_last_session(char *user, char *session)
   fp = fopen(filename, "w");
   free(filename);
   
-  if (!fp){
-    perror("Qingy error"); 
-    return 0;
-  }
+  if (!fp) 
+	{		
+		/* (MICHELE): should not happen, but hell!
+		 * who cares if it does?
+		 * perror("Qingy error");
+		 */
+		return 0;
+	}
+
   fprintf(fp, "%s", session);
-  if(fclose(fp)==EOF) perror("Qingy error");
+  fclose(fp);
+
   return 1;
 }
 
@@ -337,27 +363,28 @@ int set_last_session(char *user, char *session)
 char *get_welcome_msg(char *username)
 {
   char line[256];
+	struct passwd *pw;
   char *welcome_msg = NULL;
   char *user        = NULL;
   char *path;
-  FILE *fp;
-
-  struct passwd *pw;
-  if (!username) 
-    return NULL;
+  FILE *fp;	
+  
+  if (!username) return NULL;
 
   /* see if this guy has a .qingy_welcome in the home */
-  pw=getpwnam(username);
-  path=StrApp((char **)NULL, pw->pw_dir, "/.qingy_welcome", (char*)NULL);
-  if(!access(path, F_OK)){
-    fp=fopen(path, "r");
+  pw   = getpwnam(username);
+  path = StrApp((char **)NULL, pw->pw_dir, "/.qingy_welcome", (char*)NULL);
+  if (!access(path, F_OK))
+	{
+    fp = fopen(path, "r");
     free(path);
-    fgets(line, 255, fp);
-    fclose(fp);
-    
-    welcome_msg= strdup(strtok(line, "\n"));
-    if(welcome_msg)
-      return welcome_msg;
+		if (fp)
+		{
+			fgets(line, 255, fp);
+			welcome_msg = strdup(strtok(line, "\n"));
+			fclose(fp);
+			if (welcome_msg) return welcome_msg;
+		}
   }
   path = StrApp((char**)NULL, DATADIR, "welcomes", (char*)NULL);
   fp   = fopen(path, "r");
@@ -368,7 +395,7 @@ char *get_welcome_msg(char *username)
 		while (fgets(line, 255, fp))
 		{
 			user = strtok(line, " \t");
-			if(!strcmp(user, username))
+			if (!strcmp(user, username))
 	    {
 	      welcome_msg = strdup(strtok(NULL, "\n"));
 	      break;
@@ -376,8 +403,8 @@ char *get_welcome_msg(char *username)
 		}
 		fclose(fp);
 	}
-  if (!welcome_msg) 
-    welcome_msg = strdup("Starting selected session...");
+  if (!welcome_msg) return strdup("Starting selected session...");
+
   return welcome_msg;
 }
 

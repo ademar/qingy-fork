@@ -111,57 +111,33 @@ int PAM_conv (int num_msg, pam_message_type **msg, struct pam_response **resp, v
   int count;
   struct pam_response *reply;
   
-  if (appdata_ptr) {}
-  if (!(reply = calloc(num_msg, sizeof(*reply)))) return PAM_CONV_ERR;
+  if (appdata_ptr) {} /* just to avoid compiler warnings */
+  reply = calloc(num_msg, sizeof(*reply));
   
   for (count = 0; count < num_msg; count++)
 	{
 		switch (msg[count]->msg_style)
 		{
 			case PAM_TEXT_INFO:
-				if (!StrApp(&infostr, msg[count]->msg, "\n", (char*)NULL))
-					goto conv_err;
+				StrApp(&infostr, msg[count]->msg, "\n", (char*)NULL);
 				break;
 			case PAM_ERROR_MSG:
-				if (!StrApp(&errstr, msg[count]->msg, "\n", (char*)NULL))
-					goto conv_err;
+				StrApp(&errstr, msg[count]->msg, "\n", (char*)NULL);
 				break;
-			case PAM_PROMPT_ECHO_OFF:
-				/* wants password */
-				if (!StrDup (&reply[count].resp, PAM_password)) goto conv_err;
+			case PAM_PROMPT_ECHO_OFF: /* wants password */
+				reply[count].resp         = strdup(PAM_password);
 				reply[count].resp_retcode = PAM_SUCCESS;
 				break;
-			case PAM_PROMPT_ECHO_ON:
-				/* username given to PAM already */
-				/* fall through */
-			default:
-				/* unknown */
-				goto conv_err;
+			case PAM_PROMPT_ECHO_ON: /* fall through */
+			default: /* something wrong happened */
+				for (; count >= 0; count--)
+					free(reply[count].resp);
+				free (reply);
+				return PAM_CONV_ERR;				
 		}
 	}
   *resp = reply;
-  return PAM_SUCCESS;
-  
-conv_err:
-  for (; count >= 0; count--)
-    if (reply[count].resp)
-		{
-			switch (msg[count]->msg_style)
-			{
-				case PAM_ERROR_MSG:
-				case PAM_TEXT_INFO:
-				case PAM_PROMPT_ECHO_ON:
-					free(reply[count].resp);
-					break;
-				case PAM_PROMPT_ECHO_OFF:
-					free(reply[count].resp);
-					break;
-			}
-			reply[count].resp = 0;
-		}
-  /* forget reply too */
-  free (reply);
-  return PAM_CONV_ERR;
+  return PAM_SUCCESS;  
 }
 
 struct pam_conv PAM_conversation =
