@@ -51,19 +51,19 @@
 
 void Error()
 {
-  printf("\nqingy version " VERSION "\n");
+	printf("\nqingy version " VERSION "\n");
 	printf("\nusage: ginqy <ttyname> [options]\n");
 	printf("Options:\n");
 	printf("\t--black-screen-workaround\n");
 	printf("\tTry this if you get a black screen instead of a text console.\n");
-  printf("\tNote: switching to another vt and back also solves the problem.\n\n");
+	printf("\tNote: switching to another vt and back also solves the problem.\n\n");
 
 	exit(EXIT_FAILURE);
 }
 
 void text_mode()
 {
-  char *username;
+	char *username;
 
 	/* We fall back here if framebuffer init fails */
 	username = (char *) calloc(MAX, sizeof(char));
@@ -82,40 +82,40 @@ void text_mode()
 void start_up(int workaround)
 {
 	int returnstatus;
-  int argc = 2;
+	int argc = 2;
 	char *argv[3];
 
-  argv[0]= (char *) calloc(6, sizeof(char));
+	argv[0]= (char *) calloc(6, sizeof(char));
 	strcpy(argv[0], "qingy");
-  argv[1]= (char *) calloc(33, sizeof(char));
+	argv[1]= (char *) calloc(33, sizeof(char));
 	strcpy(argv[1], "--dfb:no-vt-switch,quiet,bg-none");
-  argv[2]= NULL;
+	argv[2]= NULL;
 
 	/* Now we try to initialize the framebuffer */
-  returnstatus = framebuffer_mode(argc, argv, workaround);
+	returnstatus = framebuffer_mode(argc, argv, workaround);
 	free(argv[1]); free(argv[0]); argv[1]= argv[0]= NULL;
 	/* We should never get here unless directfb init failed
 	   or user wants to change tty                          */
 
-  /* this if user wants to switch to another tty */
+	/* this if user wants to switch to another tty */
 	if (returnstatus != TEXT_MODE)
 	{
-	  if (set_active_tty(returnstatus) == 0)
+		if (set_active_tty(returnstatus) == 0)
 		{
-		  fprintf(stderr, "\nfatal error: unable to change active tty!\n");
+			fprintf(stderr, "\nfatal error: unable to change active tty!\n");
 			exit(EXIT_FAILURE);
 		}
-    exit(EXIT_SUCCESS); /* init will restart us in listen mode */
+		exit(EXIT_SUCCESS); /* init will restart us in listen mode */
 	}
 
 	/* we get here if framebuffer init failed: we revert to text mode   */
 	if (workaround != -1)
-  {
-	  /* This is to avoid a black display after framebuffer dies */
-    set_active_tty(13);
-	  set_active_tty(workaround);
-  }
-  text_mode(); /* This call does not return */
+	{
+		/* This is to avoid a black display after framebuffer dies */
+		set_active_tty(13);
+		set_active_tty(workaround);
+	}
+	text_mode(); /* This call does not return */
 
 	/* We should never get here */
 	fprintf(stderr, "\nGo tell my creator that his brains went pop!\n");
@@ -124,43 +124,43 @@ void start_up(int workaround)
 
 int main(int argc, char *argv[])
 {
-  char *tty;
+	char *tty;
 	int our_tty_number;
 	int user_tty_number;
 	int workaround = -1;
 	int i = 2;
-  struct timespec delay;
+	struct timespec delay;
 
-  /* We set up a delay of 0.5 seconds */
-  delay.tv_sec= 0;
-  delay.tv_nsec= 500000000;
+	/* We set up a delay of 0.5 seconds */
+	delay.tv_sec= 0;
+	delay.tv_nsec= 500000000;
 
 	/* Some consistency checks... */
 	if (argc > 4) Error();
 	tty= argv[1];
-  if (strncmp(tty, "tty", 3) != 0) Error();
+	if (strncmp(tty, "tty", 3) != 0) Error();
 	our_tty_number= atoi(tty+3);
 	if (our_tty_number < 1) Error();
-  if (our_tty_number >12) Error();
+	if (our_tty_number >12) Error();
 	while (i < argc)
 	{
-	  if (strcmp(argv[i], "--black-screen-workaround") == 0)
+		if (strcmp(argv[i], "--black-screen-workaround") == 0)
 			workaround = our_tty_number;
 		else Error();
 		i++;
 	}
 
 	/* We switch to tty <tty> */
-  if (!switch_to_tty(our_tty_number))
+	if (!switch_to_tty(our_tty_number))
 	{
-	  fprintf(stderr, "\nUnable to switch to virtual terminal %s\n", tty);
-    return EXIT_FAILURE;
+		fprintf(stderr, "\nUnable to switch to virtual terminal %s\n", tty);
+		return EXIT_FAILURE;
 	}
 
 	/* main loop: we wait until the user switches to the tty we are running in */
 	while (1)
 	{
-    user_tty_number = get_active_tty();
+		user_tty_number = get_active_tty();
 		if (user_tty_number == -1)
 		{
 			fprintf(stderr, "\nfatal error: cannot get active tty number!\n");
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* We should never get here */
-  fprintf(stderr, "\nGo tell my creator not to smoke that stuff, next time...\n");
+	fprintf(stderr, "\nGo tell my creator not to smoke that stuff, next time...\n");
 
 	return EXIT_FAILURE;
 }
