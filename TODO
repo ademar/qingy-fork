@@ -10,3 +10,4 @@
 	 or let the X server choose its own)
 - add more screen savers
 - ldap support for authentication (with pam?)
+- allow selection of alternate x server layouts

@@ -2,9 +2,9 @@ qingy CVS
 - Starting X sessions for users with a shell other than bash
   should no longer fail with strange errors
   (this occurred at least with tcsh)
-- addded support for selecting a random theme
+- added support for selecting a random theme
   at startup (just use 'random' as theme name)
-- added support screen savers
+- added support for screen savers
 - added a screen saver: pixel
 - added option to select which framebuffer device to use
 - updated text mode login for increased security
