@@ -31,9 +31,6 @@
 - Make code compliant to the GNU Coding Standards.. That is to be done in order
   to try inclusion in the GNU Project.
 
-- Apparently if you log in (text console session) with qingy, you do not appear
-  listed by the who, w, finger commands... this needs fixing.
-
 - Add support for handling console bootsplash from inside qingy? That is: qingy
   background becomes framebuffer background when you log in...
 
