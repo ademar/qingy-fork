@@ -787,7 +787,6 @@ int directfb_mode (int argc, char *argv[])
     DirectFB_Error();
     return TEXT_MODE;
   }
-
   Draw_Background_Image();
 
   /* we create buttons */

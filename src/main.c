@@ -135,7 +135,7 @@ void start_up(void)
   /* if user wants to switch to another tty ... */
   if (returnstatus != TEXT_MODE)
   {
-    if (set_active_tty(returnstatus) == 0)
+    if (!set_active_tty(returnstatus))
     {
       fprintf(stderr, "\nfatal error: unable to change active tty!\n");
       exit(EXIT_FAILURE);

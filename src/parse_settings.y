@@ -45,11 +45,11 @@ ssav:	SCREENSAVER_TOK PIXEL_TOK { SCREENSAVER=PIXEL_SCREENSAVER; }
 photos: QUOTSTR_T	{add_to_paths($1); }		/* nothing */
 	| photos ',' QUOTSTR_T { add_to_paths($3); };
 
-xsessdir: XSESSION_DIR_TOK '=' QUOTSTR_T { if(in_theme){ yyerror("Not allowed in theme file");}  X_SESSIONS_DIRECTORY=strdup($3); };
+xsessdir: XSESSION_DIR_TOK '=' QUOTSTR_T { if(in_theme){ yyerror("Setting 'x_sessions' is not allowed in theme file.");}  X_SESSIONS_DIRECTORY=strdup($3); };
 
-txtsessdir: TXTSESSION_DIR_TOK '=' QUOTSTR_T { if(in_theme){ yyerror("Not allowed in theme file");} TEXT_SESSIONS_DIRECTORY=strdup($3); };
+txtsessdir: TXTSESSION_DIR_TOK '=' QUOTSTR_T { if(in_theme){ yyerror("Setting 'test_sessions' is not allowed in theme file.");} TEXT_SESSIONS_DIRECTORY=strdup($3); };
 
-xinit:	XINIT_TOK '=' QUOTSTR_T { if(in_theme){ yyerror("Not allowed in theme file");} XINIT=strdup($3); };
+xinit:	XINIT_TOK '=' QUOTSTR_T { if(in_theme){ yyerror("Setting 'xinit' is not allowed in theme file");} XINIT=strdup($3); };
  
 theme: 	THEME_TOK RAND_TOK { set_theme(get_random_theme());} 
 	| THEME_TOK '=' QUOTSTR_T  {set_theme($3);}

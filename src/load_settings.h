@@ -110,7 +110,7 @@ typedef struct _window {
 
 window_t* windowsList;
 
-/* init to NULL some stuff */
+/* initialize some stuff */
 void initialize_variables(void);
 
 /* get program settings from config file */

@@ -56,11 +56,13 @@
 extern FILE* yyin;
 extern int yyparse(void);
 
-int GOT_THEME = 0;
-int in_theme = 0;
+char *file_error = NULL;
+int   GOT_THEME  = 0;
+int   in_theme   = 0;
 
 void initialize_variables(void)
 {
+	SCREENSAVER             = PIXEL_SCREENSAVER;  
 	TEXT_SESSIONS_DIRECTORY = NULL;
   X_SESSIONS_DIRECTORY    = NULL;
 	BACKGROUND              = NULL;
@@ -70,22 +72,22 @@ void initialize_variables(void)
 	DATADIR                 = NULL;
 	XINIT                   = NULL;
   FONT                    = NULL;
-	image_paths             = NULL;
+	image_paths             = NULL;	
+	windowsList             = NULL;
   black_screen_workaround = 0;
-  silent                  = 1;
-  hide_password           = 0;
-  hide_last_user          = 0;
-	disable_last_user       = 0;
-  no_shutdown_screen      = 0;
-  use_screensaver         = 1;
   screensaver_timeout     = 5;
-	SCREENSAVER             = PIXEL_SCREENSAVER;  
+  no_shutdown_screen      = 0;
+	disable_last_user       = 0;
+  use_screensaver         = 1;
+  hide_last_user          = 0;
+  hide_password           = 0;
+  silent                  = 1;
 }
 
 void set_default_session_dirs(void)
 {
-  X_SESSIONS_DIRECTORY    = strdup("/etc/X11/Sessions/");
-  TEXT_SESSIONS_DIRECTORY = strdup("/etc/qingy/sessions");
+	TEXT_SESSIONS_DIRECTORY = strdup("/etc/qingy/sessions");
+  X_SESSIONS_DIRECTORY    = strdup("/etc/X11/Sessions/");  
 }
 
 void set_default_xinit(void)
@@ -141,20 +143,6 @@ void add_to_paths(char *path)
 	if (!silent) fprintf(stderr, "Added '%s' to image paths...\n", path);
 }
 
-void yyerror(char *error)
-{
-  if (!silent) fprintf(stderr, "qingy: %s.\n", error);
-  free(X_SESSIONS_DIRECTORY);
-  free(TEXT_SESSIONS_DIRECTORY);
-  free(XINIT);
-  free(FONT);
-  free(THEME_DIR);
-  set_default_session_dirs();
-  set_default_xinit();
-  set_default_font();
-  set_default_colors();
-}
-
 char *get_random_theme()
 {
   DIR *dir;
@@ -201,28 +189,54 @@ char *get_random_theme()
 
 int set_theme(char *theme)
 {
+	char *oldfile_error = file_error;
+	FILE *oldfile       = yyin;
 	char *file;
-	FILE *oldfile = yyin;
-
+	
 	if (!theme) return 0;
 
 	THEME_DIR = StrApp((char**)NULL, DATADIR, "themes/", theme, "/", (char*)NULL);
 	file = StrApp((char**)NULL, THEME_DIR, "theme", (char*)NULL);
+	file_error = file;
 
   yyin = fopen(file, "r");
   if (!yyin)
   {
-    if (!silent) fprintf(stderr, "load_settings: theme '%s' does not exist.\n", theme);
-		yyin = oldfile;
+    if (!silent) fprintf(stderr, "load_settings: theme '%s' does not exist.\n", theme);		
+		file_error = oldfile_error;
+		yyin       = oldfile;
     return 0;
   }
-  in_theme=1;
+
+  in_theme = 1;
   yyparse();
   fclose(yyin);
-  yyin = oldfile;
-  in_theme=0;
-  GOT_THEME = 1;
+
+	file_error = oldfile_error;
+  yyin       = oldfile;
+	GOT_THEME  = 1;
+  in_theme   = 0;
+
   return 1;
+}
+
+void yyerror(char *error)
+{
+  if (!silent)
+	{
+		fprintf(stderr, "qingy: error in configuration file %s:\n", file_error);
+		fprintf(stderr, "       %s.\n", error);
+	}
+  free(X_SESSIONS_DIRECTORY);
+  free(TEXT_SESSIONS_DIRECTORY);
+  free(XINIT);
+  free(FONT);
+  free(THEME_DIR);
+	THEME_DIR = StrApp((char**)NULL, DATADIR, "themes/default/", (char*)NULL);
+  set_default_session_dirs();
+  set_default_xinit();
+  set_default_font();
+  set_default_colors();
 }
 
 int load_settings(void)
@@ -247,8 +261,10 @@ int load_settings(void)
     set_default_colors();
     return 1;
   }
+	file_error = SETTINGS;
   yyparse();
   fclose(yyin);
+	file_error = NULL;
 
   if (!X_SESSIONS_DIRECTORY) set_default_session_dirs();
   if (!XINIT) set_default_xinit();
