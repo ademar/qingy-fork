@@ -729,11 +729,15 @@ int handle_keyboard_event(DFBInputEvent *evt)
 	  if(ascii_code == 'c')
 	    kill(getpid(), SIGINT);
 	  if(ascii_code == 'z'){
+	    
+	    ascii_code=0;
+	    modifier=0;
 	    screensaver_countdown = 0;
 	    screensaver_active    = 1;
 	    clear_screen();
 	    primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
 	    primary->Flip  (primary, NULL, DSFLIP_BLIT);
+	    sleep(1);
 	  }
 	}
 #endif
