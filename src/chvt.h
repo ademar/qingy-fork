@@ -25,7 +25,7 @@
  *                                                                         *
  ***************************************************************************/
 
-
+ 
 /* change stdin, stdout and stderr to a new tty*/
 int switch_to_tty(int tty);
 

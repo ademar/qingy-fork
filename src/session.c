@@ -30,17 +30,27 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <grp.h>
 #include <paths.h>
+#include <shadow.h>
+#include <syslog.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <shadow.h>
+#include <time.h>
+#include <lastlog.h>
 
 #include "session.h"
 #include "chvt.h"
 #include "misc.h"
+
+#define UNKNOWN_USER   0
+#define WRONG_PASSWORD 1
+#define OPEN_SESSION   2
+#define CLOSE_SESSION  3
 
 extern char **environ;
 int current_vt;
@@ -88,7 +98,33 @@ int get_sessions(void)
 	return (i+1);
 }
 
-int check_password(void)
+/* write events to system logs */
+void LogEvent(struct passwd *pw, int status)
+{
+	openlog("qingy", LOG_PID, LOG_AUTHPRIV);
+
+	switch (status)
+	{
+		case UNKNOWN_USER:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "Authentication failure: user '%s' is unknown\n", pw->pw_name);
+			break;
+		case WRONG_PASSWORD:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "Authentication failure: wrong password for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
+			break;
+		case OPEN_SESSION:
+			syslog(LOG_AUTHPRIV|LOG_INFO, "Session opened for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
+			break;
+		case CLOSE_SESSION:
+			syslog(LOG_AUTHPRIV|LOG_INFO, "Session closed for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
+			break;
+		default:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "Error #666, coder brains are severely damaged!\n");
+	}
+
+	closelog();
+}
+
+int check_password(char *username, char *password)
 {
 	char*  encrypted;
 	char*  correct;
@@ -99,7 +135,14 @@ int check_password(void)
 
 	pw = getpwnam(username);
 	endpwent();
-	if (!pw) return 0;
+	if (!pw)
+	{
+		struct passwd pwd;
+
+		pwd.pw_name = username;
+		LogEvent(&pwd, UNKNOWN_USER);
+		return 0;
+	}
 
 #ifdef SHADOW_PASSWD
 	sp = getspnam(pw->pw_name);
@@ -112,10 +155,10 @@ int check_password(void)
 	if (correct == 0 || correct[0] == '\0') return 1;
 
 	encrypted = crypt(password, correct);
-	memset(password, 0, strlen(password));
 
 	if (!strcmp(encrypted, correct)) return 1;
 
+	LogEvent(pw, WRONG_PASSWORD);
 	return 0;
 }
 
@@ -135,21 +178,28 @@ char *baseName(char *name)
 
 void Text_Login(struct passwd *pw)
 {
-	char *args[2];
-	char *shell;
-	char *shell_basename;
+	char exec[MAX];
+	pid_t proc_id;
 
-	shell = strdup(pw->pw_shell);
-	shell_basename = baseName(shell);
+	strcpy(exec, strdup(pw->pw_shell));
+	strcat(exec, " -l");
 
-	args[0] = (char *) calloc(strlen(shell_basename) + 2, sizeof(char));
-	strcpy(args[0], "-");
-	strcat(args[0], shell_basename);
-	args[1] = 0;
-	execv(shell,args);
+	proc_id = fork();
+	if (proc_id == -1)
+	{
+		fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
+		exit(0);
+	}
+	if (!proc_id)
+	{
+		if (system(exec) == -1)
+			fprintf(stderr, "session: fatal error: cannot start your session!\n");
+		exit(0);
+	}
+	LogEvent(pw, OPEN_SESSION);
+	wait(NULL);
+	LogEvent(pw, CLOSE_SESSION);
 
-	/* we should never get here... */
-	fprintf(stderr, "session: unable to start console session!\n");
 	exit(0);
 }
 
@@ -159,9 +209,13 @@ int which_X_server(void)
 {
 	FILE *fp;
 	char filename[20];
-	int num=0;
+	int num=1;
 
-	strcpy(filename, "/tmp/.X0-lock");
+	/* we start our search from server :1 (instead of :0)
+	   to allow a console user to start his own X server
+		 using the default startx command                   */
+
+	strcpy(filename, "/tmp/.X1-lock");
 	while( (fp = fopen(filename, "r")) != NULL)
 	{
 		num++;
@@ -200,12 +254,12 @@ void Graph_Login(struct passwd *pw, char *path, char *script)
 	}
 	if (!proc_id)
 	{
-		system("/usr/bin/clear 2>/dev/null");
 		fprintf(stderr, "Switching to X Server...\n");
 		if (system(exec) == -1)
 			fprintf(stderr, "session: fatal error: cannot start your session!\n");
 		exit(0);
 	}
+	LogEvent(pw, OPEN_SESSION);
 	while(1)
 	{
 		pid_t result;
@@ -218,76 +272,100 @@ void Graph_Login(struct passwd *pw, char *path, char *script)
 		}
 		else break;
 	}
+	LogEvent(pw, CLOSE_SESSION);
 	if (get_active_tty() == dest_vt) set_active_tty(current_vt);
 
 	exit(0);
 }
 
-void setEnvironment(char *username)
+void setEnvironment(struct passwd *pwd)
 {
-	struct passwd *pw;
-	char          *mail;
+	char *mail;
 
-	/* Get password struct */
-	pw = getpwnam(username);
-	endpwent();
-	if (!pw)
-	{
-		fprintf(stderr, "user %s not found in /etc/passwd\n", username);
-		exit(0);
-	}
-
-	/* Set environment */
 	environ = (char **) calloc(2, sizeof(char *));
 	environ[0] = 0;
-	setenv("TERM", "linux", 0);  /* TERM=vt100? */
-	setenv("HOME", pw->pw_dir, 1);
-	setenv("SHELL", pw->pw_shell, 1);
-	setenv("USER", pw->pw_name, 1);
-	setenv("LOGNAME", pw->pw_name, 1);
+	setenv("TERM", "linux", 0);
+	setenv("HOME", pwd->pw_dir, 1);
+	setenv("SHELL", pwd->pw_shell, 1);
+	setenv("USER", pwd->pw_name, 1);
+	setenv("LOGNAME", pwd->pw_name, 1);
 	setenv("DISPLAY", ":0.0", 1);
-	mail = (char *) calloc(strlen(_PATH_MAILDIR) + strlen(pw->pw_name) + 2, sizeof(char));
+	mail = (char *) calloc(strlen(_PATH_MAILDIR) + strlen(pwd->pw_name) + 2, sizeof(char));
 	strcpy(mail, _PATH_MAILDIR);
 	strcat(mail, "/");
-	strcat(mail, pw->pw_name);
+	strcat(mail, pwd->pw_name);
 	setenv("MAIL", mail, 1);
-	chdir(pw->pw_dir);
+	chdir(pwd->pw_dir);
 }
 
-void switchUser(char *username, char *path, char *script)
+void switchUser(struct passwd *pwd, char *path, char *script)
 {
-	struct passwd *pw;
-
-	/* Get password struct */
-	pw = getpwnam(username);
-	endpwent();
-	if (!pw)
-	{
-		fprintf(stderr, "user %s not found in /etc/passwd\n", username);
-		exit(0);
-	}
-
 	/* Set user id */
-	if ((initgroups(pw->pw_name, pw->pw_gid) != 0) || (setgid(pw->pw_gid) != 0) || (setuid(pw->pw_uid) != 0))
+	if ((initgroups(pwd->pw_name, pwd->pw_gid) != 0) || (setgid(pwd->pw_gid) != 0) || (setuid(pwd->pw_uid) != 0))
 	{
 		fprintf(stderr, "could not switch user id\n");
 		exit(0);
 	}
 
 	/* Execute login command */
-	setEnvironment(username);
-	if (!path && !script) Text_Login(pw);
-	else Graph_Login(pw, path, script);
+	setEnvironment(pwd);
+	if (!path && !script) Text_Login(pwd);
+	else Graph_Login(pwd, path, script);
 	fprintf(stderr, "could not execute login command\n");
 	exit(0);
 }
 
+void xstrncpy(char *dest, const char *src, size_t n)
+{
+	strncpy(dest, src, n-1);
+	dest[n-1] = 0;
+}
+
+/* write login entry to /var/log/lastlog */
+void dolastlog(struct passwd *pwd, int quiet)
+{
+	struct lastlog ll;
+	int fd;
+	char *hostname = (char *) calloc(UT_HOSTSIZE, sizeof(char));
+	char *tty_name = (char *) calloc(UT_LINESIZE, sizeof(char));
+
+	gethostname(hostname, UT_HOSTSIZE);
+	strncpy(tty_name, "tty", UT_LINESIZE);
+	strncat(tty_name, int_to_str(current_vt), UT_LINESIZE);
+
+	if ((fd = open(_PATH_LASTLOG, O_RDWR, 0)) >= 0)
+	{
+		lseek(fd, (off_t)pwd->pw_uid * sizeof(ll), SEEK_SET);
+		if (!quiet)
+		{
+			if (read(fd, (char *)&ll, sizeof(ll)) == sizeof(ll) && ll.ll_time != 0)
+			{
+				printf("Last login: %.*s ", 24-5, (char *)ctime(&ll.ll_time));
+				if (*ll.ll_host != '\0')
+					printf("from %.*s\n", (int)sizeof(ll.ll_host), ll.ll_host);
+				else
+					printf("on %.*s\n", (int)sizeof(ll.ll_line), ll.ll_line);
+			}
+			lseek(fd, (off_t)pwd->pw_uid * sizeof(ll), SEEK_SET);
+		}
+		memset((char *)&ll, 0, sizeof(ll));
+		time(&ll.ll_time);
+		xstrncpy(ll.ll_line, tty_name, sizeof(ll.ll_line));
+		if (hostname) xstrncpy(ll.ll_host, hostname, sizeof(ll.ll_host));
+		write(fd, (char *)&ll, sizeof(ll));
+		close(fd);
+	}
+	free(hostname);
+	free(tty_name);
+}
+
 /* Start the session of your choice */
-void start_session(int session_id, int workaround)
+void start_session(char *username, int session_id, int workaround)
 {
 	struct session *curr = &sessions;
+	struct passwd *pwd = getpwnam(username);
 
-	while (curr->id != session_id) curr= curr->next;
+	endpwent();
 
 	if (workaround != -1)
 	{
@@ -297,9 +375,27 @@ void start_session(int session_id, int workaround)
 	}
 	else current_vt = get_active_tty();
 
+	if (!pwd)
+	{
+		fprintf(stderr, "user %s not found in /etc/passwd\n", username);
+		free(username);
+		exit(0);
+	}
+	free(username);
+
+	while (curr->id != session_id) curr= curr->next;
+
+	ClearScreen();
 	if (strcmp(curr->name, "Text Console") == 0)
-		switchUser(username, NULL, NULL);
-	else switchUser(username, XSESSIONS_DIRECTORY, curr->name);
+	{
+		dolastlog(pwd, 0);
+		switchUser(pwd, NULL, NULL);
+	}
+	else
+	{
+		dolastlog(pwd, 1);
+		switchUser(pwd, XSESSIONS_DIRECTORY, curr->name);
+	}
 
 	/* we don't get here unless we couldn't start user session */
 	fprintf(stderr, "Couldn't login user '%s'!\n", username);

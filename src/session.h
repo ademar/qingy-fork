@@ -25,7 +25,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "misc.h"
 
 #define XSESSIONS_DIRECTORY "/etc/X11/Sessions/"
 #define XINIT               "/usr/X11R6/bin/xinit"
@@ -39,14 +38,12 @@ struct session
 };
 
 struct session sessions;
-char username[MAX];
-char password[MAX];
 
 /* get info about available sessions */
 int get_sessions(void);
 
 /* Password autentication */
-int check_password(void);
+int check_password(char *username, char *password);
 
 /* Start the session of your choice */
-void start_session(int session_id, int workaround);
+void start_session(char *username, int session_id, int workaround);

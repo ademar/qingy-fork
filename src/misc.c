@@ -95,21 +95,7 @@ char *stringCombine(const char* str1, const char* str2)
    return buffer;
 }
 
-/*void print_host_name(char *where, int max)
+void ClearScreen(void)
 {
-	FILE *fp;
-	char c;
-	int i;
-
-	fp= fopen("/etc/hostname", "r");
-	if (fp == NULL) return;
-	for (i=0; i<(max-1); i++)
-	{
-		c=fgetc(fp);
-		if (c == '\n') break;
-		if (c == EOF ) break;
-		*(where + i) = c;
-	}
-	fclose(fp);
-  *(where + i) = '\0';
-}*/
+	system("/usr/bin/clear 2>/dev/null");
+}

@@ -40,3 +40,6 @@ int log10(int n);
 /* functions to start and stop gpm */
 int stop_gpm(void);
 int start_gpm(void);
+
+/* I couldn'd think of an intelligent explanation for this */
+void ClearScreen(void);
