@@ -1,4 +1,4 @@
-AC_INIT(qingy, 0.2.3CVS, noberasco.gnu@disi.unige.it)
+AC_INIT(qingy, 0.2.3, noberasco.gnu@disi.unige.it)
 AC_PREREQ(2.57)
 AC_CONFIG_SRCDIR(src/main.c)
 AM_INIT_AUTOMAKE()
@@ -128,15 +128,28 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	if test -f "media/settings"; then
 		rm media/settings
 	fi
+	
+	echo "# Directory containing X sessions" >> media/settings
 	echo "X_SESSIONS_DIRECTORY /etc/X11/Sessions/" >> media/settings
+	echo "# Directory containing text mode sessions" >> media/settings
 	echo "TEXT_SESSIONS_DIRECTORY /etc/qingy/sessions/" >> media/settings
-	echo "XINIT $XINIT" >> media/settings
+	echo "" >> media/settings
+	echo "# Full path to the 'xinit' executable" >> media/settings
+	echo "XINIT /usr/X11R6/bin/xinit" >> media/settings
+	echo "" >> media/settings
+	echo "# Chose ONE screen saver" >> media/settings
 	echo "SCREEN_SAVER pixel" >> media/settings
+	echo "# SCREEN_SAVER photo # keep the double quotes in the IMAGES_PATH" >> media/settings
+	echo "# IMAGES_PATH \"/mnt/documenti/images\"" >> media/settings
+	echo "# IMAGES_PATH \"/mnt/documenti/images2\"" >> media/settings
+	echo "" >> media/settings
+	echo "# What theme do you want (you can also specify 'random')" >> media/settings
 	echo "THEME default" >> media/settings
+
 	echo "done"
 # End creation of config files
 
 PREFIX=""
 AC_PREFIX_DEFAULT ($PREFIX)
 
-AC_OUTPUT(Makefile src/Makefile src/DirectFB/Makefile media/Makefile media/default/Makefile media/pam/Makefile)
+AC_OUTPUT(Makefile src/Makefile src/DirectFB/Makefile media/Makefile media/default/Makefile media/sessions/Makefile media/pam/Makefile)

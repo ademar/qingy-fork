@@ -1,6 +1,6 @@
 ## Makefile.am for qingy/media
 
-SUBDIRS = default @PAM@
+SUBDIRS = default sessions @PAM@
 
 settingsdatadir = $(prefix)/etc/qingy
 settingsdata_DATA = settings

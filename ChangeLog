@@ -20,7 +20,8 @@ qingy CVS:
   Note: you can specify more than one path by putting
   several 'IMAGES_PATH' lines into the config file.
 - No longer necessary to start qingy in the first 12 ttys
-- A surprise now awaits the rightful master ;-)
+- Added support for comments is config file.
+- A surprise now awaits the rightful master ;-)	
 - The usual minor fixes and clean ups
 	
 qingy 0.2.2 (29 September 2003):

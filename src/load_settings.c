@@ -197,6 +197,19 @@ int load_settings(void)
     int err = 0;
     int found = 0;
 
+		if (tmp[0] == '#')
+		{
+			char c;			
+
+			while (1)
+			{
+				c = fgetc(fp);
+				if (c == '\n') break;
+				if (c == EOF)  break;
+			}
+			continue;
+		}
+
 		if (strcmp(tmp, "SCREEN_SAVER") == 0)
 		{
       if (fscanf(fp, "%s", tmp) == EOF)
