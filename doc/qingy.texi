@@ -53,9 +53,10 @@ Free Documentation License".
 * The settings file::           
 * Qingy Themes::                
 * The welcomes feature::        
+* Screensavers::                
 * Using Qingy::                 
 * Copying Qingy::               
-* Copying::
+* Copying::                     
 * GNU Free Documentation License::
 * Index::                       
 
@@ -96,6 +97,11 @@ theme file examples
 Themes using settings file
 
 * Random themes::               
+
+Screensavers
+
+* Security matters with Qingy screensavers::  
+* Rolling your own screensavers::  
 
 @end detailmenu
 @end menu
@@ -299,11 +305,9 @@ text_sessions = "/etc/qingy/sessions/"
 # Full path to the 'xinit' executable
 xinit = "/usr/X11R6/bin/xinit"
 
-screensaver photos =
-       "/mnt/docs/pics/Space/deep",
-       "/mnt/docs/pics/Space/moon&sun",
-       "/mnt/docs/pics/screensaver_pics",  
-
+screensaver "running_time"  =
+                   "%H:%M:%S" 
+ 
 # What theme do you want (you can also specify 'random')
 theme = random
 
@@ -317,11 +321,9 @@ shutdown_policy = everyone
 @end verbatim
 
 It is pretty self-explicative: so let's see what else can we do with
-it: @code{screensaver} can also be set to @samp{pixel}. In that case,
-no @samp{= "/paths/..."} is required. The photos screensaver will
-display randomly the pictures it finds in the specified directories,
-while pixel will just randomly display a pixel on the otherwise
-blanked screen.
+it: @code{screensaver} can be set to any of the screensavers found in
+@file{/etc/qingy/screensaver}. @xref{Screensavers} for more details
+about screensavers in Qingy.
 
 Theme can be set to random (without quotes, that means you can have an
 actual theme called @samp{random}...) or to a real theme by quoting
@@ -640,7 +642,7 @@ greenish fade. The selected window is more vivid than the rest, due to
 
 @verbatim
 
-screensaver=pixel
+screensaver="running_time"
 
 theme
 {	
@@ -920,7 +922,7 @@ is perfectly valid.
 
 
 
-@node  The welcomes feature, Using Qingy, Qingy Themes, Top
+@node  The welcomes feature, Screensavers, Qingy Themes, Top
 @comment  node-name,  next,  previous,  up
 @chapter The welcomes feature
 
@@ -933,7 +935,7 @@ a space and just whatever you want to display. For example:
 @example
 paolino The answer is 42!
 michele Ah! What a lovely day, my Author...
-root    It's not funny...Why do you wanna log like that!?
+root    It's not funny... Why do you wanna log like that!?
 @end example
 
 will display @samp{The answer is 42} when I (paolino) log in, and so on (you got the point).
@@ -941,8 +943,85 @@ will display @samp{The answer is 42} when I (paolino) log in, and so on (you got
 @emph{Note: this is still a quick hack... It will be most probably
 changed (in better, hopefully) in next releases... :)}
 
+@node  Screensavers, Using Qingy, The welcomes feature, Top
+@comment  node-name,  next,  previous,  up
+@chapter Screensavers
 
-@node  Using Qingy, Copying Qingy, The welcomes feature, Top
+Qingy has now a modularized screensaver support: basically, you or
+anyone else can write her own screensaver as a module and distribute
+it. You'll just have to install it and call it from the
+@file{settings} file. 
+
+A screensaver for qingy is just a function made in a certain way, in a
+module built in a certain way, stored in a certain directory. Now pay
+big attention: @emph{@b{THIS IS VERY IMPORTANT: You are making Qingy
+execute arbitrary code through this function!! Please go on reading!!}}
+
+@menu
+* Security matters with Qingy screensavers::  
+* Rolling your own screensavers::  
+@end menu
+
+@node Security matters with Qingy screensavers, Rolling your own screensavers, Screensavers, Screensavers
+@comment  node-name,  next,  previous,  up
+@section Security matters with Qingy screensavers
+
+Ok. Let's make this clear: @emph{@b{YOU SHOULDN'T INSTALL A
+SCREENSAVER UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING, OR YOU REALLY
+TRUST THE PERSON WHO GAVE IT TO YOU!!!!}} 
+
+Indeed, a screensaver is just a piece of code which is executed upon
+some events by Qingy: that is when you press the saver button on your
+interface or the screen is idle for five minutes.  The piece of code
+should basically perform a loop until someone presses a key or moves
+the mouse. Inside the loop are the instructions to display something
+on the screen. But what if Joe M. Alicious put in the loop some nasty
+instruction like ``remove all the files on your disk and die'' or
+``email to me all your passwords'' or such?  Then he would make a nice
+package and post it on the web for people to download. You could get
+it and install it. And the first time you try you get pain and
+destruction.  So now you see what I mean with @samp{you shouldn't install a
+screensaver unless you know exactly what you are doing, or you really
+trust the person who gave it to you}. If you can read C, you probably
+could get a glimpse of what's going on directly there in. Normally a
+screensaver is quite a small file, from a few tens to maybe a couple
+of hudred lines of code.  You might also ask YLE, Your Local Expert,
+to check for you. Or just tell us where to get it: we'll most probably
+want to try it and be sure that we will check for bad things in there
+before we even compile it... :-)
+
+Still, remember: you might get in trouble by using a screensaver you
+don't totally trust.
+
+Ah, by the way, if you have any idea on how to improve a little this
+HUGE security breach, please email me (paolino@@gnu.disi.unige.it) and
+tell me how. Please. 
+
+@node  Rolling your own screensavers,  , Security matters with Qingy screensavers, Screensavers
+@comment  node-name,  next,  previous,  up
+@section Rolling your own screensavers
+
+So you are one of those people that laugh if I say ``mknod florida b 5
+1 is Miami Device'' @footnote{Actually if you ask why should the
+console be called florida, you are a bit too scary even for me...}
+and normally use words like frobnicate and foobar. And you want to
+write your own Qingy screensaver, as you really see that our ones
+suck. Very nice: here's how. 
+
+First, you should remember that you are going to write Free
+Software. You have to: when you include @file{screensaver_module.h},
+you use code I wrote, and that comes under the GNU GPL
+(@pxref{Copying} for a copy of this license). So you have to use the
+same license. If you wanted to keep all your programming secrets to
+yourself, you are a bad person. But if you want to make money with
+your screensavers, you are a really really nice person: please
+remember, you are legally authorized to sell Free Software for as much
+as you manage to get from your customer. You are actually encouraged
+to do it: if you do and succeed, you'll be able maybe to live on Free
+Software and you'll be able to improve Free Software as your job. 
+
+
+@node Using Qingy, Copying Qingy, Screensavers, Top
 @comment  node-name,  next,  previous,  up
 @chapter Using Qingy
 
