@@ -54,7 +54,7 @@
 #define REBOOT   1
 
 /*
- * Global variables... dfinitely too many of them!
+ * Global variables... definitely too many!
  */
 IDirectFB             *dfb;                    /* the super interface                       */
 IDirectFBDisplayLayer *layer;                  /* the primary layer                         */
