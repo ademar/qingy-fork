@@ -34,6 +34,8 @@
 #include "load_settings.h"
 #include "misc.h"
 
+#define DEFAULT_THEME DATADIR"default/"
+
 void set_default_xsession_dir(void)
 {
 	XSESSIONS_DIRECTORY = (char *) calloc(19, sizeof(char));
@@ -48,8 +50,8 @@ void set_default_xinit(void)
 
 void set_default_font(void)
 {
-	FONT = (char *) calloc(strlen(DATADIR)+11, sizeof(char));
-	strcpy(FONT, DATADIR);
+	FONT = (char *) calloc(strlen(DEFAULT_THEME)+11, sizeof(char));
+	strcat(FONT, DEFAULT_THEME);
 	strcat(FONT, "decker.ttf");
 }
 
@@ -75,31 +77,34 @@ void set_default_colors(void)
 	OTHER_TEXT_COLOR_A = 0xFF;
 }
 
-void error(void)
+void error(char *where)
 {
-	fprintf(stderr, "load_settings: parse error in settings file... using defaults\n");
+	fprintf(stderr, "load_settings: parse error in %s file... using defaults\n", where);
 	if (XSESSIONS_DIRECTORY) free(XSESSIONS_DIRECTORY);
 	if (XINIT) free(XINIT);
 	if (FONT) free(FONT);
-	XSESSIONS_DIRECTORY = XINIT = FONT = NULL;
+	if (THEME_DIR) free(THEME_DIR);
+	XSESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;
 	set_default_xsession_dir();
 	set_default_xinit();
 	set_default_font();
 	set_default_colors();
+	THEME_DIR = (char *) calloc(strlen(DEFAULT_THEME)+1, sizeof(char));
+	strcpy(THEME_DIR, DEFAULT_THEME);
 }
 
 int load_settings(void)
 {
 	FILE *fp = fopen(SETTINGS, "r");
+	char *theme = NULL;
 	char tmp[MAX];
 	int temp[4];
-	int err = 0;
 
-	XSESSIONS_DIRECTORY = XINIT = FONT = NULL;
+	XSESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;
 
 	if (!fp)
 	{
-		fprintf(stderr, "load_Settings: settings file not found... using defaults\n");
+		fprintf(stderr, "load_Settings: settings file not found...\nusing internal defaults\n");
 		set_default_xsession_dir();
 		set_default_xinit();
 		set_default_font();
@@ -108,20 +113,9 @@ int load_settings(void)
 	}
 	while (fscanf(fp, "%s", tmp) != EOF)
 	{
+		int err = 0;
 		int found = 0;
 
-		if (strcmp(tmp, "FONT") == 0)
-		{
-			if (fscanf(fp, "%s", tmp) == EOF)
-			{
-				err = 1;
-				break;
-			}
-			FONT = (char *) calloc(strlen(DATADIR)+strlen(tmp)+1, sizeof(char));
-			strcpy(FONT, DATADIR);
-			strcat(FONT, tmp);
-			found = 1;
-		}
 		if (strcmp(tmp, "XSESSIONS_DIRECTORY") == 0)
 		{
 			if (fscanf(fp, "%s", tmp) == EOF)
@@ -142,6 +136,71 @@ int load_settings(void)
 			}
 			XINIT = (char *) calloc(strlen(tmp)+1, sizeof(char));
 			strcpy(XINIT, tmp);
+			found = 1;
+		}
+		if (strcmp(tmp, "THEME") == 0)
+		{
+			if (fscanf(fp, "%s", tmp) == EOF)
+			{
+				err = 1;
+				break;
+			}
+			THEME_DIR = (char *) calloc(strlen(DATADIR)+strlen(tmp)+2, sizeof(char));
+			strcpy(THEME_DIR, DATADIR);
+			strcat(THEME_DIR, tmp);
+			if (THEME_DIR[strlen(THEME_DIR)-1] != '/')
+				THEME_DIR[strlen(THEME_DIR)] = '/';
+			theme = (char *) calloc(strlen(THEME_DIR)+6, sizeof(char));
+			strcpy(theme, THEME_DIR);
+			strcat(theme, "theme");
+			found = 1;
+		}
+		if (!found || err)
+		{
+			error("settings");
+			fclose(fp);
+			return 0;
+		}
+	}
+	fclose(fp);
+
+	if (!XSESSIONS_DIRECTORY) set_default_xsession_dir();
+	if (!XINIT) set_default_xinit();
+	if (!theme)
+	{
+		THEME_DIR = (char *) calloc(strlen(DEFAULT_THEME)+1, sizeof(char));
+		strcpy(THEME_DIR, DEFAULT_THEME);
+		theme = (char *) calloc(strlen(THEME_DIR)+6, sizeof(char));
+		strcpy(theme, THEME_DIR);
+		strcat(theme, "theme");
+	}
+
+	fp = fopen(theme, "r");
+	if (!fp)
+	{
+		fprintf(stderr, "load_settings: selected theme does not exist. Using internal defaults\n");
+		error("");
+		return 0;
+	}
+
+	BACKGROUND = (char *) calloc(strlen(THEME_DIR)+15, sizeof(char));
+	strcpy(BACKGROUND, THEME_DIR);
+	strcat(BACKGROUND, "background.png");
+	while (fscanf(fp, "%s", tmp) != EOF)
+	{
+		int err = 0;
+		int found = 0;
+
+		if (strcmp(tmp, "FONT") == 0)
+		{
+			if (fscanf(fp, "%s", tmp) == EOF)
+			{
+				err = 1;
+				break;
+			}
+			FONT = (char *) calloc(strlen(THEME_DIR)+strlen(tmp)+1, sizeof(char));
+			strcpy(FONT, THEME_DIR);
+			strcat(FONT, tmp);
 			found = 1;
 		}
 		if (strcmp(tmp, "BUTTON_OPACITY") == 0)
@@ -213,21 +272,15 @@ int load_settings(void)
 			OTHER_TEXT_COLOR_A = (__u8) temp[3];
 			found = 1;
 		}
-		if (!found)
+		if (!found || err)
 		{
-			error();
+			error("theme");
 			fclose(fp);
 			return 0;
 		}
 	}
 	fclose(fp);
-	if (err)
-	{
-		error();
-		return 0;
-	}
-	if (XSESSIONS_DIRECTORY == NULL) set_default_xsession_dir();
-	if (XINIT == NULL) set_default_xinit();
+
 	if (FONT == NULL) set_default_font();
 
 	return 1;

@@ -107,19 +107,13 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	if test -f "media/settings"; then
 		rm media/settings
 	fi
-	echo "FONT decker.ttf" >> media/settings
 	echo "XSESSIONS_DIRECTORY /etc/X11/Sessions/" >> media/settings
 	echo "XINIT $XINIT" >> media/settings
-	echo "BUTTON_OPACITY 255" >> media/settings
-	echo "WINDOW_OPACITY 128" >> media/settings
-	echo "SELECTED_WINDOW_OPACITY 207" >> media/settings
-	echo "MASK_TEXT_COLOR   255   0   0 255" >> media/settings
-	echo "TEXT_CURSOR_COLOR 128   0   8 221" >> media/settings
-	echo "OTHER_TEXT_COLOR   64  64  64 255" >> media/settings
+	echo "THEME default" >> media/settings
 	echo "done"
 # End creation of config file
 
 PREFIX=""
 AC_PREFIX_DEFAULT ($PREFIX)
 
-AC_OUTPUT(Makefile src/Makefile media/Makefile)
+AC_OUTPUT(Makefile src/Makefile media/Makefile media/default/Makefile)

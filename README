@@ -18,7 +18,7 @@ It allows the user to log in and start the session of his choice
 - It works ;-)
 - It remembers last user who logged in, with focus on password
 - It also rememebers last session each user chose
-- Customizable font, text colors, background and button images
+- Fully themable
 - You can start more that one X session at once
 - You can even start X inside a console when X sessions
   are already running
@@ -64,29 +64,40 @@ Options:
 | Configuration  |
 \----------------/
 qingy puts all its configuration files in /etc/qingy.
-There you will find the background image (background.png),
-images of button surfaces, as well as a configuration file
-(settings), that you can tweak as you need/like:
+There you will find the configuration file (settings),
+that you can tweak as you need/like:
+
+XSESSIONS_DIRECTORY /etc/X11/Sessions/  (1)
+XINIT /usr/X11R6/bin/xinit              (2)
+THEME default                           (3)
+
+(1) Path to the scripts that start available X sessions
+(2) Full path to the 'xinit' executable
+(3) theme to use: specify a directory containing a theme
+
+
+/----------------\
+|     Themes     |
+\----------------/
+Just add a directory containing a background image, 
+images of button surfaces, a font and a config file
+(theme) that goes like this:
 
 FONT decker.ttf                         (1)
-XSESSIONS_DIRECTORY /etc/X11/Sessions/  (2)
-XINIT /usr/X11R6/bin/xinit              (3)
-BUTTON_OPACITY  255                     (4)
-WINDOW_OPACITY  128                     (5)
-SELECTED_WINDOW_OPACITY  207            (6)
-MASK_TEXT_COLOR    255    0    0  255   (7)
-TEXT_CURSOR_COLOR  128    0    8  221   (8)
-OTHER_TEXT_COLOR    64   64   64  255   (9)
+BUTTON_OPACITY  255                     (2)
+WINDOW_OPACITY  128                     (3)
+SELECTED_WINDOW_OPACITY  207            (4)
+MASK_TEXT_COLOR    255    0    0  255   (5)
+TEXT_CURSOR_COLOR  128    0    8  221   (6)
+OTHER_TEXT_COLOR    64   64   64  255   (7)
 
 (1) Font file to use
-(2) Path to the scripts that start available X sessions
-(3) Full path to the 'xinit' executable
-(4) Opacity of buttons: (*)
-(5) Default opacity of sections (*)
-(6) Opacity of selected session (*)
-(7) Text color in main window (**)
-(8) Color of the cursor (**)
-(9) Text color in messages like "Logging in" (**)
+(2) Opacity of buttons: (*)
+(3) Default opacity of sections (*)
+(4) Opacity of selected section (*)
+(5) Text color in main window (**)
+(6) Color of the cursor (**)
+(7) Text color in messages like "Logging in" (**)
 
 (*)  from 0 (invisible) to 255 (opaque)
 (**) RGBA format, each value from 0 to 255

@@ -77,9 +77,8 @@ void Draw_Background_Image()
 	primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
 	if (!panel_image)
 	{ /* we design the surface */
-		panel_image = load_image (DATADIR "background.png", primary, dfb);
-		if (panel_image != NULL)
-			panel_image->GetSize (panel_image, &panel_width, &panel_height);
+		if (BACKGROUND) panel_image = load_image (BACKGROUND, primary, dfb);
+		if (panel_image != NULL) panel_image->GetSize (panel_image, &panel_width, &panel_height);
 	}
 	/* we put the backgound image in the center of the screen if it fits
 	   the screen otherwise we stretch it to make it fit                    */
@@ -677,8 +676,8 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 	Draw_Background_Image();
 
 	/* we create buttons */
-	power = Button_Create(DATADIR "power_normal.png", DATADIR "power_mouseover.png", screen_width, screen_height, layer, primary, dfb);
-	reset = Button_Create(DATADIR "reset_normal.png", DATADIR "reset_mouseover.png", power->xpos - 10, screen_height, layer, primary, dfb);
+	power = Button_Create(stringCombine(THEME_DIR, "power_normal.png"), stringCombine(THEME_DIR, "power_mouseover.png"), screen_width, screen_height, layer, primary, dfb);
+	reset = Button_Create(stringCombine(THEME_DIR, "reset_normal.png"), stringCombine(THEME_DIR, "reset_mouseover.png"), power->xpos - 10, screen_height, layer, primary, dfb);
 	power->MouseOver(power, 0);
 	reset->MouseOver(reset, 0);
 

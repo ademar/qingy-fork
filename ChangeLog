@@ -1,2 +1,7 @@
+qingy 0.1.1 ():
+- embedded object related functions into object structures themselves
+- full theme support
+- Various clean ups
+
 qingy 0.1 (05 July 2003):
 - first public release

@@ -1,14 +1,10 @@
 ## Makefile.am for qingy/media
 
-mediadatadir = $(prefix)/etc/qingy
+SUBDIRS = default
 
-mediadata_DATA = \
-	background.png \
-	decker.ttf \
-	power_normal.png \
-	power_mouseover.png \
-	reset_normal.png \
-	reset_mouseover.png \
+settingsdatadir = $(prefix)/etc/qingy
+
+settingsdata_DATA = \
 	settings
 
-EXTRA_DIST =  $(mediadata_DATA)
+EXTRA_DIST =  $(settingsdata_DATA)
