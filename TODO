@@ -39,6 +39,9 @@
 
 * Move some stuff to shared libraries to reduce memory usage.
 
+- Check agetty source code and see wether there is some code there to
+  handle console keymaps that we should support as well...
+
 --
 Items marked as * are those we are currently working on.
 For stuff already done, see NEWS file...

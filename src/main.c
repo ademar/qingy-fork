@@ -46,9 +46,8 @@
 #include <unistd.h>
 #include <time.h>
 
-#include <dlfcn.h>
-
-#include "chvt.h"
+#include "memmgmt.h"
+#include "vt.h"
 #include "misc.h"
 #include "directfb_mode.h"
 #include "load_settings.h"
@@ -67,7 +66,7 @@ char *fb_device = NULL;
 
 void PrintUsage()
 {
-  printf("\nqingy version %s\n", VERSION);
+  printf("\nqingy version %s\n", PACKAGE_VERSION);
   printf("\nusage: ginqy <ttyname> [options]\n");
   printf("Options:\n");
   printf("\t-f <device>, --fb-device <device>\n");
@@ -152,36 +151,8 @@ void start_up(void)
 	if (resolution) free(resolution);
 	if (fb_device)  free(fb_device);
 
-	{
-		void *handle;
-		int (*directfb_mode)(int, char**);
-		char *error;
-		char *libname = StrApp((char**)NULL, PKGLIBDIR, "libdirectfb.so", (char*)NULL);
-
-		handle = dlopen (libname, RTLD_LAZY);
-		free(libname);
-		if (!handle)
-		{
-			fprintf (stderr, "%s\n", dlerror());
-			sleep(2);
-			exit(1);
-		}
-
-		dlerror();    /* Clear any existing error */		
-		directfb_mode = dlsym(handle, "directfb_mode");
-		if ((error = dlerror()) != NULL)
-		{
-			fprintf (stderr, "%s\n", error);
-			sleep(2);
-			exit(1);
-		}
-
-		returnstatus = (*directfb_mode)(argc, argv);
-		dlclose(handle);
-	}
-
 	/* let's go! */
-  /* returnstatus = directfb_mode(argc, argv); */
+	returnstatus = directfb_mode(argc, argv);
   
   /* We get here only if directfb fails or user wants to change tty */  
   free(argv[1]); free(argv[0]);
@@ -308,8 +279,6 @@ int main(int argc, char *argv[])
   int our_tty_number;
   struct timespec delay;
 
-	/* load_libraries(); */	
-
   /* We set up a delay of 0.5 seconds */
   delay.tv_sec  = 0;
   delay.tv_nsec = 500000000;	/* that's 500M; NOTE (michele): I know, now what? */
@@ -321,8 +290,9 @@ int main(int argc, char *argv[])
   unlock_tty_switching();
   
   /* We set up some default values */
-  initialize_variables(); /* NOTE: Check alot more... Macros? Structs? etc.? */
-	program_name = argv[0];
+  initialize_variables();
+
+	program_name   = argv[0];
   
   our_tty_number = ParseCMDLine(argc, argv); /* wie gesagt: getopt? Done, done ;-P */
 	current_tty    = our_tty_number;

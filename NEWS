@@ -30,9 +30,15 @@ qingy CVS:
   allowed to continue. If you are root, of course, you can switch
   to any tty you chose to. Default setting is 'no'.
 - Made qingy install its stuff in a way that conforms to the file
-	system hierarchy standards (themes are now installed to
-	/usr/share/qingy/themes, screen savers to
-	/usr/lib/qingy/screensavers).
+  system hierarchy standards (themes are now installed to
+  /usr/share/qingy/themes, screen savers to
+  /usr/lib/qingy/screensavers).
+- Now qingy by default creates a bunch of shared libraries and loads
+  its stuff only when it is needed. This saves a lot of memory,
+  expecially for those qingy processe that are waiting for someone
+  to switch to the tty they are running in. This option can be
+  disabled with by passing the '--enable-static-build' argument
+  to ./configure
 
 qingy 0.3.0 (09 January 2004):
 - New memory allocation/deallocation management

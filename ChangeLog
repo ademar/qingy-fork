@@ -1,4 +1,18 @@
+2004-02-19  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* most_files_have_been_changed,
+	* various_files_moved_or_added:
+	Support for dynamic libraries works better, now.
+	Added ./configure option to compile qingy statically.
+	Changed some source files to allow for this dual
+	mode of compilation.
+	Moved most files in src/ to src/libraries/
+	Now I'll take a rest and watch some pr0n ;-P
+
 2004-02-16  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/load_settings.c (get_random_theme): 
+	simplify method to get value fot srand()
 
 	* lost_track_of_all_of_them: 
 	begin work on creating shared libraries and linking to them

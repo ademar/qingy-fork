@@ -34,9 +34,9 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-
 #include <dlfcn.h>
 
+#include "memmgmt.h"
 #include "load_settings.h"
 #include "misc.h"
 #include "screen_saver.h"

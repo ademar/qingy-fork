@@ -36,7 +36,8 @@
 #include <signal.h>
 
 /* misc stuff */
-#include "chvt.h"
+#include "memmgmt.h"
+#include "vt.h"
 #include "misc.h"
 #include "session.h"
 #include "load_settings.h"
@@ -1062,7 +1063,7 @@ int directfb_mode (int argc, char *argv[])
   char *lastuser=NULL;          /* latest user who logged in                */
 
   /* load settings from file */
-  if (!load_settings()) return TEXT_MODE;
+	if (!load_settings()) return TEXT_MODE;
   if (!disable_last_user) lastuser = get_last_user();
 
   /* Stop GPM if necessary */
