@@ -24,7 +24,7 @@ extern int in_theme;
 %token SCREENSAVER_TOK PIXEL_TOK PHOTOS_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK    
 %token THEME_TOK RAND_TOK MASK_TXT_COL_TOK TXT_CUR_COL_TOK OTHER_TXT_COL_TOK 		     
 %token BG_TOK FONT_TOK BUTTON_OPAC_TOK WIN_OP_TOK SEL_WIN_OP_TOK 			     
-      											     
+
 %token <ival>  ANUM_T 									     
 %token <str>   QUOTSTR_T
 %token <color> COLOR_T                                                                       

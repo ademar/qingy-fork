@@ -437,3 +437,18 @@ char *parse_inittab_file(void)
 	if (length) free(line);
 	return result;
 }
+
+int add_window_to_list(window_t w)
+{
+  window_t *aux=malloc(sizeof(window_t));
+  aux->type=w.type;
+  aux->x=w.x;
+  aux->y=w.y;
+  aux->command=strdup(w.command);
+  free(w.command);
+  aux->content=strdup(w.content);
+  free(w.content);
+  aux->next=windowList;
+  windowList=aux;
+  return 1;
+}
