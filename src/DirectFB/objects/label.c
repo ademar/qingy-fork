@@ -63,20 +63,15 @@ void Plot(Label *thiz)
 void Label_ClearText(Label *thiz)
 {
 	if (!thiz) return;
-	if (thiz->text)
-	{
-		free(thiz->text);
-		thiz->text = NULL;
-	}
+	free(thiz->text);
 	Plot(thiz);
 }
 
 void Label_SetText(Label *thiz, char *text, int alignment)
 {
 	if (!thiz || !text) return;
-	if (thiz->text) Label_ClearText(thiz);
-	thiz->text = (char *) calloc(strlen(text)+1, sizeof(char));
-	strcpy(thiz->text, text);
+	free(thiz->text);
+	thiz->text = strdup(text);
 	thiz->alignment = alignment;
 	Plot(thiz);
 }
