@@ -46,6 +46,7 @@ typedef struct _TextBox
 	unsigned int width, height;
 	int hasfocus;
 	int mask_text;
+	int hide_text;
 	int position;
 	IDirectFBWindow	*window;
 	IDirectFBSurface *surface;

@@ -605,15 +605,15 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 }
 
 /* Start the session of your choice */
-void start_session(char *username, char *session, int workaround)
+void start_session(char *username, char *session)
 {
 	struct passwd *pwd = getpwnam(username);
 
 	endpwent();
 
-	if (workaround != -1)
+	if (black_screen_workaround != -1)
 	{
-		current_vt = workaround;
+		current_vt = black_screen_workaround;
 		set_active_tty(13);
 		set_active_tty(current_vt);
 	}

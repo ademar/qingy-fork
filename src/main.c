@@ -39,18 +39,16 @@
 	   user name and passing control to passwd
 ****************************************************************************/
 
-/*To do:
-- option for hiding password chars completely
-- option for hiding last user name
+/****** Yet to do:
 - drop down menu for sessions
-- enter from username sends to password
-- check PAM user permissions
 - allow session locking
-- option to show or hide shutdown messages
-- option to disable 'shutting down' message
-- language support
 - option for starting wms in an unique X server?!?
-*/
+- add a clock!
+- language support
+******* Maybe these are done
+- option to close DirectFB mode before shutting down
+- check PAM user permissions
+*******/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -72,8 +70,15 @@ void Error()
 	printf("\t--resolution:<resolution>\n");
 	printf("\tSpecify current screen resolution.\n");
 	printf("\tUse XRESxYRES form.\n\n");
+	printf("\t--hide-password\n");
+	printf("\tDo not show password asterisks.\n\n");
+	printf("\t--hide-lastuser\n");
+	printf("\tDo not display last user name.\n\n");
 	printf("\t--silent\n");
 	printf("\tDo not display diagnostic messages on stderr.\n\n");
+	printf("\t--no-shutdown-screen\n");
+	printf("\tClose DirectFB mode before shutting down.\n");
+	printf("\tThis way you will see system shutdown messages.\n\n");
 	printf("\t--black-screen-workaround\n");
 	printf("\tTry this if you get a black screen instead of a text console.\n");
 	printf("\tNote: switching to another vt and back also solves the problem.\n\n");
@@ -133,11 +138,11 @@ void start_up(void)
 	}
 
 	/* we get here if framebuffer init failed: we revert to text mode   */
-	if (workaround != -1)
+	if (black_screen_workaround != -1)
 	{
 		/* This is to avoid a black display after framebuffer dies */
 		set_active_tty(13);
-		set_active_tty(workaround);
+		set_active_tty(black_screen_workaround);
 	}
 	text_mode(); /* This call does not return */
 
@@ -171,34 +176,64 @@ int get_resolution(char *resolution)
 	return 1;
 }
 
-void ParseCMDLine(int argc, char *argv[])
+int ParseCMDLine(int argc, char *argv[])
 {
-	int i = 3;
+	int i;
+	char *tty;
+	int our_tty_number;
 
-	if (argc < 2 || argc > 5) Error();
+	if (argc < 2) Error();
 	tty= argv[1];
 	if (strncmp(tty, "tty", 3) != 0) Error();
 	our_tty_number= atoi(tty+3);
 	if (our_tty_number < 1) Error();
 	if (our_tty_number >12) Error();
-	while (i < argc)
+
+	for (i=2; i<argc; i++)
 	{
+		int error = 1;
+
 		if (strncmp(argv[i], "--resolution:", 13) == 0)
 		{
 			if (!get_resolution((argv[i]+13))) Error();
+			error = 0;
 		}
-		else if (strcmp(argv[i], "--silent") == 0)
+		if (strcmp(argv[i], "--silent") == 0)
+		{
 			silent = 1;
-		else if (strcmp(argv[i], "--black-screen-workaround") == 0)
-			workaround = our_tty_number;
-		else Error();
-		i++;
+			error = 0;
+		}
+		if (strcmp(argv[i], "--black-screen-workaround") == 0)
+		{
+			black_screen_workaround = our_tty_number;
+			error = 0;
+		}
+		if (strcmp(argv[i], "--hide-password") == 0)
+		{
+			hide_password = 1;
+			error = 0;
+		}
+		if (strcmp(argv[i], "--hide-lastuser") == 0)
+		{
+			hide_last_user = 1;
+			error = 0;
+		}
+		if (strcmp(argv[i], "--no-shutdown-screen") == 0)
+		{
+			no_shutdown_screen = 1;
+			error = 0;
+		}
+
+		if (error) Error();
 	}
+
+	return our_tty_number;
 }
 
 int main(int argc, char *argv[])
 {
 	int user_tty_number;
+	int our_tty_number;
 	struct timespec delay;
 
 	/* We set up a delay of 0.5 seconds */
@@ -208,15 +243,18 @@ int main(int argc, char *argv[])
 	/* We set up some default values */
 	width=0;
 	height=0;
-	workaround = -1;
+	black_screen_workaround = -1;
 	silent = 0;
+	hide_password = 0;
+	hide_last_user = 0;
+	no_shutdown_screen = 0;
 
-	ParseCMDLine(argc, argv);
+	our_tty_number = ParseCMDLine(argc, argv);
 
 	/* We switch to tty <tty> */
 	if (!switch_to_tty(our_tty_number))
 	{
-		fprintf(stderr, "\nUnable to switch to virtual terminal %s\n", tty);
+		fprintf(stderr, "\nUnable to switch to virtual terminal %s\n", argv[1]);
 		return EXIT_FAILURE;
 	}
 

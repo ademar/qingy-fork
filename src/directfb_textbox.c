@@ -96,6 +96,10 @@ void DrawCursor(TextBox *thiz)
 	DFBRectangle dest1, dest2, dest;
 	char *text;
 	int free_text = 0;
+	int position;
+
+	if (!thiz) return;
+	position = thiz->position;
 
 	if (thiz->mask_text)
 	{
@@ -105,13 +109,20 @@ void DrawCursor(TextBox *thiz)
 		for(length--; length>=0; length--) text[length] = '*';
 		free_text = 1;
 	}
+	else if (thiz->hide_text)
+	{
+		text = (char *) calloc(1, sizeof(char));
+		text[0] = '\0';
+		free_text = 1;
+		position = 0;
+	}
 	else text = thiz->text;
 
 	if (!font) thiz->surface->GetFont(thiz->surface, &font);
 
-	font->GetStringExtents(font, text, thiz->position, &dest1, NULL);
-	font->GetStringExtents(font, text, thiz->position+1, &dest2, NULL);
-	font->GetStringWidth (font, text, thiz->position, &(dest.x));
+	font->GetStringExtents(font, text, position, &dest1, NULL);
+	font->GetStringExtents(font, text, position+1, &dest2, NULL);
+	font->GetStringWidth (font, text, position, &(dest.x));
 	dest.y = 0;
 	dest.w = dest2.w - dest1.w;
 	dest.h = dest1.h;
@@ -139,8 +150,7 @@ void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int draw_cursor)
 	{
 		window_surface->Clear (window_surface, 0x00, 0x00, 0x00, 0x00);
 		if (draw_cursor) DrawCursor(thiz);
-		if (!(thiz->mask_text)) window_surface->DrawString (window_surface, buffer, -1, 0, 0, DSTF_LEFT|DSTF_TOP);
-		else
+		if (thiz->mask_text)
 		{
 			char *tmp = (char *) calloc(length+1, sizeof(char));
 			tmp[length] = '\0';
@@ -148,6 +158,8 @@ void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int draw_cursor)
 			window_surface->DrawString (window_surface, tmp, -1, 0, 0, DSTF_LEFT|DSTF_TOP);
 			free(tmp);
 		}
+		else if (thiz->hide_text) window_surface->DrawString (window_surface, "", -1, 0, 0, DSTF_LEFT|DSTF_TOP);
+		else window_surface->DrawString (window_surface, buffer, -1, 0, 0, DSTF_LEFT|DSTF_TOP);
 		window_surface->Flip(window_surface, NULL, 0);
 	}
 }
@@ -207,7 +219,7 @@ void TextBox_Show(TextBox *thiz)
 void TextBox_Destroy(TextBox *thiz)
 {
 	if (!thiz) return;
-	if (thiz->text) free(thiz->text);
+	if (thiz->text) free(thiz->text);	
 	if (thiz->surface) thiz->surface->Release (thiz->surface);
 	if (thiz->window) thiz->window->Release (thiz->window);
 	free(thiz);
@@ -219,23 +231,24 @@ TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWi
 	DFBResult err;
 
 	newbox = (TextBox *) calloc(1, sizeof(TextBox));
-	newbox->text     = NULL;
-	newbox->xpos     = (unsigned int) window_desc->posx;
-	newbox->ypos     = (unsigned int) window_desc->posy;
-	newbox->width    = window_desc->width;
-	newbox->height   = window_desc->height;
-	newbox->hasfocus = 0;
-	newbox->mask_text= 0;
-	newbox->position = 0;
-	newbox->window   = NULL;
-	newbox->surface  = NULL;
-	newbox->KeyEvent = TextBox_KeyEvent;
-	newbox->SetFocus = TextBox_SetFocus;
-	newbox->SetText  = TextBox_SetText;
-	newbox->ClearText= TextBox_ClearText;
-	newbox->Hide     = TextBox_Hide;
-	newbox->Show     = TextBox_Show;
-	newbox->Destroy  = TextBox_Destroy;
+	newbox->text       = NULL;
+	newbox->xpos       = (unsigned int) window_desc->posx;
+	newbox->ypos       = (unsigned int) window_desc->posy;
+	newbox->width      = window_desc->width;
+	newbox->height     = window_desc->height;
+	newbox->hasfocus   = 0;
+	newbox->mask_text  = 0;
+	newbox->hide_text  = 0;
+	newbox->position   = 0;
+	newbox->window     = NULL;
+	newbox->surface    = NULL;
+	newbox->KeyEvent   = TextBox_KeyEvent;
+	newbox->SetFocus   = TextBox_SetFocus;
+	newbox->SetText    = TextBox_SetText;
+	newbox->ClearText  = TextBox_ClearText;
+	newbox->Hide       = TextBox_Hide;
+	newbox->Show       = TextBox_Show;
+	newbox->Destroy    = TextBox_Destroy;
 
 	DFBCHECK(layer->CreateWindow (layer, window_desc, &(newbox->window)));
 	newbox->window->SetOpacity(newbox->window, 0x00 );

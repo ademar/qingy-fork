@@ -341,23 +341,38 @@ void begin_shutdown_sequence (int action)
 		sleep (1);
 		countdown--;
 	}
-	primary->Clear (primary, 0, 0, 0, 0);
+	if (no_shutdown_screen)
+	{
+		close_framebuffer_mode ();
+		if (black_screen_workaround != -1)
+		{
+			set_active_tty(13);
+			set_active_tty(black_screen_workaround);
+		}
+	}
+	else primary->Clear (primary, 0, 0, 0, 0);
 	if (action == POWEROFF)
 	{
-		primary->DrawString (primary, "shutting down system...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
-		primary->Flip (primary, NULL, 0);
+		if (!no_shutdown_screen)
+		{
+			primary->DrawString (primary, "shutting down system...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+			primary->Flip (primary, NULL, 0);
+		}
 		execl ("/sbin/shutdown", "/sbin/shutdown", "-h", "now", (char *) 0);
 	}
 	if (action == REBOOT)
 	{
-		primary->DrawString (primary, "rebooting system...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
-		primary->Flip (primary, NULL, 0);
+		if (!no_shutdown_screen)
+		{
+			primary->DrawString (primary, "rebooting system...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+			primary->Flip (primary, NULL, 0);
+		}
 		execl ("/sbin/shutdown", "/sbin/shutdown", "-r", "now", (char *) 0);
 	}
 
 	/* we should never get here unless call to /sbin/shutdown fails */
 	fprintf (stderr, "\nfatal error: unable to exec \"/sbin/shutdown\"!\n");
-	close_framebuffer_mode ();
+	if (!no_shutdown_screen) close_framebuffer_mode ();
 	my_exit (EXIT_FAILURE);
 }
 
@@ -422,6 +437,8 @@ void start_login_sequence(DFBInputEvent *evt)
 	char message[MAX];
 	char *user_name;
 	char *user_session;
+	char *temp;
+	int free_temp = 0;
 
 	if (strlen(username->text) == 0) return;
 	strncpy(message, "Logging in ", MAX);
@@ -432,7 +449,13 @@ void start_login_sequence(DFBInputEvent *evt)
 	primary->Flip (primary, NULL, DSFLIP_BLIT);
 	sleep(1);
 
-	if (!check_password(username->text, password->text))
+	if (hide_last_user && strcmp(username->text, "lastuser") == 0)
+	{
+		temp = get_last_user();
+		free_temp = 1;
+	}	
+	else temp = username->text; 	
+	if (!check_password(temp, password->text))
 	{
 		primary->Clear (primary, 0, 0, 0, 0);
 		primary->DrawString (primary, "Login failed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
@@ -440,18 +463,20 @@ void start_login_sequence(DFBInputEvent *evt)
 		sleep(1);
 		password->ClearText(password);
 		reset_screen(evt);
+		if (free_temp) free(temp);
 		return;
 	}
 	primary->Clear (primary, 0, 0, 0, 0);
 	primary->DrawString (primary, "Starting selected session...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 	primary->Flip (primary, NULL, DSFLIP_BLIT);
 	sleep(1);
-	user_name = (char *) calloc(strlen(username->text)+1, sizeof(char));
-	strcpy(user_name, username->text);
+	user_name = (char *) calloc(strlen(temp)+1, sizeof(char));
+	strcpy(user_name, temp);
+	if (free_temp) free(temp);
 	user_session = (char *) calloc(strlen(session->selected->name)+1, sizeof(char));
 	strcpy(user_session, session->selected->name);
 	close_framebuffer_mode();
-	start_session(user_name, user_session, workaround);
+	start_session(user_name, user_session);
 
 	/* The above never returns, so... */
 	free(user_name); user_name = NULL;
@@ -504,12 +529,12 @@ int handle_keyboard_event(DFBInputEvent *evt)
 	if (symbol_name)
 	{
 		/* Rock'n Roll! */
-		if (ascii_code == RETURN) start_login_sequence(evt);
+		if (!username->hasfocus && ascii_code == RETURN) start_login_sequence(evt);
 
 		/* user name events */
 		if (username->hasfocus && allow_tabbing)
 		{
-			if (ascii_code == TAB)
+			if (ascii_code == TAB || ascii_code == RETURN)
 			{
 				allow_tabbing = 0;
 				username_label->SetFocus(username_label, 0);
@@ -686,13 +711,15 @@ int framebuffer_mode (int argc, char *argv[])
 
 	/* we create labels, textboxes and comboboxes */
 	Create_Labels_TextBoxes_ComboBoxes();
-	password->mask_text = 1;
+	if (!hide_password) password->mask_text = 1;
+	else password->hide_text = 1;
 	get_sessions(session);
 	if (lastuser)
 	{
 		username_label->SetFocus(username_label, 0);
 		password_label->SetFocus(password_label, 1);
-		username->SetText(username, lastuser);
+		if (!hide_last_user) username->SetText(username, lastuser);
+		else username->SetText(username, "lastuser");
 		username->SetFocus(username, 0);
 		password->SetFocus(password, 1);
 		set_user_session(lastuser);

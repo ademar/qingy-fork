@@ -33,4 +33,4 @@ void get_sessions(void *sessions);
 int check_password(char *username, char *password);
 
 /* Start the session of your choice */
-void start_session(char *username, char *session, int workaround);
+void start_session(char *username, char *session);

@@ -26,11 +26,12 @@
  ***************************************************************************/
 
 
-char *tty;
-int our_tty_number;
 int width, height;
-int workaround;
+int black_screen_workaround;
 int silent;
+int hide_password;
+int hide_last_user;
+int no_shutdown_screen;
 
 char *DATADIR;
 char *SETTINGS;
