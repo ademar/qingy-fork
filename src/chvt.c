@@ -39,8 +39,7 @@
 
 static int is_a_console(int fd)
 {
-  char arg;
-  arg = 0;
+  char arg = 0;
 
   return (ioctl(fd, KDGKBTYPE, &arg) == 0 && ((arg == KB_101) || (arg == KB_84)));
 }
@@ -99,36 +98,42 @@ int switch_to_tty(int tty)
 
 int get_active_tty(void)
 {
-  int tty_file_descriptor;
-  struct vt_stat terminal_status;
+	struct vt_stat term_status;
+  int fd = getfd();
 
-  tty_file_descriptor = getfd();
-  if (tty_file_descriptor == -1) return -1;
-  if (ioctl (tty_file_descriptor, VT_GETSTATE, &terminal_status) == -1) return -1;
+  if (fd == -1) return -1;
+  if (ioctl (fd, VT_GETSTATE, &term_status) == -1)
+	{
+		close(fd);
+		return -1;
+	}
+	close(fd);
 
-  return terminal_status.v_active;
+  return term_status.v_active;
 }
 
 int set_active_tty(int tty)
 {
+	int retval = 1;
   int fd;
 
   /* we switch to /dev/tty<tty> */
   if ((fd = getfd()) == -1) return 0;
-  if (ioctl (fd, VT_ACTIVATE, tty) == -1) return 0;
-  if (ioctl (fd, VT_WAITACTIVE, tty) == -1) return 0;
-  if (close(fd) != 0) return 0;
+  if (ioctl (fd, VT_ACTIVATE, tty) == -1) retval = 0;
+  if (ioctl (fd, VT_WAITACTIVE, tty) == -1) retval = 0;
+	close(fd);
 
-  return 1;
+  return retval;
 }
 
 int get_available_tty(void)
 {
-	int fd;
+	int fd = getfd();
 	int available;
   
-  if ((fd = getfd()) == -1) return -1;
+  if (fd == -1) return -1;
 	ioctl (fd, VT_OPENQRY, &available);
+	close(fd);
 
 	return available;
 }
@@ -162,22 +167,22 @@ int disallocate_tty(int tty)
 
 int lock_tty_switching(void)
 {
-  int fd;
+  int fd = getfd();
 
-  if ( (fd = getfd()) == -1) return 0;
+  if (fd == -1) return 0;
   if (ioctl (fd, VT_LOCKSWITCH, 513) == -1) return 0;
-  if (close(fd) != 0) return 0;
+  close(fd);
 
   return 1;
 }
 
 int unlock_tty_switching(void)
 {
-  int fd;
+  int fd = getfd();
 
-  if ( (fd = getfd()) == -1) return 0;
+  if (fd == -1) return 0;
   if (ioctl (fd, VT_UNLOCKSWITCH, 513) == -1) return 0;
-  if (close(fd) != 0) return 0;
+  close(fd);
 
   return 1;
 }

@@ -1,5 +1,9 @@
 qingy CVS:
 - Unlock vt switching before dying (yes, this was annoying)
+- Solved a bug that made qingy crash when you switched to its
+  tty after some time it had been sitting there. Basically
+  it opened a file descriptor every second and did not close
+  it...
 - Now qingy reverts to text mode instead of dying when it
   encounters non-fatal errors in command line parameters or
   settings / theme file...
