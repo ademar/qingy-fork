@@ -26,15 +26,7 @@
  ***************************************************************************/
 
 
-#define _XOPEN_SOURCE
-#define XINIT                   "/usr/X11R6/bin/xinit"
-#define STARTUP_SCRIPT		"Scripts/Startup"
-#define LOGIN_ROOT_SCRIPT	"Scripts/Login.root"
-#define LOGIN_USER_SCRIPT	"Scripts/Login.user"
-#define LOGOUT_ROOT_SCRIPT	"Scripts/Logout.root"
-#define RESTART_SCRIPT		"Scripts/Restart"
-#define POWEROFF_SCRIPT		"Scripts/PowerOff"
-#define SUSPEND_SCRIPT		"Scripts/Suspend"
+//#define _XOPEN_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,13 +37,15 @@
 #include <grp.h>
 #include <paths.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <shadow.h>
-
-extern char **environ;
-
 
 #include "session.h"
 #include "chvt.h"
+#include "misc.h"
+
+extern char **environ;
+int current_vt;
 
 int get_sessions(void)
 {
@@ -76,7 +70,9 @@ int get_sessions(void)
 	}
 	while ((entry= readdir(dir)) != NULL)
 	{
-	  if ( (strcmp(entry->d_name, ".") != 0) && (strcmp(entry->d_name, "..") != 0) )
+	  if (strcmp(entry->d_name, "." ) != 0)
+		if (strcmp(entry->d_name, "..") != 0)
+		if (strcmp(entry->d_name, "Xsession") != 0)
 		{
 			i++;
 			curr->next = (struct session *) calloc(1, sizeof(struct session));
@@ -92,29 +88,6 @@ int get_sessions(void)
 	sessions.prev = curr;
 
 	return (i+1);
-}
-
-void* alloc(int size) {
-   void *tmp;
-
-   tmp = malloc(size);
-   if (!tmp) {
-      fprintf(stderr, "out of memory, terminating\n");
-      exit(0);
-   } else {
-      memset(tmp, 0, size);
-   }
-
-   return tmp;
-}
-
-char* stringCombine(const char* str1, const char* str2) {
-   char* buffer;
-
-   buffer = alloc(strlen(str1) + strlen(str2) + 1);
-   strcpy(buffer, str1);
-   strcat(buffer, str2);
-   return buffer;
 }
 
 int check_password(void)
@@ -149,112 +122,189 @@ int check_password(void)
 	return 0;
 }
 
-void switchUser(char* username, char* path, char* script);
-
-/* Start the session of your choice.
-   Returns 0 if starting failed      */
-int start_session(int session_id, int workaround)
+char *baseName(char *name)
 {
-	if (workaround != -1)
+	char *base;
+
+	base = name;
+	while (*name)
 	{
-	  /* This is to avoid a black display after framebuffer dies */
-    set_active_tty(13);
-	  set_active_tty(workaround);
+		if (*name == '/') base = name + 1;
+		++name;
 	}
 
-	switchUser(username, "/bin/", "bash");
+	return (char *) base;
 }
 
+void Text_Login(struct passwd *pw)
+{
+	char *args[2];
+	char *shell;
+	char *shell_basename;
 
+	shell = strdup(pw->pw_shell);
+	shell_basename = baseName(shell);
 
+	args[0] = (char *) calloc(strlen(shell_basename) + 2, sizeof(char));
+	strcpy(args[0], "-");
+	strcat(args[0], shell_basename);
+	args[1] = 0;
+	execv(shell,args);
 
-static char* baseName(char* name) {
-   char *base;
-
-   base = name;
-   while (*name) {
-      if (*name == '/') {
-         base = name + 1;
-      }
-      ++name;
-   }
-
-   return (char*) base;
+	/* we should never get here... */
+	fprintf(stderr, "session: unable to start console session!\n");
+	exit(0);
 }
 
-static void execute(struct passwd *pw, char* path, char* script) {
-   char* args[4];
-   char* shell;
-   char* shell_basename;
-   char* cmd;
+/* if somebody else, somewhere else, sometime else
+   somehow started some other X servers ;-)        */
+int which_X_server(void)
+{
+	FILE *fp;
+	char filename[20];
+	int num=0;
 
-   shell = strdup(pw->pw_shell);
-   shell_basename = baseName(shell);
-   cmd = stringCombine(path, script);
+	strcpy(filename, "/tmp/.X0-lock");
+	while( (fp = fopen(filename, "r")) != NULL)
+	{
+		num++;
+		fclose(fp);
+		strcpy(filename, "/tmp/.X");
+		strcat(filename, int_to_str(num));
+		strcat(filename, "-lock");
+	}
 
-   args[0] = alloc(strlen(shell_basename) + 2);
-   strcpy(args[0], "-");
-   strcat(args[0], shell_basename);
-   args[1] = "-c";
-   args[2] = stringCombine("exec ", cmd);
-   args[3] = 0;
-
-   free(cmd);
-
-   execv(shell, args);
+	return num;
 }
 
+void Graph_Login(struct passwd *pw, char *path, char *script)
+{
+	char exec[MAX];
+	pid_t proc_id;
+	int dest_vt = current_vt + 20;
 
-void setEnvironment(char* username) {
-   struct passwd* pw;
-   char*          mail;
+	strcpy(exec, strdup(pw->pw_shell));
+	strcat(exec, " -l -c \"");
+	strcat(exec, XINIT);
+	strcat(exec, " ");
+	strcat(exec, path);
+	strcat(exec, script);
+	strcat(exec, " -- :");
+	strcat(exec, int_to_str(which_X_server()));
+	strcat(exec, " vt");
+	strcat(exec, int_to_str(dest_vt));
+	strcat(exec, "\" >/dev/null 2>/dev/null");
 
-   /* Get password struct */
-   pw = getpwnam(username);
-   endpwent();
-   if (!pw) {
-      fprintf(stderr, "user %s not found in /etc/passwd\n", username);
-      exit(0);
-   }
+	proc_id = fork();
+	if (proc_id == -1)
+	{
+		fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
+		exit(0);
+	}
+	if (!proc_id)
+	{
+		system("/usr/bin/clear");
+		fprintf(stderr, "Switching to X Server...\n");
+		if (system(exec) == -1)
+			fprintf(stderr, "session: fatal error: cannot start your session!\n");
+		exit(0);
+	}
+	while(1)
+	{
+		pid_t result;
 
-   /* Set environment */
-   environ = alloc(sizeof(char*) * 2);
-   environ[0] = 0;
-   setenv("TERM", "vt100", 0);  // TERM=linux?
-   setenv("HOME", pw->pw_dir, 1);
-   setenv("SHELL", pw->pw_shell, 1);
-   setenv("USER", pw->pw_name, 1);
-   setenv("LOGNAME", pw->pw_name, 1);
-   setenv("DISPLAY", ":0.0", 1);
-   mail = alloc(strlen(_PATH_MAILDIR) + strlen(pw->pw_name) + 2);
-   strcpy(mail, _PATH_MAILDIR);
-   strcat(mail, "/");
-   strcat(mail, pw->pw_name);
-   setenv("MAIL", mail, 1);
-   chdir(pw->pw_dir);
+		result = waitpid(-1, NULL, WNOHANG);
+		if (!result || result == -1)
+		{
+			if (get_active_tty() == current_vt) set_active_tty(dest_vt);
+			sleep(1);
+		}
+		else break;
+	}
+	if (get_active_tty() == dest_vt) set_active_tty(current_vt);
+
+	exit(0);
 }
 
-void switchUser(char* username, char* path, char* script) {
-   struct passwd* pw;
+void setEnvironment(char *username)
+{
+	struct passwd *pw;
+	char          *mail;
 
-   /* Get password struct */
-   pw = getpwnam(username);
-   endpwent();
-   if (!pw) {
-      fprintf(stderr, "user %s not found in /etc/passwd\n", username);
-      exit(0);
-   }
+	/* Get password struct */
+	pw = getpwnam(username);
+	endpwent();
+	if (!pw)
+	{
+		fprintf(stderr, "user %s not found in /etc/passwd\n", username);
+		exit(0);
+	}
 
-   /* Set user id */
-   if ((initgroups(pw->pw_name, pw->pw_gid) != 0) ||
-       (setgid(pw->pw_gid) != 0) || (setuid(pw->pw_uid) != 0)) {
-      fprintf(stderr, "could not switch user id\n");
-      exit(0);
-   }
-
-   /* Execute login command */
-   execute(pw, path, script);
-   fprintf(stderr, "could not execute login command\n");
-   exit(0);
+	/* Set environment */
+	environ = (char **) calloc(2, sizeof(char *));
+	environ[0] = 0;
+	setenv("TERM", "vt100", 0);  /* TERM=linux? */
+	setenv("HOME", pw->pw_dir, 1);
+	setenv("SHELL", pw->pw_shell, 1);
+	setenv("USER", pw->pw_name, 1);
+	setenv("LOGNAME", pw->pw_name, 1);
+	setenv("DISPLAY", ":0.0", 1);
+	mail = (char *) calloc(strlen(_PATH_MAILDIR) + strlen(pw->pw_name) + 2, sizeof(char));
+	strcpy(mail, _PATH_MAILDIR);
+	strcat(mail, "/");
+	strcat(mail, pw->pw_name);
+	setenv("MAIL", mail, 1);
+	chdir(pw->pw_dir);
 }
 
+void switchUser(char *username, char *path, char *script)
+{
+	struct passwd *pw;
+
+	/* Get password struct */
+	pw = getpwnam(username);
+	endpwent();
+	if (!pw)
+	{
+		fprintf(stderr, "user %s not found in /etc/passwd\n", username);
+		exit(0);
+	}
+
+	/* Set user id */
+	if ((initgroups(pw->pw_name, pw->pw_gid) != 0) || (setgid(pw->pw_gid) != 0) || (setuid(pw->pw_uid) != 0))
+	{
+		fprintf(stderr, "could not switch user id\n");
+		exit(0);
+	}
+
+	/* Execute login command */
+	setEnvironment(username);
+	if (!path && !script) Text_Login(pw);
+	else Graph_Login(pw, path, script);
+	fprintf(stderr, "could not execute login command\n");
+	exit(0);
+}
+
+/* Start the session of your choice */
+void start_session(int session_id, int workaround)
+{
+	struct session *curr = &sessions;
+
+	while (curr->id != session_id) curr= curr->next;
+
+	if (workaround != -1)
+	{
+		current_vt = workaround;
+		set_active_tty(13);
+		set_active_tty(current_vt);
+	}
+	else current_vt = get_active_tty();
+
+	if (strcmp(curr->name, "Text Console") == 0)
+		switchUser(username, NULL, NULL);
+	else switchUser(username, XSESSIONS_DIRECTORY, curr->name);
+
+	/* we don't get here unless we couldn't start user session */
+	fprintf(stderr, "Couldn't login user '%s'!\n", username);
+	exit(0);
+}

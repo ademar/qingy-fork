@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 int log10(int n)
@@ -82,6 +83,16 @@ int start_gpm(void)
 	if (retval == 0) return 1;
 
 	return 0;
+}
+
+char *stringCombine(const char* str1, const char* str2)
+{
+   char* buffer;
+
+   buffer = (char *) calloc(strlen(str1) + strlen(str2) + 1, sizeof(char));
+   strcpy(buffer, str1);
+   strcat(buffer, str2);
+   return buffer;
 }
 
 /*void print_host_name(char *where, int max)

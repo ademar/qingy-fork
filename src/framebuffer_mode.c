@@ -793,6 +793,10 @@ void start_login_sequence(DFBInputEvent *evt)
 	close_framebuffer_mode();
 	if (we_stopped_gpm) start_gpm();
 	start_session(session_id, workaround);
+
+	/* The above never returns, so... */
+	fprintf(stderr, "Go tell my creator his brains went pop!\n");
+	exit(0);
 }
 
 int handle_keyboard_event(DFBInputEvent *evt)

@@ -31,6 +31,9 @@
 /* Converts an unsigned inteter to a string */
 char *int_to_str(int n);
 
+/* Concatenates two strings */
+char *stringCombine(const char* str1, const char* str2);
+
 /* Computes the integer part of the base 10 log */
 int log10(int n);
 

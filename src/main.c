@@ -48,8 +48,6 @@
 #include "misc.h"
 #include "framebuffer_mode.h"
 
-#define VERSION "0.1"
-
 void Error()
 {
   printf("\nqingy version " VERSION "\n");
@@ -69,7 +67,7 @@ void text_mode()
 	/* We fall back here if framebuffer init fails */
 	username = (char *) calloc(MAX, sizeof(char));
 	while (strlen(username)==0)
-	{		
+	{
 		gethostname(username, MAX);
 	  printf("\n%s login: ", username); scanf("%s", username); /* quick and dirty */
 	}
