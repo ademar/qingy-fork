@@ -43,8 +43,8 @@ int lock_is_pressed(DFBInputEvent *evt)
 		int x;
 	} locks[] =	{
 								{DILS_SCROLL, "ScrollLock", 0},
-								{DILS_NUM, "NumLock", 0},
-								{DILS_CAPS, "CapsLock", 0},
+								{DILS_NUM,    "NumLock",    0},
+								{DILS_CAPS,   "CapsLock",   0},
 							};
   int n_locks = sizeof (locks) / sizeof (locks[0]);
 	int i;

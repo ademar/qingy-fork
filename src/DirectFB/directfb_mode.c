@@ -53,6 +53,11 @@
 #define POWEROFF 0
 #define REBOOT   1
 
+
+/*
+ * Global variables... definitely too many!
+ */
+
 typedef struct label_t
 {
 	Label *label;
@@ -72,37 +77,37 @@ typedef struct button_t
 } Button_list;
 Button_list *Buttons = NULL;
 
-/*
- * Global variables... definitely too many!
- */
-IDirectFB             *dfb;                     /* the super interface                       */
-IDirectFBDisplayLayer *layer;                   /* the primary layer                         */
-IDirectFBSurface      *primary,                 /* surface of the primary layer              */
-                      *panel_image      = NULL; /* background image                          */
-IDirectFBEventBuffer  *events;                  /* all input events will be stored here      */
-DeviceInfo            *devices          = NULL; /* the list of all input devices             */
-IDirectFBFont         *font_small,              /* fonts                                     */
+IDirectFB             *dfb;                       /* the super interface                       */
+IDirectFBDisplayLayer *layer;                     /* the primary layer                         */
+IDirectFBSurface      *primary,                   /* surface of the primary layer              */
+                      *panel_image        = NULL; /* background image                          */
+IDirectFBEventBuffer  *events;                    /* all input events will be stored here      */
+DeviceInfo            *devices            = NULL; /* the list of all input devices             */
+IDirectFBFont         *font_small,                /* fonts                                     */
                       *font_normal,
                       *font_large;  
-TextBox               *username         = NULL, /* text boxes                                */
-                      *password         = NULL;
-Label                 *username_label   = NULL, /* labels                                    */
-                      *password_label   = NULL,
-                      *session_label    = NULL,
-                      *lock_key_statusA = NULL,
-                      *lock_key_statusB = NULL,
-                      *lock_key_statusC = NULL,
-                      *lock_key_statusD = NULL;
-ComboBox              *session          = NULL; /* combo boxes                               */
-int                   we_stopped_gpm,           /* wether this program stopped gpm or not    */
-                      screen_width,             /* screen resolution                         */
+TextBox               *username           = NULL, /* text boxes                                */
+                      *password           = NULL;
+Label                 *username_label     = NULL, /* labels                                    */
+                      *password_label     = NULL,
+                      *session_label      = NULL,
+                      *lock_key_statusA   = NULL,
+                      *lock_key_statusB   = NULL,
+                      *lock_key_statusC   = NULL,
+                      *lock_key_statusD   = NULL;
+ComboBox              *session            = NULL; /* combo boxes                               */
+int                   we_stopped_gpm,             /* wether this program stopped gpm or not    */
+                      screen_width,               /* screen resolution                         */
                       screen_height,
-                      font_small_height,        /* font sizes                                */
+                      font_small_height,          /* font sizes                                */
                       font_normal_height,
                       font_large_height,
-                      username_area_mouse = 0,  /* sensible areas for mouse cursor to be in  */
-                      password_area_mouse = 0,
-                      session_area_mouse  = 0;
+                      username_area_mouse   = 0,  /* sensible areas for mouse cursor to be in  */
+                      password_area_mouse   = 0,
+                      session_area_mouse    = 0,
+                      screensaver_active    = 0,  /* screensaver stuff                         */
+                      screensaver_countdown = 0;
+
 
 void Draw_Background_Image(int do_the_drawing)
 {
@@ -112,11 +117,13 @@ void Draw_Background_Image(int do_the_drawing)
   primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
   if (!panel_image)
   { /* we design the surface */
-    if (BACKGROUND) panel_image = load_image (BACKGROUND, primary, dfb);
-    if (panel_image != NULL) panel_image->GetSize (panel_image, &panel_width, &panel_height);
+    if (BACKGROUND)  panel_image = load_image (BACKGROUND, primary, dfb);
+    if (panel_image) panel_image->GetSize (panel_image, &panel_width, &panel_height);
   }
-  /* we put the backgound image in the center of the screen if it fits
-     the screen otherwise we stretch it to make it fit                    */
+  /*
+	 * we put the backgound image in the center of the screen if it fits
+	 * the screen otherwise we stretch it to make it fit
+	 */
   if (panel_image)
   {
     if ( (panel_width <= screen_width) && (panel_height <= screen_height) )
@@ -128,8 +135,10 @@ void Draw_Background_Image(int do_the_drawing)
   if (do_the_drawing) primary->Flip (primary, NULL, DSFLIP_BLIT);
 }
 
-/* plot previous session of <user> if it exists,
-   otherwise plot default vaule                  */
+/*
+ * plot previous session of <user> if it exists,
+ * otherwise plot default vaule
+ */
 void set_user_session(char *user)
 {
   item *temp;
@@ -173,7 +182,7 @@ void close_framebuffer_mode (void)
 	{
 		Label_list *temp = Labels;
 		Labels = Labels->next;
-		temp->label->Destroy(temp->label);
+		if (temp->label) temp->label->Destroy(temp->label);
 		temp->next = NULL;
 		free(temp->content);
 		free(temp->command);
@@ -184,7 +193,7 @@ void close_framebuffer_mode (void)
 	{
 		Button_list *temp = Buttons;
 		Buttons = Buttons->next;
-		temp->button->Destroy(temp->button);
+		if (temp->button) temp->button->Destroy(temp->button);
 		temp->next = NULL;
 		free(temp);
 	}
@@ -215,10 +224,9 @@ void close_framebuffer_mode (void)
 
 void DirectFB_Error()
 {
-  if (!silent) fprintf(stderr, "Unrecoverable DirectFB error: reverting to text mode!\n");
+  fprintf(stderr, "Unrecoverable error: reverting to text mode!\n");
   close_framebuffer_mode();
 }
-
 
 /* mouse movement in buttons area */
 void handle_buttons(int *mouse_x, int *mouse_y)
@@ -242,7 +250,7 @@ void handle_buttons(int *mouse_x, int *mouse_y)
 					}
 					return;
 				}
-				else return;		/* we already plotted this event */
+				else return; /* we already plotted this event */
 			}
 		buttons = buttons->next;
 	}
@@ -331,14 +339,14 @@ void handle_mouse_movement (void)
 void show_lock_key_status(DFBInputEvent *evt)
 {
   if (lock_is_pressed(evt) == 3)
-	{
+	{ /* CAPS lock is active */
 		lock_key_statusA->Show(lock_key_statusA);
 		lock_key_statusB->Show(lock_key_statusB);
 		lock_key_statusC->Show(lock_key_statusC);
 		lock_key_statusD->Show(lock_key_statusD);
 	}
   else
-	{
+	{ /* CAPS lock is not active */
 		lock_key_statusA->Hide(lock_key_statusA);
 		lock_key_statusB->Hide(lock_key_statusB);
 		lock_key_statusC->Hide(lock_key_statusC);
@@ -346,6 +354,7 @@ void show_lock_key_status(DFBInputEvent *evt)
 	}
 }
 
+/* this redraws the login screen */
 void reset_screen(DFBInputEvent *evt)
 {
 	Label_list  *labels  = Labels;
@@ -374,6 +383,7 @@ void reset_screen(DFBInputEvent *evt)
   layer->EnableCursor (layer, 1);
 }
 
+/* this clears the screen */
 void clear_screen(void)
 {
 	Label_list  *labels  = Labels;
@@ -418,26 +428,26 @@ void begin_shutdown_sequence (int action)
 	/* First, we check shutdown policy */
 	switch (SHUTDOWN_POLICY)
 	{
-	case NOONE: /* no one is allowed to shut down the system */
-    primary->DrawString (primary, "Shutting down this machine is not allowed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
-    primary->Flip (primary, NULL, 0);
-		sleep(2);
-		events->GetEvent(events, DFB_EVENT (&evt));
-		reset_screen(&evt);
-		return;
-	case ROOT: /* only root can shutdown the system */
-		if (!check_password("root", password->text))
-		{
-			primary->DrawString (primary, "You must enter root password to shut down this machine!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+		case NOONE: /* no one is allowed to shut down the system */
+			primary->DrawString (primary, "Shutting down this machine is not allowed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 			primary->Flip (primary, NULL, 0);
 			sleep(2);
 			events->GetEvent(events, DFB_EVENT (&evt));
 			reset_screen(&evt);
 			return;
-		}
-		break;
-	case EVERYONE: /* everyone can shutdown, so we do nothing here */
-		break;
+		case ROOT: /* only root can shutdown the system */
+			if (!check_password("root", password->text))
+			{
+				primary->DrawString (primary, "You must enter root password to shut down this machine!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+				primary->Flip (primary, NULL, 0);
+				sleep(2);
+				events->GetEvent(events, DFB_EVENT (&evt));
+				reset_screen(&evt);
+				return;
+			}
+			break;
+		case EVERYONE: /* everyone can shutdown, so we do nothing here */
+			break;
 	}
 
   /* we wait for <countdown> seconds */
@@ -454,15 +464,15 @@ void begin_shutdown_sequence (int action)
     strcpy (message, "system ");
     switch (action)
     {
-    case POWEROFF:
-      strcat (message, "shutdown");
-      break;
-    case REBOOT:
-      strcat (message, "restart");
-      break;
-    default:
-      Draw_Background_Image (1);
-      return;
+			case POWEROFF:
+				strcat (message, "shutdown");
+				break;
+			case REBOOT:
+				strcat (message, "restart");
+				break;
+			default:
+				Draw_Background_Image (1);
+				return;
     }
     primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
 		Draw_Background_Image(0);
@@ -567,15 +577,30 @@ void handle_mouse_event (DFBInputEvent *evt)
 				if (button->mouse)
 					switch (button->command)
 					{
-					case HALT:
-						begin_shutdown_sequence (POWEROFF);
-						break;
-					case REBOOT:
-						begin_shutdown_sequence (REBOOT);
-						break;
-					case SLEEP: case SCREEN_SAVER:
-						/* we do nothing here... */
-						break;
+						case HALT:
+							begin_shutdown_sequence (POWEROFF);
+							break;
+						case REBOOT:
+							begin_shutdown_sequence (REBOOT);
+							break;
+						case SCREEN_SAVER:
+							screensaver_countdown = 0;
+							screensaver_active    = 1;
+							clear_screen();
+							primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
+							primary->Flip  (primary, NULL, DSFLIP_BLIT);
+							break;
+						case SLEEP:
+						{
+							DFBInputEvent evt;
+							clear_screen();
+							primary->DrawString (primary, "I'm not tired, yet!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+							primary->Flip (primary, NULL, 0);
+							sleep(2);
+							events->GetEvent (events, DFB_EVENT (&evt));
+							reset_screen(&evt);
+							break;
+						}
 					}
 
       if (username_area_mouse && status == 1)
@@ -846,103 +871,103 @@ int create_windows()
 		window_desc.height = window->height * screen_height / THEME_HEIGHT;	
 		switch(window->text_size)
 		{
-		case SMALL:
-			font = font_small;
-			break;
-		case MEDIUM:
-			font = font_normal;
-			break;
-		case LARGE: /* fall to default */
-		default:
-			font = font_large;
-			break;
+			case SMALL:
+				font = font_small;
+				break;
+			case MEDIUM:
+				font = font_normal;
+				break;
+			case LARGE: /* fall to default */
+			default:
+				font = font_large;
+				break;
 		}
 		/* what kind of window are we going to create? */
 		switch (window->type)
 		{
-		case LOGIN:
-			username = TextBox_Create(layer, font, window->text_color, window->cursor_color, &window_desc);
-			if (!username) return 0;
-			break;
-		case PASSWORD:
-			password = TextBox_Create(layer, font, window->text_color, window->cursor_color, &window_desc);
-			if (!password) return 0;
-			break;
-		case LABEL:
-		{
-			static Label_list *labels = NULL;
+			case LOGIN:
+				username = TextBox_Create(layer, font, window->text_color, window->cursor_color, &window_desc);
+				if (!username) return 0;
+				break;
+			case PASSWORD:
+				password = TextBox_Create(layer, font, window->text_color, window->cursor_color, &window_desc);
+				if (!password) return 0;
+				break;
+			case LABEL:
+			{
+				static Label_list *labels = NULL;
 
-			if (!labels)
-			{
-				labels = (Label_list *) calloc(1, sizeof(Label_list));
-				Labels = labels;
+				if (!labels)
+				{
+					labels = (Label_list *) calloc(1, sizeof(Label_list));
+					Labels = labels;
+				}
+				else
+				{
+					labels->next = (Label_list *) calloc(1, sizeof(Label_list));
+					labels = labels->next;
+				}
+				labels->label = Label_Create(layer, font, window->text_color, &window_desc);
+				if (!labels->label) return 0;			
+				labels->content          = strdup(window->content);
+				labels->command          = strdup(window->command);
+				labels->polltime         = window->polltime * 2;
+				labels->text_orientation = window->text_orientation;
+				labels->countdown        = 0;
+				labels->next             = NULL;
+				if (window->command)
+				{
+					char *message = assemble_message(labels->content, labels->command);
+					labels->label->SetText(labels->label, message, labels->text_orientation);
+					free(message);
+				}
+				else labels->label->SetText(labels->label, labels->content, window->text_orientation);
+				labels->label->SetFocus(labels->label, 0);
+				if (window->linkto)
+				{
+					if (!strcmp(window->linkto, "login"))    username_label = labels->label;
+					if (!strcmp(window->linkto, "password")) password_label = labels->label;
+					if (!strcmp(window->linkto, "session"))  session_label  = labels->label;
+				}
+				break;
 			}
-			else
+			case BUTTON:
 			{
-				labels->next = (Label_list *) calloc(1, sizeof(Label_list));
-				labels = labels->next;
-			}
-			labels->label = Label_Create(layer, font, window->text_color, &window_desc);
-			if (!labels->label) return 0;			
-			labels->content          = strdup(window->content);
-			labels->command          = strdup(window->command);
-			labels->polltime         = window->polltime * 2;
-			labels->text_orientation = window->text_orientation;
-			labels->countdown        = 0;
-			labels->next             = NULL;
-			if (window->command)
-			{
-				char *message = assemble_message(labels->content, labels->command);
-				labels->label->SetText(labels->label, message, labels->text_orientation);
-				free(message);
-			}
-			else labels->label->SetText(labels->label, labels->content, window->text_orientation);
-			labels->label->SetFocus(labels->label, 0);
-			if (window->linkto)
-			{
-				if (!strcmp(window->linkto, "login"))    username_label = labels->label;
-				if (!strcmp(window->linkto, "password")) password_label = labels->label;
-				if (!strcmp(window->linkto, "session"))  session_label  = labels->label;
-			}
-			break;
-		}
-		case BUTTON:
-		{
-			static Button_list *buttons = NULL;
-			char *image1, *image2;
+				static Button_list *buttons = NULL;
+				char *image1, *image2;
 
-			if (!buttons)
-			{
-				buttons = (Button_list *) calloc(1, sizeof(Button_list));
-				Buttons = buttons;
+				if (!buttons)
+				{
+					buttons = (Button_list *) calloc(1, sizeof(Button_list));
+					Buttons = buttons;
+				}
+				else
+				{
+					buttons->next = (Button_list *) calloc(1, sizeof(Button_list));
+					buttons = buttons->next;
+				}
+				image1 = StrApp((char **)NULL, THEME_DIR, window->content, "_normal.png",    (char *)NULL);
+				image2 = StrApp((char **)NULL, THEME_DIR, window->content, "_mouseover.png", (char *)NULL);
+				buttons->button = Button_Create(image1, image2, window_desc.posx, window_desc.posy, layer, primary, dfb);
+				if (!buttons->button) return 0;			
+				buttons->next = NULL;
+				buttons->button->MouseOver(buttons->button, 0);
+				free(image1); free(image2);
+				if (!strcmp(window->command, "halt"       )) buttons->button->command = HALT;
+				if (!strcmp(window->command, "reboot"     )) buttons->button->command = REBOOT;
+				if (!strcmp(window->command, "sleep"      )) buttons->button->command = SLEEP;
+				if (!strcmp(window->command, "screensaver")) buttons->button->command = SCREEN_SAVER;
+				break;
 			}
-			else
-			{
-				buttons->next = (Button_list *) calloc(1, sizeof(Button_list));
-				buttons = buttons->next;
-			}
-			image1 = StrApp((char **)NULL, THEME_DIR, window->content, "_normal.png",    (char *)NULL);
-			image2 = StrApp((char **)NULL, THEME_DIR, window->content, "_mouseover.png", (char *)NULL);
-			buttons->button = Button_Create(image1, image2, window_desc.posx, window_desc.posy, layer, primary, dfb);
-			if (!buttons->button) return 0;			
-			buttons->next = NULL;
-			buttons->button->MouseOver(buttons->button, 0);
-			free(image1); free(image2);
-			if (!strcmp(window->command, "halt"       )) buttons->button->command = HALT;
-			if (!strcmp(window->command, "reboot"     )) buttons->button->command = REBOOT;
-			if (!strcmp(window->command, "sleep"      )) buttons->button->command = SLEEP;
-			if (!strcmp(window->command, "screensaver")) buttons->button->command = SCREEN_SAVER;
-			break;
-		}
-		case COMBO:
-			if (window->type == COMBO && !strcmp(window->command, "sessions"))
-			{
-				session = ComboBox_Create(layer, font, window->text_color, &window_desc);
-				if (!session) return 0;
-			}
-			break;
-		default:
-			return 0;
+			case COMBO:
+				if (window->type == COMBO && !strcmp(window->command, "sessions"))
+				{
+					session = ComboBox_Create(layer, font, window->text_color, &window_desc);
+					if (!session) return 0;
+				}
+				break;
+			default:
+				return 0;
 		}
 
 		window = window->next;
@@ -1088,11 +1113,11 @@ int directfb_mode (int argc, char *argv[])
 
   layer->EnableCursor (layer, 1);
 
-  /* init screen saver stuff */
-  screen_saver.kind = SCREENSAVER;
+  /* initialize screen saver stuff */
+  screen_saver.kind    = SCREENSAVER;
   screen_saver.surface = primary;
-	screen_saver.dfb = dfb;
-  screen_saver.events = events;
+	screen_saver.dfb     = dfb;
+  screen_saver.events  = events;
 
   /* it should be now safe to unlock vt switching again */
   unlock_tty_switching();
@@ -1100,16 +1125,13 @@ int directfb_mode (int argc, char *argv[])
   /* we go on for ever... or until the user does something in particular */
   while (returnstatus == -1)
   {
-    static int screensaver_active = 0;
-    static int screensaver_countdown = 0;
-
     if (!screensaver_countdown) screensaver_countdown = screensaver_timeout * 120;		
 
     /* we wait for an input event... */
     if (!screensaver_active) events->WaitForEventWithTimeout(events, 0, 500);
     else
 		{
-			primary->SetFont (primary, font_large);
+			primary->SetFont  (primary, font_large);
 			primary->SetColor (primary, OTHER_TEXT_COLOR.R, OTHER_TEXT_COLOR.G, OTHER_TEXT_COLOR.B, OTHER_TEXT_COLOR.A);
 			activate_screen_saver(&screen_saver);
 		}
@@ -1123,14 +1145,19 @@ int directfb_mode (int argc, char *argv[])
 				screensaver_active = 0;
 				reset_screen(&evt);
       }
-      if ((evt.type == DIET_AXISMOTION) || (evt.type == DIET_BUTTONPRESS) || (evt.type == DIET_BUTTONRELEASE))
-      {	/* handle mouse */
-				handle_mouse_event (&evt);
-      }
-      if (evt.type == DIET_KEYPRESS)
-      {	/* manage keystrokes */
-				returnstatus= handle_keyboard_event(&evt);
-      }
+			switch (evt.type)
+			{
+				case DIET_AXISMOTION:
+				case DIET_BUTTONPRESS:
+				case DIET_BUTTONRELEASE:
+					handle_mouse_event (&evt);
+					break;
+				case DIET_KEYPRESS:
+					returnstatus = handle_keyboard_event(&evt);
+					break;
+				default: /* we do nothing here */
+					break;
+			}
     }
     else
     { /* Let there be a flashing cursor! */
@@ -1138,10 +1165,8 @@ int directfb_mode (int argc, char *argv[])
 
       if (!screensaver_active)
       {
-				if (username->hasfocus)
-					username->KeyEvent(username, REDRAW, flashing_cursor);
-				if (password->hasfocus)
-					password->KeyEvent(password, REDRAW, flashing_cursor);
+				if (username->hasfocus) username->KeyEvent(username, REDRAW, flashing_cursor);
+				if (password->hasfocus) password->KeyEvent(password, REDRAW, flashing_cursor);
 				flashing_cursor = !flashing_cursor;
 				if (use_screensaver) screensaver_countdown--;
 				update_labels();
@@ -1151,7 +1176,7 @@ int directfb_mode (int argc, char *argv[])
 				screensaver_active = 1;
 				clear_screen();
 				primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-				primary->Flip (primary, NULL, DSFLIP_BLIT);
+				primary->Flip  (primary, NULL, DSFLIP_BLIT);
       }
     }
   }

@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <directfb.h>
+#include <unistd.h>
 
 #include "directfb_mode.h"
 #include "button.h"
@@ -68,7 +69,6 @@ void Button_Destroy(Button *button)
 	if (button->window) button->window->Release (button->window);
 
 	free (button);
-	button = NULL;
 }
 
 IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb)
@@ -78,6 +78,12 @@ IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, ID
 	IDirectFBSurface *surface = NULL;
 	DFBSurfaceDescription dsc;
 	DFBResult err;
+
+	if (access(filename, R_OK))
+	{
+		if (!silent) fprintf (stderr, "Cannot load image: file '%s' does not exist!\n", filename);
+		return NULL;
+	}
 
 	err = dfb->CreateImageProvider (dfb, filename, &provider);
 	if (err != DFB_OK)
@@ -98,7 +104,7 @@ IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, ID
 		primary->GetPixelFormat (primary, &dsc.pixelformat);
 		if (dfb->CreateSurface (dfb, &dsc, &surface) == DFB_OK)
 		{
-			surface->Clear (surface, 0, 0, 0, 0x00);
+			surface->Clear (surface, 0x00, 0x00, 0x00, 0x00);
 			surface->SetBlittingFlags (surface, DSBLIT_BLEND_ALPHACHANNEL);
 			surface->Blit (surface, tmp, NULL, 0, 0);
 		}
@@ -115,10 +121,23 @@ Button *Button_Create(const char *normal, const char *mouseover, int xpos, int y
 	IDirectFBSurface *surface;
 	DFBWindowDescription window_desc;
 
+	if (!normal || !mouseover || !layer || !primary || !dfb) return NULL;
+
 	but = (Button *) calloc (1, sizeof (Button));
 	but->normal = load_image (normal, primary, dfb);
+	if (!but->normal)
+	{
+		free(but);
+		return NULL;
+	}
 	but->normal->GetSize (but->normal, (int *)&(but->width), (int *)&(but->height));
 	but->mouseover = load_image (mouseover, primary, dfb);
+	if (!but->mouseover)
+	{
+		but->normal->Release (but->normal);
+		free(but);
+		return NULL;
+	}
 	but->xpos      = xpos;
 	but->ypos      = ypos;
 	but->Destroy   = Button_Destroy;

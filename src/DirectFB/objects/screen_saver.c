@@ -78,16 +78,16 @@ void activate_screen_saver(ScreenSaver *thiz)
 
   switch (thiz->kind)
   {
-  case PHOTO_SCREENSAVER:
-    do_screen_saver = photo_screen_saver;
-		seconds = 5;
-		milli_seconds = 0;
-    break;
-  case PIXEL_SCREENSAVER: /* fall to default */
-  default:
-    do_screen_saver = pixel_screen_saver;
-		seconds = 0;
-		milli_seconds = 500;
+		case PHOTO_SCREENSAVER:
+			do_screen_saver = photo_screen_saver;
+			seconds = 5;
+			milli_seconds = 0;
+			break;
+		case PIXEL_SCREENSAVER: /* fall to default */
+		default:
+			do_screen_saver = pixel_screen_saver;
+			seconds = 0;
+			milli_seconds = 500;
   }
 
   /* do screen saver until an input event arrives */

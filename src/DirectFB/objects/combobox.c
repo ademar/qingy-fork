@@ -52,23 +52,23 @@ void ComboBox_KeyEvent(ComboBox *thiz, int direction)
 
   switch (direction)
   {
-  case UP:
-    if (thiz->selected != thiz->selected->prev)
-    {
-      thiz->selected = thiz->selected->prev;
-      PlotEvent(thiz);
-    }
-    break;
-  case DOWN:
-    if (thiz->selected != thiz->selected->next)
-    {
-      thiz->selected = thiz->selected->next;
-      PlotEvent(thiz);
-    }
-    break;
-  case REDRAW:
-    PlotEvent(thiz);
-    break;
+		case UP:
+			if (thiz->selected != thiz->selected->prev)
+			{
+				thiz->selected = thiz->selected->prev;
+				PlotEvent(thiz);
+			}
+			break;
+		case DOWN:
+			if (thiz->selected != thiz->selected->next)
+			{
+				thiz->selected = thiz->selected->next;
+				PlotEvent(thiz);
+			}
+			break;
+		case REDRAW:
+			PlotEvent(thiz);
+			break;
   }
 }
 

@@ -505,36 +505,36 @@ int check_windows_sanity()
 	{
 		switch (temp->type)
 		{
-		case LOGIN:
-			got_login  = 1;
-			break;
-		case PASSWORD:
-			got_passwd = 1;
-			break;
-		case COMBO:
-			if (temp->command) if (!strcmp(temp->command, "sessions"))
-			{
-				got_session = 1;
+			case LOGIN:
+				got_login  = 1;
 				break;
-			}
-			fprintf(stderr, "Invalid combo window: forbidden command '%s'.\n", temp->command);
-			return 0;
-		case BUTTON:
-			if (temp->content && temp->command)
-			{
-				if (!strcmp(temp->command, "halt"       )) break;
-				if (!strcmp(temp->command, "reboot"     )) break;
-				if (!strcmp(temp->command, "sleep"      )) break;
-				if (!strcmp(temp->command, "screensaver")) break;
-			}
-			fprintf(stderr, "Invalid button: command must be one of the following:\n");
-			fprintf(stderr, "halt, reboot, sleep, screensaver\n");
-			fprintf(stderr, "And content must point to button images\n");
-			return 0;
-		case LABEL:
-			break;
-		default:
-			return 0;
+			case PASSWORD:
+				got_passwd = 1;
+				break;
+			case COMBO:
+				if (temp->command) if (!strcmp(temp->command, "sessions"))
+				{
+					got_session = 1;
+					break;
+				}
+				fprintf(stderr, "Invalid combo window: forbidden command '%s'.\n", temp->command);
+				return 0;
+			case BUTTON:
+				if (temp->content && temp->command)
+				{
+					if (!strcmp(temp->command, "halt"       )) break;
+					if (!strcmp(temp->command, "reboot"     )) break;
+					if (!strcmp(temp->command, "sleep"      )) break;
+					if (!strcmp(temp->command, "screensaver")) break;
+				}
+				fprintf(stderr, "Invalid button: command must be one of the following:\n");
+				fprintf(stderr, "halt, reboot, sleep, screensaver\n");
+				fprintf(stderr, "And content must point to button images\n");
+				return 0;
+			case LABEL:
+				break;
+			default:
+				return 0;
 		}
 		temp = temp->next;
 	}

@@ -115,25 +115,25 @@ int PAM_conv (int num_msg, pam_message_type **msg, struct pam_response **resp, v
   {
     switch (msg[count]->msg_style)
     {
-    case PAM_TEXT_INFO:
-      if (!StrApp(&infostr, msg[count]->msg, "\n", (char*)NULL))
+			case PAM_TEXT_INFO:
+				if (!StrApp(&infostr, msg[count]->msg, "\n", (char*)NULL))
+					goto conv_err;
+				break;
+			case PAM_ERROR_MSG:
+				if (!StrApp(&errstr, msg[count]->msg, "\n", (char*)NULL))
+					goto conv_err;
+				break;
+			case PAM_PROMPT_ECHO_OFF:
+				/* wants password */
+				if (!StrDup (&reply[count].resp, PAM_password)) goto conv_err;
+				reply[count].resp_retcode = PAM_SUCCESS;
+				break;
+			case PAM_PROMPT_ECHO_ON:
+				/* username given to PAM already */
+				/* fall through */
+			default:
+				/* unknown */
 				goto conv_err;
-      break;
-    case PAM_ERROR_MSG:
-      if (!StrApp(&errstr, msg[count]->msg, "\n", (char*)NULL))
-				goto conv_err;
-      break;
-    case PAM_PROMPT_ECHO_OFF:
-      /* wants password */
-      if (!StrDup (&reply[count].resp, PAM_password)) goto conv_err;
-      reply[count].resp_retcode = PAM_SUCCESS;
-      break;
-    case PAM_PROMPT_ECHO_ON:
-      /* user name given to PAM already */
-      /* fall through */
-    default:
-      /* unknown */
-      goto conv_err;
     }
   }
   *resp = reply;
@@ -145,14 +145,14 @@ conv_err:
     {
       switch (msg[count]->msg_style)
       {
-      case PAM_ERROR_MSG:
-      case PAM_TEXT_INFO:
-      case PAM_PROMPT_ECHO_ON:
-				free(reply[count].resp);
-				break;
-      case PAM_PROMPT_ECHO_OFF:
-				free(reply[count].resp);
-				break;
+				case PAM_ERROR_MSG:
+				case PAM_TEXT_INFO:
+				case PAM_PROMPT_ECHO_ON:
+					free(reply[count].resp);
+					break;
+				case PAM_PROMPT_ECHO_OFF:
+					free(reply[count].resp);
+					break;
       }
       reply[count].resp = 0;
     }
@@ -181,44 +181,44 @@ char *get_sessions(void)
 
   switch (status)
   {
-  case 0:
-		status = 1;
-    return strdup("Text: Console");
-  case 1:
-		status = 2;
-		return strdup("Your .xsession");
-	case 2:
-    dir= opendir(dirname);
-    if (!dir)
-    {
-      status = 0;
-      fprintf(stderr, "session: unable to open directory \"%s\"\n", dirname);
-      return NULL;
-    }
-    status = 3;
-  case 3:
-    while (1)
-    {
-      if (!(entry= readdir(dir))) break;
-      if (!strcmp(entry->d_name, "." )) continue;
-      if (!strcmp(entry->d_name, "..")) continue;      
-      if (dirname == X_SESSIONS_DIRECTORY)
-      {
-				if (!strcmp(entry->d_name, "Xsession")) continue;
-				return strdup(entry->d_name);
-      }
-      else return StrApp((char**)NULL, "Text: ", entry->d_name, (char*)NULL);
-    }
-    closedir(dir);
-    if (dirname == TEXT_SESSIONS_DIRECTORY)
-    {
-      dirname = NULL;
-      status = 0;
-      return NULL;
-    }
-    dirname = TEXT_SESSIONS_DIRECTORY;
-    status = 2;
-    return get_sessions();
+		case 0:
+			status = 1;
+			return strdup("Text: Console");
+		case 1:
+			status = 2;
+			return strdup("Your .xsession");
+		case 2:
+			dir= opendir(dirname);
+			if (!dir)
+			{
+				status = 0;
+				fprintf(stderr, "session: unable to open directory \"%s\"\n", dirname);
+				return NULL;
+			}
+			status = 3;
+		case 3:
+			while (1)
+			{
+				if (!(entry= readdir(dir))) break;
+				if (!strcmp(entry->d_name, "." )) continue;
+				if (!strcmp(entry->d_name, "..")) continue;      
+				if (dirname == X_SESSIONS_DIRECTORY)
+				{
+					if (!strcmp(entry->d_name, "Xsession")) continue;
+					return strdup(entry->d_name);
+				}
+				else return StrApp((char**)NULL, "Text: ", entry->d_name, (char*)NULL);
+			}
+			closedir(dir);
+			if (dirname == TEXT_SESSIONS_DIRECTORY)
+			{
+				dirname = NULL;
+				status = 0;
+				return NULL;
+			}
+			dirname = TEXT_SESSIONS_DIRECTORY;
+			status = 2;
+			return get_sessions();
   }
 
   return NULL;
@@ -231,40 +231,40 @@ void LogEvent(struct passwd *pw, int status)
 
   switch (status)
   {
-  case UNKNOWN_USER:
-    syslog(LOG_AUTHPRIV|LOG_WARNING, "Authentication failure: user '%s' is unknown\n", pw->pw_name);
-    break;
-  case WRONG_PASSWORD:
-    syslog(LOG_AUTHPRIV|LOG_WARNING, "Authentication failure: wrong password for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
-    break;
-  case OPEN_SESSION:
-    syslog(LOG_AUTHPRIV|LOG_INFO, "Session opened for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
-    break;
-  case CLOSE_SESSION:
-    syslog(LOG_AUTHPRIV|LOG_INFO, "Session closed for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
-    break;
-  case CANNOT_SWITCH_USER:
-    syslog(LOG_AUTHPRIV|LOG_WARNING, "Fatal Error: cannot switch user id!\n");
-    break;
-  case CANNOT_CHANGE_TTY_OWNER:
-    syslog(LOG_AUTHPRIV|LOG_WARNING, "Fatal Error: cannot change tty owner!\n");
-    break;
+		case UNKNOWN_USER:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "Authentication failure: user '%s' is unknown\n", pw->pw_name);
+			break;
+		case WRONG_PASSWORD:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "Authentication failure: wrong password for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
+			break;
+		case OPEN_SESSION:
+			syslog(LOG_AUTHPRIV|LOG_INFO, "Session opened for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
+			break;
+		case CLOSE_SESSION:
+			syslog(LOG_AUTHPRIV|LOG_INFO, "Session closed for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
+			break;
+		case CANNOT_SWITCH_USER:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "Fatal Error: cannot switch user id!\n");
+			break;
+		case CANNOT_CHANGE_TTY_OWNER:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "Fatal Error: cannot change tty owner!\n");
+			break;
 #ifdef USE_PAM
-  case PAM_FAILURE:
-    syslog(LOG_AUTHPRIV|LOG_WARNING, "Unrecoverable error: PAM failure!\n");
-    break;
-  case PAM_ERROR:
-    syslog(LOG_AUTHPRIV|LOG_WARNING, "PAM was unable to authenticate user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
-    break;
-  case PAM_UPDATE_TOKEN:
-    syslog(LOG_AUTHPRIV|LOG_WARNING, "user '%s' (UID %d) authentication token has expired!\n", pw->pw_name, pw->pw_uid);
-    break;
-  case PAM_CANNOT_UPDATE_TOKEN:
-    syslog(LOG_AUTHPRIV|LOG_WARNING, "Cannot update authentication token for user '%s' (UID %d)!\n", pw->pw_name, pw->pw_uid);
-    break;
-#endif
-  default:
-    syslog(LOG_AUTHPRIV|LOG_WARNING, "Error #666, coder brains are severely damaged!\n");
+		case PAM_FAILURE:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "Unrecoverable error: PAM failure!\n");
+			break;
+		case PAM_ERROR:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "PAM was unable to authenticate user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
+			break;
+		case PAM_UPDATE_TOKEN:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "user '%s' (UID %d) authentication token has expired!\n", pw->pw_name, pw->pw_uid);
+			break;
+		case PAM_CANNOT_UPDATE_TOKEN:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "Cannot update authentication token for user '%s' (UID %d)!\n", pw->pw_name, pw->pw_uid);
+			break;
+#endif	
+		default:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "Error #666, coder brains are severely damaged!\n");
   }
 
   closelog();
@@ -333,14 +333,14 @@ int check_password(char *username, char *user_password)
     pamh = NULL;
     switch (retcode)
     {
-    case PAM_USER_UNKNOWN:
-      LogEvent(pw, UNKNOWN_USER);
-      break;
-    case PAM_AUTH_ERR:
-      LogEvent(pw, WRONG_PASSWORD);
-      break;
-    default:
-      LogEvent(pw, PAM_ERROR);
+			case PAM_USER_UNKNOWN:
+				LogEvent(pw, UNKNOWN_USER);
+				break;
+			case PAM_AUTH_ERR:
+				LogEvent(pw, WRONG_PASSWORD);
+				break;
+			default:
+				LogEvent(pw, PAM_ERROR);
     }
     return 0;
   }
@@ -350,16 +350,16 @@ int check_password(char *username, char *user_password)
     pamh = NULL;
     switch (retcode)
     {
-    case PAM_NEW_AUTHTOK_REQD:
-      LogEvent(pw, PAM_UPDATE_TOKEN);
-      update_token = 1;
-      return 1;
-      break;
-    case PAM_USER_UNKNOWN:
-      LogEvent(pw, UNKNOWN_USER);
-      break;
-    default:
-      LogEvent(pw, PAM_ERROR);
+			case PAM_NEW_AUTHTOK_REQD:
+				LogEvent(pw, PAM_UPDATE_TOKEN);
+				update_token = 1;
+				return 1;
+				break;
+			case PAM_USER_UNKNOWN:
+				LogEvent(pw, UNKNOWN_USER);
+				break;
+			default:
+				LogEvent(pw, PAM_ERROR);
     }
     return 0;
   }

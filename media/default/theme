@@ -156,9 +156,27 @@ window
 
 window
 {
-	x       = 700
-	y       = 562
+	x       = 755
+	y       = 515
 	type    = "button"
 	command = "reboot"
 	content = "reset"
+}
+
+window
+{
+	x       = 755
+	y       = 470
+	type    = "button"
+	command = "screensaver"
+	content = "screensaver"
+}
+
+window
+{
+	x       = 755
+	y       = 425
+	type    = "button"
+	command = "sleep"
+	content = "sleep"
 }
