@@ -1,64 +1,9 @@
-- option for selecting session based on tty, not on user
-
-- drop down menu for sessions 
-
-- ldap support for authentication (with pam?)
-
-- allow selection of alternate x server layouts / X config files
-
-- Add an option to pass parameters to X server 
-
-- Make key bindings customizable, add more actions available to keyboard
-  shortcuts, like switch to the right workspace, or to the left, ot
-  to the previous one...
-
-- Make applets possible... A mix of shared modules and window managing :P
-  Maybe we could even port wmaker dockapps... just a dream of mine ;-)
-
-- Make it possible to use e.g. mng files for animated images, for example for
-  background and the like.
-
-* Make code compliant to the GNU Coding Standards.. That is to be done in order
-  to try inclusion in the GNU Project.
-
-- Add support for handling console bootsplash from inside qingy? That is: qingy
-  background becomes framebuffer background when you log in...
-
-- Implement the function behind the 'sleep' button (note: we should wait
-  until my own powerd is done, so that we can tell it to activate sleep mode;
-  I see no point in coding the same function twice).
-  ADD POSSIBILITY TO EXECUTE CUSTOM COMMAND WHEN BUTTON IS PRESSED!
+[FIXES]
 
 - Some command line options should migrate to config file...
 
-- Add support for wildcards in paths in config files...
-
-- test in on Mandrake (8.2) and SuSe as people reported issues...
-
-- make images scale according to virtualized / real resolution
-  instead of always rendering them their actual size...
-
-- support some graphics toolkits other than DirectFB
-
-- $$$ (huge but interesting blurb)
-
-- Add support for asking for a password after a given idle timeout.
-  (note: look at 'who' source code to see how it gets idle times)
-
-- Add some sort of autologin support:
-  - you boot your machine, qingy autologins
-    lastuser,lastsession (or user/session specified
-    via config file) timed, direct, standard name
-  - when you exit from this session, qingy appears
-    with its normal behaviour.
-  But configurable ;-P
-
 - Name theme tarball a bit better
-
-- Add an option in theme file to select wether
-  background image should be centered, scaled or tiled...
-
-- Add support for multiline text labels...
+  (BETTER YET, MOVE EVERYTHING TO FRESHMEAT AND WIPE IT OUT!)
 
 - make the GPM start/stop stuff work for distros other
   than Gentoo, too...
@@ -68,7 +13,39 @@
 * someone reported that user gets increased when logging in, but not
   decreased when logging out! Update: I was never, ever, able to replicate this...
 
-- write a FAQ
+* Some people reported a supposed memory leak inside qingy, but I was not
+  able to reproduce the issue...
+
+
+
+
+[GUI]
+
+- drop down menu for sessions 
+
+- Make applets possible... A mix of shared modules and window managing :P
+  Maybe we could even port wmaker dockapps... just a dream of mine ;-)
+
+- Make it possible to use e.g. mng files for animated images, for example for
+  background and the like.
+
+- Make key bindings customizable, add more actions available to keyboard
+  shortcuts, like switch to the right workspace, or to the left, ot
+  to the previous one...
+
+- make images scale according to virtualized / real resolution
+  instead of always rendering them their actual size...
+
+- Add a timeout (with fading) to the mouseover effect
+
+- graphical configuration tool...
+
+- Add support for a Win XP style login box...
+
+- Add an option in theme file to select wether
+  background image should be centered, scaled or tiled...
+
+- Add support for multiline text labels...
 
 - allow for linkings elements together, so that when you mouse over 
   one of them, all get the mouseover effect...
@@ -81,15 +58,51 @@
 		mouseOver.linkTo = "pippo"
   }
 
+
+
+
+[DOC]
+
+- write a FAQ
+
+- Update ALL documentation as it is severely outdated
+
+
+
+
+[ENHANCEMENTS]
+
+- Add support for wildcards in paths in config files...
+
+- Implement the function behind the 'sleep' button (note: we should wait
+  until my own powerd is done, so that we can tell it to activate sleep mode;
+  I see no point in coding the same function twice).
+  ADD POSSIBILITY TO EXECUTE CUSTOM COMMAND WHEN BUTTON IS PRESSED!
+
+* Make code compliant to the GNU Coding Standards.. That is to be done in order
+  to try inclusion in the GNU Project.
+
+- option for selecting session based on tty, not on user
+
+- Add support for handling console bootsplash from inside qingy? That is: qingy
+  background becomes framebuffer background when you log in...
+
+- support some graphics toolkits other than DirectFB
+
+- Add support for asking for a password after a given idle timeout.
+  (note: look at 'who' source code to see how it gets idle times)
+
+- Add some sort of autologin support:
+  - you boot your machine, qingy autologins
+    lastuser,lastsession (or user/session specified
+    via config file) timed, direct, standard name
+  - when you exit from this session, qingy appears
+    with its normal behaviour.
+  But configurable ;-P
+
 - Support for scripting things...
 
-- Add a timeout (with fading) to the mouseover effect
-
 - support also the /dev/vc* in spite of /dev/tty*
-
-- graphical configuration tool...
-
-- Add support for a Win XP style login box...
 
 - Add support for setting the LANG enviroment variable...
 
@@ -98,6 +111,12 @@
 
 - Make qingy really start on one tty and fake its presence on the others...
   this would reduce memory usage, making it seem quicker at the same time.
+
+- $$$ (huge but interesting blurb)
+
+
+
+
 
 --
 Items marked as * are those we are currently working on.
