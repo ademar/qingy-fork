@@ -88,6 +88,9 @@ Options:
         Try this if you get a black screen instead of a text console.
         Note: switching to another vt and back also solves the problem.
 
+        -r <xres>x<yres>, --resolution <xres>x<yres>
+        Do not detect framebuffer resolution, use this one instead.
+
 
 /----------------\
 | Configuration  |

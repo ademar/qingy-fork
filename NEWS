@@ -13,7 +13,7 @@ qingy 0.4.1 (28 Jul 2004):
 - Allow for buttons with no action associated to them,
   just use "action = NULL", thanks to a suggestion from
   Dark Liquid (http://www.darkliquid.net/)
-- moved last user file from /etc/qingy/ to /var/lib/misc/
+- Moved last user file from /etc/qingy/ to /var/lib/misc/
   to comply to the File System Hierarchy Standard.
   Thanks to Jason Andryuk <the_deuce@yahoo.com>
   for poinint this out.
@@ -21,7 +21,7 @@ qingy 0.4.1 (28 Jul 2004):
   that adds new keybindings in text boxes:
   ctrl-h: delete one character
   ctrl-u: delete all characters
-  ctrl-j: go to next textbox (same as TAB)
+  ctrl-j: go to next textbox (same as ENTER)
 
 
 qingy 0.4.0 (18 March 2004):

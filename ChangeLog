@@ -1,5 +1,8 @@
 2004-07-28  Noberasco Michele  <s4t4n@gentoo.org>
 
+	* README (Options):
+	Update README
+
 	* src/DirectFB/directfb_mode.c,
 	* src/DirectFB/objects/textbox.c:
 	Implemented new key bindings:
