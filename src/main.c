@@ -43,10 +43,9 @@
 - drop down menu for sessions
 - allow session locking
 - option for starting wms in an unique X server?!?
-- add a clock!
-- language support
+- add a clock and/or uptime thingie!
+- multilanguage support
 ******* Maybe these are done
-- option to close DirectFB mode before shutting down
 - check PAM user permissions
 *******/
 

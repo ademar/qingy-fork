@@ -1,6 +1,7 @@
 qingy 0.2.1 ():
+- Hopefully solves some PAM issues
 - Added option to close DirectFB mode before shutting down,
-  so that you can see your system messages during shutdown
+  so that you can see your system shutdown messages
 - Added option for hiding last user name
 - Added option for hiding password chars completely
 - Now ENTER in username field pass control to password
