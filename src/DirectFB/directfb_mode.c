@@ -56,6 +56,7 @@
 #include "utils.h"
 #include "textbox.h"
 #include "combobox.h"
+#include "listbox.h"
 #include "label.h"
 
 #ifdef USE_SCREEN_SAVERS

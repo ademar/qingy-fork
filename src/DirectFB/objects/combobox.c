@@ -41,7 +41,7 @@
 #include "misc.h"
 
 
-void PlotEvent(ComboBox *thiz, int flip)
+void ComboBox_PlotEvent(ComboBox *thiz, int flip)
 {
   if (!thiz) return;
 
@@ -56,7 +56,7 @@ void ComboBox_MouseOver(ComboBox *thiz, int status)
 
 	thiz->mouse = status;
 
-	PlotEvent(thiz, 0);
+	ComboBox_PlotEvent(thiz, 0);
 	if (status)
 	{
 		IDirectFBSurface *where;
@@ -115,7 +115,7 @@ void ComboBox_SelectItem(ComboBox *thiz, item *selection)
 
 	thiz->selected = selection;
 	ComboBox_resize(thiz, selection);
-	PlotEvent(thiz, 0);
+	ComboBox_PlotEvent(thiz, 0);
 	thiz->MouseOver(thiz, thiz->mouse);
 }
 
@@ -172,7 +172,7 @@ void ComboBox_KeyEvent(ComboBox *thiz, int direction)
 				thiz->SelectItem(thiz, thiz->selected->next);
 			break;
 		case REDRAW:
-			PlotEvent(thiz, 1);
+			ComboBox_PlotEvent(thiz, 1);
 			break;
   }
 }

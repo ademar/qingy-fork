@@ -1,3 +1,10 @@
+2005-03-18  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/session.c:
+	Updated handling of utmp/wtmp logging so that
+	chrootkit no longer finds deletions in the latter
+	when user logs out.
+
 2005-03-17  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/DirectFB/objects/combobox.c,

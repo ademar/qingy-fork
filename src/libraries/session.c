@@ -558,8 +558,8 @@ void add_utmp_wtmp_entry(char *username)
 	free(ttyn);
 }
 
-/* Remove entries from utmp and wtmp */
-void remove_utmp_wtmp_entry(void)
+/* Remove entries from utmp */
+void remove_utmp_entry(void)
 {
 	struct utmp ut;
 	pid_t mypid = getpid ();
@@ -580,7 +580,6 @@ void remove_utmp_wtmp_entry(void)
 	setutent();
 	pututline(&ut);
 	endutent ();
-	updwtmp (_PATH_WTMP, &ut);
 }
 
 void Text_Login(struct passwd *pw, char *session, char *username)
@@ -645,7 +644,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   LogEvent(pw, CLOSE_SESSION);
 #endif
   
-	remove_utmp_wtmp_entry();	
+	remove_utmp_entry();	
 	
   /* Restore tty ownership to root:tty */
   restore_tty_ownership();
@@ -801,7 +800,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 #endif
   if (get_active_tty() == dest_vt) set_active_tty(current_vt);  
 
-	remove_utmp_wtmp_entry();
+	remove_utmp_entry();
   
   /* Restore tty ownership to root:tty */
   restore_tty_ownership();

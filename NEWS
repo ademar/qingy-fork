@@ -1,6 +1,6 @@
 qingy CVS-0.6.0-CVS:
 - SECURITY ENHANCEMENT: added support for encrypting communications
-  between qingy and its user interface, trigered by new ./configure
+  between qingy and its user interface, triggered by new ./configure
   option: --enable-crypto, enabled by default.
 - SECURITY FIX: now authentication data is passed between
   qingy and its GUI trough a securely created temp file.
@@ -15,6 +15,8 @@ qingy CVS-0.6.0-CVS:
   they look the same on all resolutions.
 - Added two new font sizes that can be used in theme files:
   'smaller' and 'tiny'.
+- Updated handling of utmp/wtmp logging so that chrootkit no longer
+  finds deletions in the latter when user logs out.
 - Other small fixes and clean-ups.
 
 

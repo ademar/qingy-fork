@@ -32,12 +32,15 @@
 #define UP       2
 #define DOWN    -2
 
+#ifndef HAVE_STRUCT_ITEM
 typedef struct _item
 {
 	char         *name;
 	struct _item *next;
 	struct _item *prev;
 } item;
+#define HAVE_STRUCT_ITEM 1
+#endif
 
 typedef struct _ComboBox
 {
@@ -53,7 +56,7 @@ typedef struct _ComboBox
 	int               position;
 	IDirectFBWindow	 *window;
 	IDirectFBSurface *surface;
-	int               mouse;    /* 1 if mouse is over button, 0 otherwise */
+	int               mouse;    /* 1 if mouse is over combobox, 0 otherwise */
 
 	/* methods */
 	void (*SetTextColor)(struct _ComboBox *thiz, color_t *text_color);
