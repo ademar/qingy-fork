@@ -1052,17 +1052,13 @@ int main (int argc, char *argv[])
   DFBResult result;             /* we store eventual errors here            */
   char *lastuser=NULL;          /* latest user who logged in                */
 
+	/* which tty should we run in? */
+	current_tty = atoi(argv[1]);
+
   /* load settings from file */
 	initialize_variables();
 	if (!load_settings()) return TEXT_MODE;
   if (!disable_last_user) lastuser = get_last_user();
-
-	current_tty = atoi(argv[1]);
-  /* user changed vt while we were doing our stuff */
-
-  /* lock vt switching */
-	/* let's try not to, shall we? */
-  /* lock_tty_switching(); */
 
 #ifdef USE_GPM_LOCK
   /* Stop GPM if necessary */
@@ -1143,10 +1139,6 @@ int main (int argc, char *argv[])
   screen_saver_dfb     = dfb;
   screen_saver_events  = events;
 #endif
-
-  /* it should be now safe to unlock vt switching again */
-	/* but it is not locked, we disabled it... */
-  /* unlock_tty_switching(); */
 
   /* we go on for ever... or until the user does something in particular */
   while (returnstatus == -1)

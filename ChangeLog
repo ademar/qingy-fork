@@ -1,3 +1,8 @@
+2004-08-17  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/directfb_mode.c (main):
+	Fixed bug that prevented tty specific options in config file to work.
+
 2004-08-16  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* media/qingy-mode.el:

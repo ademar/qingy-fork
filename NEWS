@@ -1,3 +1,8 @@
+qingy CVS
+- Fixed a bug that prevented tty specific options in config file
+  to work.
+
+
 qingy 0.5.0 (17 Aug 2004):
 - This new major version finally is able to work-around all issues
   between DirectFB and 2.6 kernels. But make sure to use a kernel 
