@@ -4,3 +4,5 @@ bindir = $(prefix)/etc/qingy/sessions
 
 bin_SCRIPTS = \
 	emacs
+
+EXTRA_DIST = $(bin_SCRIPTS)
