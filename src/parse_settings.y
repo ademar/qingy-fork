@@ -1,23 +1,23 @@
 %{
 /*******************************************************************************/
-/* parse_settings.y - Qingy theme and settings files parser 		       */
-/*  v. 0.3 								       */
-/*  Copyright (C) 2004 Paolo Gianrossi - All rights reserved 		       */
-/*  by Paolo Gianrossi <paolino.gnu@disi.unige.it>			       */
-/* 									       */
-/* This program is free software; you can redistribute it and/or 	       */
-/* modify  under the terms of the GNU General Public License as 	       */
+/* parse_settings.y - Qingy theme and settings files parser 		               */
+/*  v. 0.3 								                                                     */
+/*  Copyright (C) 2004 Paolo Gianrossi - All rights reserved 		               */
+/*  by Paolo Gianrossi <paolino.gnu@disi.unige.it>			                       */
+/* 									                                                           */
+/* This program is free software; you can redistribute it and/or 	             */
+/* modify  under the terms of the GNU General Public License as 	             */
 /* published by the Free Software Foundation; either version 2, or (at 	       */
-/* your option) any later version.					       */
-/* 									       */
+/* your option) any later version.					                                   */
+/* 									                                                           */
 /* This program is distributed in the hope that it will be useful, but 	       */
-/* WITHOUT ANY WARRANTY; without even the implied warranty of 		       */
-/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 	       */
-/* General Public License for more details.				       */
-/* 									       */
-/* You should have received a copy of the GNU General Public License 	       */
-/* along with GNU Emacs; see the file COPYING.  If not, write to the 	       */
-/* Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.	       */
+/* WITHOUT ANY WARRANTY; without even the implied warranty of 		             */
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 	         */
+/* General Public License for more details.				                             */
+/* 									                                                           */
+/* You should have received a copy of the GNU General Public License 	         */
+/* along with GNU Emacs; see the file COPYING.  If not, write to the 	         */
+/* Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.	         */
 /*******************************************************************************/
 
 
@@ -66,9 +66,6 @@ static window_t wind =
 /* windows && theme blocks */
 %token THEME_TOK  WINDOW_TOK 
 
-/* screensaver rvals */
-%token PIXEL_TOK PHOTOS_TOK
-
 /* theme  */
 %token RAND_TOK
 /* theme colors */
@@ -108,13 +105,13 @@ config: /* nothing */
 | config window
 ;
 
-/* Screensaver: "name" or "name" ="path","path"  */
+/* Screensaver: "name" or "name" = "option", "option"  */
 ssav:	SCREENSAVER_TOK QUOTSTR_T { SCREENSAVER = $2;}
-| SCREENSAVER_TOK QUOTSTR_T '=' photos  { SCREENSAVER = $2;}
+| SCREENSAVER_TOK QUOTSTR_T '=' scrsvr_with_options  { SCREENSAVER = $2;}
 ;
 
-photos: QUOTSTR_T	{ add_to_options($1); }
-| photos ',' QUOTSTR_T { add_to_options($3); }
+scrsvr_with_options: QUOTSTR_T	{ add_to_options($1); }
+| scrsvr_with_options ',' QUOTSTR_T { add_to_options($3); }
 ;
 
 /* Directory where to look for xsessions. Note that it cannot be in theme file.. */
@@ -175,7 +172,7 @@ themedefn: /* nothing */
 /* color assignments */
 colorprop: DEFAULT_TXT_COL_TOK '=' COLOR_T
 	{
-	  fprintf(stderr, "Setting default color to %d\n", *($3));
+		if (!silent) fprintf(stderr, "Setting default color to %d\n", *($3));	  
 	  DEFAULT_TEXT_COLOR.R=$3[3]; DEFAULT_TEXT_COLOR.G=$3[2]; 
 	  DEFAULT_TEXT_COLOR.B=$3[1]; DEFAULT_TEXT_COLOR.A=$3[0];
 	}
