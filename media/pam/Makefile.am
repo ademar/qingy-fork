@@ -10,4 +10,3 @@ endif
 
 EXTRA_DIST =          \
     default/qingy     \
-    debian/qingy

@@ -64,6 +64,9 @@ AM_PATH_LISPDIR
 				if test "`echo $PROCESSOR | grep \"AMD Athlon(tm) XP\"`" != ""; then
 				  CPUFLAGS="-march=athlon-xp"
 				fi
+				if test "`echo $PROCESSOR | grep \"AMD Athlon(tm) 64\"`" != ""; then
+				   CPUFLAGS="-march=athlon64"
+				fi
 				#Is our CPU an Ultra Sparc?
 				if test "`echo $PROCESSOR | grep \"UltraSparc\"`" != ""; then
 					CPUFLAGS="-mcpu=ultrasparc"
@@ -123,7 +126,7 @@ AM_PATH_LISPDIR
                         USE_PAM=yes
                         PASSWDLIB="-lpam -ldl"
                         AC_DEFINE_UNQUOTED(HAVE_PAM_LIB, 1, [Define if libpam is installed])
-                        AC_DEFINE(USE_PAM, 1, [Define if you want wdm to use pam for auth])],
+                        AC_DEFINE(USE_PAM, 1, [Define if you want qingy to use pam for auth])],
                 ,-ldl)
 	fi
 	if test -z "$PASSWDLIB" \
@@ -131,6 +134,7 @@ AM_PATH_LISPDIR
     	    || test "$enable_pam" = "yes" -a "$enable_shadow" = "yes" ); then
     	    AC_CHECK_LIB(shadow, main,[PASSWDLIB="-lshadow"])
     	    AC_CHECK_HEADERS(shadow.h)
+					AC_DEFINE(SHADOW_PASSWD, 1, [Define if you want qingy to use shadow passwords for auth])
 	fi
 	AC_SUBST(PASSWDLIB)
 	AM_CONDITIONAL(USE_PAM, test "$USE_PAM" == "yes")
@@ -225,7 +229,6 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	if test "`ls /etc/debian*    2>/dev/null | grep \"debian\"`"    != ""; then
 		AC_DEFINE(debian, 1, [Define if target platform is Debian Linux])
 		DISTRO="debian"
-		PAMDATA="debian/qingy"
 	fi
 	if test "`ls /etc/slackware* 2>/dev/null | grep \"slackware\"`" != ""; then
 		AC_DEFINE(slackware, 1, [Define if target platform is Slackware Linux])

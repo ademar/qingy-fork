@@ -1,3 +1,18 @@
+2004-10-05  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* media/pam/Makefile.am,
+	* media/pam/debian (removed),
+	* media/pam/default/qingy
+	* configure.in (debian):
+	Added a new PAM module that apparently works for every distro,
+	removed old modules...
+
+2004-10-01  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* configure.in:
+	Added support for AMD Athlon64 processors optimization.
+	Fixed support for shadow password authentication...
+
 2004-09-18  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/libraries/session.c (Graph_Login),

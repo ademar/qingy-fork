@@ -27,6 +27,7 @@
 - Implement the function behind the 'sleep' button (note: we should wait
   until my own powerd is done, so that we can tell it to activate sleep mode;
   I see no point in coding the same function twice).
+  ADD POSSIBILITY TO EXECUTE CUSTOM COMMAND WHEN BUTTON IS PRESSED!
 
 - Some command line options should migrate to config file...
 
