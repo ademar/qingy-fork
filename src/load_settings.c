@@ -159,12 +159,14 @@ int set_last_user(char *user)
 
 char *get_last_session(char *user)
 {
-	char *homedir = get_home_dir(user);
+	char *homedir;
 	char *filename;
 	char *session;
 	char tmp[MAX];
 	FILE *fp;
 
+	if (!user) return NULL;
+	homedir = get_home_dir(user);
 	if (!homedir) return NULL;
 	filename = (char *) calloc(strlen(homedir)+8, sizeof(char));
 	strcpy(filename, homedir);
@@ -186,11 +188,13 @@ char *get_last_session(char *user)
 
 int set_last_session(char *user, char *session)
 {
-	char *homedir = get_home_dir(user);
+	char *homedir;
 	char *filename;
 	FILE *fp;
 
-	if (!homedir || !session) return 0;
+	if (!user || !session) return 0;
+	homedir = get_home_dir(user);
+	if (!homedir) return 0;
 	filename = (char *) calloc(strlen(homedir)+8, sizeof(char));
 	strcpy(filename, homedir);
 	if (filename[strlen(filename)-1] != '/') strcat(filename, "/");

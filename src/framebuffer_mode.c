@@ -285,7 +285,7 @@ void show_session_window(int action, __u8 opacity)
 	}
 }
 
-int print_session_name(int action, __u8 opacity)
+int print_session_name(int action, char *user, __u8 opacity)
 {
 	static struct session *session = NULL;
 	static IDirectFBWindow	*window = NULL;
@@ -323,6 +323,26 @@ int print_session_name(int action, __u8 opacity)
 	switch (action)
 	{
 		case YES:
+			if (user != NULL)
+			{
+				struct session *first = session;
+				char *user_session = get_last_session(user);
+
+				if (!!user_session)
+				{
+					while (strcmp(session->name, user_session) != 0)
+					{
+						session = session->next;
+						if (session == first) break;
+					}
+					if (session != first)
+					{
+						window_surface->Clear(window_surface, 0x00, 0x00, 0x00, 0x00);
+						window_surface->DrawString (window_surface, session->name, -1, 0, window_desc.height/2, DSTF_LEFT);
+						window_surface->Flip( window_surface, NULL, 0 );
+					}
+				}
+			}
 			window->SetOpacity( window, opacity);
 			break;
 		case NO:
@@ -417,7 +437,7 @@ void close_framebuffer_mode (void)
 	font_large->Release (font_large);
 	show_welcome_window(DESTROY);
 	show_lock_key_status(NULL, DESTROY);
-	print_session_name(DESTROY, 0x00);
+	print_session_name(DESTROY, NULL, 0x00);
 	show_login_window(DESTROY, 0x00);
 	TextBox_Destroy(username); username = NULL;
 	show_passwd_window(DESTROY, 0x00);
@@ -537,7 +557,7 @@ void reset_screen(DFBInputEvent *evt)
 	show_passwd_window(YES, (password->hasfocus) ? SELECTED_WINDOW_OPACITY : WINDOW_OPACITY);
 	TextBox_Show(password);
 	show_session_window(YES, (session_hasfocus) ? SELECTED_WINDOW_OPACITY : WINDOW_OPACITY);
-	print_session_name(YES, (session_hasfocus) ? SELECTED_WINDOW_OPACITY : WINDOW_OPACITY);
+	print_session_name(YES, NULL, (session_hasfocus) ? SELECTED_WINDOW_OPACITY : WINDOW_OPACITY);
 	show_lock_key_status(evt, YES);
 	layer->GetCursorPosition (layer, &mouse_x, &mouse_y);
 	handle_mouse_movement();
@@ -555,7 +575,7 @@ void clear_screen(void)
 	show_session_window(NO, 0x00);
 	show_welcome_window(NO);
 	show_lock_key_status(NULL, NO);
-	print_session_name(NO, 0x00);
+	print_session_name(NO, NULL, 0x00);
 	layer->EnableCursor (layer, 0);
 	primary->Clear (primary, 0, 0, 0, 0);
 	primary->Flip (primary, NULL, DSFLIP_BLIT);
@@ -656,7 +676,7 @@ void handle_mouse_event (DFBInputEvent *evt)
 				TextBox_SetFocus(password, 0);
 				show_passwd_window(YES, WINDOW_OPACITY);
 				show_session_window(YES, WINDOW_OPACITY);
-				print_session_name(YES, WINDOW_OPACITY);
+				print_session_name(YES, NULL, WINDOW_OPACITY);
 			}
 			if ((password->mouse) && (status == 4))	/* username textbox has been clicked! */
 			{
@@ -666,7 +686,7 @@ void handle_mouse_event (DFBInputEvent *evt)
 				TextBox_SetFocus(password, 1);
 				show_passwd_window(YES, SELECTED_WINDOW_OPACITY);
 				show_session_window(YES, WINDOW_OPACITY);
-				print_session_name(YES, WINDOW_OPACITY);
+				print_session_name(YES, NULL, WINDOW_OPACITY);
 			}
 
 			status = 0;		/* we reset click status because button went up */
@@ -681,7 +701,7 @@ void start_login_sequence(DFBInputEvent *evt)
 	char *user_name;
 
 	if (strlen(username->text) == 0) return;
-	session_id = print_session_name(YES, WINDOW_OPACITY);
+	session_id = print_session_name(YES, NULL, WINDOW_OPACITY);
 	strncpy(message, "Logging in ", MAX);
 	strncat(message, username->text, MAX-strlen(message));
 	strncat(message, "...", MAX-strlen(message));
@@ -761,13 +781,30 @@ int handle_keyboard_event(DFBInputEvent *evt)
 		{
 			if (ascii_code == TAB)
 			{
-				TextBox_SetFocus(username, 0);
-				TextBox_SetFocus(password, 1);
 				allow_tabbing = 0;
+				TextBox_SetFocus(username, 0);
 				show_login_window(YES, WINDOW_OPACITY);
-				show_passwd_window(YES, SELECTED_WINDOW_OPACITY);
+				if (modifier_is_pressed(evt) != SHIFT)
+				{
+					TextBox_SetFocus(password, 1);
+					show_passwd_window(YES, SELECTED_WINDOW_OPACITY);
+				}
+				else
+				{
+					session_hasfocus  = 1;
+					show_session_window(YES, SELECTED_WINDOW_OPACITY);
+					print_session_name(YES, NULL, SELECTED_WINDOW_OPACITY);
+				}
 			}
-			else TextBox_KeyEvent(username, ascii_code, 1);
+			else
+			{
+				char old_user[MAX];
+
+				strncpy(old_user, username->text, MAX-1);
+				TextBox_KeyEvent(username, ascii_code, 1);
+				if (strcmp(old_user,username->text) != 0)
+					print_session_name(YES, username->text, WINDOW_OPACITY);				
+			}
 		}
 
 		/* password events */
@@ -775,12 +812,20 @@ int handle_keyboard_event(DFBInputEvent *evt)
 		{
 			if (ascii_code == TAB)
 			{
-				TextBox_SetFocus(password, 0);
-				session_hasfocus  = 1;
 				allow_tabbing = 0;
+				TextBox_SetFocus(password, 0);
 				show_passwd_window(YES, WINDOW_OPACITY);
-				show_session_window(YES, SELECTED_WINDOW_OPACITY);
-				print_session_name(YES, SELECTED_WINDOW_OPACITY);
+				if (modifier_is_pressed(evt) != SHIFT)
+				{
+					session_hasfocus  = 1;
+					show_session_window(YES, SELECTED_WINDOW_OPACITY);
+					print_session_name(YES, NULL, SELECTED_WINDOW_OPACITY);
+				}
+				else
+				{
+					TextBox_SetFocus(username, 1);
+					show_login_window(YES, SELECTED_WINDOW_OPACITY);
+				}
 			}
 			else TextBox_KeyEvent(password, ascii_code, 1);
 		}
@@ -788,16 +833,24 @@ int handle_keyboard_event(DFBInputEvent *evt)
 		/* session events */
 		if (session_hasfocus && allow_tabbing)
 		{
-			if (ascii_code == ARROW_UP) print_session_name(UP, WINDOW_OPACITY);
-			if (ascii_code == ARROW_DOWN) print_session_name(DOWN, WINDOW_OPACITY);
+			if (ascii_code == ARROW_UP) print_session_name(UP, NULL, WINDOW_OPACITY);
+			if (ascii_code == ARROW_DOWN) print_session_name(DOWN, NULL, WINDOW_OPACITY);
 			if (ascii_code == TAB)
 			{
 				session_hasfocus  = 0;
-				TextBox_SetFocus(username, 1);
 				allow_tabbing = 0;
-				show_login_window(YES, SELECTED_WINDOW_OPACITY);
 				show_session_window(YES, WINDOW_OPACITY);
-				print_session_name(YES, WINDOW_OPACITY);
+				print_session_name(YES, NULL, WINDOW_OPACITY);
+				if (modifier_is_pressed(evt) != SHIFT)
+				{
+					TextBox_SetFocus(username, 1);
+					show_login_window(YES, SELECTED_WINDOW_OPACITY);
+				}
+				else
+				{
+					TextBox_SetFocus(password, 1);
+					show_passwd_window(YES, SELECTED_WINDOW_OPACITY);
+				}
 			}
 		}
 	}
@@ -831,7 +884,7 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 	DFBResult err;							/* used by that bloody macro to check for errors				*/
 	DFBSurfaceDescription sdsc;	/* this will be the description for the primary surface	*/
 	DFBInputEvent evt;					/* generic input events will be stored here							*/
-	char *lastuser = NULL, *user_session = NULL;
+	char *lastuser = NULL;
 
 	if (do_workaround != -1) workaround = do_workaround;
 
@@ -865,7 +918,6 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 	reset->surface->Flip(reset->surface, NULL, 0);
 
 	lastuser = get_last_user();
-	if (!!lastuser) user_session = get_last_session(lastuser);
 
 	/* we show windows */
 	show_welcome_window(YES);
@@ -880,19 +932,7 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 		show_passwd_window(YES, WINDOW_OPACITY);
 	}
 	show_session_window(YES, WINDOW_OPACITY);
-	if (!!user_session)
-	{
-		struct session *session, *first;
-		print_session_name(YES, WINDOW_OPACITY);
-		first = session = &sessions;
-		while (strcmp(session->name, user_session) != 0)
-		{
-			session = session->next;
-			print_session_name(DOWN, WINDOW_OPACITY);
-			if (session == first) break;
-		}
-	}
-	else print_session_name(YES, WINDOW_OPACITY);
+	print_session_name(YES, lastuser, WINDOW_OPACITY);
 
 	/* we create textboxes */
 	if (!username)
@@ -917,6 +957,12 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 			TextBox_SetFocus(password, 1);
 		}
 		else TextBox_SetFocus(username, 1);
+	}
+
+	if (!!lastuser)
+	{
+		free(lastuser);
+		lastuser = NULL;
 	}
 
 	/* we go on for ever... or until the user does something in particular */
