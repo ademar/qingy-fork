@@ -62,7 +62,7 @@ int   in_theme   = 0;
 
 void initialize_variables(void)
 {
-  SCREENSAVER             = PIXEL_SCREENSAVER;  
+  SCREENSAVER             = NULL;  
   TEXT_SESSIONS_DIRECTORY = NULL;
   X_SESSIONS_DIRECTORY    = NULL;
   BACKGROUND              = NULL;

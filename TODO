@@ -1,9 +1,8 @@
 - option for selecting session based on tty, not on user
-- option for selecting theme based on tty and/or user
+- option for selecting theme based on tty
 - drop down menu for sessions
 - allow session locking
 - start some apps before/after X session
-- multilanguage support
 - ldap support for authentication (with pam?)
 - allow selection of alternate x server layouts / X config files
 - Allow for global and tty specific options in config file
@@ -11,5 +10,6 @@
 - Make key bindings customizable
 * Make buttons use own pixmaps alpha channel for
   transparency instead of black...
+- Make screensavers shared modules automagically loadable
 
 Items marked as * are those we are currently working on...

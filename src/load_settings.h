@@ -83,12 +83,9 @@ struct _image_paths
   struct _image_paths *next;
 };
 struct _image_paths *image_paths;
-typedef enum _kinds
-  {
-    PIXEL_SCREENSAVER,
-    PHOTO_SCREENSAVER
-  } screensaver_kinds;
-screensaver_kinds SCREENSAVER;
+
+/* screensaver name */
+char* SCREENSAVER;
 
 /* Custom windows can be of the following- they mean:
    - UNKNOWN: default value, treat as error.

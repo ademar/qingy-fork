@@ -1053,7 +1053,6 @@ int directfb_mode (int argc, char *argv[])
   DFBInputEvent evt;            /* generic input events will be stored here */
 	DFBResult result;             /* we store eventual errors here            */
   char *lastuser=NULL;          /* latest user who logged in                */
-  ScreenSaver screen_saver;
 
   /* load settings from file */
   if (!load_settings()) return TEXT_MODE;
@@ -1076,68 +1075,68 @@ int directfb_mode (int argc, char *argv[])
   if (result == DFB_OK) result = dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &events);
   if (result == DFB_OK) result = dfb->GetDisplayLayer (dfb, DLID_PRIMARY, &layer);
 
-	/* any errors this far? */
-	if (result != DFB_OK)
-  {
-    DirectFB_Error();
-    return TEXT_MODE;
-  }
+  /* any errors so far? */
+  if (result != DFB_OK)
+    {
+      DirectFB_Error();
+      return TEXT_MODE;
+    }
 
-	/* more initialization */
+  /* more initialization */
   layer->SetCooperativeLevel (layer, DLSCL_ADMINISTRATIVE);
   layer->EnableCursor (layer, 0);
   sdsc.flags = DSDESC_CAPS;
   sdsc.caps  = DSCAPS_PRIMARY | DSCAPS_FLIPPING;
   if (dfb->CreateSurface( dfb, &sdsc, &primary ) != DFB_OK)
-  {
-    DirectFB_Error();
-    return TEXT_MODE;
-  }
+    {
+      DirectFB_Error();
+      return TEXT_MODE;
+    }
   primary->GetSize(primary, &screen_width, &screen_height);
-
+  
   if (!set_font_sizes ())
-  {
-    DirectFB_Error();
-    return TEXT_MODE;
-  }
+    {
+      DirectFB_Error();
+      return TEXT_MODE;
+    }
   Draw_Background_Image(1);
-
-	if (!create_windows())
-	{
-    DirectFB_Error();
-    return TEXT_MODE;
-	}
+  
+  if (!create_windows())
+    {
+      DirectFB_Error();
+      return TEXT_MODE;
+    }
   if (!hide_password) password->mask_text = 1;
   else password->hide_text = 1;
   load_sessions(session);
   if (lastuser)
-  {
-    if (username_label) username_label->SetFocus(username_label, 0);
-    if (password_label) password_label->SetFocus(password_label, 1);
-    if (!hide_last_user) username->SetText(username, lastuser);
-    else username->SetText(username, "lastuser");
-    username->SetFocus(username, 0);
-    password->SetFocus(password, 1);
-    set_user_session(lastuser);
-    free(lastuser);
-    lastuser = NULL;
-  }
+    {
+      if (username_label) username_label->SetFocus(username_label, 0);
+      if (password_label) password_label->SetFocus(password_label, 1);
+      if (!hide_last_user) username->SetText(username, lastuser);
+      else username->SetText(username, "lastuser");
+      username->SetFocus(username, 0);
+      password->SetFocus(password, 1);
+      set_user_session(lastuser);
+      free(lastuser);
+      lastuser = NULL;
+    }
   else
-  {
-    if (username_label) username_label->SetFocus(username_label, 1);
-    if (password_label) password_label->SetFocus(password_label, 0);
-    username->SetFocus(username, 1);
-  }
+    { 
+      if (username_label) username_label->SetFocus(username_label, 1);
+      if (password_label) password_label->SetFocus(password_label, 0);
+      username->SetFocus(username, 1);
+    }
   if (session_label) session_label->SetFocus(session_label, 0);
   session->SetFocus(session, 0);
-
+  
   layer->EnableCursor (layer, 1);
-
+  
   /* initialize screen saver stuff */
-  screen_saver.kind    = SCREENSAVER;
-  screen_saver.surface = primary;
-	screen_saver.dfb     = dfb;
-  screen_saver.events  = events;
+  screen_saver_kind    = SCREENSAVER;
+  screen_saver_surface = primary;
+  screen_saver_dfb     = dfb;
+  screen_saver_events  = events;
 
   /* it should be now safe to unlock vt switching again */
   unlock_tty_switching();
@@ -1153,7 +1152,7 @@ int directfb_mode (int argc, char *argv[])
 		{
 			primary->SetFont  (primary, font_large);
 			primary->SetColor (primary, OTHER_TEXT_COLOR.R, OTHER_TEXT_COLOR.G, OTHER_TEXT_COLOR.B, OTHER_TEXT_COLOR.A);
-			activate_screen_saver(&screen_saver);
+			activate_screen_saver();
 		}
 
     if (events->HasEvent(events) == DFB_OK)

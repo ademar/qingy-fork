@@ -26,21 +26,15 @@
  ***************************************************************************/
 
 
-typedef struct _screen_saver
-{
-  /* which screen saver do you want to run? */
-  screensaver_kinds kind;
 
-	/* Guess what ;-P */
-	IDirectFB *dfb;
-
-  /* surface to run the screen saver into */
-  IDirectFBSurface *surface;
-
-  /* screensaver stops when there is an input event
-     and it returns it here...                      */
-  IDirectFBEventBuffer *events;
-
-} ScreenSaver;
-
-void activate_screen_saver(ScreenSaver *thiz);
+/* which screen saver do you want to run? */
+char*  screen_saver_kind;
+/* Guess what ;-P */
+IDirectFB * screen_saver_dfb;
+/* surface to run the screen saver into */
+IDirectFBSurface * screen_saver_surface;  
+/* screensaver stops when there is an input event
+   and it returns it here...                      */
+IDirectFBEventBuffer * screen_saver_events;
+  
+void activate_screen_saver(void);
