@@ -28,15 +28,17 @@
 #include "misc.h"
   
 #define YYERROR_VERBOSE
-#define TTY_CHECK_COND if (!intended_tty || intended_tty == current_tty)
+#define TTY_CHECK_COND    if (!intended_tty || intended_tty == current_tty)
+#define SSAVER_CHECK_COND if (ssaver_is_set) { erase_options(); ssaver_is_set = 0; }
   
 extern FILE* yyin;
 extern int yylex();
 extern int in_theme;
-static int clear_background_is_set = 0;
-static int intended_tty = 0;
 extern int current_tty;
-static int theme_is_set = 0;
+static int clear_background_is_set = 0;
+static int intended_tty            = 0;
+static int theme_is_set            = 0;
+static int ssaver_is_set           = 0;
 
 static window_t wind =
   {
@@ -75,7 +77,7 @@ static window_t wind =
 %token RAND_TOK
 
 /* other lvals */
-%token CLEAR_BACKGROUND_TOK
+%token CLEAR_BACKGROUND_TOK LOCK_SESSIONS_TOK
 
 /* theme colors */
 %token DEFAULT_TXT_COL_TOK DEFAULT_CUR_COL_TOK OTHER_TXT_COL_TOK 		     
@@ -108,16 +110,22 @@ static window_t wind =
 
 /* a configuration */
 config: /* nothing */
+| config lck_sess
 | config tty_specific
-| config ssav  
+| config ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config xsessdir
 | config txtsessdir
 | config xinit
-| config theme { theme_is_set = 1; }
+| config theme { TTY_CHECK_COND theme_is_set = 1; }
 | config shutdown
 | config window
 | config CLEAR_BACKGROUND_TOK '=' YES_TOK { if (!clear_background_is_set) clear_background = 1; }
 | config CLEAR_BACKGROUND_TOK '=' NO_TOK  { if (!clear_background_is_set) clear_background = 0; }
+;
+
+/* options to enable or disable session locking */
+lck_sess: LOCK_SESSIONS_TOK '=' YES_TOK { lock_sessions = 1; }
+|         LOCK_SESSIONS_TOK '=' NO_TOK  { lock_sessions = 0; }
 ;
 
 /* options that will apply to a specific tty only */
@@ -125,11 +133,11 @@ tty_specific: TTY_TOK '=' ANUM_T { intended_tty = $3; } '{' config_tty '}' { int
 
 /* tty specific allowed configuration */
 config_tty: /* nothing */
-| config_tty ssav
+| config_tty ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config_tty xsessdir
 | config_tty txtsessdir
 | config_tty xinit
-| config_tty theme { theme_is_set = 1; }
+| config_tty theme { TTY_CHECK_COND theme_is_set = 1; }
 | config_tty shutdown
 | config_tty window
 | config_tty CLEAR_BACKGROUND_TOK '=' YES_TOK { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 1;} }
@@ -137,12 +145,12 @@ config_tty: /* nothing */
 ;
 
 /* Screensaver: "name" or "name" = "option", "option"  */
-ssav:	SCREENSAVER_TOK QUOTSTR_T { TTY_CHECK_COND SCREENSAVER = $2;}
-| SCREENSAVER_TOK QUOTSTR_T '=' scrsvr_with_options  { TTY_CHECK_COND SCREENSAVER = $2;}
+ssav:	SCREENSAVER_TOK QUOTSTR_T { TTY_CHECK_COND {SSAVER_CHECK_COND SCREENSAVER = $2;} }
+| SCREENSAVER_TOK QUOTSTR_T '=' scrsvr_with_options { TTY_CHECK_COND SCREENSAVER = $2;}
 ;
 
-scrsvr_with_options: QUOTSTR_T	{ TTY_CHECK_COND add_to_options($1); }
-| scrsvr_with_options ',' QUOTSTR_T { TTY_CHECK_COND add_to_options($3); }
+scrsvr_with_options: QUOTSTR_T      { TTY_CHECK_COND {SSAVER_CHECK_COND add_to_options($1);} }
+| scrsvr_with_options ',' QUOTSTR_T { TTY_CHECK_COND {SSAVER_CHECK_COND add_to_options($3);} }
 ;
 
 /* Directory where to look for xsessions. Note that it cannot be in theme file.. */

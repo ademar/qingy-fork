@@ -2,10 +2,10 @@
 
 defaultthemedatadir = $(prefix)/etc/qingy/themes/default
 
-defaultthemedata_DATA =       \
+dist_defaultthemedata_DATA =  \
 	theme                       \
 	decker.ttf                  \
-	background.png              \
+	background.jpg              \
 	power_normal.png            \
 	power_mouseover.png         \
 	reset_normal.png            \
@@ -14,6 +14,3 @@ defaultthemedata_DATA =       \
 	sleep_mouseover.png         \
 	screensaver_normal.png      \
 	screensaver_mouseover.png
-
-
-EXTRA_DIST =  $(defaultthemedata_DATA)

@@ -2,15 +2,11 @@
 
 - drop down menu for sessions 
 
-- allow session locking 
-
-- start some apps before/after X session
+* allow session locking 
 
 - ldap support for authentication (with pam?)
 
 - allow selection of alternate x server layouts / X config files
-
-- Allow for global and tty specific options in config file
 
 - Add an option to pass parameters to X server 
 
@@ -21,15 +17,17 @@
 * Make buttons use own pixmaps alpha channel for transparency instead of
   black...
 
-* Make screensavers shared modules automagically loadable 
-
-- Make applets possible...A mix of shared modules and window managing :P
+- Make applets possible... A mix of shared modules and window managing :P
+  Maybe we could even port wmaker dockapps... just a dream of mine ;-)
 
 - Make it possible to use e.g. mng files for animated images, for example for
   background and the like.
 
-- Make code compliant to the GNU Coding Standards.. That is to be done in order
+* Make code compliant to the GNU Coding Standards.. That is to be done in order
   to try inclusion in the GNU Project.
+
+- Make qingy install its stuff in a way that conforms to the file system
+  hierarchy standards (much too much stuff in /etc ;-P right now)
 
 - Add support for handling console bootsplash from inside qingy? That is: qingy
   background becomes framebuffer background when you log in...

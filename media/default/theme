@@ -1,6 +1,6 @@
 theme
 {	
-	background = "background.png"
+	background = "background.jpg"
 	font = "decker.ttf"
 
 # opacity values, from 0 (transparent) to 255 (opaque)

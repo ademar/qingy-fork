@@ -9,7 +9,6 @@ AC_PROG_CC
 AC_PROG_RANLIB
 AM_PROG_LEX
 AC_PROG_YACC
-
 AM_PATH_LISPDIR
 
 # Set my own flags for gcc
@@ -169,6 +168,13 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	echo "# What theme do you want (you can also specify 'random')" >> media/settings
 	echo "# theme = random" >> media/settings
 	echo "theme = \"default\"" >> media/settings
+	echo "" >> media/settings
+	echo "# wether to allow session locking; if you enable this, when you try to" >> media/settings
+	echo "# switch to a qingy-controlled tty whose owner is not your current" >> media/settings
+	echo "# user, you will be asked for the password of that user before being" >> media/settings
+	echo "# allowed to continue. If you are root, of course, you can switch" >> media/settings
+	echo "# to any tty you chose to. Default setting is 'no'." >> media/settings
+	echo "#lock_sessions = yes" >> media/settings
 	echo "" >> media/settings
 	echo "# these options are valid only if qingy is started from tty3" >> media/settings
 	echo "#tty = 3" >> media/settings

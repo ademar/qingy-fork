@@ -1,6 +1,6 @@
 pkglibdir          = $(prefix)/etc/qingy/screensavers
 screensaverdir     = $(prefix)/etc/qingy/screensavers
-screensaver_DATA   = matr.ttf matrix01.ttf
+dist_screensaver_DATA   = matr.ttf matrix01.ttf
 pkglib_PROGRAMS    = matrix.qss
 matrix_qss_SOURCES = matrix.c
 INCLUDES  = -Iobjects -I../ -I/etc/qingy/screensavers

@@ -1,23 +1,23 @@
 /***********************************************************************/
-/*  running_time.c - Pixel screensaver module for Qingy 	       */
-/*  v. 0.1 							       */
-/*  Copyright (C) 2004 Paolo Gianrossi - All rights reserved 	       */
-/*  by Paolo Gianrossi <paolino.gnu@disi.unige.it> 		       */
-/*  								       */
+/*  running_time.c - time screensaver module for Qingy                 */
+/*  v. 0.1                                                             */
+/*  Copyright (C) 2004 Paolo Gianrossi - All rights reserved           */
+/*  by Paolo Gianrossi <paolino.gnu@disi.unige.it>                     */
+/*                                                                     */
 /* This program is free software; you can redistribute it and/or       */
 /* modify it under the terms of the GNU General Public License as      */
 /* published by the Free Software Foundation; either version 2 of the  */
-/* License, or (at your option) any later version.		       */
-/* 								       */
+/* License, or (at your option) any later version.                     */
+/*                                                                     */
 /* This program is distributed in the hope that it will be useful, but */
-/* WITHOUT ANY WARRANTY; without even the implied warranty of 	       */
+/* WITHOUT ANY WARRANTY; without even the implied warranty of          */
 /* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU   */
-/* General Public License for more details.			       */
-/*  								       */
+/* General Public License for more details.                            */
+/*                                                                     */
 /* You should have received a copy of the GNU General Public License   */
-/* along with this program; if not, write to the Free Software 	       */
+/* along with this program; if not, write to the Free Software         */
 /* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-    */
-/* 1307, USA.							       */
+/* 1307, USA.                                                          */
 /***********************************************************************/
  
 #include <stdio.h>
@@ -33,7 +33,6 @@
 void 
 screen_saver_entry(Q_screen_t env)
 {
-  static int toggle = 1;
   int posx;
   int posy;
   unsigned int seconds=0;

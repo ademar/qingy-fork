@@ -1,10 +1,56 @@
+2004-02-04  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/scan_settings.l,
+	* src/parse_settings.y,
+	* src/load_settings.h,
+	* src/load_settings.c (initialize_variables),
+	(load_settings):
+	Added session locking support; if you enable this, when you try to
+	switch to a qingy-controlled tty whose owner is not your current
+	user, you will be asked for the password of that user before being
+	allowed to continue. If you are root, of course, you can switch
+	to any tty you chose to. Default setting is 'no'.
+	NOTE: this is not functional yet!
+
+	* src/parse_settings.y,
+	* src/load_settings.h,
+	* src/load_settings.c:
+	Added erase_options() that removes all screensaver options.
+	If a screensaver get selected in config files more than once,
+	made sure options of previous ones get erased.
+
+	* media/screensavers/matrix/matrix.c,
+	* media/screensavers/running_time/running_time.c:
+	fix compiler warnings about unnused variables
+
+	* media/default/theme: 
+	Changed default theme background image format to jpg. This saves
+	a lot of disk space without any noticeable loss of quality.
+
+	* src/chvt.c (set_active_tty): This didn't always return a value.
+	(unlock_tty_switching): This didn't always return a value.
+	(open_a_console): fix a retval check.
+	(get_available_tty): fix retval checks.
+	(tty_redraw): more retval checks.
+	(disallocate_tty): conform to the coding style of the other functions.
+	(get_fb_resolution): add some checks.
+
 2004-02-03  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
-	* src/main.c (main): 
-	* src/load_settings.h: 
-	* src/scan_settings.l:
-	* src/parse_settings.y: 
-	* src/load_settings.c (add_window_to_list): 
+	* src/chvt.c (get_active_tty):
+	I really would like to know the guy who had
+	this smart idea of removing the close(fd), leading *again*
+	to the bloody 'too many open files' crash
+
+	* media/Makefile.am,
+	* media/screensavers/matrix/Makefile.am:
+	some needed files didn't get included in the source distribution...
+
+	* src/main.c (main),
+	* src/load_settings.h,
+	* src/scan_settings.l,
+	* src/parse_settings.y,
+	* src/load_settings.c (add_window_to_list),
 	* configure.in:
 	Added support for tty specific options. In settings file
 	use something like this:
@@ -17,12 +63,12 @@
 
 2004-02-01  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
-	* src/parse_settings.y:
-	* src/scan_settings.l:
-	* src/load_settings.h:
-	* src/load_settings.c:
-	* src/DirectFB/directfb_mode.c:
-	* configure.in:
+	* src/parse_settings.y,
+	* src/scan_settings.l,
+	* src/load_settings.h,
+	* src/load_settings.c,
+	* src/DirectFB/directfb_mode.c,
+	* configure.in,
 	* media/default/theme:
 	Add 'clear_background' statement support in theme
 	and settings files to tell qingy wether we should
@@ -36,7 +82,7 @@
 	* src/DirectFB/directfb_mode.c: cosmetic fixes,
 	some stuff to make it sompliant to GNU coding style
 
-	* src/session.c (add_utmp_wtmp_entry):
+	* src/session.c (add_utmp_wtmp_entry),
 	(add_utmp_wtmp_entry):
 	added functions to manage writing to /var/log/wtmp;
 	this is necessary for tools like 'who', 'w' and finger
@@ -147,9 +193,9 @@
 
 2004-01-13  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
 		
-	* src/DirectFB/screen_saver.c, src/DirectFB/screen_saver.h,
-	src/DirectFB/screensaver_module.c: added dynamic loading of
-	screensavers as modules.
+	* src/DirectFB/screen_saver.c, src/DirectFB/screen_saver.h
+	* src/DirectFB/screensaver_module.c:
+	added dynamic loading of screensavers as modules.
 
 2004-01-10  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
 
@@ -164,7 +210,7 @@
 2003-12-10  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
 
 	* src/parse_settings.y, src/scan_settings.l, src/load_settings.c,
-	src/load_settings.h : added dynamic window support to config files.
+	src/load_settings.h: added dynamic window support to config files.
 
 2003-12-06  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
 

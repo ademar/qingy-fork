@@ -2,9 +2,9 @@
 
 SUBDIRS = default sessions pam screensavers
 
-lisp_LISP = qingy-mode.el
+dist_lisp_LISP = qingy-mode.el
 
 settingsdatadir = $(prefix)/etc/qingy
-settingsdata_DATA = \
-		settings        \
+dist_settingsdata_DATA = \
+		settings             \
 		welcomes

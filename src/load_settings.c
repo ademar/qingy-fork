@@ -88,6 +88,7 @@ void initialize_variables(void)
   SHUTDOWN_POLICY         = EVERYONE;
   THEME_WIDTH             = 800;
   THEME_HEIGHT            = 600;
+	lock_sessions           = 0;
 }
 
 void set_default_session_dirs(void)
@@ -135,11 +136,26 @@ void set_default_colors(void)
   OTHER_TEXT_COLOR.A = 0xFF;
 }
 
+void erase_options(void)
+{
+	while (screensaver_options)
+	{
+		struct _screensaver_options *temp = screensaver_options;
+		screensaver_options = screensaver_options->next;
+		free(temp->option);
+		free(temp);
+	}
+}
+
 void add_to_options(char *option)
 {
   static struct _screensaver_options *temp = NULL;
   
   if (!option) return;
+
+	/* the following is necessary to detect that options list got cleared */
+	if (!screensaver_options) temp = NULL;	
+
   if (!temp)
 	{
 		screensaver_options = (struct _screensaver_options *) calloc(1, sizeof(struct _screensaver_options));
@@ -639,6 +655,9 @@ int load_settings(void)
 		fprintf(stderr, "make sure you set up at least login password and session windows!\n");
 		return 0;
 	}
+
+	if (!silent)
+		fprintf(stderr, "Session locking is%s enabled.\n", (lock_sessions) ? "" : " NOT");
   
   return 1;
 }

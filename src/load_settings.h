@@ -38,6 +38,7 @@ int use_screensaver;
 int screensaver_timeout;
 int clear_background;
 int current_tty;
+int lock_sessions;
 
 /* NOTE: some of these should become #defines through autoconf... */
 char *DATADIR;
@@ -189,6 +190,7 @@ char *get_random_theme();
 /* stuff you don't want to know about ;-P */
 void yyerror(char *where);
 void add_to_options(char *option);
+void erase_options(void);
 
 #ifdef DEBUG
 void show_windows_list(void);
