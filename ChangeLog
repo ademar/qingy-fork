@@ -1,3 +1,11 @@
+2004-08-19  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/load_settings.c (ParseCMDLine),
+	* configure.in:
+	Fix the fix, or brown paper bag release!
+	Correct bug I just introduced not allowing to run qingy any more
+	due to incorrect cmd line arguments handling...
+
 2004-08-18  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* lotsa_files_have_been_changed:

@@ -1,3 +1,8 @@
+qingy 0.5.2 (19 Aug 2004):
+- Brown paper bag release: fix horrible bug I just introduced not allowing
+  to run qingy any more due to incorrect cmd line arguments handling...
+
+
 qingy 0.5.1 (18 Aug 2004):
 - Fixed a bug that prevented qingy from honouring
   tty specific options in config file.

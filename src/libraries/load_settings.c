@@ -698,7 +698,7 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 
 	if (!paranoia)
 		opterr = 0;
-  else
+	else
 		if (argc < 2) Error(1);
 
   tty= argv[1];
@@ -757,6 +757,8 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 			}
 			case 'r': /* use this framebuffer resolution */
 				if (paranoia) resolution = get_resolution(optarg);
+				break;
+			case 1: /* not an option-like arg... we ignore it */
 				break;
 			default:
 				if (paranoia)
