@@ -141,16 +141,14 @@ int WatchDog_Bark (char *dog_master, char *intruder, int our_land)
 	fflush(stdout);
 	sleep(2);
 	unlock_tty_switching();
-
 	switch_to_tty(our_land);
-	set_active_tty(our_land);
 	disallocate_tty(dest);
-
+	
 	return retval;
 }
 
 /* check wether user has auth to visit our tty */
-void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intruder)
+void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intruder, int send_him_here)
 {
 	static int already_sniffed = 0;
 	int retval;
@@ -172,10 +170,11 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 
 	if (!retval)
 	{ /* user has no right to be here */
-		if (!set_active_tty(where_was_intruder)) abort();
+		set_active_tty(where_was_intruder);
 		return;
 	}
 
+	set_active_tty(send_him_here);
 	already_sniffed = where_was_intruder;
 }
 
@@ -208,12 +207,14 @@ void ttyWatchDog(pid_t child, char *dog_master, int fence1, int fence2)
 			fprintf(stderr, "\nfatal error: cannot get active tty number!\n");
 			abort();
 		}
-		if (where_is_intruder == fence1)
-		{ /* if an X session is active and user passed control, we send him there */
-			WatchDog_Sniff(dog_master, where_was_intruder, fence1);
-			if (fence2) if (!set_active_tty(fence2)) abort();
-		}
-		if (where_is_intruder == fence2) WatchDog_Sniff(dog_master, where_was_intruder, fence2);
+		if (where_is_intruder != where_was_intruder)
+			if (where_is_intruder == fence1 || where_is_intruder == fence2)
+			{ /* if an X session is active user must be sent to X tty, after passing auth */
+				if (fence2)
+					WatchDog_Sniff(dog_master, where_was_intruder, where_is_intruder, fence2);
+				else
+					WatchDog_Sniff(dog_master, where_was_intruder, where_is_intruder, fence1);
+			}		
 		nanosleep(&delay, NULL); /* wait a little before checking again */
 	}
 }

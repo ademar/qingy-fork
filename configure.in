@@ -1,5 +1,5 @@
-AC_INIT(qingy, 0.4.0CVS, noberasco.gnu@disi.unige.it)
-AC_PREREQ(2.57)
+AC_INIT([qingy],[0.4.0CVS],[noberasco.gnu@disi.unige.it])
+AC_PREREQ(2.58)
 AC_CONFIG_SRCDIR(src/main.c)
 AM_INIT_AUTOMAKE()
 
@@ -105,7 +105,7 @@ AC_CHECK_LIB(crypt, crypt, , , )
 AC_CHECK_LIB(dl, dlopen, , , )
 
 #enable powerkeys if user asks
-	AC_ARG_ENABLE(powerkeys, AC_HELP_STRING([--enable-powerkeys], [use extended keybindings (default is no)]),, [enable_powerkeys=no])
+	AC_ARG_ENABLE(powerkeys, AS_HELP_STRING(--enable-powerkeys,use extended keybindings (default is no)),, [enable_powerkeys=no])
 			 if test "$enable_powerkeys" == "yes"; then
 				 CFLAGS="$CFLAGS -DPOWER_KEYS"
 				 AC_MSG_NOTICE([powerkeys activated])
@@ -113,7 +113,7 @@ AC_CHECK_LIB(dl, dlopen, , , )
 
 # Check for PAM support
 	PAM=""
-	AC_ARG_ENABLE(pam, AC_HELP_STRING([--enable-pam], [turn on PAM support (default is yes)]),, [enable_pam=yes])
+	AC_ARG_ENABLE(pam, AS_HELP_STRING(--enable-pam,turn on PAM support (default is yes)),, [enable_pam=yes])
 	if test "$enable_pam" == "yes"; then
 		AC_CHECK_HEADER([security/pam_appl.h],[PAM="qingy"],[PAM=""],)
 		if test "$PAM" != ""; then
@@ -190,7 +190,7 @@ PREFIX=""
 AC_PREFIX_DEFAULT ($PREFIX)
 AC_SUBST(infodir,"[/usr/share/info]")
 
-AC_OUTPUT([                                \
+AC_CONFIG_FILES([                                \
 	Makefile                                 \
 	src/Makefile                             \
 	src/DirectFB/Makefile                    \
@@ -205,3 +205,4 @@ AC_OUTPUT([                                \
 	media/screensavers/running_time/Makefile \
 	doc/Makefile
 ])
+AC_OUTPUT

@@ -141,8 +141,8 @@ config_tty: /* nothing */
 ;
 
 /* options to enable or disable session locking */
-lck_sess: LOCK_SESSIONS_TOK '=' YES_TOK { lock_sessions = 1; }
-|         LOCK_SESSIONS_TOK '=' NO_TOK  { lock_sessions = 0; }
+lck_sess: LOCK_SESSIONS_TOK '=' YES_TOK { TTY_CHECK_COND {lock_sessions = 1;} }
+|         LOCK_SESSIONS_TOK '=' NO_TOK  { TTY_CHECK_COND {lock_sessions = 0;} }
 ;
 
 /* Screensaver: "name" or "name" = "option", "option"  */
