@@ -43,12 +43,20 @@
 	}                 \
 }
 
-void set_default_settings()
+void set_default_xsession_dir(void)
 {
 	XSESSIONS_DIRECTORY = (char *) calloc(19, sizeof(char));
 	strcpy(XSESSIONS_DIRECTORY, "/etc/X11/Sessions/");
+}
+
+void set_default_xinit(void)
+{
 	XINIT = (char *) calloc(21, sizeof(char));
 	strcpy(XINIT, "/usr/X11R6/bin/xinit");
+}
+
+void set_default_font(void)
+{
 	FONT = (char *) calloc(strlen(DATADIR)+11, sizeof(char));
 	strcpy(FONT, DATADIR);
 	strcat(FONT, "decker.ttf");
@@ -61,7 +69,9 @@ void error(void)
 	if (!!XINIT) free(XINIT);
 	if (!!FONT) free(FONT);
 	XSESSIONS_DIRECTORY = XINIT = FONT = NULL;
-	set_default_settings();
+	set_default_xsession_dir();
+	set_default_xinit();
+	set_default_font();
 }
 
 int load_settings(void)
@@ -75,7 +85,9 @@ int load_settings(void)
 	if (!fp)
 	{
 		fprintf(stderr, "load_Settings: settings file not found... using defaults\n");
-		set_default_settings();
+		set_default_xsession_dir();
+		set_default_xinit();
+		set_default_font();
 		return 0;
 	}
 	while (fscanf(fp, "%s", tmp) != EOF)
@@ -107,5 +119,9 @@ int load_settings(void)
 		error();
 		return 0;
 	}
+	if (XSESSIONS_DIRECTORY == NULL) set_default_xsession_dir();
+	if (XINIT == NULL) set_default_xinit();
+	if (FONT == NULL) set_default_font();
+
 	return 1;
 }

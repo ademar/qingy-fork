@@ -43,26 +43,26 @@
 
 #define POWEROFF 0
 #define REBOOT   1
-#define UP   		 2
-#define DOWN 	  -2
+#define UP       2
+#define DOWN    -2
 #define YES      1
 #define NO       0
 #define DESTROY -1
 
-DeviceInfo *devices = NULL;		/* the list of all input devices									*/
-IDirectFBEventBuffer *events;	/* input interfaces: device and its buffer				*/
-IDirectFB *dfb;								/* the super interface														*/
-IDirectFBSurface *primary;		/* the primary surface (surface of primary layer)	*/
-IDirectFBDisplayLayer *layer;	/* the primary layer we use for mouse cursor			*/
-struct button *power, *reset;	/* buttons																				*/
-int mouse_x, mouse_y;					/* mouse coordinates															*/
-IDirectFBSurface *panel_image=NULL;/* background image                          */
-int we_stopped_gpm;						/* wether this program stopped gpm or not					*/
-IDirectFBWindow	 *button_window = NULL;/* window for displaying buttons         */
-IDirectFBSurface *button_window_surface = NULL;/* surface of the above					*/
-unsigned int screen_width, screen_height;	/* screen resolution									*/
-IDirectFBFont *font_small, *font_normal, *font_large;	/* fonts 									*/
-int font_small_height, font_normal_height, font_large_height; /* font sizes     */
+DeviceInfo *devices = NULL;   /* the list of all input devices             */
+IDirectFBEventBuffer *events; /* input interfaces: device and its buffer   */
+IDirectFB *dfb;               /* the super interface                       */
+IDirectFBSurface *primary;    /* surface of the primary layer              */
+IDirectFBDisplayLayer *layer; /* the primary layer                         */
+struct button *power, *reset; /* buttons                                   */
+int mouse_x, mouse_y;         /* mouse coordinates                         */
+int we_stopped_gpm;           /* wether this program stopped gpm or not    */
+IDirectFBSurface *panel_image=NULL;/* background image                     */
+IDirectFBWindow	 *button_window = NULL;/* window for displaying buttons    */
+IDirectFBSurface *button_window_surface = NULL;/* surface of the above     */
+unsigned int screen_width, screen_height;/* screen resolution              */
+IDirectFBFont *font_small, *font_normal, *font_large;/* fonts              */
+int font_small_height, font_normal_height, font_large_height;/* font sizes */
 TextBox *username = NULL, *password = NULL;
 int session_hasfocus = 0;
 int workaround = -1;

@@ -69,10 +69,10 @@ fi
 # Check wether we are using shadow passwords
 	echo -n "Checking for /etc/shadow: "
 	if test "`cat /etc/shadow`" != ""; then
-		echo "found!"
+		echo "found"
 		SHADOW="-DSHADOW_PASSWD"
 	else
-		echo "not found!"
+		echo "not found"
 		SHADOW=""
 	fi
 # End check for shadow passwords
@@ -94,10 +94,25 @@ AC_CHECK_LIB(crypt, crypt, , , )
 CFLAGS="$CFLAGS -DLinux $SHADOW"
 LDFLAGS=""
 
-DFB_VERSION=0.9.17
+DFB_VERSION=0.9.18
 PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	AC_MSG_ERROR([$DIRECTFB_PKG_ERRORS
 *** DirectFB $DFB_VERSION or newer is required. The latest version
 *** of DirectFB is available from http://www.directfb.org/.]))
+
+# Let's create a configuration file
+	AC_PATH_PROG([XINIT], [xinit], [/usr/X11R6/bin/xinit], [$PATH:/usr/X11R6/bin:/usr/bin/X11:/usr/bin:/usr/local/bin])
+	echo -n "Creating config file... "
+	if test -f "media/settings"; then
+		rm media/settings
+	fi
+	echo "FONT decker.ttf" >> media/settings
+	echo "XSESSIONS_DIRECTORY /etc/X11/Sessions/" >> media/settings
+	echo "XINIT $XINIT" >> media/settings
+	echo "done"
+# End creation of config file
+
+PREFIX=""
+AC_PREFIX_DEFAULT ($PREFIX)
 
 AC_OUTPUT(Makefile src/Makefile media/Makefile)

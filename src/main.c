@@ -56,7 +56,7 @@ void Error()
 	printf("\nusage: ginqy <ttyname> [options]\n");
 	printf("Options:\t--black-screen-workaround\tTry this is DirectFB init fails and you get\n");
   printf("\t\t\t\t\t\ta black screen instead of the login prompt.\n");
-	printf("\t\t--broken-ati128-workaround\tTry this if you have got an ati card\n");
+	//printf("\t\t--broken-ati128-workaround\tTry this if you have got an ati card\n");
   printf("\t\t\t\t\t\tand you only get a black screen.\n\n");
 
 	exit(EXIT_FAILURE);
@@ -80,7 +80,7 @@ void text_mode()
 	exit(EXIT_FAILURE);
 }
 
-void start_up(int workaround, int ati_workaround)
+void start_up(int workaround/*, int ati_workaround*/)
 {
 	int returnstatus;
   int argc = 2;
@@ -88,9 +88,9 @@ void start_up(int workaround, int ati_workaround)
 
   argv[0]= (char *) calloc(6, sizeof(char));
 	strcpy(argv[0], "qingy");
-  argv[1]= (char *) calloc(61, sizeof(char));
-	strcpy(argv[1], "--dfb:no-vt-switch,quiet,bg-none,no-cursor");
-	if (ati_workaround) strcat(argv[1], ",pixelformat=RGB32");
+  argv[1]= (char *) calloc(33, sizeof(char));
+	strcpy(argv[1], "--dfb:no-vt-switch,quiet,bg-none");
+	//if (ati_workaround) strcat(argv[1], ",pixelformat=RGB32");
   argv[2]= NULL;
 
 	/* Now we try to initialize the framebuffer */
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 	int our_tty_number;
 	int user_tty_number;
 	int workaround = -1;
-	int ati_workaround = 0;
+	//int ati_workaround = 0;
 	int i = 2;
   struct timespec delay;
 
@@ -149,8 +149,8 @@ int main(int argc, char *argv[])
 	{
 	  if (strcmp(argv[i], "--black-screen-workaround") == 0)
 			workaround = our_tty_number;
-		else if (strcmp(argv[i], "--broken-ati128-workaround") == 0)
-		  ati_workaround=1;
+		//else if (strcmp(argv[i], "--broken-ati128-workaround") == 0)
+		//  ati_workaround=1;
 		else Error();
 		i++;
 	}
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "\nfatal error: cannot get active tty number!\n");
 			return EXIT_FAILURE;
 		}
-		if (user_tty_number == our_tty_number) start_up(workaround, ati_workaround);
+		if (user_tty_number == our_tty_number) start_up(workaround/*, ati_workaround*/);
 		nanosleep(&delay, NULL); /* wait a little before checking again */
 	}
 

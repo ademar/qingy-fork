@@ -1,7 +1,5 @@
 ## Makefile.am for qingy/src
 
-prefix= $(QINGY_PREFIX)
-
 AM_CFLAGS = \
 	@DIRECTFB_CFLAGS@
 
