@@ -143,16 +143,18 @@ int get_available_tty(void)
 void tty_redraw(void)
 {
   int active_tty = get_active_tty();
-  int temp_tty = get_available_tty();
+  int temp_tty   = get_available_tty();
   
-  /* Actually, this is implemented as a hack
-     I do not think that a *real* way to do 
-     this even exists...                      */
-  
-  if (temp_tty != -1) set_active_tty(temp_tty);
-  else /* hope this never happens, as it could be an active tty running X */
-    set_active_tty(active_tty + 20);
-  set_active_tty(active_tty);
+  /*
+	 * Actually, this is implemented as a hack
+	 * I do not think that a *real* way to do 
+	 * this even exists...
+	 */ 
+  if (temp_tty != -1)
+	{
+		set_active_tty(temp_tty);
+		set_active_tty(active_tty);
+	}
 }
 
 int disallocate_tty(int tty)

@@ -2,6 +2,7 @@
 
 	* src/chvt.c (get_fb_resolution): Added this function,
 	it gets the current console framebuffer resolution
+	(tty_redraw): de-uglified some code ;-P
 
 	* src/chvt.h (get_fb_resolution): prototype for the above...
 
