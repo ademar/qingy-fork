@@ -30,6 +30,7 @@
 #define DATADIR "/etc/qingy/"
 #define FONT DATADIR "decker.ttf"
 #define WINDOW_OPACITY 0x80
+#define SELECTED_WINDOW_OPACITY 0xCF
 #define MASK_TEXT_COLOR  0xFF, 0x00, 0x00, 0xFF
 #define OTHER_TEXT_COLOR 0x40, 0x40, 0x40, 0xFF
 #define TEXT_MODE -2
