@@ -1,5 +1,6 @@
                               QINGY
-												Qingy Is Not GettY
+ 
+			Qingy Is Not GettY
 
 
 /----------------\
@@ -19,6 +20,7 @@ It allows the user to log in and start the session of his choice
 - It remembers last user who logged in, with focus on password
 - It also rememebers last session each user chose
 - Fully themable
+- Dynamic screensavers
 - Has support for shadow passwords
 - Has support for PAM
 - You can start more that one X session at once
@@ -58,7 +60,7 @@ qingy version 0.2.1
 Usage: qingy <ttyname> [options]
 Options:
 
-	 --hide-password
+ --hide-password
 	  Do not show password asterisks.
 		
    --hide-lastuser
@@ -81,12 +83,13 @@ Options:
 \----------------/
 qingy puts all its configuration files in /etc/qingy.
 There you will find the configuration file (settings),
-that you can tweak as you need/like:
+that you can tweak as you need/like.
 
-XSESSIONS_DIRECTORY /etc/X11/Sessions/  (1)
-XINIT /usr/X11R6/bin/xinit              (2)
-THEME default                           (3)
+/--------------\
+| More details |
+\--------------/
 
-(1) Path to the scripts that start available X sessions
-(2) Full path to the 'xinit' executable
-(3) theme to use: specify a directory containing a theme
+Qingy comes with extensive documentation in the form of TeXinfo
+documents (the GNU standard documentation method). Just type `info
+qingy` from a shell to browse it.
+

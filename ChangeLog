@@ -1,124 +1,44 @@
-qingy CVS:
-- Made missing 'fbset' program non fatal for qingy compilation.
-  But in this case you will have to edit your /etc/directfbrc.qingy
-  by hand...
-- Pa0lino added an utility, 'themer', to convert qingy 0.2 series
-  theme files to qingy 0.3 theme structure...
+2004-01-12  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
+	
+	* media/qingy-mode.el: added, with filename bug fixed.
 
-qingy 0.3.0 (09 January 2004):
-- New memory allocation/deallocation management
-- Unlock vt switching before dying (yes, this was annoying)
-- Solved a bug that made qingy crash when you switched to its
-  tty after it had been sitting there for some time. Basically
-  it opened a file descriptor every second and did not close
-  it...
-- Now qingy reverts to text mode instead of dying when it
-  encounters non-fatal errors in command line parameters or
-  settings / theme file...
-- Various previously unchecked memory allocations got leashed
-- Now qingy parses /etc/inittab to decide what to do when
-  user presses ctrl-alt-del (up to now it did nothing).
-  Supported stuff: poweroff, halt, reboot, shutdown
-  (with -h or -r), as well as just displaying a message
-  (echo "your message here").
-- Added --disable-lastuser option to tell qingy not do display
-  last user name. This way it will always ask for user name.
-- Added support for user's own .xsession file (just create a
-  .xsession file in your home dir, put there the stuff you
-  want to load, and choose "Your .xsession" as session).
-- Now background image stays there when attempting to log in,
-  during timeouts... It goes away only during screen saver
-- Added ./configure option to disable PAM support (--disable-pam)
-- Added support in config file to specify a shutdown policy:
-  use 'shutdown_policy = everyone' to allow everyone to shutdown
-      'shutdown_policy = root' to be asked for root password
-      'shutdown_policy = noone' to forbid shutdown completely.
-  If this option is not used, qingy defaults to 'everyone'
-- Rewrote load_settings.c (and added others ;-P). Now parsing
-  of setting and theme files is done via regular expressions.
-  I undestand little (but I will ;-P) of that stuff, so all
-  the praise goes to Paolino <paolino.gnu@disi.unige.it>...
-- Radically changed configuration files structure... too hard
-  to explain it all here: see updated documentation for all
-  details. In short: all stuff you see on screen can be
-  added, removed, moved, changed... you got the point :-)
-- Added user-oriented welcome messages. See documentation.
-  Thanks, again, to Paolino <paolino.gnu@disi.unige.it>
-- Added support for user-provided CFLAGS: just use
-  ./configure MY_CFLAGS="your_cflags_here"
-  Please note that qingy already tries to set the best
-  optimization for your arch in CFLAGS; using the above
-  feature overrides those settings... I added this feature
-  primarily to use with Gentoo GNU Linux portage system.
-- Added info documentation for qingy, thanks (again) to
-  Pa0lino... just issue a 'info qingy'!
-- Many fixes and clean ups
+2004-01-13  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
 
-qingy 0.2.3 (21 October 2003):
-- Now qingy locks vt switching when it enters DirectFB mode.
-  So it no longer crashes when you switch VT while it is starting
-- no longer necessary to use a seed file to select a random theme
-  (you can safely remove file /etc/qingy/seed if it exists)
-- Added support for text mode sessions
-  (just add your session script in /etc/qingy/sessions)
-- Moved themes directory to /etc/qingy/themes
-  (note that you do not need to change your /etc/qingy/settings)
-- Added some code to allow restarting of gpm even if it was
-  stopped by a previous session of qingy (that crashed ;-P)
-- Removed '--silent' option. Now qingy is silent by default.
-  If you still want to get diagnostic messages on stderr
-  you have to use the '--verbose' option
-- Added photo screen saver (it displays a slide show of photos)
-- Added option 'SCREEN_SAVER' to config file. You can specify
-  'pixel' or 'photo' to select which screen saver you want
-- Added option 'IMAGES_PATH' to config file. Use it to specify 
-  a directory containing images to use with photo screen saver.
-  Note: you can specify more than one path by putting
-  several 'IMAGES_PATH' lines into the config file.
-- No longer necessary to start qingy in the first 12 ttys
-- Added support for comments is config file.
-- A surprise now awaits the rightful master ;-)	
-- The usual minor fixes and clean ups
+	* media/screensavers/pixel, media/screensavers/pixel: added two
+	screensaver modules that can be automagically loaded at demand
 
-qingy 0.2.2 (29 September 2003):
-- Starting X sessions for users with a shell other than bash
-  should no longer fail with strange errors
-  (this occurred at least with tcsh)
-- added support for selecting a random theme
-  at startup (just use 'random' as theme name)
-- added support for screen savers
-- added a screen saver: pixel
-- added option to select which framebuffer device to use
-- updated text mode login for increased security
-- no longer necessary to create a /etc/directfbrc file:
-  now qingy creates automatically file /etc/directfbrc.qingy
-  (thus other DirectFB apps are unaffected) with
-  hopefully the proper resolution already detected.
-  Note: you need the 'fbset' program for this.
+2004-01-13  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
+		
+	* src/DirectFB/screen_saver.c, src/DirectFB/screen_saver.h,
+	src/DirectFB/screensaver_module.c: added dynamic loading of
+	screensavers as modules.
 
-qingy 0.2.1 (01 September 2003):
-- correctly changes tty ownership
-- Hopefully solves PAM issues
-- Added option to close DirectFB mode before shutting down,
-  so that you can see your system shutdown messages
-- Added option for hiding last user name
-- Added option for hiding password chars completely
-- Now ENTER in username field pass control to password
-- Now qingy reverts back to text mode login if something
-  goes wrong with DirectFB
-- Message "Login failed" now appears for 2 seconds
-- Various fixes and clean ups (memory leaks, allocation failures...)
+2004-01-10  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
 
-qingy 0.2 (18 July 2003):
-- Added PAM support
-- Added --silent option to avoid diagnostic messages on stderr
-- Various clean ups
+	* media/themer: added. Perl script to translate old themes to new
+	ones.
 
-qingy 0.1.1 (09 July 2003):
-- embedded object related functions into object structures themselves
-- full theme support
-- Changed default theme to the Ant one
-- Various clean ups
+2004-01-07  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
 
-qingy 0.1 (05 July 2003):
-- first public release
+	* src/DirectFB/directfb_mode.c (start_login_sequence): added
+	user-oriented welcome messages. See documentation.
+
+2003-12-10  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
+
+	* src/parse_settings.y, src/scan_settings.l, src/load_settings.c,
+	src/load_settings.h : added dynamic window support to config files.
+
+2003-12-06  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
+
+	* src/load_settings.h: added window structure and enum of types-
+	hope to parse it all in very small time :) 
+	
+
+ /********************************************************************\
+ *** 								    ***
+ *** PLEASE NOTE: Due to restructuring of the project structure,    ***
+ ***        	  this ChangeLog is effective since Qingy v. 0.30   ***
+ ***	 							    ***
+ \********************************************************************/	
+ 
+	
