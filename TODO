@@ -5,9 +5,6 @@
 - start some apps before/after X session
 - multilanguage support
 - extend theme support (for qingy 0.3 series)
-- remove limit of 12 ttys
-  ( find a way to find out next free tty
-    or let the X server choose its own   )
 - ldap support for authentication (with pam?)
 - allow selection of alternate x server layouts
 - Allow for global and tty specific options in config file

@@ -28,7 +28,7 @@
 
 #define create_tty_name(tty) StrApp((char**)0, "/dev/tty", int_to_str(tty), (char*)0)
  
-/* change stdin, stdout and stderr to a new tty*/
+/* change stdin, stdout and stderr to a new tty */
 int switch_to_tty(int tty);
 
 /* get the currently active tty */
@@ -37,9 +37,15 @@ int get_active_tty(void);
 /* jump to another tty */
 int set_active_tty(int tty);
 
+/* get the number of an unused tty */
+int get_available_tty(void);
+
 /* allow of block tty switching */
 int lock_tty_switching(void);
 int unlock_tty_switching(void);
+
+/* Redraw active tty contents */
+void tty_redraw(void);
 
 /* disallocate tty */
 int disallocate_tty(int tty);

@@ -273,15 +273,6 @@ int load_settings(void)
       strcpy(TEXT_SESSIONS_DIRECTORY, tmp);
       found=1;
     }
-    if (strcmp(tmp, "MAX_TTY") == 0)
-    {
-      if (fscanf(fp, "%d", &max_tty_number) == EOF)
-      {
-				err = 1;
-				break;
-      }
-      found = 1;
-    }
     if (strcmp(tmp, "XINIT") == 0)
     {
       if (fscanf(fp, "%s", tmp) == EOF)

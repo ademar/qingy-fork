@@ -28,6 +28,7 @@
 
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <linux/kd.h>
 #include <linux/vt.h>
@@ -90,6 +91,7 @@ int switch_to_tty(int tty)
   stdin  = freopen(ttyname, "r", stdin);
   stdout = freopen(ttyname, "w", stdout);
   stderr = freopen(ttyname, "w", stderr);
+	free(ttyname);
   if (!stdin || !stdout || !stderr) return 0;
 
   return 1;
@@ -108,28 +110,56 @@ int get_active_tty(void)
   return terminal_status.v_active;
 }
 
-/* disallocate tty */
-int disallocate_tty(int tty)
-{
-  int fd;
-
-  /* we switch to /dev/tty<tty> */
-  if ( (fd = getfd()) == -1) return 0;
-  if (ioctl (fd, VT_DISALLOCATE, tty) == -1) return 0;
-  if (close(fd) != 0) return 0;
-
-  return 1;
-}
-
 /* jump to another tty */
 int set_active_tty(int tty)
 {
   int fd;
 
   /* we switch to /dev/tty<tty> */
-  if ( (fd = getfd()) == -1) return 0;
+  if ((fd = getfd()) == -1) return 0;
   if (ioctl (fd, VT_ACTIVATE, tty) == -1) return 0;
   if (ioctl (fd, VT_WAITACTIVE, tty) == -1) return 0;
+  if (close(fd) != 0) return 0;
+
+  return 1;
+}
+
+/* get the number of an unused tty */
+int get_available_tty(void)
+{
+	int fd;
+	int available;
+  
+  if ((fd = getfd()) == -1) return -1;
+	ioctl (fd, VT_OPENQRY, &available);
+
+	return available;
+}
+
+/* Redraw active tty contents */
+void tty_redraw(void)
+{
+	int active_tty = get_active_tty();
+	int temp_tty = get_available_tty();
+
+	/* Actually, this is implemented as a hack
+		 I do not think that a *real* way to do 
+		 this even exists...                      */
+
+	if (temp_tty != -1) set_active_tty(temp_tty);
+	else /* hope this never happens, as it could be an active tty running X */
+		set_active_tty(active_tty + 20);
+	set_active_tty(active_tty);
+}
+
+/* disallocate tty */
+int disallocate_tty(int tty)
+{
+  int fd;
+
+  /* we switch to /dev/tty<tty> */
+  if ((fd = getfd()) == -1) return 0;
+  if (ioctl (fd, VT_DISALLOCATE, tty) == -1) return 0;
   if (close(fd) != 0) return 0;
 
   return 1;
@@ -170,4 +200,5 @@ void stderr_enable(void)
 
   if (!ttyname) return;
   stderr = freopen(ttyname, "w", stderr);
+	free(ttyname);
 }

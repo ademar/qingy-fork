@@ -132,13 +132,12 @@ void start_up(void)
     exit(EXIT_SUCCESS); /* init will restart us in listen mode */    
   }
 
-  /* framebuffer init failed! We revert to text mode */
-  if (black_screen_workaround != -1)
-  {
-    /* This is to avoid a black display after framebuffer dies */
-    set_active_tty(max_tty_number+1);
-    set_active_tty(black_screen_workaround);
-  }
+  /* framebuffer init failed or user pressed ESC twice...
+		 ... we revert to text mode                            */
+
+  /* This is to avoid a black display after framebuffer dies */
+  if (black_screen_workaround) tty_redraw();
+
   text_mode(); /* This call does not return */
 
   /* We should never get here */
@@ -193,7 +192,7 @@ int ParseCMDLine(int argc, char *argv[])
     }
     if (strcmp(argv[i], "--black-screen-workaround") == 0)
     {
-      black_screen_workaround = our_tty_number;
+      black_screen_workaround = 1;
       continue;
     }
     if (strcmp(argv[i], "--hide-password") == 0)
@@ -234,15 +233,14 @@ int main(int argc, char *argv[])
 
   /* We set up some default values */
 	image_paths = NULL;
-  black_screen_workaround = -1;
+  black_screen_workaround = 0;
   silent = 1;
   hide_password = 0;
   hide_last_user = 0;
   no_shutdown_screen = 0;
   use_screensaver = 1;
   screensaver_timeout = 5;
-	SCREENSAVER = PIXEL_SCREENSAVER;
-  max_tty_number = 12;
+	SCREENSAVER = PIXEL_SCREENSAVER;  
   
   our_tty_number = ParseCMDLine(argc, argv);
 

@@ -359,11 +359,7 @@ void begin_shutdown_sequence (int action)
   if (no_shutdown_screen)
   {
     close_framebuffer_mode ();
-    if (black_screen_workaround != -1)
-    {
-      set_active_tty(13);
-      set_active_tty(black_screen_workaround);
-    }
+    if (black_screen_workaround != -1) tty_redraw();
   }
   else primary->Clear (primary, 0, 0, 0, 0);
   if (action == POWEROFF)

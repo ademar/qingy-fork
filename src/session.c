@@ -609,11 +609,18 @@ int which_X_server(void)
 void Graph_Login(struct passwd *pw, char *session, char *username)
 {
   pid_t proc_id;
-  int dest_vt = current_vt + 20;
+  int dest_vt = get_available_tty();
   int retval;
   char *temp1 = int_to_str(which_X_server());
-  char *temp2 = int_to_str(dest_vt);
+  char *temp2 = NULL;
   char *args[4];
+
+	if (dest_vt != -1) temp2 = int_to_str(dest_vt);
+	else
+	{
+		fprintf(stderr, "session: fatal error: cannot find an unused vt!\n");
+		my_exit(0);
+	}
 
   args[0] = shell_base_name(pw->pw_shell);
   args[1] = (char *) my_calloc(3, sizeof(char));
@@ -703,13 +710,8 @@ void start_session(char *username, char *session)
 
   endpwent();
 
-  if (black_screen_workaround != -1)
-  {
-    current_vt = black_screen_workaround;
-    set_active_tty(13);
-    set_active_tty(current_vt);
-  }
-  else current_vt = get_active_tty();
+  if (black_screen_workaround) tty_redraw();
+  current_vt = get_active_tty();
 
   if (!pwd)
   {
