@@ -57,6 +57,7 @@ extern FILE* yyin;
 extern int yyparse(void);
 
 int GOT_THEME = 0;
+int in_theme = 0;
 
 void initialize_variables(void)
 {
@@ -205,12 +206,13 @@ int set_theme(char *theme)
 		yyin = oldfile;
     return 0;
   }
-	yyparse();
+  in_theme=1;
+  yyparse();
   fclose(yyin);
-	yyin = oldfile;
-
-	GOT_THEME = 1;
-	return 1;
+  yyin = oldfile;
+  in_theme=0;
+  GOT_THEME = 1;
+  return 1;
 }
 
 int load_settings(void)
