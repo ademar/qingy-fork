@@ -1,9 +1,9 @@
-SUBDIRS = media src
+SUBDIRS = media src doc
 
 EXTRA_DIST =	AUTHORS \
-							COPYING \
-							HOWTO_THEMES \
-							INSTALL \
-							NEWS \
-							README \
-							TODO
+		COPYING \
+		HOWTO_THEMES \
+		INSTALL \
+		NEWS \
+		README \
+		TODO

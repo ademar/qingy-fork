@@ -1,0 +1,161 @@
+\input texinfo   @c -*-texinfo-*-
+@comment $Id$
+@comment %**start of header
+@setfilename qingy.info
+@include version.texi
+@settitle Qingy @value{VERSION}
+@syncodeindex pg cp
+@comment %**end of header
+@copying
+This manual is for Qingy
+(version @value{VERSION}, @value{UPDATED}),
+which is a frame-buffered getty substitute
+
+Copyright @copyright{} 2003 Paolo Gianrossi
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2
+or any later version published by the Free Software Foundation;
+with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+Texts.  A copy of the license is included in the section entitled "GNU
+Free Documentation License".
+@end quotation
+@end copying
+
+@dircategory System programs
+@direntry
+* qingy: (qingy)Invoking qingy.    
+@end direntry
+
+@titlepage
+@title Qingy user manual
+@subtitle for version @value{VERSION}, @value{UPDATED}
+@author Paolo Gianrossi (@email{paolino.gnu@@disi.unige.it})
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top, Introduction, (dir), (dir)
+@top Qingy
+
+@insertcopying
+@end ifnottex
+
+@menu
+* Introduction::                
+* Fetching qingy::              
+* Copying Qingy::               
+* Index::                       
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Fetching qingy
+
+* Installing from the tarball::  
+
+@end detailmenu
+@end menu
+
+@node  Introduction, , Top, Top
+@comment  node-name,  next,  previous,  up
+@chapter Introduction
+
+@cindex eye-candy
+
+Qingy Is Not GettY. 
+Qingy is useless anyway: it is just eye-candy for a login screen on
+your box.  Still, it's just plain lovely and cool, and we are sure
+that you will love it.
+
+Qingy graphical effects are obtained perusing the framebuffer, thus
+avoiding the nuisance of running an X server just to login as it
+happens with the various *DMs. Also, it has some nice features, such
+as text sessions as well as X sessions, a screensaver, themes to
+customize it totally and much much more.
+
+@node  Fetching qingy, Copying Qingy, Introduction, Top
+@chapter Fetching qingy
+
+You can download the latest stable version of Qingy from SourceForge
+(@uref{http://qingy.sourceforge.net}). You should get the latest
+stable version, unless you are a developer or really brave: in those
+cases, you might want to get the CVS version. This is the bleeding
+edge version, the one we are using everyday for our small and big
+changes in the code. It might even not compile (although we really try
+to avoid that) and it is totally unsopported. To get this version you
+will need a CVS client. You should read the huge and very deep
+SourceForge CVS documentation, but something like @kbd{cvs
+-d:pserver:anonymous@@cvs.sf.net:/cvsroot/qingy co qingy} might do the
+trick.
+
+Also, if you are using Gentoo as your GNU/Linux distribution, you can
+@kbd{emerge qingy}.
+
+@menu
+* Installing from the tarball::  
+@end menu
+@node  Installing from the tarball,  , Fetching qingy, Fetching qingy
+@comment  node-name,  next,  previous,  up
+@section Installing from the tarball
+
+Before starting to compile qingy, you should check to have the DirectFB library installed. 
+
+Once you have the tarball on your box, you should compile it more or
+less as any Linux package: 
+@enumerate
+@item
+@kbd{tar -xvzf qingy-@val{VERSION}.tar.gz}
+@item
+@kbd{cd qingy-@val{VERSION}}
+@item
+@kbd{./configure}
+@item
+@kbd{make}
+@item
+@kbd{make install}
+@end enumerate
+
+After that, you should 
+
+
+@node  Copying Qingy, Index, Fetching qingy, Top
+@comment  node-name,  next,  previous,  up
+@appendix Copying This Manual and Qingy
+
+Qingy is Free Software. That means that you can freely use, copy,
+modify Qingy. You don't even have to tell us if you do so. But if you
+do, you have to let others have the same rights you do. For this
+reason, Qingy comes under the GNU General Public
+License. @xref{Copying}, for a copy of this
+License. You should read the license before you do anything with
+Qingy.
+
+Free Software needs Free Documentation. This is a Free manual.
+
+It would be useless to have a piece of Free Software without
+appropriate documentation. This documentation must, of course, be
+Free. That is, you may use, copy and modify it. You can actually use,
+copy, even print and publish for money, even write again whole parts
+of it. You don't even have to tell us this. But you must permit others
+to do the same. This manual is published under the GNU Free
+Documentation License. @xref{GNU Free Documentation License}, for a
+copy of this License. Before you do anything with this manual, except
+maybe reading it, you should read the license.
+
+@include gpl.texi
+
+@include fdl.texi
+
+@node Index,  , Copying Qingy, Top
+@unnumbered Index
+
+@printindex cp
+
+@bye
+

@@ -165,4 +165,4 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 PREFIX=""
 AC_PREFIX_DEFAULT ($PREFIX)
 
-AC_OUTPUT([Makefile src/Makefile src/DirectFB/Makefile media/Makefile media/default/Makefile media/sessions/Makefile media/pam/Makefile])
+AC_OUTPUT([Makefile src/Makefile src/DirectFB/Makefile media/Makefile media/default/Makefile media/sessions/Makefile media/pam/Makefile doc/Makefile])
