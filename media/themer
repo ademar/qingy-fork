@@ -19,7 +19,18 @@
 # along with GNU Emacs; see the file COPYING.  If not, write to the 
 # Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-print<<END_O_HEAD;
+die "Not enough arguments!\n" unless @ARGV;
+
+for $file (@ARGV) {
+
+print "Making backup copy of file $file...\n";
+rename "$file", "$file.old";
+
+open DEST, ">$file" 	or die "Cannot open $file for write: $!";
+open SRC, "<$file.old"	or die "Cannot open $file for read: $!";
+
+print "Frobnicating...\n";
+print DEST<<END_O_HEAD;
 
 # Theme translated by $0. Please review and enhance manually!
 # $0 can be found @ http://yersinia.org/homes/paolino/projects/
@@ -29,7 +40,7 @@ theme
 background = "background.png"
 END_O_HEAD
 
-while(<>){
+while(<SRC>){
     s/FONT\s+(\S+)/font\="$1"/ 						or
     s/BUTTON_OPACITY\s+(\d+)/button_opacity\=$1/			or
     s/SELECTED_WINDOW_OPACITY\s+(\d+)/selected_window_opacity\=$1/	or
@@ -38,10 +49,10 @@ while(<>){
     s/TEXT_CURSOR_COLOR\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/default_cursor_color\=$1,\ $2,\ $3,\ $4/   or
     s/OTHER_TEXT_COLOR\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/other_text_color\=$1,\ $2,\ $3,\ $4/  ;
     
-    print;
+    print DEST;
 }
 
-print<<END_O_FOOT
+print DEST<<END_O_FOOT;
 
 }
 
@@ -151,5 +162,8 @@ window
 }
 
 END_O_FOOT
-
+close SRC;
+close DEST;
+print "Done! File $file converted.\nA copy of the old file is kept in $file.old.\n";
+}
 __END__
