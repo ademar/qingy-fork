@@ -240,65 +240,6 @@ void yyerror(char *error)
   set_default_colors();
 }
 
-int load_settings(void)
-{
-  TEXT_SESSIONS_DIRECTORY = NULL;
-	X_SESSIONS_DIRECTORY    = NULL;
-	THEME_DIR               = NULL;
-	XINIT                   = NULL;
-	FONT                    = NULL;
-
-  DATADIR   = strdup("/etc/qingy/");
-	SETTINGS  = StrApp((char**)NULL, DATADIR, "settings", (char*)NULL);
-  LAST_USER = StrApp((char**)NULL, DATADIR, "lastuser", (char*)NULL);  
-
-  yyin = fopen(SETTINGS, "r");
-  if (!yyin)
-  {
-    if (!silent) fprintf(stderr, "load_settings: settings file not found...\nusing internal defaults\n");
-    set_default_session_dirs();
-    set_default_xinit();
-    set_default_font();
-    set_default_colors();
-    return 1;
-  }
-	file_error = SETTINGS;
-  yyparse();
-  fclose(yyin);
-	file_error = NULL;
-
-  if (!X_SESSIONS_DIRECTORY) set_default_session_dirs();
-  if (!XINIT) set_default_xinit();
-  if (!GOT_THEME)
-	{
-		char *theme = strdup("default");
-		set_theme(theme);
-		free(theme);
-	}
-
-  if (!FONT) set_default_font();
-
-#ifdef DEBUG
-	fprintf(stderr, "XINIT is '%s'\n", XINIT);
-	fprintf(stderr, "X_SESSIONS_DIRECTORY is '%s'\n", X_SESSIONS_DIRECTORY);
-	fprintf(stderr, "TEXT_SESSIONS_DIRECTORY is '%s'\n",  TEXT_SESSIONS_DIRECTORY);
-	fprintf(stderr, "FONT is '%s'\n", FONT);
-	fprintf(stderr, "BACKGROUND is '%s'\n", BACKGROUND);
-	
-	fprintf(stderr, "BUTTON_OPACITY is %d\n", BUTTON_OPACITY);
-	fprintf(stderr, "WINDOW_OPACITY is %d\n", WINDOW_OPACITY);
-	fprintf(stderr, "SELECTED_WINDOW_OPACITY is %d\n", SELECTED_WINDOW_OPACITY);
-	
-	fprintf(stderr, "MASK_TEXT_COLOR is %d, %d, %d, %d\n", MASK_TEXT_COLOR_R, MASK_TEXT_COLOR_G, MASK_TEXT_COLOR_B, MASK_TEXT_COLOR_A);
-	fprintf(stderr, "TEXT_CURSOR_COLOR is %d, %d, %d, %d\n", TEXT_CURSOR_COLOR_R, TEXT_CURSOR_COLOR_G, TEXT_CURSOR_COLOR_B, TEXT_CURSOR_COLOR_A);
-	fprintf(stderr, "OTHER_TEXT_COLOR is %d, %d, %d, %d\n", OTHER_TEXT_COLOR_R, OTHER_TEXT_COLOR_G, OTHER_TEXT_COLOR_B, OTHER_TEXT_COLOR_A);
-
-	fprintf(stderr, "Allowed to shutdown: %s\n", (SHUTDOWN_POLICY==EVERYONE) ? "everyone" : (SHUTDOWN_POLICY==ROOT) ? "root only" : "no one");
-#endif
-
-  return 1;
-}
-
 char *get_last_user(void)
 {
   FILE *fp = fopen(LAST_USER, "r");
@@ -505,6 +446,89 @@ int get_win_type(const char* name)
     if(!strcmp(name, types[i])) return i;
 
   return 0;
+}
+
+int check_windows_sanity()
+{
+	window_t* temp = windowsList;
+	int got_login  = 0;
+	int got_passwd = 0;
+ 
+	while(temp)
+	{
+		if (temp->type == LOGIN)    got_login  = 1;
+		if (temp->type == PASSWORD) got_passwd = 1;
+		temp = temp->next;
+	}
+	if (!got_login || !got_passwd) return 0;
+
+	return 1;
+}
+
+int load_settings(void)
+{
+  TEXT_SESSIONS_DIRECTORY = NULL;
+	X_SESSIONS_DIRECTORY    = NULL;
+	THEME_DIR               = NULL;
+	XINIT                   = NULL;
+	FONT                    = NULL;
+
+  DATADIR   = strdup("/etc/qingy/");
+	SETTINGS  = StrApp((char**)NULL, DATADIR, "settings", (char*)NULL);
+  LAST_USER = StrApp((char**)NULL, DATADIR, "lastuser", (char*)NULL);  
+
+  yyin = fopen(SETTINGS, "r");
+  if (!yyin)
+  {
+    if (!silent) fprintf(stderr, "load_settings: settings file not found...\nusing internal defaults\n");
+    set_default_session_dirs();
+    set_default_xinit();
+    set_default_font();
+    set_default_colors();
+    return 1;
+  }
+	file_error = SETTINGS;
+  yyparse();
+  fclose(yyin);
+	file_error = NULL;
+
+  if (!X_SESSIONS_DIRECTORY) set_default_session_dirs();
+  if (!XINIT) set_default_xinit();
+  if (!GOT_THEME)
+	{
+		char *theme = strdup("default");
+		set_theme(theme);
+		free(theme);
+	}
+
+  if (!FONT) set_default_font();
+
+#ifdef DEBUG
+	fprintf(stderr, "XINIT is '%s'\n", XINIT);
+	fprintf(stderr, "X_SESSIONS_DIRECTORY is '%s'\n", X_SESSIONS_DIRECTORY);
+	fprintf(stderr, "TEXT_SESSIONS_DIRECTORY is '%s'\n",  TEXT_SESSIONS_DIRECTORY);
+	fprintf(stderr, "FONT is '%s'\n", FONT);
+	fprintf(stderr, "BACKGROUND is '%s'\n", BACKGROUND);
+	
+	fprintf(stderr, "BUTTON_OPACITY is %d\n", BUTTON_OPACITY);
+	fprintf(stderr, "WINDOW_OPACITY is %d\n", WINDOW_OPACITY);
+	fprintf(stderr, "SELECTED_WINDOW_OPACITY is %d\n", SELECTED_WINDOW_OPACITY);
+	
+	fprintf(stderr, "MASK_TEXT_COLOR is %d, %d, %d, %d\n", MASK_TEXT_COLOR_R, MASK_TEXT_COLOR_G, MASK_TEXT_COLOR_B, MASK_TEXT_COLOR_A);
+	fprintf(stderr, "TEXT_CURSOR_COLOR is %d, %d, %d, %d\n", TEXT_CURSOR_COLOR_R, TEXT_CURSOR_COLOR_G, TEXT_CURSOR_COLOR_B, TEXT_CURSOR_COLOR_A);
+	fprintf(stderr, "OTHER_TEXT_COLOR is %d, %d, %d, %d\n", OTHER_TEXT_COLOR_R, OTHER_TEXT_COLOR_G, OTHER_TEXT_COLOR_B, OTHER_TEXT_COLOR_A);
+
+	fprintf(stderr, "Allowed to shutdown: %s\n", (SHUTDOWN_POLICY==EVERYONE) ? "everyone" : (SHUTDOWN_POLICY==ROOT) ? "root only" : "no one");
+#endif
+
+	if (!check_windows_sanity())
+	{
+		fprintf(stderr, "Error in windows configuration:\n");
+		fprintf(stderr, "make sure you set up at least login and password windows!\n");
+		return 0;
+	}
+
+  return 1;
 }
 
 #ifdef DEBUG
