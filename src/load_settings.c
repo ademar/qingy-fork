@@ -311,3 +311,56 @@ int set_last_session(char *user, char *session)
 
   return 1;
 }
+
+char *get_action(char *action)
+{
+	char *temp;
+
+	if (!action) return NULL;
+
+	/* should we shutdown? */
+	if (!strncmp(action, "/sbin/shutdown", 14))
+	{
+		if (strstr(action+14, "-h")) return strdup("poweroff");
+		if (strstr(action+14, "-r")) return strdup("reboot");
+		return NULL;
+	}
+
+	/* should we print something? */
+	temp = strstr(action, "echo");
+	if (temp)
+	{
+		size_t  length;
+		char   *begin;
+		temp = strchr(temp+4, '"');
+		if (!temp) return NULL;
+		begin = temp + 1;
+		temp = strchr(begin, '"');
+		if (!temp) return NULL;
+		length = (temp - 1) - begin;
+		return strndup(begin, length);		
+	}
+
+	return NULL;
+}
+
+char *parse_inittab_file(void)
+{
+	FILE   *fp     = fopen("etc/inittab", "r");
+	size_t  length = 0;
+	char   *line   = NULL;
+	char   *result = NULL;
+
+	if (!fp) return NULL;
+
+	while (getline(&line, &length, fp) != -1)
+		if (!strncmp(line, "ca::ctrlaltdel:", 15))
+		{
+			result = get_action(line + 15);
+			break;
+		}
+	fclose(fp);
+
+	if (length) free(line);
+	return result;
+}

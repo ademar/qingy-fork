@@ -40,14 +40,17 @@ void  my_free  (void   *ptr);
 void  my_exit  (int     n);
 char *my_strdup(const char *s);
 
-/* Converts an unsigned inteter to a string */
-char *int_to_str(int n);
-
 /* Computes the integer part of the base 10 log */
 int int_log10(int n);
 
+/* Converts an unsigned inteter to a string */
+char *int_to_str(int n);
+
 /* append any number of strings to dst */
 char *StrApp(char **dst, ...);
+
+/* like strncpy, but the result is null-terminated */
+void xstrncpy(char *dest, const char *src, size_t n);
 
 /* functions to start and stop gpm */
 int stop_gpm(void);

@@ -103,30 +103,36 @@ void set_user_session(char *user)
 {
   item *temp;
   char *user_session = get_last_session(user);
-  if (!session || !session->items) return;
+
+  if (!session || !session->items)
+	{
+		free(user_session);
+		return;
+	}
 
   if (!user_session)
   {
     temp = session->selected;
-    while (strcmp(session->selected->name, "Text: Console") != 0)
+    while (strcmp(session->selected->name, "Text: Console"))
       session->selected = session->selected->next;
     if (session->selected != temp) session->KeyEvent(session, REDRAW);
+		return;
   }
-  else
-  {
-    temp = session->items;
-    while (1)
-    {
-      if (strcmp(user_session, temp->name) == 0)
-      {
-				session->selected = temp;
-				session->KeyEvent(session, REDRAW);
-				return;
-      }
-      temp = temp->next;
-      if (temp == session->items) break;
-    }
-  }
+
+	temp = session->items;
+	while (1)
+	{
+		if (!strcmp(user_session, temp->name))
+		{
+			session->selected = temp;
+			session->KeyEvent(session, REDRAW);
+			free(user_session);
+			return;
+		}
+		temp = temp->next;
+		if (temp == session->items) break;
+	}
+	free(user_session);
 }
 
 void close_framebuffer_mode (void)
@@ -305,7 +311,7 @@ void clear_screen(void)
   lock_key_status->Hide(lock_key_status);
   session->Hide(session);
   layer->EnableCursor (layer, 0);
-  primary->Clear (primary, 0, 0, 0, 0);
+  primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
   primary->Flip (primary, NULL, DSFLIP_BLIT);
   primary->SetFont (primary, font_large);
   primary->SetColor (primary, OTHER_TEXT_COLOR_R, OTHER_TEXT_COLOR_G, OTHER_TEXT_COLOR_B, OTHER_TEXT_COLOR_A);
@@ -344,11 +350,11 @@ void begin_shutdown_sequence (int action)
       Draw_Background_Image ();
       return;
     }
-    primary->Clear (primary, 0, 0, 0, 0);
+    primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
     strcat (message, " in ");
     temp = int_to_str (countdown);
     strcat (message, temp);
-    if (temp) free(temp);
+    free(temp);
     strcat (message, " seconds");
     primary->DrawString (primary, "Press ESC key to abort", -1, 0, screen_height, DSTF_LEFT | DSTF_BOTTOM);
     primary->DrawString (primary, message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
@@ -361,7 +367,7 @@ void begin_shutdown_sequence (int action)
     close_framebuffer_mode ();
     if (black_screen_workaround != -1) tty_redraw();
   }
-  else primary->Clear (primary, 0, 0, 0, 0);
+  else primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
   if (action == POWEROFF)
   {
     if (!no_shutdown_screen)
@@ -385,6 +391,23 @@ void begin_shutdown_sequence (int action)
   fprintf (stderr, "\nfatal error: unable to exec \"/sbin/shutdown\"!\n");
   if (!no_shutdown_screen) close_framebuffer_mode ();
   exit (EXIT_FAILURE);
+}
+
+void do_ctrl_alt_del(DFBInputEvent *evt)
+{
+	char *action = parse_inittab_file();
+
+	if (!action) return;	
+	if (!strcmp(action, "poweroff")) {free(action); begin_shutdown_sequence (POWEROFF); return;}
+	if (!strcmp(action, "reboot"))   {free(action); begin_shutdown_sequence (REBOOT);   return;}
+
+	/* we display a message */
+	clear_screen();
+	primary->DrawString (primary, action, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+	primary->Flip (primary, NULL, 0);
+	sleep(2);
+	reset_screen(evt);
+	free(action);
 }
 
 void handle_mouse_event (DFBInputEvent *evt)
@@ -445,22 +468,21 @@ void handle_mouse_event (DFBInputEvent *evt)
 
 void start_login_sequence(DFBInputEvent *evt)
 {
-  char message[MAX];
+  char *message;
   char *user_name;
   char *user_session;
   char *temp;
   int free_temp = 0;
 
-  if (strlen(username->text) == 0) return;
-  strncpy(message, "Logging in ", MAX);
-  strncat(message, username->text, MAX-strlen(message));
-  strncat(message, "...", MAX-strlen(message));
+  if (!strlen(username->text)) return;
+  message = StrApp((char**)NULL, "Logging in ", username->text, "...", (char*)NULL);
   clear_screen();
   primary->DrawString (primary, message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+	free(message);
   primary->Flip (primary, NULL, DSFLIP_BLIT);
   sleep(1);
 
-  if (hide_last_user && strcmp(username->text, "lastuser") == 0)
+  if (hide_last_user && !strcmp(username->text, "lastuser"))
   {
     temp = get_last_user();
     free_temp = 1;
@@ -468,7 +490,7 @@ void start_login_sequence(DFBInputEvent *evt)
   else temp = username->text;
   if (!check_password(temp, password->text))
   {
-    primary->Clear (primary, 0, 0, 0, 0);
+    primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
     primary->DrawString (primary, "Login failed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
     primary->Flip (primary, NULL, DSFLIP_BLIT);
     sleep(2);
@@ -477,25 +499,22 @@ void start_login_sequence(DFBInputEvent *evt)
     if (free_temp) free(temp);
     return;
   }
-  primary->Clear (primary, 0, 0, 0, 0);
+  primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
   if (!strcmp(temp, "root"))
     primary->DrawString (primary, "Greetings, Master...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
   else primary->DrawString (primary, "Starting selected session...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
   primary->Flip (primary, NULL, DSFLIP_BLIT);
   sleep(1);
-  user_name = (char *) calloc(strlen(temp)+1, sizeof(char));
-  strcpy(user_name, temp);
-  if (free_temp) free(temp);
-  user_session = (char *) calloc(strlen(session->selected->name)+1, sizeof(char));
-  strcpy(user_session, session->selected->name);
+  user_name = strdup(temp);  
+  user_session = strdup(session->selected->name);
+	if (free_temp) free(temp);
   close_framebuffer_mode();
   start_session(user_name, user_session);
 
   /* The above never returns, so... */
-  free(user_name); user_name = NULL;
-  free(user_session); user_session = NULL;
+  free(user_name); free(user_session);
   fprintf(stderr, "Go tell my creator his brains went pop!\n");
-  exit(0);
+  exit(EXIT_FAILURE);
 }
 
 int handle_keyboard_event(DFBInputEvent *evt)
@@ -525,16 +544,24 @@ int handle_keyboard_event(DFBInputEvent *evt)
       if ((ascii_code == 'R')||(ascii_code == 'r')) begin_shutdown_sequence (REBOOT);
     }
     if (modifier == ALT || modifier == CTRLALT)
-    { /* we check if the user is pressing [CTRL-]ALT-number with 1 <= number <= 12
-				 if so we close directfb mode and send him to that tty              */
+    { 
       if (symbol_name)
-				if ((strlen (symbol_name->name) <= 3) && (strncmp (symbol_name->name, "F", 1) == 0))
+			{
+				/* we check if the user is pressing ctrl-alt-del... */
+				if (!strcmp(symbol_name->name, "DELETE") && modifier == CTRLALT)
+					do_ctrl_alt_del(evt);
+				/*
+				 * ... or [CTRL-]ALT-number with 1 <= number <= 12
+				 * in this case we close directfb mode and send him to that tty
+				 */
+				if (!strncmp(symbol_name->name, "F", 1) && strlen (symbol_name->name) <= 3)
 				{
 					temp = atoi (symbol_name->name + 1);
 					if ((temp > 0) && (temp < 13))
 						if (get_active_tty () != temp)
 							return temp;
 				}
+			}
       return returnstatus;
     }
   }
@@ -595,7 +622,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
     /* session events */
     if (session->hasfocus && allow_tabbing)
     {
-      if (ascii_code == ARROW_UP) session->KeyEvent(session, UP);
+      if (ascii_code == ARROW_UP)   session->KeyEvent(session, UP);
       if (ascii_code == ARROW_DOWN) session->KeyEvent(session, DOWN);
       if (ascii_code == TAB)
       {

@@ -53,6 +53,7 @@
 #endif
 
 #include "misc.h"
+#include "chvt.h"
 #include "load_settings.h"
 
 
@@ -222,10 +223,15 @@ char *StrApp (char **dst, ...)
     strcat(temp, pt);
   }
   va_end (va);
-  temp[len-1] = '\0';
 
   if (dst) *dst = temp;
   return temp;
+}
+
+void xstrncpy(char *dest, const char *src, size_t n)
+{
+  strncpy(dest, src, n-1);
+  dest[n-1] = 0;
 }
 
 int is_a_directory(char *what)

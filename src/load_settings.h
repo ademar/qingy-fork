@@ -84,6 +84,9 @@ void initialize_variables(void);
 /* get program settings from config file */
 int load_settings(void);
 
+/* parse /etc/inittab to detect behaviour when user presses ctrl-alt-del */
+char *parse_inittab_file(void);
+
 /* get/set name of last user that logged in */
 char *get_last_user(void);
 int set_last_user(char *user);

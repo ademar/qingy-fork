@@ -9,7 +9,9 @@ qingy CVS:
   encounters non-fatal errors in command line parameters or
   settings / theme file...
 - Various previously unchecked memory allocations got leashed
-- Usual fixes and clean ups
+- Now qingy parses /etc/inittab to decide what to do when
+  user presses ctrl-alt-del (up to now it did nothing)
+- Many fixes and clean ups
 
 qingy 0.2.3 (21 October 2003):
 - Now qingy locks vt switching when it enters DirectFB mode.

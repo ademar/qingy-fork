@@ -112,7 +112,7 @@ void DrawCursor(TextBox *thiz)
 	else if (thiz->hide_text)
 	{
 		text = (char *) calloc(1, sizeof(char));
-		text[0] = '\0';
+		*text = '\0';
 		free_text = 1;
 		position = 0;
 	}
@@ -178,7 +178,7 @@ void TextBox_SetText(TextBox *thiz, char *text)
 void TextBox_ClearText(TextBox *thiz)
 {
 	if (!thiz) return;
-	if (thiz->text) (thiz->text)[0] = '\0';
+	if (thiz->text) *thiz->text = '\0';
 	thiz->position = 0;
 	if (thiz->hasfocus) TextBox_KeyEvent(thiz, REDRAW, 1);
 	else TextBox_KeyEvent(thiz, REDRAW, 0);
@@ -191,9 +191,9 @@ void TextBox_SetFocus(TextBox *thiz, int focus)
 	if (focus)
 	{
 		thiz->window->RequestFocus(thiz->window);
-		thiz->hasfocus=1;
+		thiz->hasfocus = 1;
 		thiz->window->SetOpacity(thiz->window, SELECTED_WINDOW_OPACITY);
-		if (thiz->text == NULL) thiz->position = 0;
+		if (!thiz->text) thiz->position = 0;
 		else thiz->position = strlen(thiz->text);
 		TextBox_KeyEvent(thiz, REDRAW, 1);
 		return;
@@ -250,7 +250,7 @@ TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWi
 	newbox->Destroy    = TextBox_Destroy;
 
 	if (layer->CreateWindow(layer, window_desc, &(newbox->window)) != DFB_OK) return NULL;
-	newbox->window->SetOpacity(newbox->window, 0x00 );
+	newbox->window->SetOpacity(newbox->window, 0x00);
 	newbox->window->GetSurface(newbox->window, &(newbox->surface));
 	newbox->surface->Clear(newbox->surface, 0x00, 0x00, 0x00, 0x00);
 	newbox->surface->Flip(newbox->surface, NULL, 0);
