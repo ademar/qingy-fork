@@ -1,9 +1,18 @@
 qingy CVS:
-- Made missing 'fbset' program non fatal for qingy compilation.
-  But in this case you will have to edit your /etc/directfbrc.qingy
-  by hand...
+- Properly detect framebuffer resolution on qingy startup,
+  instead of using directfbrc.qingy, which is no longer necessary:
+  you can safely remove it from your system. This also means that
+  you no longer need to have the 'fbset' utility to compile qingy.
+- Now screensavers are modular; this means that:
+  - only the screensaver you chose gets loaded at run time; this
+    makes qingy use a little less memory
+  - you can roll your own screensaver, without need to recompile qingy
+  - you must be careful about the screensaver you install, this
+    is effectively an entry point to arbitrary code that would
+    run with root privileges (don't say you haven't been warned ;-P )
 - Pa0lino added an utility, 'themer', to convert qingy 0.2 series
   theme files to qingy 0.3 theme structure...
+- Fixed some bugs in config files parser...
 
 qingy 0.3.0 (09 January 2004):
 - New memory allocation/deallocation management

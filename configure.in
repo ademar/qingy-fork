@@ -1,4 +1,4 @@
-AC_INIT(qingy, 0.3.0, noberasco.gnu@disi.unige.it)
+AC_INIT(qingy, 0.4.0CVS, noberasco.gnu@disi.unige.it)
 AC_PREREQ(2.57)
 AC_CONFIG_SRCDIR(src/main.c)
 AM_INIT_AUTOMAKE()
@@ -138,10 +138,6 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 *** DirectFB $DFB_VERSION or newer is required. The latest version
 *** of DirectFB is available from http://www.directfb.org/.]))
 # End check for DirectFB
-
-# Check for 'fbset' program
-	AC_PATH_PROG([FBSET], [fbset], [/usr/bin/fbset], [$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin])
-# End check for 'fbset'
 
 # Let's create /etc/qingy/settings config file
 	AC_PATH_PROG([XINIT], [xinit], [/usr/X11R6/bin/xinit], [$PATH:/usr/X11R6/bin:/usr/bin/X11:/usr/bin:/usr/local/bin])

@@ -37,8 +37,5 @@
 - Add support for handling console bootsplash from inside qingy? That is: qingy
   background becomes framebuffer background when you log in...
 
-- Properly detect framebuffer resolution on qingy startup, instead of trusting
-  blindly directfbrc.qingy...
-
 --
 items marked as * are those we are currently working on.

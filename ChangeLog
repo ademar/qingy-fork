@@ -1,3 +1,21 @@
+2004-01-30  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/chvt.c (get_fb_resolution): Added this function,
+	it gets the current console framebuffer resolution
+
+	* src/chvt.h (get_fb_resolution): prototype for the above...
+
+	* src/main.c (start_up): make use of get_fb_resolution();
+	now setting a directfbrc.qingy is no longer necessary
+
+	* configure.in: removed search for 'fbset' executable position.
+	Update VERSION to 0.4.0CVS
+
+	* media/Makefile.am: removed stuff that created directfbrc.qingy
+
+	* media/screensavers/: included the screensavers in autoconf...
+	now they get properly installed
+	
 2004-01-26  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
 
 	* media/screensavers/Makefile.am: added, completing Make-tree
