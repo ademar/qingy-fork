@@ -151,6 +151,8 @@ typedef enum
 
 typedef enum
 {
+	TINY,
+	SMALLER,
   SMALL,
   MEDIUM,
   LARGE

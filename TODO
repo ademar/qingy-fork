@@ -1,9 +1,6 @@
 [FIXES]
 
 
--->ALLOW FOR SMALLER FONTS!!
-
-
 - Some command line options should migrate to config file...
 
 * Name theme tarball a bit better
@@ -34,9 +31,6 @@
 
 - Make it possible to use e.g. mng files for animated images, for example for
   background and the like.
-
-- make images scale according to virtualized / real resolution
-  instead of always rendering them their actual size...
 
 - Add a timeout (with fading) to the mouseover effect
 

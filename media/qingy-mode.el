@@ -60,7 +60,7 @@
    '("\\(yes\\|no\\|NULL\\)" . font-lock-constant-face)
    '("\\(theme\\|window\\|tty\\|autologin\\|keybindings\\)" . font-lock-builtin-face)
    '("\\(everyone\\|noone\\|p\\(?:hoto\\|ixel\\)\\|r\\(?:andom\\|oot\\)\\)" . font-lock-constant-face)
-   '("\\(large\\|medium\\|small\\)" . font-lock-constant-face)
+   '("\\(large\\|medium\\|smaller\\|small\\|tiny\\)" . font-lock-constant-face)
    '("\\(\\[[ \t]*[0-9a-fA-F]\\{8\\}[ \t]*\\]\\)\\|\\([0-9]+\\)" . font-lock-constant-face)
    '("\\(c\\(?:ommand\\|ursor_color\\)\\|height\\|t\\(?:ext_\\(?:color\\|size\\)\\|\\(?:im\\|yp\\)e\\)\\|width\\|[xy]\\)" . font-lock-variable-name-face)
    )

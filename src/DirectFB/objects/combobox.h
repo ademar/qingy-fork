@@ -51,9 +51,12 @@ typedef struct _ComboBox
 	int position;
 	IDirectFBWindow	*window;
 	IDirectFBSurface *surface;
+	int mouse;									 /* 1 if mouse is over button, 0 otherwise      */
 
 	/* methods */
 	void (*KeyEvent)(struct _ComboBox *thiz, int direction);
+	void (*MouseOver)(struct _ComboBox *thiz, int status);
+	void (*Click)(struct _ComboBox *thiz);
 	void (*SetFocus)(struct _ComboBox *thiz, int focus);
 	void (*SetTextColor)(struct _ComboBox *thiz, color_t *text_color);
 	void (*AddItem)(struct _ComboBox *thiz, char *item);

@@ -2,7 +2,7 @@
                       directfb_button.c  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
+    copyright            : (C) 2003-2005 by Noberasco Michele
     e-mail               : noberasco.gnu@disi.unige.it
  ***************************************************************************/
 
@@ -74,7 +74,7 @@ void Button_Destroy(Button *button)
 	free (button);
 }
 
-IDirectFBSurface *load_image_int(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb, int db, int x, int y)
+IDirectFBSurface *load_image_int(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb, int db, int x, int y, float x_ratio, float y_ratio)
 {
 	IDirectFBImageProvider *provider;
 	IDirectFBSurface *tmp = NULL;
@@ -96,8 +96,10 @@ IDirectFBSurface *load_image_int(const char *filename, IDirectFBSurface *primary
 	}
 
 	provider->GetSurfaceDescription (provider, &dsc);
-	dsc.flags = DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PIXELFORMAT;
+	dsc.flags       = DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PIXELFORMAT;
 	dsc.pixelformat = DSPF_ARGB;
+	dsc.width       = (float)dsc.width  * (float)x_ratio;
+	dsc.height      = (float)dsc.height * (float)y_ratio;
 	if (dfb->CreateSurface (dfb, &dsc, &tmp) == DFB_OK) provider->RenderTo (provider, tmp, NULL);
 
 	provider->Release (provider);
@@ -131,30 +133,10 @@ IDirectFBSurface *load_image_int(const char *filename, IDirectFBSurface *primary
 
 IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb, float x_ratio, float y_ratio)
 {
-	if (x_ratio != 1 || y_ratio != 1)
-	{ /* we resize the image according to the correction ratios we received */
-		DFBSurfaceDescription  desc;
-		IDirectFBSurface      *orig = load_image_int(filename, primary, dfb, 0, 0, 0);
-		IDirectFBSurface      *dest = NULL;
-		unsigned int           image_width;
-		unsigned int           image_height;
-
-		orig->GetSize (orig, &image_width, &image_height);
-		desc.flags  = ( DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_CAPS );
-		desc.width  = image_width  * x_ratio;
-		desc.height = image_height * y_ratio;
-		desc.caps   = DWCAPS_ALPHACHANNEL;
-
-		dfb->CreateSurface(dfb, &desc, &dest);
-		dest->StretchBlit(dest, orig, NULL, NULL);
-
-		return dest;
-	}
-
-	return load_image_int(filename, primary, dfb, 0, 0, 0);
+	return load_image_int(filename, primary, dfb, 0, 0, 0, x_ratio, y_ratio);
 }
 
-Button *Button_Create(const char *normal, const char *mouseover, int xpos, int ypos, IDirectFBDisplayLayer *layer, IDirectFBSurface *primary, IDirectFB *dfb)
+Button *Button_Create(const char *normal, const char *mouseover, int xpos, int ypos, IDirectFBDisplayLayer *layer, IDirectFBSurface *primary, IDirectFB *dfb, float x_ratio, float y_ratio)
 {
 	Button *but;
 	IDirectFBWindow *window;
@@ -164,14 +146,14 @@ Button *Button_Create(const char *normal, const char *mouseover, int xpos, int y
 	if (!normal || !mouseover || !layer || !primary || !dfb) return NULL;
 
 	but = (Button *) calloc (1, sizeof (Button));
-	but->normal = load_image_int(normal, primary, dfb, 1, xpos, ypos);
+	but->normal = load_image_int(normal, primary, dfb, 1, xpos, ypos, x_ratio, y_ratio);
 	if (!but->normal)
 	{
 		free(but);
 		return NULL;
 	}
 	but->normal->GetSize (but->normal, (int *)&(but->width), (int *)&(but->height));
-	but->mouseover = load_image_int(mouseover, primary, dfb, 1, xpos, ypos);
+	but->mouseover = load_image_int(mouseover, primary, dfb, 1, xpos, ypos, x_ratio, y_ratio);
 	if (!but->mouseover)
 	{
 		but->normal->Release (but->normal);

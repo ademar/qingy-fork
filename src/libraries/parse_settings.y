@@ -105,7 +105,7 @@ static window_t wind =
 %token WTYPE_TOK WWIDTH_TOK WHEIGHT_TOK WCOMMAND_TOK WCONTENT_TOK
 
 /* window text size */
-%token WTEXT_SIZE_TOK WTEXT_SMALL_TOK WTEXT_MEDIUM_TOK WTEXT_LARGE_TOK
+%token WTEXT_SIZE_TOK WTEXT_TINY_TOK WTEXT_SMALLER_TOK WTEXT_SMALL_TOK WTEXT_MEDIUM_TOK WTEXT_LARGE_TOK
 
 /* window text orient */
 %token WTEXT_ORIENTATION WTEXT_LEFT_TOK WTEXT_CENTER_TOK WTEXT_RIGHT_TOK
@@ -476,9 +476,11 @@ textorientation: WTEXT_LEFT_TOK { TTY_CHECK_COND wind.text_orientation = LEFT;  
 | WTEXT_RIGHT_TOK               { TTY_CHECK_COND wind.text_orientation = RIGHT;  }
 ;
 
-wintextsize: WTEXT_SMALL_TOK { TTY_CHECK_COND wind.text_size = SMALL;  }
-| WTEXT_MEDIUM_TOK           { TTY_CHECK_COND wind.text_size = MEDIUM; }
-| WTEXT_LARGE_TOK            { TTY_CHECK_COND wind.text_size = LARGE;  }
+wintextsize: WTEXT_TINY_TOK { TTY_CHECK_COND wind.text_size = TINY;    }
+| WTEXT_SMALLER_TOK         { TTY_CHECK_COND wind.text_size = SMALLER; }
+| WTEXT_SMALL_TOK           { TTY_CHECK_COND wind.text_size = SMALL;   }
+| WTEXT_MEDIUM_TOK          { TTY_CHECK_COND wind.text_size = MEDIUM;  }
+| WTEXT_LARGE_TOK           { TTY_CHECK_COND wind.text_size = LARGE;   }
 ;
 
 /* local-to-window color properties */

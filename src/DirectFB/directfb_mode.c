@@ -89,7 +89,9 @@ IDirectFBSurface      *primary;                   /* surface of the primary laye
 IDirectFBSurface      *panel_image        = NULL; /* background image                          */
 IDirectFBEventBuffer  *events;                    /* all input events will be stored here      */
 DeviceInfo            *devices            = NULL; /* the list of all input devices             */
-IDirectFBFont         *font_small;                /* fonts                                     */
+IDirectFBFont         *font_tiny;                 /* fonts                                     */
+IDirectFBFont         *font_smaller;  
+IDirectFBFont         *font_small;
 IDirectFBFont         *font_normal;
 IDirectFBFont         *font_large;  
 TextBox               *username           = NULL; /* text boxes                                */
@@ -107,7 +109,9 @@ int                   we_stopped_gpm;             /* wether this program stopped
 #endif
 int                   screen_width;               /* screen resolution                         */
 int                   screen_height;
-int                   font_small_height;          /* font sizes                                */
+int                   font_tiny_height;           /* font sizes                                */
+int                   font_smaller_height;
+int                   font_small_height;
 int                   font_normal_height;
 int                   font_large_height;
 int                   username_area_mouse   = 0;  /* sensible areas for mouse cursor to be in  */
@@ -225,9 +229,11 @@ void close_framebuffer_mode (void)
   if (session)  session->Destroy (session);
 
 	/* fonts */
-  if (font_small)  font_small->Release  (font_small);
-  if (font_normal) font_normal->Release (font_normal);
-  if (font_large)  font_large->Release  (font_large);
+  if (font_tiny)    font_tiny->Release    (font_tiny);
+  if (font_smaller) font_smaller->Release (font_smaller);
+  if (font_small)   font_small->Release   (font_small);
+  if (font_normal)  font_normal->Release  (font_normal);
+  if (font_large)   font_large->Release   (font_large);
 
 	/* core DirectFB stuff */
   if (primary) primary->Release (primary);
@@ -775,7 +781,6 @@ int handle_keyboard_event(DFBInputEvent *evt)
 				clear_screen();
 				primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
 				primary->Flip  (primary, NULL, DSFLIP_BLIT);
-				sleep(1);
 				break;
 			case DO_SLEEP:
 				if (!SLEEP_CMD)
@@ -964,6 +969,12 @@ int create_windows()
 		window_desc.height = window->height * screen_height / THEME_YRES;	
 		switch(window->text_size)
 		{
+			case TINY:
+				font = font_tiny;
+				break;
+			case SMALLER:
+				font = font_smaller;
+				break;
 			case SMALL:
 				font = font_small;
 				break;
@@ -1041,7 +1052,7 @@ int create_windows()
 	      }
 				image1 = StrApp((char **)NULL, THEME_DIR, window->content, "_normal.png",    (char *)NULL);
 				image2 = StrApp((char **)NULL, THEME_DIR, window->content, "_mouseover.png", (char *)NULL);
-				buttons->button = Button_Create(image1, image2, window_desc.posx, window_desc.posy, layer, primary, dfb);
+				buttons->button = Button_Create(image1, image2, window_desc.posx, window_desc.posy, layer, primary, dfb, x_ratio, y_ratio);
 				if (!buttons->button) return 0;			
 				buttons->next = NULL;
 				buttons->button->MouseOver(buttons->button, 0);
@@ -1111,15 +1122,21 @@ int set_font_sizes ()
   const char *fontfile = FONT;
 
   fdsc.flags = DFDESC_HEIGHT;
-  fdsc.height = screen_width / 30 * y_ratio;
+  fdsc.height = screen_width / 30;
   if (dfb->CreateFont (dfb, fontfile, &fdsc, &font_large) != DFB_OK) return 0;
   font_large_height = fdsc.height;
-  fdsc.height = screen_width / 40 * y_ratio;
+  fdsc.height = screen_width / 40;
   if (dfb->CreateFont (dfb, fontfile, &fdsc, &font_normal) != DFB_OK) return 0;
   font_normal_height = fdsc.height;
-  fdsc.height = screen_width / 50 * y_ratio;
+  fdsc.height = screen_width / 50;
   if (dfb->CreateFont (dfb, fontfile, &fdsc, &font_small) != DFB_OK) return 0;
   font_small_height = fdsc.height;
+  fdsc.height = screen_width / 60;
+  if (dfb->CreateFont (dfb, fontfile, &fdsc, &font_smaller) != DFB_OK) return 0;
+  font_smaller_height = fdsc.height;
+  fdsc.height = screen_width / 70;
+  if (dfb->CreateFont (dfb, fontfile, &fdsc, &font_tiny) != DFB_OK) return 0;
+  font_tiny_height = fdsc.height;
 
   return 1;
 }
@@ -1171,9 +1188,6 @@ int main (int argc, char *argv[])
 		return QINGY_FAILURE;
 	}
   primary->GetSize(primary, &screen_width, &screen_height);
-
-	fprintf(stderr, "screen: %dx%d\n", screen_width, screen_height);
-	fprintf(stderr, "theme : %dx%d\n", THEME_XRES,   THEME_YRES   );
 
 	if (screen_width  != THEME_XRES) x_ratio = (float)screen_width/(float)THEME_XRES;
 	if (screen_height != THEME_YRES) y_ratio = (float)screen_height/(float)THEME_YRES;

@@ -41,6 +41,19 @@
 #include "misc.h"
 
 
+void ComboBox_MouseOver(ComboBox *thiz, int status)
+{
+	if (!thiz) return;
+
+	thiz->mouse = status;
+/* 	thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00); */
+/* 	if (status) thiz->surface->Blit(thiz->surface, thiz->mouseover, NULL, 0, 0); */
+/* 	else thiz->surface->Blit(thiz->surface, thiz->normal, NULL, 0, 0); */
+/* 	thiz->surface->Flip(thiz->surface, NULL, 0); */
+	
+	/* we should draw a rectangle around the combobox when the mouse passes over it */
+}
+
 void PlotEvent(ComboBox *thiz)
 {
   if (!thiz) return;
@@ -194,6 +207,7 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, col
 	newbox->text_color.B = text_color->B;
 	newbox->text_color.A = text_color->A;
 	newbox->SetTextColor = ComboBox_SetTextColor;
+	newbox->MouseOver    = ComboBox_MouseOver;
   newbox->KeyEvent     = ComboBox_KeyEvent;
   newbox->SetFocus     = ComboBox_SetFocus;
   newbox->AddItem      = ComboBox_AddItem;

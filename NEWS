@@ -1,8 +1,16 @@
-qingy CVS-0.5.4-CVS:
+qingy CVS-0.6.0-CVS:
 - Added customizable keybindings support
 - Because of the above, removed old powerkeys support
 - Fixed a rather obscure bug in which login could fail
   even if username and password were correct
+- Added new setting in theme file, 'native_resolution', which
+  lets you specify the screen resolution the theme was crafted
+  for. This way, when qingy encounters a resolution different
+  than this one, it will scale all graphic elements so that
+  they look the same on all resolutions.
+- Added two new font sizes that can be used in theme files:
+  'smaller' and 'tiny'.
+
 
 qingy 0.5.3 (11 January 2005):
 - Finally the code behind the 'sleep' button has been implemented:

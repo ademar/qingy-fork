@@ -2,7 +2,7 @@
                       directfb_button.h  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
+    copyright            : (C) 2003-2005 by Noberasco Michele
     e-mail               : noberasco.gnu@disi.unige.it
  ***************************************************************************/
 
@@ -61,7 +61,9 @@ Button *Button_Create
 	int xpos, int ypos,
 	IDirectFBDisplayLayer *layer,
 	IDirectFBSurface *primary,
-	IDirectFB *dfb
+	IDirectFB *dfb,
+	float x_ratio,
+	float y_ratio
 );
 
 /* return a surface with an image loaded from disk */

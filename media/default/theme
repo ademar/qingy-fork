@@ -26,16 +26,16 @@ theme
 # one, it will (try to) scale things so that they will look the same across
 # all resolutions. If this is omitted, qingy will default to 800x600 to
 # maintain compatibility with older themes...
-	native_resolution = 800x600
+	native_resolution = 1024x768
 }
 
 window
 {
 	# window geometry
 	x      = 0
-	y      = 75
-	width  = 800
-	height = 50
+	y      = 96
+	width  = 1024
+	height = 64
 
 	# text size: chose between 'small', 'medium' and 'large'
 	# default is 'large'
@@ -63,9 +63,9 @@ window
 window
 {
 	x      = 0
-	y      = 583
-	width  = 800
-	height = 25
+	y      = 746
+	width  = 1024
+	height = 38
 
 	text_orientation = center
 	text_size        = small
@@ -80,10 +80,10 @@ window
 
 window
 {
-	x                = 100
-	y                = 220
-	width            = 120
-	height           = 50
+	x                = 128
+	y                = 281
+	width            = 153
+	height           = 64
 	text_orientation = right
 	type             = "label"
 	content          = "login:"
@@ -92,10 +92,10 @@ window
 
 window
 {
-	x            = 240
-	y            = 220
-	width        = 560
-	height       = 50
+	x            = 307
+	y            = 281
+	width        = 716
+	height       = 64
 	text_color   = 200, 200, 40, 255
 	cursor_color =  90,  90, 20, 221
 	type         = "login"
@@ -103,10 +103,10 @@ window
 
 window
 {
-	x                = 100
-	y                = 295
-	width            = 120
-	height           = 50
+	x                = 128
+	y                = 377
+	width            = 153
+	height           = 64
 	text_orientation = right
 	type             = "label"
 	content          = "passwd:"
@@ -115,10 +115,10 @@ window
 
 window
 {
-	x            = 240
-	y            = 295
-	width        = 560
-	height       = 50
+	x            = 307
+	y            = 377
+	width        = 716
+	height       = 64
 	text_color   = 180, 40, 40, 255
 	cursor_color =  90, 20, 20, 221
 	type         = "password"
@@ -126,10 +126,10 @@ window
 
 window
 {
-	x                = 100
-	y                = 370
-	width            = 120
-	height           = 50
+	x                = 128
+	y                = 473
+	width            = 153
+	height           = 64
 	text_orientation = right
 	type             = "label"
 	content          = "session:"
@@ -138,10 +138,10 @@ window
 
 window
 {
-	x          = 240
-	y          = 370
-	width      = 560
-	height     = 50
+	x          = 307
+	y          = 473
+	width      = 716
+	height     = 64
 	text_color = 200, 200, 40, 255
 	type       = "combo"
 
@@ -152,8 +152,8 @@ window
 window
 {
 	# window geometry
-	x    = 755
-	y    = 562
+	x    = 966
+	y    = 719
 	type = "button"
 
 	# Allowed commands:
@@ -167,8 +167,8 @@ window
 
 window
 {
-	x       = 755
-	y       = 515
+	x       = 966
+	y       = 659
 	type    = "button"
 	command = "reboot"
 	content = "reset"
@@ -176,8 +176,8 @@ window
 
 window
 {
-	x       = 755
-	y       = 470
+	x       = 966
+	y       = 601
 	type    = "button"
 	command = "screensaver"
 	content = "screensaver"
@@ -185,8 +185,8 @@ window
 
 window
 {
-	x       = 755
-	y       = 425
+	x       = 966
+	y       = 544
 	type    = "button"
 	command = "sleep"
 	content = "sleep"

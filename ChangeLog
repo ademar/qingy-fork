@@ -1,4 +1,36 @@
+2005-03-09  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/directfb_mode.c,
+	* src/DirectFB/objects/combobox.h,
+	* src/DirectFB/objects/combobox.c:
+	Started work on adding a drop-down menu to combo boxes...
+
 2005-03-08  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* configure.in:
+	Because of theme file modifications, tagged
+	version as 0.6.0
+
+	* media/default/theme:
+	Updated default theme with the new 
+	'default_resolution' stuff
+
+	* src/DirectFB/directfb_mode.c,
+	* src/libraries/load_settings.h,
+	* media/qingy-mode.el,
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l:
+	Added two new font sizes:
+	'smaller' and 'tiny'
+
+	* src/DirectFB/objects/button.c,
+	* src/DirectFB/objects/button.h,
+	* src/DirectFB/directfb_mode.c:
+	Now all graphic elements scale correctly...
+
+	* src/DirectFB/directfb_mode.c (set_font_sizes):
+	Ur... font sizes were already OK, no need to
+	correct them.
 
 	* src/DirectFB/objects/button.c (Button_Create),
 	* src/DirectFB/directfb_mode.c:

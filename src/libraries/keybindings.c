@@ -196,7 +196,6 @@ void destroy_keybindings_list()
 		keybindings = keybindings->next;
 		
 		free(my_keybinding);
-		my_keybinding = NULL;
 	}
 }
 

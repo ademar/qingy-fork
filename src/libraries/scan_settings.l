@@ -131,6 +131,8 @@ text_color              return WTEXT_COLOR_TOK;
 cursor_color            return WCURSOR_COLOR_TOK;
 linkto                  return WINDOW_LINK_TOK;
 text_size               return WTEXT_SIZE_TOK;
+tiny                    return WTEXT_TINY_TOK;
+smaller                 return WTEXT_SMALLER_TOK;
 small                   return WTEXT_SMALL_TOK;
 medium                  return WTEXT_MEDIUM_TOK;
 large                   return WTEXT_LARGE_TOK;
