@@ -1,4 +1,4 @@
-qingy 0.2.1 ():
+qingy 0.2.1 (01 September 2003):
 - correctly changes tty ownership
 - Hopefully solves PAM issues
 - Added option to close DirectFB mode before shutting down,
