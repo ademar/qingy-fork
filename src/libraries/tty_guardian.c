@@ -2,8 +2,8 @@
                        tty_guardian.c  -  description
                             --------------------
     begin                : Feb 04 2004
-    copyright            : (C) 2004 by Noberasco Michele
-    e-mail               : noberasco.gnu@disi.unige.it
+    copyright            : (C) 2004-2005 by Noberasco Michele
+    e-mail               : s4t4n@gentoo.org
  ***************************************************************************/
 
 /***************************************************************************
@@ -103,15 +103,16 @@ int is_getty(pid_t process)
 
 /*
  * hairy stuff here: we need to parse all /proc/<number>
- * entries to find a process that owns /dev/tty<tty>
+ * entries to find a process that owns /dev/tty<tty> (or /dev/vc/<tty>)
  * of which we return the pid
  */
 pid_t has_controlling_process(int tty)
 {
 	struct dirent *entry;
-	char  *device = create_tty_name(tty);
-	DIR   *dir    = opendir("/proc");
-	pid_t  result = 0;
+	char  *device  = create_tty_name(tty);
+	char  *device2 = create_vc_name (tty);
+	DIR   *dir     = opendir("/proc");
+	pid_t  result  = 0;
 
 	if (!dir)
 	{
@@ -151,7 +152,7 @@ pid_t has_controlling_process(int tty)
 				if (size != -1)
 				{
 					buf[size] = '\0';
-					if (!strcmp(buf, device)) counter++;
+					if (!strcmp(buf, device) || !strcmp(buf, device2)) counter++;
 				}
 			}
 			free(where);
@@ -259,26 +260,24 @@ int WatchDog_Bark (char *dog_master, char *intruder, int our_land)
 /* check wether user has auth to visit our tty */
 void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intruder, int send_him_here)
 {
-	static int already_sniffed = 0;
-	int retval;
-	char *intruder;
-	char *file;
-
-	if (already_sniffed == where_was_intruder) return;
+	static char *previous_intruder = NULL;
+	char        *intruder;
+	char        *file;
+	int          retval;
 
 	file = create_tty_name(where_was_intruder);
 	intruder = get_file_owner(file);
 	free(file);
-	if (!strcmp(intruder, dog_master))
-	{
-		already_sniffed = where_was_intruder;
-		free(intruder);
+
+	if (!strcmp(intruder, dog_master) && strcmp(intruder, "root"))
+	{ /* this is our master, not an intruder */
+		free(previous_intruder);
+		previous_intruder = intruder;
 		return;
 	}
 
 	if (!strcmp(intruder, "root"))
-	{ /*
-		 * there are 2 possibilities here:
+	{ /* there are 2 possibilities here:
 		 * - tty is unused (thus we cannot know the user)
 		 * - tty is in use, thus either:
 		 *   - check wether qingy (or another getty) is running in this terminal, then
@@ -288,8 +287,7 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 		{
 			pid_t process = has_controlling_process(where_was_intruder);
 			if (!process)
-			{ /*
-				 * This tty in not controlled by any process:
+			{ /* This tty in not controlled by any process:
 				 * we assume an X server is running here, thus
 				 * we check owner of /dev/vc/<where_was_intruder>
 				 * to get owner of this tty
@@ -301,28 +299,35 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 				free(temp);
 				intruder = get_file_owner(file);
 				free(file);
-				
-				if (!strcmp(intruder, dog_master) || !strcmp(intruder, "root"))
-				{ /* now we are sure about user identity */
-					already_sniffed = where_was_intruder;
+
+				if (!strcmp(intruder, "root"))
+				{ /* we cannot be sure of user identity */
 					free(intruder);
+					intruder = strdup("unknown");
+					free(previous_intruder);
+				}
+				
+				if (!strcmp(intruder, dog_master))
+				{ /* now we are sure about user identity */
+					free(previous_intruder);
+					previous_intruder = intruder;
 					return;
 				}
 			}
 			else
-			{ /*
-				 * some process is controlling this tty:
+			{ /* some process is controlling this tty:
 				 * we check wether it is some sort of getty
 				 */
 				if (is_getty(process))
 				{	/* getty is running here: we cannot know who intruder is */
 					free(intruder);
 					intruder = strdup("unknown");
+					free(previous_intruder);
 				}
 				else
 				{ /* this tty is controlled by root: we grant access */
-					already_sniffed = where_was_intruder;
-					free(intruder);
+					free(previous_intruder);
+					previous_intruder = intruder;
 					return;					
 				}
 			}
@@ -331,22 +336,29 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 		{ /* vt is not in use: we cannot know who intruder is */
 			free(intruder);
 			intruder = strdup("unknown");
+			free(previous_intruder);
 		}
 	}
 
-	already_sniffed = 0;
+	if (previous_intruder)
+		if (strcmp(previous_intruder, "root"))
+				if (!strcmp(previous_intruder,intruder))
+					return; /* it's a hard life being sure of someone... */
+
+	/* tell user to authenticate himself */
 	retval = WatchDog_Bark(dog_master, intruder, where_is_intruder);	
-	free(intruder);
 
 	if (!retval)
 	{ /* user has no right to be here */
 		set_active_tty(where_was_intruder);
+		free(previous_intruder);
 		return;
 	}
 
 	/* user has authenticated correctly */
 	set_active_tty(send_him_here);
-	already_sniffed = where_was_intruder;
+	free(previous_intruder);
+	previous_intruder = intruder;
 }
 
 /*
@@ -363,9 +375,9 @@ void ttyWatchDog(pid_t child, char *dog_master, int fence1, int fence2)
 	if (!dog_master) WAIT_N_RETURN;
 	if (!fence1 && !fence2) WAIT_N_RETURN;
 
-	/* We set up a delay of 0.5 seconds */
+	/* We set up a delay of 0.1 seconds */
   delay.tv_sec  = 0;
-  delay.tv_nsec = 500000000;	/* that's 500M */
+  delay.tv_nsec = 100000000;	/* that's 100M */
 
 	/* Main loop: we wait until the user switches to the tty we are guarding */
   while (waitpid(child, NULL, WNOHANG) != child)

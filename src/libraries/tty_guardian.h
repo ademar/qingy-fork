@@ -2,8 +2,8 @@
                        tty_guardian.h  -  description
                             --------------------
     begin                : Feb 04 2004
-    copyright            : (C) 2004 by Noberasco Michele
-    e-mail               : noberasco.gnu@disi.unige.it
+    copyright            : (C) 2004-2005 by Noberasco Michele
+    e-mail               : s4t4n@gentoo.org
  ***************************************************************************/
 
 /***************************************************************************

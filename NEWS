@@ -17,6 +17,21 @@ qingy CVS-0.6.0-CVS:
   'smaller' and 'tiny'.
 - Updated handling of utmp/wtmp logging so that chrootkit no longer
   finds deletions in the latter when user logs out.
+- Brought tty guardian to a nearly completed state: now it
+  checks the tty you came from; if you were logged in as root
+  or as same user on the destination tty, it lets you pass,
+  otherwise it will ask you to enter either destination user
+  or root password. If authentication fails, it will send you
+  back to the tty you came from. It also remembers the last
+  user who successfully authenticated, so that he will not
+  have to authenticate again every time he switches to the
+  guarded tty (but if you switch to a tty owned by a third
+  user and go back, authentication will be asked again). The
+  only drawback is that if you come from an X session in which
+  you are logged in as root, it will ask you to authenticate,
+  because that situation can not (yet) be distinguished from
+  when you come from an unused tty (which is owned by root
+  as well)...
 - Other small fixes and clean-ups.
 
 
