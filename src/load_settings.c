@@ -69,6 +69,7 @@ void initialize_variables(void)
 	DATADIR                 = NULL;
 	XINIT                   = NULL;
   FONT                    = NULL;
+	image_paths             = NULL;
 }
 
 void set_default_session_dirs(void)
@@ -107,6 +108,26 @@ void set_default_colors(void)
   OTHER_TEXT_COLOR_G = 0x40;
   OTHER_TEXT_COLOR_B = 0x40;
   OTHER_TEXT_COLOR_A = 0xFF;
+}
+
+void add_to_paths(char *path)
+{
+	static struct _image_paths *temp = NULL;
+
+	if (!path) return;
+	if (!temp)
+	{
+		image_paths = (struct _image_paths *) calloc(1, sizeof(struct _image_paths));
+		temp = image_paths;
+	}
+	else
+	{
+		temp->next = (struct _image_paths *) calloc(1, sizeof(struct _image_paths));
+		temp = temp->next;
+	}
+	
+	temp->path = strdup(path);
+	temp->next = NULL;
 }
 
 void yyerror(char *where)
@@ -320,7 +341,7 @@ char *get_action(char *action)
 
 	/* should we shutdown? */
 	temp = strstr(action, "shutdown");
-	if (temp);
+	if (temp)
 	{
 		if (strstr(temp + 8, "-h")) return strdup("poweroff");
 		if (strstr(temp + 8, "-r")) return strdup("reboot");

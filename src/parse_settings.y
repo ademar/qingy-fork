@@ -9,6 +9,7 @@
 #define YYERROR_VERBOSE
 
 extern FILE* yyin;
+extern int yylex();
 
 %}
 
@@ -42,7 +43,7 @@ ssav:	SCREENSAVER_TOK PIXEL_TOK { SCREENSAVER=PIXEL_SCREENSAVER; }
 photos: 			/* nothing */
 	| photos QUOTSTR_T { add_to_paths($2); };
 
-xsessdir: XSESSION_DIR_TOK '=' QUOTSTR_T { XSESSIONS_DIRECTORY=strdup($3); };
+xsessdir: XSESSION_DIR_TOK '=' QUOTSTR_T { X_SESSIONS_DIRECTORY=strdup($3); };
 
 txtsessdir: TXTSESSION_DIR_TOK '=' QUOTSTR_T { TEXT_SESSIONS_DIRECTORY=strdup($3); };
 
@@ -74,19 +75,19 @@ strprop: BG_TOK '=' QUOTSTR_T {BACKGROUND=StrApp((char**)0, THEME_DIR, $3, (char
 	 ;
 
 anumprop:  BUTTON_OPAC_TOK '=' ANUM_T {BUTTON_OPACITY=$3;}
-| WIN_OP_TOK '=' ANUM_T {WINDOW_OPACITY=$3}
+| WIN_OP_TOK '=' ANUM_T {WINDOW_OPACITY=$3;}
 	   | SEL_WIN_OP_TOK '=' ANUM_T {SELECTED_WINDOW_OPACITY=$3;}
 	   ;
 
 %%
 
-yyerror(char* c){printf("%s\n", c);}
+/* yyerror(char* c){printf("%s\n", c);} */
 
-int main(int argc, char**argv)
-{
-  if(argc > 1)
-    yyin=fopen(argv[1], "r");
+/* int main(int argc, char**argv) */
+/* { */
+/*   if(argc > 1) */
+/*     yyin=fopen(argv[1], "r"); */
   
-  return yyparse();
-}
+/*   return yyparse(); */
+/* } */
 

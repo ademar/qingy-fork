@@ -95,5 +95,10 @@ int set_last_user(char *user);
 char *get_last_session(char *user);
 int set_last_session(char *user, char *session);
 
-/* load a theme */
+/* theme stuff */
 int set_theme(char *theme);
+char *get_random_theme();
+
+/* stuff you don't want to know about ;-P */
+void yyerror(char *where);
+void add_to_paths(char *path);
