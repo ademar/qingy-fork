@@ -96,8 +96,6 @@ extern int yyparse();
 
  /* keywords */
 screensaver             return SCREENSAVER_TOK;
-pixel                   return PIXEL_TOK;
-photos                  return PHOTOS_TOK;
 x_sessions              return XSESSION_DIR_TOK;
 text_sessions           return TXTSESSION_DIR_TOK;
 xinit                   return XINIT_TOK;

@@ -17,9 +17,9 @@ typedef struct _ss_env
   IDirectFB *dfb;
   IDirectFBSurface *surface;
   IDirectFBEventBuffer * screen_saver_events;
+	int silent;
   int screen_width;
-  int screen_height;
-  struct _screensaver_options *screensaver_options;
+  int screen_height;  
   char** params;
 } Q_screen_t;
 

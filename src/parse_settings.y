@@ -175,6 +175,7 @@ themedefn: /* nothing */
 /* color assignments */
 colorprop: DEFAULT_TXT_COL_TOK '=' COLOR_T
 	{
+	  fprintf(stderr, "Setting default color to %d\n", *($3));
 	  DEFAULT_TEXT_COLOR.R=$3[3]; DEFAULT_TEXT_COLOR.G=$3[2]; 
 	  DEFAULT_TEXT_COLOR.B=$3[1]; DEFAULT_TEXT_COLOR.A=$3[0];
 	}
@@ -273,3 +274,4 @@ wincolorprop: WTEXT_COLOR_TOK '=' COLOR_T
 ;
 
 %%
+
