@@ -27,7 +27,7 @@
 
 
 /* get info about available sessions */
-void get_sessions(/*ComboBox*/void *sessions);
+void get_sessions(void *sessions);
 
 /* Password autentication */
 int check_password(char *username, char *password);

@@ -38,8 +38,9 @@
 #define HOME        61445
 #define END         61446
 
-typedef struct
+typedef struct _TextBox
 {
+	/* properties */
 	char *text;
 	unsigned int xpos, ypos;
 	unsigned int width, height;
@@ -48,6 +49,16 @@ typedef struct
 	int position;
 	IDirectFBWindow	*window;
 	IDirectFBSurface *surface;
+
+	/* methods */
+	void (*KeyEvent)(struct _TextBox *thiz, int ascii_code, int draw_cursor);
+	void (*SetFocus)(struct _TextBox *thiz, int focus);
+	void (*SetText)(struct _TextBox *thiz, char *text);
+	void (*ClearText)(struct _TextBox *thiz);
+	void (*Hide)(struct _TextBox *thiz);
+	void (*Show)(struct _TextBox *thiz);
+	void (*Destroy)(struct _TextBox *thiz);
+
 } TextBox;
 
 TextBox *TextBox_Create
@@ -56,11 +67,3 @@ TextBox *TextBox_Create
 	IDirectFBFont *font,
 	DFBWindowDescription *window_desc
 );
-
-void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int draw_cursor);
-void TextBox_SetFocus(TextBox *thiz, int focus);
-void TextBox_SetText(TextBox *thiz, char *text);
-void TextBox_ClearText(TextBox *thiz);
-void TextBox_Hide(TextBox *thiz);
-void TextBox_Show(TextBox *thiz);
-void TextBox_Destroy(TextBox *thiz);

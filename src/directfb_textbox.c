@@ -193,35 +193,6 @@ void TextBox_SetFocus(TextBox *thiz, int focus)
 	return;
 }
 
-TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWindowDescription *window_desc)
-{
-	TextBox *newbox = NULL;
-	DFBResult err;
-
-	newbox = (TextBox *) calloc(1, sizeof(TextBox));
-	newbox->text     = NULL;
-	newbox->xpos     = (unsigned int) window_desc->posx;
-	newbox->ypos     = (unsigned int) window_desc->posy;
-	newbox->width    = window_desc->width;
-	newbox->height   = window_desc->height;
-	newbox->hasfocus = 0;
-	newbox->mask_text= 0;
-	newbox->position = 0;
-	newbox->window   = NULL;
-	newbox->surface  = NULL;
-
-	DFBCHECK(layer->CreateWindow (layer, window_desc, &(newbox->window)));
-	newbox->window->SetOpacity(newbox->window, 0x00 );
-	newbox->window->GetSurface(newbox->window, &(newbox->surface));
-	newbox->surface->Clear(newbox->surface, 0x00, 0x00, 0x00, 0x00);
-	newbox->surface->Flip(newbox->surface, NULL, 0);
-	newbox->surface->SetFont (newbox->surface, font);
-	newbox->surface->SetColor (newbox->surface, MASK_TEXT_COLOR_R, MASK_TEXT_COLOR_G, MASK_TEXT_COLOR_B, MASK_TEXT_COLOR_A);
-	newbox->window->RaiseToTop(newbox->window);
-
-	return newbox;
-}
-
 void TextBox_Hide(TextBox *thiz)
 {
 	thiz->window->SetOpacity(thiz->window, 0x00);
@@ -240,4 +211,40 @@ void TextBox_Destroy(TextBox *thiz)
 	if (thiz->surface) thiz->surface->Release (thiz->surface);
 	if (thiz->window) thiz->window->Release (thiz->window);
 	free(thiz);
+}
+
+TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWindowDescription *window_desc)
+{
+	TextBox *newbox = NULL;
+	DFBResult err;
+
+	newbox = (TextBox *) calloc(1, sizeof(TextBox));
+	newbox->text     = NULL;
+	newbox->xpos     = (unsigned int) window_desc->posx;
+	newbox->ypos     = (unsigned int) window_desc->posy;
+	newbox->width    = window_desc->width;
+	newbox->height   = window_desc->height;
+	newbox->hasfocus = 0;
+	newbox->mask_text= 0;
+	newbox->position = 0;
+	newbox->window   = NULL;
+	newbox->surface  = NULL;
+	newbox->KeyEvent = TextBox_KeyEvent;
+	newbox->SetFocus = TextBox_SetFocus;
+	newbox->SetText  = TextBox_SetText;
+	newbox->ClearText= TextBox_ClearText;
+	newbox->Hide     = TextBox_Hide;
+	newbox->Show     = TextBox_Show;
+	newbox->Destroy  = TextBox_Destroy;
+
+	DFBCHECK(layer->CreateWindow (layer, window_desc, &(newbox->window)));
+	newbox->window->SetOpacity(newbox->window, 0x00 );
+	newbox->window->GetSurface(newbox->window, &(newbox->surface));
+	newbox->surface->Clear(newbox->surface, 0x00, 0x00, 0x00, 0x00);
+	newbox->surface->Flip(newbox->surface, NULL, 0);
+	newbox->surface->SetFont (newbox->surface, font);
+	newbox->surface->SetColor (newbox->surface, MASK_TEXT_COLOR_R, MASK_TEXT_COLOR_G, MASK_TEXT_COLOR_B, MASK_TEXT_COLOR_A);
+	newbox->window->RaiseToTop(newbox->window);
+
+	return newbox;
 }

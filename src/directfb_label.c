@@ -36,34 +36,6 @@
 #include "load_settings.h"
 
 
-Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWindowDescription *window_desc)
-{
-	Label *newlabel = NULL;
-	DFBResult err;
-
-	newlabel = (Label *) calloc(1, sizeof(Label));
-	newlabel->text     = NULL;
-	newlabel->xpos     = (unsigned int) window_desc->posx;
-	newlabel->ypos     = (unsigned int) window_desc->posy;
-	newlabel->width    = window_desc->width;
-	newlabel->height   = window_desc->height;
-	newlabel->hasfocus = 0;
-	newlabel->alignment= LEFT;
-	newlabel->window   = NULL;
-	newlabel->surface  = NULL;
-
-	DFBCHECK(layer->CreateWindow (layer, window_desc, &(newlabel->window)));
-	newlabel->window->SetOpacity(newlabel->window, 0x00 );
-	newlabel->window->GetSurface(newlabel->window, &(newlabel->surface));
-	newlabel->surface->Clear(newlabel->surface, 0x00, 0x00, 0x00, 0x00);
-	newlabel->surface->Flip(newlabel->surface, NULL, 0);
-	newlabel->surface->SetFont (newlabel->surface, font);
-	newlabel->surface->SetColor (newlabel->surface, MASK_TEXT_COLOR_R, MASK_TEXT_COLOR_G, MASK_TEXT_COLOR_B, MASK_TEXT_COLOR_A);
-	newlabel->window->RaiseToTop(newlabel->window);
-
-	return newlabel;
-}
-
 void Plot(Label *thiz)
 {
 	if (!thiz || !thiz->surface) return;
@@ -143,4 +115,38 @@ void Label_Destroy(Label *thiz)
 	if (thiz->surface) thiz->surface->Release (thiz->surface);
 	if (thiz->window) thiz->window->Release (thiz->window);
 	free(thiz);
+}
+
+Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWindowDescription *window_desc)
+{
+	Label *newlabel = NULL;
+	DFBResult err;
+
+	newlabel = (Label *) calloc(1, sizeof(Label));
+	newlabel->text     = NULL;
+	newlabel->xpos     = (unsigned int) window_desc->posx;
+	newlabel->ypos     = (unsigned int) window_desc->posy;
+	newlabel->width    = window_desc->width;
+	newlabel->height   = window_desc->height;
+	newlabel->hasfocus = 0;
+	newlabel->alignment= LEFT;
+	newlabel->window   = NULL;
+	newlabel->surface  = NULL;
+	newlabel->SetFocus = Label_SetFocus;
+	newlabel->SetText  = Label_SetText;
+	newlabel->ClearText= Label_ClearText;
+	newlabel->Hide     = Label_Hide;
+	newlabel->Show     = Label_Show;
+	newlabel->Destroy  = Label_Destroy;
+
+	DFBCHECK(layer->CreateWindow (layer, window_desc, &(newlabel->window)));
+	newlabel->window->SetOpacity(newlabel->window, 0x00 );
+	newlabel->window->GetSurface(newlabel->window, &(newlabel->surface));
+	newlabel->surface->Clear(newlabel->surface, 0x00, 0x00, 0x00, 0x00);
+	newlabel->surface->Flip(newlabel->surface, NULL, 0);
+	newlabel->surface->SetFont (newlabel->surface, font);
+	newlabel->surface->SetColor (newlabel->surface, MASK_TEXT_COLOR_R, MASK_TEXT_COLOR_G, MASK_TEXT_COLOR_B, MASK_TEXT_COLOR_A);
+	newlabel->window->RaiseToTop(newlabel->window);
+
+	return newlabel;
 }

@@ -27,8 +27,9 @@
 
 
 /* two functions to create and destroy buttons */
-typedef struct button
+typedef struct _Button
 {
+	/* properties */
 	IDirectFBWindow  *window;    /* window that will contain the button 				*/
 	IDirectFBSurface *surface;   /* surface of the above                        */
 	IDirectFBSurface *normal;    /* normal button appearance                    */
@@ -38,12 +39,24 @@ typedef struct button
 	unsigned int width;					 /* width of the button                         */
 	unsigned int height;				 /* height of the button                        */
 	int mouse;									 /* 1 if mouse is over button, 0 otherwise      */
+
+	/* methods */
+	void (*Destroy)(struct _Button *thiz);
+	void (*MouseOver)(struct _Button *thiz, int status);
+	void (*Show)(struct _Button *thiz);
+	void (*Hide)(struct _Button *thiz);
+
 } Button;
 
-Button *Button_Create(const char *normal, const char *mouseover, int relx, int rely, IDirectFBDisplayLayer *layer, IDirectFBSurface *primary, IDirectFB *dfb);
-void Button_Destroy(Button *thiz);
-void Button_MouseOver(Button *thiz, int status);
-void Button_Show(Button *thiz);
-void Button_Hide(Button *thiz);
+Button *Button_Create
+(
+	const char *normal,
+	const char *mouseover,
+	int relx, int rely,
+	IDirectFBDisplayLayer *layer,
+	IDirectFBSurface *primary,
+	IDirectFB *dfb
+);
+
 /* return a surface with an image loaded from disk */
 IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb);

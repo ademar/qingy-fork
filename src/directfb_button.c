@@ -35,44 +35,6 @@
 #include "load_settings.h"
 
 
-Button *Button_Create(const char *normal, const char *mouseover, int relx, int rely, IDirectFBDisplayLayer *layer, IDirectFBSurface *primary, IDirectFB *dfb)
-{
-	Button *but;
-	IDirectFBWindow *window;
-	IDirectFBSurface *surface;
-	DFBWindowDescription window_desc;
-	DFBResult err;
-
-	but = (struct button *) calloc (1, sizeof (struct button));
-	but->normal = load_image (normal, primary, dfb);
-	but->normal->GetSize (but->normal, (int *)&(but->width), (int *)&(but->height));
-	but->mouseover = load_image (mouseover, primary, dfb);
-	but->xpos = relx - but->width;
-	but->ypos = rely - but->height;
-
-	window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
-	window_desc.posx   = (unsigned int) but->xpos;
-	window_desc.posy   = (unsigned int) but->ypos;
-	window_desc.width  = but->width;
-	window_desc.height = but->height;
-	window_desc.caps   = DWCAPS_ALPHACHANNEL;
-
-	DFBCHECK(layer->CreateWindow (layer, &window_desc, &window));
-	window->SetOpacity( window, 0x00 );
-	window->RaiseToTop( window );
-	window->GetSurface( window, &surface );
-	surface->SetBlittingFlags (surface, DSBLIT_BLEND_ALPHACHANNEL);
-	window->SetOpacity( window, BUTTON_OPACITY );
-	but->mouse = 0;
-	but->surface = surface;
-	but->window = window;
-
-	surface->SetSrcColorKey(surface, 0x00, 0x00, 0x00);
-	surface->SetBlittingFlags(surface, DSBLIT_SRC_COLORKEY);
-
-	return but;
-}
-
 void Button_MouseOver(Button *thiz, int status)
 {
 	if (!thiz) return;
@@ -143,4 +105,46 @@ IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, ID
 	}
 
 	return surface;
+}
+
+Button *Button_Create(const char *normal, const char *mouseover, int relx, int rely, IDirectFBDisplayLayer *layer, IDirectFBSurface *primary, IDirectFB *dfb)
+{
+	Button *but;
+	IDirectFBWindow *window;
+	IDirectFBSurface *surface;
+	DFBWindowDescription window_desc;
+	DFBResult err;
+
+	but = (Button *) calloc (1, sizeof (Button));
+	but->normal = load_image (normal, primary, dfb);
+	but->normal->GetSize (but->normal, (int *)&(but->width), (int *)&(but->height));
+	but->mouseover = load_image (mouseover, primary, dfb);
+	but->xpos = relx - but->width;
+	but->ypos = rely - but->height;
+	but->Destroy   = Button_Destroy;
+	but->MouseOver = Button_MouseOver;
+	but->Show      = Button_Show;
+	but->Hide      = Button_Hide;
+
+	window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
+	window_desc.posx   = (unsigned int) but->xpos;
+	window_desc.posy   = (unsigned int) but->ypos;
+	window_desc.width  = but->width;
+	window_desc.height = but->height;
+	window_desc.caps   = DWCAPS_ALPHACHANNEL;
+
+	DFBCHECK(layer->CreateWindow (layer, &window_desc, &window));
+	window->SetOpacity( window, 0x00 );
+	window->RaiseToTop( window );
+	window->GetSurface( window, &surface );
+	surface->SetBlittingFlags (surface, DSBLIT_BLEND_ALPHACHANNEL);
+	window->SetOpacity( window, BUTTON_OPACITY );
+	but->mouse = 0;
+	but->surface = surface;
+	but->window = window;
+
+	surface->SetSrcColorKey(surface, 0x00, 0x00, 0x00);
+	surface->SetBlittingFlags(surface, DSBLIT_SRC_COLORKEY);
+
+	return but;
 }

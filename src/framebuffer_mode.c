@@ -52,7 +52,7 @@ IDirectFBEventBuffer *events; /* input interfaces: device and its buffer   */
 IDirectFB *dfb;               /* the super interface                       */
 IDirectFBSurface *primary;    /* surface of the primary layer              */
 IDirectFBDisplayLayer *layer; /* the primary layer                         */
-struct button *power, *reset; /* buttons                                   */
+Button *power, *reset;        /* buttons                                   */
 int we_stopped_gpm;           /* wether this program stopped gpm or not    */
 IDirectFBSurface *panel_image=NULL; /* background image                    */
 int screen_width, screen_height; /* screen resolution                      */
@@ -74,7 +74,7 @@ void Draw_Background_Image()
 	static int panel_width, panel_height;
 
 	/* We clear the primary surface */
-	primary->Clear (primary, 0, 0, 0, 0);
+	primary->Clear (primary, 0, 0, 0, 0xFF);
 	if (!panel_image)
 	{ /* we design the surface */
 		panel_image = load_image (DATADIR "background.png", primary, dfb);
@@ -107,7 +107,7 @@ void set_user_session(char *user)
 		temp = session->selected;
 		while (strcmp(session->selected->name, "Text Console") != 0)
 			session->selected = session->selected->next;
-		if (session->selected != temp) ComboBox_KeyEvent(session, REDRAW);
+		if (session->selected != temp) session->KeyEvent(session, REDRAW);
 	}
 	else
 	{
@@ -117,7 +117,7 @@ void set_user_session(char *user)
 			if (strcmp(user_session, temp->name) == 0)
 			{
 				session->selected = temp;
-				ComboBox_KeyEvent(session, REDRAW);
+				session->KeyEvent(session, REDRAW);
 				return;
 			}
 			temp = temp->next;
@@ -128,17 +128,17 @@ void set_user_session(char *user)
 
 void close_framebuffer_mode (void)
 {
-	if (power) Button_Destroy(power);
-	if (reset) Button_Destroy(reset);
+	if (power) power->Destroy(power);
+	if (reset) reset->Destroy(reset);
 	if (panel_image) panel_image->Release (panel_image);
-	Label_Destroy(welcome_label);
-	Label_Destroy(lock_key_status);
-	Label_Destroy(username_label);
-	TextBox_Destroy(username);
-	Label_Destroy(password_label);
-	TextBox_Destroy(password);
-	Label_Destroy(session_label);
-	ComboBox_Destroy(session);
+	welcome_label->Destroy(welcome_label);
+	lock_key_status->Destroy(lock_key_status);
+	username_label->Destroy(username_label);
+	username->Destroy(username);
+	password_label->Destroy(password_label);
+	password->Destroy(password);
+	session_label->Destroy(session_label);
+	session->Destroy(session);
 	font_small->Release (font_small);
 	font_normal->Release (font_normal);
 	font_large->Release (font_large);
@@ -164,8 +164,8 @@ void handle_buttons(int *mouse_x, int *mouse_y)
 		{
 			if (!power->mouse)
 			{
-				Button_MouseOver(power, 1);
-				if (reset->mouse) Button_MouseOver(reset, 0);
+				power->MouseOver(power, 1);
+				if (reset->mouse) reset->MouseOver(reset, 0);
 				return;
 			}
 			else return;		/* we already plotted this event */
@@ -177,16 +177,16 @@ void handle_buttons(int *mouse_x, int *mouse_y)
 		{
 			if (!reset->mouse)
 			{
-				Button_MouseOver(reset, 1);
-				if (power->mouse) Button_MouseOver(power, 0);
+				reset->MouseOver(reset, 1);
+				if (power->mouse) power->MouseOver(power, 0);
 				return;
 			}
 			else return;		/* we already plotted this event */
 		}
 
 	/* mouse not over any power button */
-	if (power->mouse) Button_MouseOver(power, 0);
-	if (reset->mouse) Button_MouseOver(reset, 0);
+	if (power->mouse) power->MouseOver(power, 0);
+	if (reset->mouse) reset->MouseOver(reset, 0);
 }
 
 /* mouse movement in textboxes and comboboxes area */
@@ -261,22 +261,22 @@ void handle_mouse_movement (void)
 
 void show_lock_key_status(DFBInputEvent *evt)
 {
-	if (lock_is_pressed(evt) == 3) Label_Show(lock_key_status);
-	else Label_Hide(lock_key_status);
+	if (lock_is_pressed(evt) == 3) lock_key_status->Show(lock_key_status);
+	else lock_key_status->Hide(lock_key_status);
 }
 
 void reset_screen(DFBInputEvent *evt)
 {
 	Draw_Background_Image ();
-	Button_Show(power);
-	Button_Show(reset);
-	Label_Show(welcome_label);
-	Label_Show(username_label);
-	Label_Show(password_label);
-	Label_Show(session_label);
-	TextBox_Show(username);
-	TextBox_Show(password);
-	ComboBox_Show(session);
+	power->Show(power);
+	reset->Show(reset);
+	welcome_label->Show(welcome_label);
+	username_label->Show(username_label);
+	password_label->Show(password_label);
+	session_label->Show(session_label);
+	username->Show(username);
+	password->Show(password);
+	session->Show(session);
 	show_lock_key_status(evt);
 	handle_mouse_movement();
 	layer->EnableCursor (layer, 1);
@@ -284,16 +284,16 @@ void reset_screen(DFBInputEvent *evt)
 
 void clear_screen(void)
 {
-	Button_Hide(power);
-	Button_Hide(reset);
-	Label_Hide(welcome_label);
-	TextBox_Hide(username);
-	TextBox_Hide(password);
-	Label_Hide(username_label);
-	Label_Hide(password_label);
-	Label_Hide(session_label);
-	Label_Hide(lock_key_status);
-	ComboBox_Hide(session);
+	power->Hide(power);
+	reset->Hide(reset);
+	welcome_label->Hide(welcome_label);
+	username->Hide(username);
+	password->Hide(password);
+	username_label->Hide(username_label);
+	password_label->Hide(password_label);
+	session_label->Hide(session_label);
+	lock_key_status->Hide(lock_key_status);
+	session->Hide(session);
 	layer->EnableCursor (layer, 0);
 	primary->Clear (primary, 0, 0, 0, 0);
 	primary->Flip (primary, NULL, DSFLIP_BLIT);
@@ -389,30 +389,30 @@ void handle_mouse_event (DFBInputEvent *evt)
 				begin_shutdown_sequence (REBOOT);
 			if (username_area_mouse && status == 3)
 			{	/* username area has been clicked! */
-				TextBox_SetFocus(username, 1);
-				Label_SetFocus(username_label, 1);
-				TextBox_SetFocus(password, 0);
-				Label_SetFocus(password_label, 0);
-				ComboBox_SetFocus(session, 0);
-				Label_SetFocus(session_label, 0);
+				username->SetFocus(username, 1);
+				username_label->SetFocus(username_label, 1);
+				password->SetFocus(password, 0);
+				password_label->SetFocus(password_label, 0);
+				session->SetFocus(session, 0);
+				session_label->SetFocus(session_label, 0);
 			}
 			if (password_area_mouse && status == 4)
 			{	/* password area has been clicked! */
-				TextBox_SetFocus(username, 0);
-				Label_SetFocus(username_label, 0);
-				TextBox_SetFocus(password, 1);
-				Label_SetFocus(password_label, 1);
-				ComboBox_SetFocus(session, 0);
-				Label_SetFocus(session_label, 0);
+				username->SetFocus(username, 0);
+				username_label->SetFocus(username_label, 0);
+				password->SetFocus(password, 1);
+				password_label->SetFocus(password_label, 1);
+				session->SetFocus(session, 0);
+				session_label->SetFocus(session_label, 0);
 			}
 			if (session_area_mouse && status == 5)
 			{	/* session area has been clicked! */
-				TextBox_SetFocus(username, 0);
-				Label_SetFocus(username_label, 0);
-				TextBox_SetFocus(password, 0);
-				Label_SetFocus(password_label, 0);
-				ComboBox_SetFocus(session, 1);
-				Label_SetFocus(session_label, 1);
+				username->SetFocus(username, 0);
+				username_label->SetFocus(username_label, 0);
+				password->SetFocus(password, 0);
+				password_label->SetFocus(password_label, 0);
+				session->SetFocus(session, 1);
+				session_label->SetFocus(session_label, 1);
 			}
 			status = 0;		/* we reset click status because button went up */
 		}
@@ -440,7 +440,7 @@ void start_login_sequence(DFBInputEvent *evt)
 		primary->DrawString (primary, "Login failed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 		primary->Flip (primary, NULL, DSFLIP_BLIT);
 		sleep(1);
-		TextBox_ClearText(password);
+		password->ClearText(password);
 		reset_screen(evt);
 		return;
 	}
@@ -514,22 +514,22 @@ int handle_keyboard_event(DFBInputEvent *evt)
 			if (ascii_code == TAB)
 			{
 				allow_tabbing = 0;
-				Label_SetFocus(username_label, 0);
-				TextBox_SetFocus(username, 0);
+				username_label->SetFocus(username_label, 0);
+				username->SetFocus(username, 0);
 				if (modifier_is_pressed(evt) != SHIFT)
 				{
-					Label_SetFocus(password_label, 1);
-					TextBox_SetFocus(password, 1);
+					password_label->SetFocus(password_label, 1);
+					password->SetFocus(password, 1);
 				}
 				else
 				{
-					Label_SetFocus(session_label, 1);
-					ComboBox_SetFocus(session, 1);
+					session_label->SetFocus(session_label, 1);
+					session->SetFocus(session, 1);
 				}
 			}
 			else
 			{
-				TextBox_KeyEvent(username, ascii_code, 1);
+				username->KeyEvent(username, ascii_code, 1);
 				set_user_session(username->text);
 			}
 		}
@@ -540,41 +540,41 @@ int handle_keyboard_event(DFBInputEvent *evt)
 			if (ascii_code == TAB)
 			{
 				allow_tabbing = 0;
-				Label_SetFocus(password_label, 0);
-				TextBox_SetFocus(password, 0);
+				password_label->SetFocus(password_label, 0);
+				password->SetFocus(password, 0);
 				if (modifier_is_pressed(evt) != SHIFT)
 				{
-					Label_SetFocus(session_label, 1);
-					ComboBox_SetFocus(session, 1);
+					session_label->SetFocus(session_label, 1);
+					session->SetFocus(session, 1);
 				}
 				else
 				{
-					Label_SetFocus(username_label, 1);
-					TextBox_SetFocus(username, 1);
+					username_label->SetFocus(username_label, 1);
+					username->SetFocus(username, 1);
 				}
 			}
-			else TextBox_KeyEvent(password, ascii_code, 1);
+			else password->KeyEvent(password, ascii_code, 1);
 		}
 
 		/* session events */
 		if (session->hasfocus && allow_tabbing)
 		{
-			if (ascii_code == ARROW_UP) ComboBox_KeyEvent(session, UP);
-			if (ascii_code == ARROW_DOWN) ComboBox_KeyEvent(session, DOWN);
+			if (ascii_code == ARROW_UP) session->KeyEvent(session, UP);
+			if (ascii_code == ARROW_DOWN) session->KeyEvent(session, DOWN);
 			if (ascii_code == TAB)
 			{
 				allow_tabbing = 0;
-				Label_SetFocus(session_label, 0);
-				ComboBox_SetFocus(session, 0);
+				session_label->SetFocus(session_label, 0);
+				session->SetFocus(session, 0);
 				if (modifier_is_pressed(evt) != SHIFT)
 				{
-					Label_SetFocus(username_label, 1);
-					TextBox_SetFocus(username, 1);
+					username_label->SetFocus(username_label, 1);
+					username->SetFocus(username, 1);
 				}
 				else
 				{
-					Label_SetFocus(password_label, 1);
-					TextBox_SetFocus(password, 1);
+					password_label->SetFocus(password_label, 1);
+					password->SetFocus(password, 1);
 				}
 			}
 		}
@@ -594,18 +594,18 @@ void Create_Labels_TextBoxes_ComboBoxes(void)
 	window_desc.height = 2*font_large_height;
 	window_desc.caps   = DWCAPS_ALPHACHANNEL;
 	welcome_label = Label_Create(layer, font_large, &window_desc);
-	Label_SetText(welcome_label, print_welcome_message("Welcome to ", NULL), CENTER);
+	welcome_label->SetText(welcome_label, print_welcome_message("Welcome to ", NULL), CENTER);
 	window_desc.posx = screen_width/8;
 	window_desc.posy   = 3*screen_height/8-font_large_height;
 	window_desc.width  = 3*screen_width/20;
 	username_label = Label_Create(layer, font_large, &window_desc);
-	Label_SetText(username_label, "login:", RIGHT);
+	username_label->SetText(username_label, "login:", RIGHT);
 	window_desc.posy   = 4*screen_height/8-font_large_height;
 	password_label = Label_Create(layer, font_large, &window_desc);
-	Label_SetText(password_label, "passwd:", RIGHT);
+	password_label->SetText(password_label, "passwd:", RIGHT);
 	window_desc.posy   = 5*screen_height/8-font_large_height;
 	session_label = Label_Create(layer, font_large, &window_desc);
-	Label_SetText(session_label, "session:", RIGHT);
+	session_label->SetText(session_label, "session:", RIGHT);
 	window_desc.posx   = 3*screen_width/10;
 	window_desc.posy   = 3*screen_height/8-font_large_height;
 	window_desc.width  = screen_width - window_desc.posx;
@@ -620,7 +620,7 @@ void Create_Labels_TextBoxes_ComboBoxes(void)
 	window_desc.width  = screen_width/5;
 	window_desc.height = font_small_height;
 	lock_key_status = Label_Create(layer, font_small, &window_desc);
-	Label_SetText(lock_key_status, "CAPS LOCK is pressed", CENTERBOTTOM);
+	lock_key_status->SetText(lock_key_status, "CAPS LOCK is pressed", CENTERBOTTOM);
 }
 
 void set_font_sizes ()
@@ -679,8 +679,8 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 	/* we create buttons */
 	power = Button_Create(DATADIR "power_normal.png", DATADIR "power_mouseover.png", screen_width, screen_height, layer, primary, dfb);
 	reset = Button_Create(DATADIR "reset_normal.png", DATADIR "reset_mouseover.png", power->xpos - 10, screen_height, layer, primary, dfb);
-	Button_MouseOver(power, 0);
-	Button_MouseOver(reset, 0);
+	power->MouseOver(power, 0);
+	reset->MouseOver(reset, 0);
 
 	/* we create labels, textboxes and comboboxes */
 	Create_Labels_TextBoxes_ComboBoxes();
@@ -688,24 +688,24 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 	get_sessions(session);
 	if (!!lastuser)
 	{
-		Label_SetFocus(username_label, 0);
-		Label_SetFocus(password_label, 1);
-		TextBox_SetText(username, lastuser);
-		TextBox_SetFocus(username, 0);
-		TextBox_SetFocus(password, 1);
+		username_label->SetFocus(username_label, 0);
+		password_label->SetFocus(password_label, 1);
+		username->SetText(username, lastuser);
+		username->SetFocus(username, 0);
+		password->SetFocus(password, 1);
 		set_user_session(lastuser);
 		free(lastuser);
 		lastuser = NULL;
 	}
 	else
 	{
-		Label_SetFocus(username_label, 1);
-		Label_SetFocus(password_label, 0);
-		TextBox_SetFocus(username, 1);
+		username_label->SetFocus(username_label, 1);
+		password_label->SetFocus(password_label, 0);
+		username->SetFocus(username, 1);
 	}
-	Label_SetFocus(welcome_label, 0);
-	Label_SetFocus(session_label, 0);
-	ComboBox_SetFocus(session, 0);
+	welcome_label->SetFocus(welcome_label, 0);
+	session_label->SetFocus(session_label, 0);
+	session->SetFocus(session, 0);
 
 	layer->EnableCursor (layer, 1);
 	/* we go on for ever... or until the user does something in particular */
@@ -729,9 +729,9 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 		{ /* Let there be a flashing cursor! */
 			static int flashing_cursor = 0;
 			if (username->hasfocus)
-				TextBox_KeyEvent(username, REDRAW, flashing_cursor);
+				username->KeyEvent(username, REDRAW, flashing_cursor);
 			if (password->hasfocus)
-				TextBox_KeyEvent(password, REDRAW, flashing_cursor);
+				password->KeyEvent(password, REDRAW, flashing_cursor);
 			flashing_cursor = !flashing_cursor;
 		}
 	}

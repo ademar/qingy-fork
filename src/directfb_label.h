@@ -31,8 +31,9 @@
 #define RIGHT        2
 #define CENTERBOTTOM 3
 
-typedef struct
+typedef struct _Label
 {
+	/* properties */
 	char *text;
 	unsigned int xpos, ypos;
 	unsigned int width, height;
@@ -40,6 +41,15 @@ typedef struct
 	int alignment;
 	IDirectFBWindow	*window;
 	IDirectFBSurface *surface;
+
+	/* methods */
+	void (*SetFocus)(struct _Label *thiz, int focus);
+	void (*SetText)(struct _Label *thiz, char *text, int alignment);
+	void (*ClearText)(struct _Label *thiz);
+	void (*Hide)(struct _Label *thiz);
+	void (*Show)(struct _Label *thiz);
+	void (*Destroy)(struct _Label *thiz);
+
 } Label;
 
 Label *Label_Create
@@ -48,10 +58,3 @@ Label *Label_Create
 	IDirectFBFont *font,
 	DFBWindowDescription *window_desc
 );
-
-void Label_SetFocus(Label *thiz, int focus);
-void Label_SetText(Label *thiz, char *text, int alignment);
-void Label_ClearText(Label *thiz);
-void Label_Hide(Label *thiz);
-void Label_Show(Label *thiz);
-void Label_Destroy(Label *thiz);

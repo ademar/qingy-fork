@@ -86,13 +86,14 @@
 int current_vt;
 extern char **environ;
 
-void get_sessions(void *sessions)
+void get_sessions(void *ext_sessions)
 {
 	DIR *dir;
 	struct dirent *entry;
+	ComboBox *sessions = (ComboBox *) ext_sessions;
 
 	if (!sessions) return;
-	ComboBox_AddItem(sessions, "Text Console");
+	sessions->AddItem(sessions, "Text Console");
 
 	dir= opendir(XSESSIONS_DIRECTORY);
 	if (dir == NULL)
@@ -105,7 +106,7 @@ void get_sessions(void *sessions)
 	  if (strcmp(entry->d_name, "." ) != 0)
 		if (strcmp(entry->d_name, "..") != 0)
 		if (strcmp(entry->d_name, "Xsession") != 0)
-			ComboBox_AddItem(sessions, entry->d_name);
+			sessions->AddItem(sessions, entry->d_name);
 	}
 	closedir(dir);
 

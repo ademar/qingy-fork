@@ -36,8 +36,9 @@ typedef struct _item
 	struct _item *prev;
 } item;
 
-typedef struct
+typedef struct _ComboBox
 {
+	/* properties */
 	item *items;
 	item *selected;
 	unsigned int xpos, ypos;
@@ -46,6 +47,16 @@ typedef struct
 	int position;
 	IDirectFBWindow	*window;
 	IDirectFBSurface *surface;
+
+	/* methods */
+	void (*KeyEvent)(struct _ComboBox *thiz, int direction);
+	void (*SetFocus)(struct _ComboBox *thiz, int focus);
+	void (*AddItem)(struct _ComboBox *thiz, char *item);
+	void (*ClearItems)(struct _ComboBox *thiz);
+	void (*Hide)(struct _ComboBox *thiz);
+	void (*Show)(struct _ComboBox *thiz);
+	void (*Destroy)(struct _ComboBox *thiz);
+
 } ComboBox;
 
 ComboBox *ComboBox_Create
@@ -54,11 +65,3 @@ ComboBox *ComboBox_Create
 	IDirectFBFont *font,
 	DFBWindowDescription *window_desc
 );
-
-void ComboBox_KeyEvent(ComboBox *thiz, int direction);
-void ComboBox_SetFocus(ComboBox *thiz, int focus);
-void ComboBox_AddItem(ComboBox *thiz, char *item);
-void ComboBox_ClearItems(ComboBox *thiz);
-void ComboBox_Hide(ComboBox *thiz);
-void ComboBox_Show(ComboBox *thiz);
-void ComboBox_Destroy(ComboBox *thiz);
