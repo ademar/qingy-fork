@@ -69,7 +69,7 @@ int workaround = -1;
 void username_event(int *input, char *output, int action, __u8 opacity);
 void password_event(int *input, char *output, int action, __u8 opacity);
 
-void DrawBase ()
+void Draw_Background_Image()
 {
 	/* width and height of the background image */
 	static unsigned int panel_width, panel_height;
@@ -79,13 +79,17 @@ void DrawBase ()
 	if (!panel_image)
 	{ /* we design the surface */
 		panel_image = load_image (DATADIR "background.png", primary, dfb);
-		panel_image->GetSize (panel_image, (unsigned int *) &panel_width, (unsigned int *) &panel_height);
+		if (panel_image != NULL)
+			panel_image->GetSize (panel_image, (unsigned int *) &panel_width, (unsigned int *) &panel_height);
 	}
 	/* we put the backgound image in the center of the screen if it fits
 	   the screen otherwise we stretch it to make it fit                    */
-	if ( (panel_width <= screen_width) && (panel_height <= screen_height) )
-		primary->Blit (primary, panel_image, NULL, (screen_width - panel_width)/2, (screen_height - panel_height)/2);
-	else primary->StretchBlit (primary, panel_image, NULL, NULL);
+	if (!!panel_image)
+	{
+		if ( (panel_width <= screen_width) && (panel_height <= screen_height) )
+			primary->Blit (primary, panel_image, NULL, (screen_width - panel_width)/2, (screen_height - panel_height)/2);
+		else primary->StretchBlit (primary, panel_image, NULL, NULL);
+	}
 
 	/* we draw the surface, duplicating it */
 	primary->Flip (primary, NULL, DSFLIP_BLIT);
@@ -445,11 +449,13 @@ void handle_mouse_movement (void)
 			if (!power->mouse)
 			{
 				power->mouse = 1;
+				power->surface->Clear (power->surface, 0x00, 0x00, 0x00, 0x00);
 				power->surface->Blit(power->surface, power->mouseover, NULL, 0, 0);
 				power->surface->Flip(power->surface, NULL, 0);
 				if (reset->mouse)
 				{
 					reset->mouse = 0;
+					reset->surface->Clear (reset->surface, 0x00, 0x00, 0x00, 0x00);
 					reset->surface->Blit(reset->surface, reset->normal, NULL, 0, 0);
 					reset->surface->Flip(reset->surface, NULL, 0);
 				}
@@ -465,11 +471,13 @@ void handle_mouse_movement (void)
 			if (!reset->mouse)
 			{
 				reset->mouse = 1;
+				reset->surface->Clear (reset->surface, 0x00, 0x00, 0x00, 0x00);
 				reset->surface->Blit(reset->surface, reset->mouseover, NULL, 0, 0);
 				reset->surface->Flip(reset->surface, NULL, 0);
 				if (power->mouse)
 				{
 					power->mouse = 0;
+					power->surface->Clear (power->surface, 0x00, 0x00, 0x00, 0x00);
 					power->surface->Blit(power->surface, power->normal, NULL, 0, 0);
 					power->surface->Flip(power->surface, NULL, 0);
 				}
@@ -482,12 +490,14 @@ void handle_mouse_movement (void)
 	if (power->mouse)
 	{
 		power->mouse = 0;
+		power->surface->Clear (power->surface, 0x00, 0x00, 0x00, 0x00);
 		power->surface->Blit(power->surface, power->normal, NULL, 0, 0);
 		power->surface->Flip(power->surface, NULL, 0);
 	}
 	if (reset->mouse)
 	{
 		reset->mouse = 0;
+		reset->surface->Clear (reset->surface, 0x00, 0x00, 0x00, 0x00);
 		reset->surface->Blit(reset->surface, reset->normal, NULL, 0, 0);
 		reset->surface->Flip(reset->surface, NULL, 0);
 	}
@@ -495,7 +505,7 @@ void handle_mouse_movement (void)
 
 void reset_screen(DFBInputEvent *evt)
 {
-	DrawBase ();
+	Draw_Background_Image ();
 	power->mouse = 0;
 	reset->mouse = 0;
 	power->window->SetOpacity(power->window, WINDOW_OPACITY);
@@ -561,7 +571,7 @@ void begin_shutdown_sequence (int action)
 				strcat (message, "restart");
 				break;
 			default:
-				DrawBase ();
+				Draw_Background_Image ();
 				return;
 		}
 		primary->Clear (primary, 0, 0, 0, 0);
@@ -928,9 +938,7 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 	/* we initialize directfb */
 	DFBCHECK (DirectFBInit (&argc, &argv));
 	DFBCHECK (DirectFBCreate (&dfb));
-	/* create a list of input devices */
 	dfb->EnumInputDevices (dfb, enum_input_device, &devices);
-	/* create an event buffer for all devices */
 	DFBCHECK (dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &events));
 	DFBCHECK (dfb->GetDisplayLayer (dfb, DLID_PRIMARY, &layer));
 	layer->SetCooperativeLevel (layer, DLSCL_ADMINISTRATIVE);
@@ -939,14 +947,19 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 	sdsc.caps  = DSCAPS_PRIMARY | DSCAPS_FLIPPING;
 	DFBCHECK(dfb->CreateSurface( dfb, &sdsc, &primary ));
 	primary->GetSize (primary, &screen_width, &screen_height);
+
 	set_font_sizes ();
-	DrawBase();
+	Draw_Background_Image();
+
+	/* we load and draw buttons */
 	power = load_button (DATADIR "power_normal.png", DATADIR "power_mouseover.png", screen_width, screen_height, layer, primary, dfb, WINDOW_OPACITY );
 	reset = load_button (DATADIR "reset_normal.png", DATADIR "reset_mouseover.png", power->xpos - 10, screen_height, layer, primary, dfb, WINDOW_OPACITY );
 	power->surface->Blit (power->surface, power->normal, NULL, 0, 0);
 	power->surface->Flip(power->surface, NULL, 0);
 	reset->surface->Blit (reset->surface, reset->normal, NULL, 0, 0);
 	reset->surface->Flip(reset->surface, NULL, 0);
+
+	/* we show windows */
 	show_welcome_window(YES);
 	show_login_window(YES, SELECTED_WINDOW_OPACITY);
 	show_passwd_window(YES, WINDOW_OPACITY);

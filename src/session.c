@@ -26,8 +26,6 @@
  ***************************************************************************/
 
 
-//#define _XOPEN_SOURCE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -106,7 +104,7 @@ int check_password(void)
 #ifdef SHADOW_PASSWD
 	sp = getspnam(pw->pw_name);
 	endspent();
-	if(sp) correct = sp->sp_pwdp;
+	if (sp) correct = sp->sp_pwdp;
 	else
 #endif
 	correct = pw->pw_passwd;
@@ -117,7 +115,6 @@ int check_password(void)
 	memset(password, 0, strlen(password));
 
 	if (!strcmp(encrypted, correct)) return 1;
-  else return 0;
 
 	return 0;
 }
@@ -203,7 +200,7 @@ void Graph_Login(struct passwd *pw, char *path, char *script)
 	}
 	if (!proc_id)
 	{
-		system("/usr/bin/clear");
+		system("/usr/bin/clear 2>/dev/null");
 		fprintf(stderr, "Switching to X Server...\n");
 		if (system(exec) == -1)
 			fprintf(stderr, "session: fatal error: cannot start your session!\n");
@@ -243,7 +240,7 @@ void setEnvironment(char *username)
 	/* Set environment */
 	environ = (char **) calloc(2, sizeof(char *));
 	environ[0] = 0;
-	setenv("TERM", "vt100", 0);  /* TERM=linux? */
+	setenv("TERM", "linux", 0);  /* TERM=vt100? */
 	setenv("HOME", pw->pw_dir, 1);
 	setenv("SHELL", pw->pw_shell, 1);
 	setenv("USER", pw->pw_name, 1);

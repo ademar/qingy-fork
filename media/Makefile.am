@@ -1,6 +1,6 @@
 ## Makefile.am for qingy/media
 
-mediadatadir = /etc/qingy
+mediadatadir = $(QINGY_PREFIX)/etc/qingy
 
 mediadata_DATA = \
 	background.png \

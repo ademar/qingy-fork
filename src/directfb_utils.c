@@ -126,7 +126,7 @@ IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, ID
 		primary->GetPixelFormat (primary, &dsc.pixelformat);
 		if (dfb->CreateSurface (dfb, &dsc, &surface) == DFB_OK)
 		{
-			surface->Clear (surface, 0, 0, 0, 0xFF);
+			surface->Clear (surface, 0, 0, 0, 0x00);
 			surface->SetBlittingFlags (surface, DSBLIT_BLEND_ALPHACHANNEL);
 			surface->Blit (surface, tmp, NULL, 0, 0);
 		}
@@ -162,10 +162,14 @@ struct button *load_button (const char *normal, const char *mouseover, int relx,
 	window->SetOpacity( window, 0x00 );
 	window->RaiseToTop( window );
 	window->GetSurface( window, &surface );
+	surface->SetBlittingFlags (surface, DSBLIT_BLEND_ALPHACHANNEL);
 	window->SetOpacity( window, opacity );
 	but->mouse = 0;
 	but->surface = surface;
 	but->window = window;
+
+	surface->SetSrcColorKey(surface, 0x00, 0x00, 0x00);
+	surface->SetBlittingFlags(surface, DSBLIT_SRC_COLORKEY);
 
 	return but;
 }
