@@ -33,32 +33,68 @@
 #include <stdlib.h>
 #include <string.h>
 #include <directfb.h>
+#include <directfb_keynames.h>
 
 #include "memmgmt.h"
 #include "load_settings.h"
 #include "textbox.h"
 #include "directfb_mode.h"
 #include "misc.h"
+#include "utils.h"
 
-
-int parse_input(int *input, char *buffer, int *length, int *position)
+int insert_char(char *buffer, int *length, int *position, char c)
 {
 	int i;
+
+	if (*length == MAX) return 0;
+	for (i=*length; i>*position; i--) buffer[i] = buffer[i-1];
+	buffer[*position] = c;
+	(*position)++;
+	(*length)++;
+	buffer[*length] = '\0';
+	return 1;
+}
+
+int delete_left_char(char *buffer, int *length, int *position)
+{
+	int i;
+
+	if ( !(*length) || !(*position) ) return 0;
+	(*position)--; (*length)--;
+	for (i=*position; i<*length; i++) buffer[i] = buffer[i+1];
+	buffer[*length] = '\0';
+	return 1;
+}
+
+int delete_right_char(char *buffer, int *length, int *position)
+{
+ 	int i;
+
+	if ( !(*length) || (*position == *length) ) return 0;
+	(*length)--;
+	for (i=*position; i<*length; i++) buffer[i] = buffer[i+1];
+	buffer[*length] = '\0';
+	return 1;
+}
+
+int parse_input(int *input, char *buffer, int modifier, int *length, int *position)
+{
+	if (modifier == CONTROL)
+		switch (*input)
+		{
+			case 'u':
+				buffer[*position = *length = 0] = '\0';
+				return 1;
+			case 'h':
+				return delete_left_char(buffer, length, position);
+		}
 
 	switch (*input)
 	{
 		case BACKSPACE:
-			if ( !(*length) || !(*position) ) return 0;
-			(*position)--; (*length)--;
-			for (i=*position; i<*length; i++) buffer[i] = buffer[i+1];
-			buffer[*length] = '\0';
-			return 1;
+			return delete_left_char(buffer, length, position);
 		case DELETE:
-			if ( !(*length) || (*position == *length) ) return 0;
-			(*length)--;
-			for (i=*position; i<*length; i++) buffer[i] = buffer[i+1];
-			buffer[*length] = '\0';
-			return 1;
+			return delete_right_char(buffer, length, position);
 		case ARROW_LEFT:
 			if (!(*position)) return 0;
 			(*position)--;
@@ -80,15 +116,7 @@ int parse_input(int *input, char *buffer, int *length, int *position)
 	}
 
 	if ( (*input >= 32) && (*input <=255) ) /* ASCII */
-	{
-		if (*length == MAX) return 0;
-		for (i=*length; i>*position; i--) buffer[i] = buffer[i-1];
-		buffer[*position] = *input;
-		(*position)++;
-		(*length)++;
-		buffer[*length] = '\0';
-		return 1;
-	}
+		return insert_char(buffer, length, position, *input);
 
 	return 0;
 }
@@ -136,7 +164,7 @@ void DrawCursor(TextBox *thiz)
 	if (free_text) free(text);
 }
 
-void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int draw_cursor)
+void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int modifier, int draw_cursor)
 {
 	char *buffer = thiz->text;
 	int length;
@@ -150,7 +178,7 @@ void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int draw_cursor)
 	}
 	length = strlen(thiz->text);
 
-	if (parse_input(&ascii_code, buffer, &length, position))
+	if (parse_input(&ascii_code, buffer, modifier, &length, position))
 	{
 		window_surface->Clear (window_surface, 0x00, 0x00, 0x00, 0x00);
 		if (draw_cursor) DrawCursor(thiz);
@@ -175,8 +203,8 @@ void TextBox_SetText(TextBox *thiz, char *text)
 	if (!thiz->text) thiz->text = (char *) calloc(MAX, sizeof(char));
 	strcpy(thiz->text, text);
 	thiz->position = strlen(thiz->text);
-	if (thiz->hasfocus) TextBox_KeyEvent(thiz, REDRAW, 1);
-	else TextBox_KeyEvent(thiz, REDRAW, 0);
+	if (thiz->hasfocus) TextBox_KeyEvent(thiz, REDRAW, NONE, 1);
+	else TextBox_KeyEvent(thiz, REDRAW, NONE, 0);
 }
 
 void TextBox_ClearText(TextBox *thiz)
@@ -184,8 +212,8 @@ void TextBox_ClearText(TextBox *thiz)
 	if (!thiz) return;
 	if (thiz->text) *thiz->text = '\0';
 	thiz->position = 0;
-	if (thiz->hasfocus) TextBox_KeyEvent(thiz, REDRAW, 1);
-	else TextBox_KeyEvent(thiz, REDRAW, 0);
+	if (thiz->hasfocus) TextBox_KeyEvent(thiz, REDRAW, NONE, 1);
+	else TextBox_KeyEvent(thiz, REDRAW, NONE, 0);
 }
 
 void TextBox_SetTextColor(TextBox *thiz, color_t *text_color)
@@ -222,13 +250,13 @@ void TextBox_SetFocus(TextBox *thiz, int focus)
 		thiz->window->SetOpacity(thiz->window, SELECTED_WINDOW_OPACITY);
 		if (!thiz->text) thiz->position = 0;
 		else thiz->position = strlen(thiz->text);
-		TextBox_KeyEvent(thiz, REDRAW, 1);
+		TextBox_KeyEvent(thiz, REDRAW, NONE, 1);
 		return;
 	}
 
 	thiz->hasfocus = 0;
 	thiz->window->SetOpacity(thiz->window, WINDOW_OPACITY);
-	TextBox_KeyEvent(thiz, REDRAW, 0);
+	TextBox_KeyEvent(thiz, REDRAW, NONE, 0);
 	return;
 }
 

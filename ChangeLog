@@ -1,3 +1,22 @@
+2004-07-28  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/directfb_mode.c,
+	* src/DirectFB/objects/textbox.c:
+	Implemented new key bindings:
+	ctrl-h: delete one character
+	ctrl-u: delete all characters
+	ctrl-j: new line (enter)
+	Patch contributed by Konstantin Korikov <lostclus@ukr.net>
+
+	* src/DirectFB/objects/textbox.h:
+	Add 'modifier' parameter to the KeyEvent call prototype.
+
+	* src/DirectFB/objects/utils.c (modifier_is_pressed):
+	Make use of the NONE modifier
+
+	* src/DirectFB/objects/utils.h:
+	Add the NONE modifier.
+
 2004-07-02  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* src/libraries/load_settings.c (load_settings):

@@ -36,6 +36,7 @@
 int lock_is_pressed(DFBInputEvent *evt);
 
 /* checks wether user is currently holding down any of these modifiers */
+#define NONE    0
 #define SHIFT		1
 #define CONTROL	2
 #define ALT			3

@@ -786,6 +786,9 @@ int handle_keyboard_event(DFBInputEvent *evt)
 
   if (symbol_name)
 	{
+		/* ctr-j is alias for RETURN; */
+		if (modifier == CONTROL && ascii_code == 'j') ascii_code = RETURN;
+
 		/* Rock'n Roll! */
 		if (!username->hasfocus && ascii_code == RETURN) start_login_sequence(evt);
 
@@ -810,7 +813,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 	    }
 			else
 	    {
-	      username->KeyEvent(username, ascii_code, 1);
+	      username->KeyEvent(username, ascii_code, modifier, 1);
 	      set_user_session(username->text);
 	    }
 		}
@@ -834,7 +837,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 					username->SetFocus(username, 1);
 				}
 	    }
-			else password->KeyEvent(password, ascii_code, 1);
+			else password->KeyEvent(password, ascii_code, modifier, 1);
 		}
 
 		/* session events */
@@ -1231,8 +1234,8 @@ int directfb_mode (int argc, char *argv[])
 #ifdef USE_SCREEN_SAVERS	  
 			if (!screensaver_active)
 	    {
-	      if (username->hasfocus) username->KeyEvent(username, REDRAW, flashing_cursor);
-	      if (password->hasfocus) password->KeyEvent(password, REDRAW, flashing_cursor);
+	      if (username->hasfocus) username->KeyEvent(username, REDRAW, NONE, flashing_cursor);
+	      if (password->hasfocus) password->KeyEvent(password, REDRAW, NONE, flashing_cursor);
 	      flashing_cursor = !flashing_cursor;
 	      if (use_screensaver) screensaver_countdown--;
 	      update_labels();

@@ -61,7 +61,7 @@ int lock_is_pressed(DFBInputEvent *evt)
 
 int modifier_is_pressed(DFBInputEvent *evt)
 {
-	int result = 0;
+	int result = NONE;
 	struct
 	{
 		DFBInputDeviceModifierMask  modifier;

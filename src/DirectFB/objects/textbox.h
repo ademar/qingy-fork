@@ -57,7 +57,7 @@ typedef struct _TextBox
   IDirectFBSurface *surface;
 
   /* methods */
-  void (*KeyEvent)(struct _TextBox *thiz, int ascii_code, int draw_cursor);
+  void (*KeyEvent)(struct _TextBox *thiz, int ascii_code, int modifier, int draw_cursor);
   void (*SetFocus)(struct _TextBox *thiz, int focus);
   void (*SetTextColor)(struct _TextBox *thiz, color_t *text_color);
   void (*SetCursorColor)(struct _TextBox *thiz, color_t *cursor_color);
