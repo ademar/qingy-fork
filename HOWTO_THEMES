@@ -22,16 +22,17 @@ One setting per line (i.e. 'FONT pippo.ttf'):
 FONT <fontfilename>             font file to use
 BUTTON_OPACITY <value>          opacity (transparency) of
                                 power and reset buttons
-													      0 is totally transparent (invisible)
-													      255 is totally opaque
+					0 is totally transparent (invisible)
+ 					255 is totally opaque
 WINDOW_OPACITY <value>          opacity of unselected fields
                                 i.e. if you are modifying username,
-													      this applies for password, session and
-													      welcome to areas. Same values as above
+				this applies for password, session and
+				welcome to areas. Same values as above
+
 SELECTED_WINDOW_OPACITY <value> opacity of active field
 MASK_TEXT_COLOR <R> <G> <B> <A> Color of all text in main qingy window,
                                 i.e. username, password, fields, etc etc;
-																RGBA format (see below).
+						RGBA format (see below).
 TEXT_CURSOR_COLOR <R> <G> <B> <A>   Color of the blinking cursor. Same
                                     rules as above.
 OTHER_TEXT_COLOR <R> <G> <B> <A>    Color of text that is not in the main

@@ -50,9 +50,8 @@ Free Documentation License".
 * Introduction::                
 * Fetching qingy::              
 * Configuration ::              
+* Using Qingy::                 
 * Copying Qingy::               
-* Copying::
-* GNU Free Documentation License::
 * Index::                       
 
 @detailmenu
@@ -193,7 +192,7 @@ At this point you're ready to launch Qingy. From a shell prompt type
 use). Logout and find Qingy running as the login manager now on the
 terminals you've set for it.
 
-@node  Configuration , Copying Qingy, Fetching qingy, Top
+@node  Configuration , , Fetching qingy, Top
 @comment  node-name,  next,  previous,  up
 @chapter Configuration 
 Qingy is very customizable, making it possible to have almost exactly
@@ -247,11 +246,11 @@ change some of Qingy behaviour in different ways. Here is a list of all possible
 
 @end table
 
-@include Settings.texi
+@c @include Settings.texi
 
 @include Themes.texi
 
-@node 
+@node  Using Qingy, Copying Qingy, Configuration , Top
 @comment  node-name,  next,  previous,  up
 @chapter Using Qingy
 
@@ -263,7 +262,7 @@ configuration, but what you will always find are the login field, the
 password field and the Sessions box. In the text fields, you can edit
 normally using your keyboard. Arrows will move in the text.
 
-@node  Copying Qingy, Index, Configuration , Top
+@node  Copying Qingy, Index, Using Qingy, Top
 @comment  node-name,  next,  previous,  up
 @appendix Copying This Manual and Qingy
 
