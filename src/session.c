@@ -26,22 +26,51 @@
  ***************************************************************************/
 
 
+#include <fcntl.h>
+#include <grp.h>
+#include <lastlog.h>
+#include <paths.h>
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dirent.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <pwd.h>
-#include <grp.h>
-#include <paths.h>
-#include <shadow.h>
 #include <syslog.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 #include <time.h>
-#include <lastlog.h>
+#include <unistd.h>
+
+#if HAVE_DIRENT_H
+	# include <dirent.h>
+	# define NAMLEN(dirent) strlen((dirent)->d_name)
+#else
+	# define dirent direct
+	# define NAMLEN(dirent) (dirent)->d_namlen
+	# if HAVE_SYS_NDIR_H
+		# include <sys/ndir.h>
+	# endif
+	# if HAVE_SYS_DIR_H
+		# include <sys/dir.h>
+	# endif
+	# if HAVE_NDIR_H
+		# include <ndir.h>
+	# endif
+#endif
+
+//#include <sys/wait.h>
+#include <sys/types.h>
+#if HAVE_SYS_WAIT_H
+	# include <sys/wait.h>
+#endif
+#ifndef WEXITSTATUS
+	# define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
+#endif
+#ifndef WIFEXITED
+	# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
+#endif
+
+
+#ifdef SHADOW_PASSWD
+	#include <shadow.h>
+#endif
 
 #include "session.h"
 #include "chvt.h"
@@ -125,14 +154,24 @@ void LogEvent(struct passwd *pw, int status)
 	closelog();
 }
 
-int check_password(char *username, char *password)
+int check_password(char *username, char *user_password)
 {
+#ifdef HAVE_LIBCRYPT
 	char*  encrypted;
+#endif	
 	char*  correct;
 	struct passwd *pw;
 #ifdef SHADOW_PASSWD
 	struct spwd* sp;
 #endif
+	char *password;
+
+	if (user_password != NULL) password = user_password;
+	else
+	{
+		password = (char *) calloc(1, sizeof(char));
+		password[0] = '\0';
+	}
 
 	pw = getpwnam(username);
 	endpwent();
@@ -155,9 +194,10 @@ int check_password(char *username, char *password)
 
 	if (correct == 0 || correct[0] == '\0') return 1;
 
+#ifdef HAVE_LIBCRYPT
 	encrypted = crypt(password, correct);
-
 	if (!strcmp(encrypted, correct)) return 1;
+#endif
 
 	LogEvent(pw, WRONG_PASSWORD);
 	return 0;

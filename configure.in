@@ -1,14 +1,15 @@
 AC_INIT(src/main.c)
+AC_PREREQ(2.57)
 AM_INIT_AUTOMAKE(qingy,alpha1)
 
+AC_GNU_SOURCE
+AC_PROG_INSTALL
 AC_PROG_CC
-#AC_PROG_INSTALL
-#AC_PROG_MAKE_SET
 
 # Set my own flags for gcc
 if test "x$GCC" = "xyes"; then
 	CPULAGS=""
-	CFLAGS="-O3 -fomit-frame-pointer -pipe -fforce-addr -W -Wall -pedantic"
+	CFLAGS="-O3 -fomit-frame-pointer -pipe -fforce-addr -W -Wall"
 	echo -n "Checking for gcc version >= 3: found "
 	GCCVERSION="`$CC -dumpversion`"
 	echo $GCCVERSION
@@ -64,8 +65,34 @@ if test "x$GCC" = "xyes"; then
 	fi
 	CFLAGS="$CPUFLAGS $CFLAGS"
 fi
-CFLAGS="$CFLAGS -DLinux -D_GNU_SOURCE -DSHADOW_PASSWD -I/usr/local/include"
-LDFLAGS=" -L/usr/local/lib"
+
+# Check wether we are using shadow passwords
+	echo -n "Checking for /etc/shadow: "
+	if test "`cat /etc/shadow`" != ""; then
+		echo "found!"
+		SHADOW="-DSHADOW_PASSWD"
+	else
+		echo "not found!"
+		SHADOW=""
+	fi
+# End check for shadow passwords
+
+# Check for C headers
+	HEADERS="fcntl.h grp.h lastlog.h paths.h pwd.h stdio.h stdlib.h string.h syslog.h \
+	         time.h unistd.h linux/kd.h linux/vt.h sys/ioctl.h sys/types.h"
+	if test "$SHADOW" != ""; then
+		HEADERS="shadow.h $HEADERS"
+	fi
+	HEADERS_ERROR_MESSAGE="One or more system headers that are necessary to compile this program are missing on this system. Cannot continue."
+	AC_CHECK_HEADERS([$HEADERS],,[AC_MSG_ERROR([$HEADERS_ERROR_MESSAGE])],)
+	AC_HEADER_DIRENT
+	AC_HEADER_SYS_WAIT
+# End check for C headers
+
+AC_CHECK_LIB(crypt, crypt, , , )
+
+CFLAGS="$CFLAGS -DLinux $SHADOW"
+LDFLAGS=""
 
 DFB_VERSION=0.9.17
 PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
@@ -73,7 +100,4 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 *** DirectFB $DFB_VERSION or newer is required. The latest version
 *** of DirectFB is available from http://www.directfb.org/.]))
 
-
 AC_OUTPUT(Makefile src/Makefile media/Makefile)
-
-

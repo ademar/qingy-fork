@@ -430,20 +430,8 @@ void close_framebuffer_mode (void)
 	if (we_stopped_gpm) start_gpm();
 }
 
-void handle_mouse_movement (void)
+void handle_buttons(void)
 {
-	static DFBRegion *buttons_area = NULL;
-
-	/* Why redraw all the screen if we need to modify only the buttons area? */
-	if (!buttons_area)
-	{
-		buttons_area = (DFBRegion *) calloc(1, sizeof(DFBRegion));
-		buttons_area->x1 = reset->xpos;
-		buttons_area->y1 = reset->ypos;
-		buttons_area->x2 = screen_width;
-		buttons_area->y2 = screen_height;
-	}
-
 	/* mouse over power button */
 	if ((mouse_x >= power->xpos) && (mouse_x <= (power->xpos + (int) power->width)))
 		if ((mouse_y >= power->ypos) && (mouse_y <= (power->ypos + (int) power->height)))
@@ -505,6 +493,37 @@ void handle_mouse_movement (void)
 	}
 }
 
+void handle_textboxes(void)
+{
+	/* mouse over username area */
+	if ( (mouse_x >= (int) username->xpos) && (mouse_x <= (int) username->xpos + (int) username->width) )
+		if ( (mouse_y >= (int) username->ypos) && (mouse_y <= (int) username->ypos + (int) username->height) )
+		{
+			username->mouse = 1;
+			password->mouse = 0;
+			return;
+		}
+
+	/* mouse over password area */
+	if ( (mouse_x >= (int) password->xpos) && (mouse_x <= (int) password->xpos + (int) password->width) )
+		if ( (mouse_y >= (int) password->ypos) && (mouse_y <= (int) password->ypos + (int) password->height) )
+		{
+			username->mouse = 0;
+			password->mouse = 1;
+			return;
+		}
+
+	/* mouse not over any textbox */
+	username->mouse = 0;
+	password->mouse = 0;
+}
+
+void handle_mouse_movement (void)
+{
+	handle_buttons();
+	handle_textboxes();
+}
+
 void reset_screen(DFBInputEvent *evt)
 {
 	Draw_Background_Image ();
@@ -514,9 +533,9 @@ void reset_screen(DFBInputEvent *evt)
 	reset->window->SetOpacity(reset->window, BUTTON_OPACITY);
 	show_welcome_window(YES);
 	show_login_window(YES, (username->hasfocus) ? SELECTED_WINDOW_OPACITY : WINDOW_OPACITY);
-	TextBox_SetFocus(username, username->hasfocus);
+	TextBox_Show(username);
 	show_passwd_window(YES, (password->hasfocus) ? SELECTED_WINDOW_OPACITY : WINDOW_OPACITY);
-	TextBox_SetFocus(password, password->hasfocus);
+	TextBox_Show(password);
 	show_session_window(YES, (session_hasfocus) ? SELECTED_WINDOW_OPACITY : WINDOW_OPACITY);
 	print_session_name(YES, (session_hasfocus) ? SELECTED_WINDOW_OPACITY : WINDOW_OPACITY);
 	show_lock_key_status(evt, YES);
@@ -619,6 +638,8 @@ void handle_mouse_event (DFBInputEvent *evt)
 			   we check wether mouse pointer is over a button */
 			if (power->mouse) status = 1;
 			if (reset->mouse) status = 2;
+			if (username->mouse) status = 3;
+			if (password->mouse) status = 4;
 		}
 		else
 		{	/* left mouse button is up:
@@ -627,6 +648,27 @@ void handle_mouse_event (DFBInputEvent *evt)
 				begin_shutdown_sequence (POWEROFF);
 			if ((reset->mouse) && (status == 2))	/* reset button has been clicked! */
 				begin_shutdown_sequence (REBOOT);
+			if ((username->mouse) && (status == 3))	/* username textbox has been clicked! */
+			{
+				session_hasfocus  = 0;
+				TextBox_SetFocus(username, 1);
+				show_login_window(YES, SELECTED_WINDOW_OPACITY);
+				TextBox_SetFocus(password, 0);
+				show_passwd_window(YES, WINDOW_OPACITY);
+				show_session_window(YES, WINDOW_OPACITY);
+				print_session_name(YES, WINDOW_OPACITY);
+			}
+			if ((password->mouse) && (status == 4))	/* username textbox has been clicked! */
+			{
+				session_hasfocus  = 0;
+				TextBox_SetFocus(username, 0);
+				show_login_window(YES, WINDOW_OPACITY);
+				TextBox_SetFocus(password, 1);
+				show_passwd_window(YES, SELECTED_WINDOW_OPACITY);
+				show_session_window(YES, WINDOW_OPACITY);
+				print_session_name(YES, WINDOW_OPACITY);
+			}
+
 			status = 0;		/* we reset click status because button went up */
 		}
 	}
@@ -654,6 +696,7 @@ void start_login_sequence(DFBInputEvent *evt)
 		primary->DrawString (primary, "Login failed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 		primary->Flip (primary, NULL, DSFLIP_BLIT);
 		sleep(1);
+		TextBox_ClearText(password);
 		reset_screen(evt);
 		return;
 	}
@@ -739,7 +782,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 				show_session_window(YES, SELECTED_WINDOW_OPACITY);
 				print_session_name(YES, SELECTED_WINDOW_OPACITY);
 			}
-			else TextBox_KeyEvent(password, ascii_code, 0);
+			else TextBox_KeyEvent(password, ascii_code, 1);
 		}
 
 		/* session events */
@@ -838,25 +881,43 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 		window_desc.height = 2*font_large_height;
 		window_desc.caps   = DWCAPS_ALPHACHANNEL;
 		username = TextBox_Create(layer, font_large, &window_desc);
-		TextBox_SetFocus(username, 1);
+    TextBox_SetFocus(username, 1);
 		window_desc.posy   = 4*screen_height/8-font_large_height;
 		password = TextBox_Create(layer, font_large, &window_desc);
+		password->mask_text = 1;
 	}
 
 	/* we go on for ever... or until the user does something in particular */
 	while (returnstatus == -1)
 	{
 		/* we wait for an input event */
-		events->WaitForEvent (events);
-		events->GetEvent (events, DFB_EVENT (&evt));
-		if ((evt.type == DIET_AXISMOTION) || (evt.type == DIET_BUTTONPRESS) || (evt.type == DIET_BUTTONRELEASE))
-		{	/* handle mouse */
-			layer->GetCursorPosition (layer, &mouse_x, &mouse_y);
-			handle_mouse_event (&evt);
+		events->WaitForEventWithTimeout(events, 0, 500);
+		if (events->HasEvent(events) == DFB_OK)
+		{
+			events->GetEvent (events, DFB_EVENT (&evt));
+			if ((evt.type == DIET_AXISMOTION) || (evt.type == DIET_BUTTONPRESS) || (evt.type == DIET_BUTTONRELEASE))
+			{	/* handle mouse */
+				layer->GetCursorPosition (layer, &mouse_x, &mouse_y);
+				handle_mouse_event (&evt);
+			}
+			if (evt.type == DIET_KEYPRESS)
+			{	/* manage keystrokes */
+				returnstatus= handle_keyboard_event(&evt);
+			}
 		}
-		if (evt.type == DIET_KEYPRESS)
-		{	/* manage keystrokes */
-			returnstatus= handle_keyboard_event(&evt);
+		else
+		{
+			static int do_switch = 0;
+			if (username->hasfocus)
+			{
+				TextBox_KeyEvent(username, REDRAW, do_switch);
+				do_switch = !do_switch;
+			}
+			if (password->hasfocus)
+			{
+				TextBox_KeyEvent(password, REDRAW, do_switch);
+				do_switch = !do_switch;
+			}
 		}
 	}
 

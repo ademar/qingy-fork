@@ -25,19 +25,14 @@
  *                                                                         *
  ***************************************************************************/
 
- 
+
 #include <fcntl.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <linux/kd.h>
 #include <linux/vt.h>
 #include <sys/ioctl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <locale.h>
-#include <errno.h>
-#include <linux/kd.h>
 
 #include "misc.h"
 

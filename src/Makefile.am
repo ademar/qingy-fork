@@ -11,4 +11,4 @@ LIBADDS = \
 sbin_PROGRAMS = qingy
 
 qingy_SOURCES =	load_settings.c misc.c chvt.c directfb_utils.c directfb_textbox.c framebuffer_mode.c session.c main.c
-qingy_LDADD  = $(LIBADDS) -lcrypt
+qingy_LDADD  = $(LIBADDS)
