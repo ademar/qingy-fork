@@ -1,9 +1,13 @@
 2004-01-12  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
+	
+	* media/qingy-mode.el: added, with filename bug fixed.
+
+2004-01-13  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
 
 	* media/screensavers/pixel, media/screensavers/pixel: added two
 	screensaver modules that can be automagically loaded at demand
 
-2004-01-12  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
+2004-01-13  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
 		
 	* src/DirectFB/screen_saver.c, src/DirectFB/screen_saver.h,
 	src/DirectFB/screensaver_module.c: added dynamic loading of
