@@ -1,1 +1,1 @@
-SUBDIRS = pixel running_time # photos
+SUBDIRS = matrix pixel running_time photos

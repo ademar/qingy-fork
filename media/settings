@@ -7,7 +7,7 @@ text_sessions = "/etc/qingy/sessions/"
 xinit = "/usr/X11R6/bin/xinit"
 
 #       screensaver "pixel"
-screensaver "running_time"="%H:%S:%M"
+screensaver "running_time"#="%H:%S:%M"
 
 # What theme do you want (you can also specify 'random')
 # theme = random
