@@ -70,7 +70,7 @@ LDFLAGS=" -L/usr/local/lib"
 DFB_VERSION=0.9.17
 PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	AC_MSG_ERROR([$DIRECTFB_PKG_ERRORS
-*** DirectFB $VERSION or newer is required. The latest version
+*** DirectFB $DFB_VERSION or newer is required. The latest version
 *** of DirectFB is available from http://www.directfb.org/.]))
 
 
