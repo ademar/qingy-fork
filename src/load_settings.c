@@ -168,7 +168,8 @@ char *get_last_session(char *user)
 	if (!homedir) return NULL;
 	filename = (char *) calloc(strlen(homedir)+8, sizeof(char));
 	strcpy(filename, homedir);
-	strcat(filename, "/.qingy");
+	if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
+	strcat(filename, ".qingy");
 	fp = fopen(filename, "r");
 	if (!fp) return NULL;
 	if (fscanf(fp, "%s", tmp) != 1)
