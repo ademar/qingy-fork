@@ -81,7 +81,7 @@ IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, ID
 	err = dfb->CreateImageProvider (dfb, filename, &provider);
 	if (err != DFB_OK)
 	{
-		fprintf (stderr, "Couldn't load image from file '%s': %s\n", filename, DirectFBErrorString (err));
+		if (!silent) fprintf (stderr, "Couldn't load image from file '%s': %s\n", filename, DirectFBErrorString (err));
 		return NULL;
 	}
 

@@ -640,7 +640,7 @@ void set_font_sizes ()
 	font_small_height = fdsc.height;
 }
 
-int framebuffer_mode (int argc, char *argv[], int do_workaround)
+int framebuffer_mode (int argc, char *argv[], int be_silent, int do_workaround)
 {
 	int returnstatus = -1;      /* return value of this function...             */
 	DFBResult err;              /* the bloody macro uses it to check for errors */
@@ -648,13 +648,15 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 	DFBInputEvent evt;          /* generic input events will be stored here     */
 	char *lastuser = get_last_user(); /* last user logged in                    */
 
+	if (be_silent) silent = 1;
+	else silent = 0;
 	if (do_workaround != -1) workaround = do_workaround;
 
 	/* Stop GPM if necessary */
 	we_stopped_gpm= stop_gpm();
 
 	/* load settings from file */
-	load_settings();
+	load_settings(silent);
 
 	/* we initialize directfb */
 	stderr_disable();

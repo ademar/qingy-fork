@@ -52,3 +52,13 @@ int get_line(char *tmp, FILE *fp, int max);
 
 /* Prints a welcome message */
 char *print_welcome_message(char *preamble, char *postamble);
+
+#ifdef USE_PAM
+/* append any number of strings to dst */
+int StrApp (char **dst, ...);
+
+/* duplicate src */
+int StrDup (char **dst, const char *src);
+
+void WipeStr (char *str);
+#endif

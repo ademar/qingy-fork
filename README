@@ -19,6 +19,8 @@ It allows the user to log in and start the session of his choice
 - It remembers last user who logged in, with focus on password
 - It also rememebers last session each user chose
 - Fully themable
+- Has support for shadow passwords
+- Has support for PAM
 - You can start more that one X session at once
 - You can even start X inside a console when X sessions
   are already running

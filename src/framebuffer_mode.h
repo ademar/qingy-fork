@@ -30,16 +30,18 @@
 #define TEXT_MODE -2
 #define REDRAW      55555
 
+int silent;
+
 /* macro for a safe call to DirectFB functions */
-#define DFBCHECK(x...)																					\
-{																																\
-	err = x;																											\
-	if (err != DFB_OK)																						\
-	{																															\
-		fprintf( stderr, "%s <%d>:\n\t", __FILE__, __LINE__ );			\
-		DirectFBErrorFatal( #x, err );															\
-	}																															\
+#define DFBCHECK(x...)                                                  \
+{                                                                       \
+	err = x;                                                              \
+	if (err != DFB_OK)                                                    \
+	{                                                                     \
+		if (!silent) fprintf( stderr, "%s <%d>:\n\t", __FILE__, __LINE__ ); \
+		DirectFBErrorFatal( #x, err );                                      \
+	}                                                                     \
 }
 
 /* Init framebuffer mode */
-int framebuffer_mode(int argc, char *argv[], int workaround);
+int framebuffer_mode(int argc, char *argv[], int silent, int workaround);

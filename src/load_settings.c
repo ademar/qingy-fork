@@ -36,6 +36,8 @@
 
 #define DEFAULT_THEME DATADIR"default/"
 
+int silent = 0;
+
 void set_default_xsession_dir(void)
 {
 	XSESSIONS_DIRECTORY = (char *) calloc(19, sizeof(char));
@@ -79,7 +81,7 @@ void set_default_colors(void)
 
 void error(char *where)
 {
-	fprintf(stderr, "load_settings: parse error in %s file... using defaults\n", where);
+	if (!silent) fprintf(stderr, "load_settings: parse error in %s file... using defaults\n", where);
 	if (XSESSIONS_DIRECTORY) free(XSESSIONS_DIRECTORY);
 	if (XINIT) free(XINIT);
 	if (FONT) free(FONT);
@@ -93,7 +95,7 @@ void error(char *where)
 	strcpy(THEME_DIR, DEFAULT_THEME);
 }
 
-int load_settings(void)
+int load_settings(int be_silent)
 {
 	FILE *fp;
 	char *theme = NULL;
@@ -101,12 +103,12 @@ int load_settings(void)
 	int temp[4];
 
 	XSESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;
+	if (be_silent) silent = 1;
 
-	fprintf(stderr, "using settings file: \"%s\"\n", SETTINGS);
 	fp = fopen(SETTINGS, "r");
 	if (!fp)
 	{
-		fprintf(stderr, "load_Settings: settings file not found...\nusing internal defaults\n");
+		if (!silent) fprintf(stderr, "load_Settings: settings file not found...\nusing internal defaults\n");
 		set_default_xsession_dir();
 		set_default_xinit();
 		set_default_font();
@@ -180,7 +182,7 @@ int load_settings(void)
 	fp = fopen(theme, "r");
 	if (!fp)
 	{
-		fprintf(stderr, "load_settings: selected theme does not exist. Using internal defaults\n");
+		if (!silent) fprintf(stderr, "load_settings: selected theme does not exist. Using internal defaults\n");
 		error("");
 		return 0;
 	}

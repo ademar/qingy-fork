@@ -1,4 +1,4 @@
-AC_INIT(qingy, 0.1.1, noberasco.gnu@disi.unige.it)
+AC_INIT(qingy, 0.2, noberasco.gnu@disi.unige.it)
 AC_PREREQ(2.57)
 AC_CONFIG_SRCDIR(src/main.c)
 AM_INIT_AUTOMAKE()
@@ -11,9 +11,10 @@ AC_PROG_CC
 if test "x$GCC" = "xyes"; then
 	CPULAGS=""
 	CFLAGS="-O3 -fomit-frame-pointer -pipe -fforce-addr -W -Wall"
-	echo -n "Checking for gcc version >= 3: found "
+	GCC_TEST_MESSAGE="Checking for gcc version"
+	AC_MSG_CHECKING([$GCC_TEST_MESSAGE])
 	GCCVERSION="`$CC -dumpversion`"
-	echo $GCCVERSION
+	AC_MSG_RESULT([$GCCVERSION])
 	if test "`$CC -dumpversion | grep 3.`" != ""; then
 		#Good! let see if we can see the system arch
 		PROCESSOR=`cat /proc/cpuinfo`
@@ -68,12 +69,13 @@ if test "x$GCC" = "xyes"; then
 fi
 
 # Check wether we are using shadow passwords
-	echo -n "Checking for /etc/shadow: "
+	AC_MSG_CHECKING([for shadow passwords])
+
 	if test -a /etc/shadow; then
-		echo "found"
-		SHADOW="-DSHADOW_PASSWD"
+		AC_MSG_RESULT([found])
+		CFLAGS="$CFLAGS -DSHADOW_PASSWD"
 	else
-		echo "not found"
+		AC_MSG_RESULT([not found])
 		SHADOW=""
 	fi
 # End check for shadow passwords
@@ -92,8 +94,20 @@ fi
 
 AC_CHECK_LIB(crypt, crypt, , , )
 
-CFLAGS="$CFLAGS -DLinux $SHADOW"
-LDFLAGS=""
+#check for pam
+	AC_CHECK_HEADER([security/pam_appl.h],[PAM="pam"],[PAM=""],)
+	if test "$PAM" != ""; then
+		AC_CHECK_HEADER([security/pam_misc.h],[PAM="pam"],[PAM=""],)
+	fi
+	if test "$PAM" != ""; then
+		CFLAGS="$CFLAGS -DUSE_PAM"
+		LDFLAGS="$LDFLAGS -lpam -lpam_misc -ldl"
+		AC_MSG_NOTICE([pam found: enabling support in qingy])
+	fi
+	AC_SUBST(PAM,)
+#end check for pam
+
+CFLAGS="$CFLAGS -DLinux"
 
 DFB_VERSION=0.9.18
 PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
@@ -116,4 +130,4 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 PREFIX=""
 AC_PREFIX_DEFAULT ($PREFIX)
 
-AC_OUTPUT(Makefile src/Makefile media/Makefile media/default/Makefile)
+AC_OUTPUT(Makefile src/Makefile media/Makefile media/default/Makefile media/pam/Makefile)

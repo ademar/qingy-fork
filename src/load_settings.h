@@ -56,7 +56,7 @@ __u8 OTHER_TEXT_COLOR_B;
 __u8 OTHER_TEXT_COLOR_A;
 
 /* get program settings from config file */
-int load_settings(void);
+int load_settings(int silent);
 
 /* get/set name of last user that logged in */
 char *get_last_user(void);

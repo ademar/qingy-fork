@@ -67,7 +67,6 @@
 	# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
 #endif
 
-
 #ifdef SHADOW_PASSWD
 	#include <shadow.h>
 #endif
@@ -78,13 +77,98 @@
 #include "load_settings.h"
 #include "directfb_combobox.h"
 
-#define UNKNOWN_USER   0
-#define WRONG_PASSWORD 1
-#define OPEN_SESSION   2
-#define CLOSE_SESSION  3
+#define UNKNOWN_USER       0
+#define WRONG_PASSWORD     1
+#define OPEN_SESSION       2
+#define CLOSE_SESSION      3
+#define CANNOT_SWITCH_USER 4
 
 int current_vt;
 extern char **environ;
+
+#ifdef USE_PAM
+	#include <security/pam_appl.h>
+	#include <security/pam_misc.h>
+	#define PAM_FAILURE             5
+	#define PAM_ERROR               6
+	#define PAM_UPDATE_TOKEN        7
+	#define PAM_CANNOT_UPDATE_TOKEN 8
+	char *PAM_password;
+	char *infostr, *errstr;
+	static pam_handle_t *pamh;
+	static int update_token = 0;
+
+	# ifdef sun
+		typedef struct pam_message pam_message_type;
+	# else
+		typedef const struct pam_message pam_message_type;
+	# endif
+
+	int PAM_conv (int num_msg, pam_message_type **msg, struct pam_response **resp, void *appdata_ptr)
+	{
+		int count;
+		struct pam_response *reply;
+
+		if (appdata_ptr) {}
+		if (!(reply = calloc(num_msg, sizeof(*reply)))) return PAM_CONV_ERR;
+
+		for (count = 0; count < num_msg; count++)
+		{
+			switch (msg[count]->msg_style)
+			{
+				case PAM_TEXT_INFO:
+					if (!StrApp(&infostr, msg[count]->msg, "\n", (char *)0))
+					goto conv_err;
+					break;
+				case PAM_ERROR_MSG:
+					if (!StrApp(&errstr, msg[count]->msg, "\n", (char *)0))
+					goto conv_err;
+					break;
+				case PAM_PROMPT_ECHO_OFF:
+	  	  	/* wants password */
+					if (!StrDup (&reply[count].resp, PAM_password)) goto conv_err;
+					reply[count].resp_retcode = PAM_SUCCESS;
+					break;
+				case PAM_PROMPT_ECHO_ON:
+					/* user name given to PAM already */
+					/* fall through */
+				default:
+					/* unknown */
+					goto conv_err;
+			}
+		}
+		*resp = reply;
+		return PAM_SUCCESS;
+
+		conv_err:
+		for (; count >= 0; count--)
+			if (reply[count].resp)
+			{
+				switch (msg[count]->msg_style)
+				{
+					case PAM_ERROR_MSG:
+					case PAM_TEXT_INFO:
+					case PAM_PROMPT_ECHO_ON:
+						free(reply[count].resp);
+						break;
+					case PAM_PROMPT_ECHO_OFF:
+						WipeStr(reply[count].resp);
+						break;
+				}
+				reply[count].resp = 0;
+			}
+		/* forget reply too */
+		free (reply);
+		return PAM_CONV_ERR;
+	}
+
+	struct pam_conv PAM_conversation =
+		{
+			PAM_conv,
+			NULL
+		};
+
+#endif /* End of USE_PAM */
 
 void get_sessions(void *ext_sessions)
 {
@@ -132,6 +216,23 @@ void LogEvent(struct passwd *pw, int status)
 		case CLOSE_SESSION:
 			syslog(LOG_AUTHPRIV|LOG_INFO, "Session closed for user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
 			break;
+		case CANNOT_SWITCH_USER:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "Fatal Error: cannot switch user id!\n");
+			break;
+#ifdef USE_PAM
+		case PAM_FAILURE:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "Unrecoverable error: PAM failure!\n");
+			break;
+		case PAM_ERROR:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "PAM was unable to authenticate user '%s' (UID %d)\n", pw->pw_name, pw->pw_uid);
+			break;
+		case PAM_UPDATE_TOKEN:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "user '%s' (UID %d) authentication token has expired!\n", pw->pw_name, pw->pw_uid);
+			break;
+		case PAM_CANNOT_UPDATE_TOKEN:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "Cannot update authentication token for user '%s' (UID %d)!\n", pw->pw_name, pw->pw_uid);
+			break;
+#endif
 		default:
 			syslog(LOG_AUTHPRIV|LOG_WARNING, "Error #666, coder brains are severely damaged!\n");
 	}
@@ -141,15 +242,20 @@ void LogEvent(struct passwd *pw, int status)
 
 int check_password(char *username, char *user_password)
 {
+	struct passwd *pw;
+	char *password;
+#ifdef USE_PAM
+	int retcode;
+	char ttyname[11];
+#else
+	char*  correct;
 #ifdef HAVE_LIBCRYPT
 	char*  encrypted;
-#endif	
-	char*  correct;
-	struct passwd *pw;
+#endif
 #ifdef SHADOW_PASSWD
 	struct spwd* sp;
 #endif
-	char *password;
+#endif /* End of USE_PAM */
 
 	if (user_password != NULL) password = user_password;
 	else
@@ -169,6 +275,70 @@ int check_password(char *username, char *user_password)
 		return 0;
 	}
 
+#ifdef USE_PAM
+	PAM_password = (char *)password;
+	strcpy(ttyname, "/dev/tty");
+	strcat(ttyname, int_to_str(get_active_tty()));
+	if (pam_start("qingy", username, &PAM_conversation, &pamh) != PAM_SUCCESS)
+	{
+		LogEvent(pw, PAM_FAILURE);
+		return 0;
+	}
+	if ((retcode = pam_set_item(pamh, PAM_TTY, ttyname)) != PAM_SUCCESS)
+	{
+		pam_end(pamh, retcode);
+		pamh = NULL;
+		LogEvent(pw, PAM_FAILURE);
+		return 0;
+	}
+	if ((retcode = pam_set_item(pamh, PAM_RHOST, "")) != PAM_SUCCESS)
+	{
+		pam_end(pamh, retcode);
+		pamh = NULL;
+		LogEvent(pw, PAM_FAILURE);
+		return 0;
+	}
+	if (infostr) { free (infostr); infostr = 0; }
+	if (errstr)  { free (errstr);  errstr  = 0; }
+
+	if ((retcode = pam_authenticate(pamh, PAM_DISALLOW_NULL_AUTHTOK)) != PAM_SUCCESS)
+	{
+		pam_end(pamh, retcode);
+		pamh = NULL;
+		switch (retcode)
+		{
+			case PAM_USER_UNKNOWN:
+				LogEvent(pw, UNKNOWN_USER);
+				break;
+			case PAM_AUTH_ERR:
+				LogEvent(pw, WRONG_PASSWORD);
+				break;
+			default:
+				LogEvent(pw, PAM_ERROR);
+		}
+		return 0;
+	}
+	if ((retcode = pam_acct_mgmt(pamh, PAM_DISALLOW_NULL_AUTHTOK)) != PAM_SUCCESS)
+	{
+		pam_end(pamh, retcode);
+		pamh = NULL;
+		switch (retcode)
+		{
+			case PAM_NEW_AUTHTOK_REQD:
+				LogEvent(pw, PAM_UPDATE_TOKEN);
+				update_token = 1;
+				return 1;
+				break;
+			case PAM_USER_UNKNOWN:
+				LogEvent(pw, UNKNOWN_USER);
+				break;
+			default:
+				LogEvent(pw, PAM_ERROR);
+		}
+		return 0;
+	}
+	return 1;
+#else /* thus we don't USE_PAM */
 #ifdef SHADOW_PASSWD
 	sp = getspnam(pw->pw_name);
 	endspent();
@@ -176,16 +346,14 @@ int check_password(char *username, char *user_password)
 	else
 #endif
 	correct = pw->pw_passwd;
-
 	if (correct == 0 || correct[0] == '\0') return 1;
-
 #ifdef HAVE_LIBCRYPT
 	encrypted = crypt(password, correct);
 	if (!strcmp(encrypted, correct)) return 1;
 #endif
-
 	LogEvent(pw, WRONG_PASSWORD);
 	return 0;
+#endif /* End of USE_PAM */
 }
 
 char *shell_base_name(char *name)
@@ -217,7 +385,7 @@ void setEnvironment(struct passwd *pwd)
 	setenv("HOME", pwd->pw_dir, 1);
 	setenv("SHELL", pwd->pw_shell, 1);
 	setenv("USER", pwd->pw_name, 1);
-	setenv("LOGNAME", pwd->pw_name, 1);	
+	setenv("LOGNAME", pwd->pw_name, 1);
 	mail = (char *) calloc(strlen(_PATH_MAILDIR) + strlen(pwd->pw_name) + 2, sizeof(char));
 	strcpy(mail, _PATH_MAILDIR);
 	strcat(mail, "/");
@@ -231,7 +399,7 @@ void switchUser(struct passwd *pwd)
 	/* Set user id */
 	if ((initgroups(pwd->pw_name, pwd->pw_gid) != 0) || (setgid(pwd->pw_gid) != 0) || (setuid(pwd->pw_uid) != 0))
 	{
-		fprintf(stderr, "could not switch user id\n");
+		LogEvent(pwd, CANNOT_SWITCH_USER);
 		exit(0);
 	}
 
@@ -286,6 +454,7 @@ void dolastlog(struct passwd *pwd, int quiet)
 void Text_Login(struct passwd *pw, char *username)
 {
 	pid_t proc_id;
+	int retval;
 
 	proc_id = fork();
 	if (proc_id == -1)
@@ -302,7 +471,12 @@ void Text_Login(struct passwd *pw, char *username)
 
 		/* write to system logs */
 		dolastlog(pw, 0);
+#ifdef USE_PAM
+		pam_setcred(pamh, PAM_ESTABLISH_CRED);
+		pam_open_session(pamh, 0);
+#else
 		LogEvent(pw, OPEN_SESSION);
+#endif
 
 		/* drop root privileges and set user enviroment */
 		switchUser(pw);
@@ -319,7 +493,14 @@ void Text_Login(struct passwd *pw, char *username)
 	free(username);
 
 	wait(NULL);
+#ifdef USE_PAM
+	pam_setcred(pamh, PAM_DELETE_CRED);
+	retval = pam_close_session(pamh, 0);
+	pam_end(pamh, retval);
+	pamh = NULL;
+#else
 	LogEvent(pw, CLOSE_SESSION);
+#endif
 
 	exit(0);
 }
@@ -353,6 +534,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 {
 	pid_t proc_id;
 	int dest_vt = current_vt + 20;
+	int retval;
 
 	proc_id = fork();
 	if (proc_id == -1)
@@ -381,7 +563,12 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 
 		/* write to system logs */
 		dolastlog(pw, 1);
+#ifdef USE_PAM
+		pam_setcred(pamh, PAM_ESTABLISH_CRED);
+		pam_open_session(pamh, 0);
+#else
 		LogEvent(pw, OPEN_SESSION);
+#endif
 
 		/* drop root privileges and set user enviroment */
 		switchUser(pw);
@@ -416,7 +603,14 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 		}
 		else break;
 	}
+#ifdef USE_PAM
+	pam_setcred(pamh, PAM_DELETE_CRED);
+	retval = pam_close_session(pamh, 0);
+	pam_end(pamh, retval);
+	pamh = NULL;
+#else
 	LogEvent(pw, CLOSE_SESSION);
+#endif
 	if (get_active_tty() == dest_vt) set_active_tty(current_vt);
 	free(session);
 
@@ -440,13 +634,30 @@ void start_session(char *username, char *session, int workaround)
 
 	if (!pwd)
 	{
-		fprintf(stderr, "user %s not found in /etc/passwd\n", username);
+		struct passwd pw;
+
+		pw.pw_name = username;
+		LogEvent(&pw, UNKNOWN_USER);
 		free(username);
 		free(session);
 		exit(0);
 	}
 
 	ClearScreen();
+
+#ifdef USE_PAM
+	if (update_token)
+	{
+		/* This is a quick hack... for some reason, if I try to
+		   do things properly, PAM output on screen when updating
+			 authorization token is all garbled, so for now I'll
+			 leave this to /bin/login                               */
+		printf("You need to update your authorization token...\n");
+		printf("After that, log out and in again.\n\n");
+		execl("/bin/login", "/bin/login", "--", username, (char *) 0);
+		exit(0);
+	}
+#endif
 
 	if (strcmp(session, "Text Console") == 0)
 	{

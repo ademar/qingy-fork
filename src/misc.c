@@ -149,3 +149,71 @@ char *print_welcome_message(char *preamble, char *postamble)
 
 	return text;
 }
+
+#ifdef USE_PAM
+#include <stdarg.h>
+/* append any number of strings to dst */
+int StrApp (char **dst, ...)
+{
+	int len;
+	char *bk, *pt, *dp;
+	va_list va;
+
+	len = 1;
+	if (*dst) len += strlen(*dst);
+	va_start (va, dst);
+	for (;;)
+	{
+		pt = va_arg (va, char *);
+		if (!pt) break;
+		len += strlen (pt);
+	}
+	va_end (va);
+	if (!(bk = malloc (len))) return 0;
+	dp = bk;
+	if (*dst)
+	{
+		len = strlen(*dst);
+		memcpy (dp, *dst, len);
+		dp += len;
+		free(*dst);
+	}
+	va_start (va, dst);
+	for (;;)
+	{
+		pt = va_arg (va, char *);
+		if (!pt) break;
+		len = strlen(pt);
+		memcpy (dp, pt, len);
+		dp += len;
+	}
+	va_end (va);
+	*dp = '\0';
+	*dst = bk;
+	return 1;
+}
+
+int StrDup (char **dst, const char *src)
+{
+	if (src)
+	{
+		int len = strlen (src);
+
+		if (!(*dst = malloc (len + 1))) return 0;
+		memcpy (*dst, src, len);
+		(*dst)[len] = 0;
+	}
+	else *dst = 0;
+
+	return 1;
+}
+
+void WipeStr (char *str)
+{
+	if (str)
+	{
+		memset((char *)str, 0, strlen(str));
+		free (str);
+	}
+}
+#endif

@@ -54,6 +54,8 @@ void Error()
 	printf("\nqingy version " VERSION "\n");
 	printf("\nusage: ginqy <ttyname> [options]\n");
 	printf("Options:\n");
+	printf("\t--silent\n");
+	printf("\tDo not display diagnostic messages on stderr.\n");
 	printf("\t--black-screen-workaround\n");
 	printf("\tTry this if you get a black screen instead of a text console.\n");
 	printf("\tNote: switching to another vt and back also solves the problem.\n\n");
@@ -79,11 +81,14 @@ void text_mode()
 	exit(EXIT_FAILURE);
 }
 
-void start_up(int workaround)
+void start_up(int silent, int workaround)
 {
 	int returnstatus;
 	int argc = 2;
 	char *argv[3];
+
+	/* We clear the screen */
+	ClearScreen();
 
 	argv[0]= (char *) calloc(6, sizeof(char));
 	strcpy(argv[0], "qingy");
@@ -92,10 +97,10 @@ void start_up(int workaround)
 	argv[2]= NULL;
 
 	/* Now we try to initialize the framebuffer */
-	returnstatus = framebuffer_mode(argc, argv, workaround);
+	returnstatus = framebuffer_mode(argc, argv, silent, workaround);
+
+	/* We get here only if directfb fails or user wants to change tty */
 	free(argv[1]); free(argv[0]); argv[1]= argv[0]= NULL;
-	/* We should never get here unless directfb init failed
-	   or user wants to change tty                          */
 
 	/* this if user wants to switch to another tty */
 	if (returnstatus != TEXT_MODE)
@@ -128,6 +133,7 @@ int main(int argc, char *argv[])
 	int our_tty_number;
 	int user_tty_number;
 	int workaround = -1;
+	int silent = 0;
 	int i = 2;
 	struct timespec delay;
 
@@ -144,7 +150,9 @@ int main(int argc, char *argv[])
 	if (our_tty_number >12) Error();
 	while (i < argc)
 	{
-		if (strcmp(argv[i], "--black-screen-workaround") == 0)
+		if (strcmp(argv[i], "--silent") == 0)
+			silent = 1;
+		else if (strcmp(argv[i], "--black-screen-workaround") == 0)
 			workaround = our_tty_number;
 		else Error();
 		i++;
@@ -166,7 +174,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "\nfatal error: cannot get active tty number!\n");
 			return EXIT_FAILURE;
 		}
-		if (user_tty_number == our_tty_number) start_up(workaround);
+		if (user_tty_number == our_tty_number) start_up(silent, workaround);
 		nanosleep(&delay, NULL); /* wait a little before checking again */
 	}
 
