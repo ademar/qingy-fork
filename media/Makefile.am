@@ -3,7 +3,9 @@
 SUBDIRS = default sessions pam
 
 settingsdatadir = $(prefix)/etc/qingy
-settingsdata_DATA = settings
+settingsdata_DATA = \
+		settings        \
+		welcomes
 
 directfbrcdir = $(prefix)/etc
 directfbrc_DATA = directfbrc.qingy
