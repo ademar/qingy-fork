@@ -1,4 +1,4 @@
-qingy CVS:
+qingy 0.4.0 (18 March 2004):
 - Properly detect framebuffer resolution on qingy startup,
   instead of using directfbrc.qingy, which is no longer necessary:
   you can safely remove it from your system. This also means that

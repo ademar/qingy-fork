@@ -20,12 +20,14 @@ It allows the user to log in and start the session of his choice
 - It remembers last user who logged in, with focus on password
 - It also rememebers last session each user chose
 - Fully themable
-- Dynamic screensavers
-- Has support for shadow passwords
-- Has support for PAM
-- You can start more that one X session at once
-- You can even start X inside a console when X sessions
-  are already running
+- You can select your favourite theme, or a random one every time
+-	Both text and X sessions are supported
+-	You can start more that one X session at once
+-	You can even start X inside a console when X sessions are already running
+-	PAM support
+-	Support for screen savers
+-	(Experimental) session locking support
+-	tty specific option support
 
 
 /----------------\
@@ -55,27 +57,36 @@ It allows the user to log in and start the session of his choice
 \----------------/
 Output of 'qingy -h':
 
-qingy version 0.2.1
+qingy version 0.4.0
 
-Usage: qingy <ttyname> [options]
+usage: ginqy <ttyname> [options]
 Options:
+        -f <device>, --fb-device <device>
+        Use <device> as framebuffer device.
 
- --hide-password
-	  Do not show password asterisks.
-		
-   --hide-lastuser
-	  Do not display last user name.
-		
-   --silent
-    Do not display diagnostic messages on stderr.
+        -p, --hide-password
+        Do not show password asterisks.
 
-   --no-shutdown-screen
-    Close DirectFB mode before shutting down.
-    This way you will see system shutdown messages.
-		
-   --black-screen-workaround
-    Try this if you get a black screen instead of a text console.
-    Note: switching to another vt and back also solves the problem.
+        -l, --hide-lastuser
+        Do not display last user name.
+
+        -d, --disable-lastuser
+        Do not remember last user name.
+
+        -v, --verbose
+        Display some diagnostic messages on stderr.
+
+        -n, --no-shutdown-screen
+        Close DirectFB mode before shutting down.
+        This way you will see system shutdown messages.
+
+        -s <timeout>, --screensaver <timeout>
+        Activate screensaver after <timeout> minutes (default is 5).
+        A value of 0 disables screensaver completely.
+
+        -b, --black-screen-workaround
+        Try this if you get a black screen instead of a text console.
+        Note: switching to another vt and back also solves the problem.
 
 
 /----------------\
@@ -92,4 +103,3 @@ that you can tweak as you need/like.
 Qingy comes with extensive documentation in the form of TeXinfo
 documents (the GNU standard documentation method). Just type `info
 qingy` from a shell to browse it.
-

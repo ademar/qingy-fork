@@ -173,7 +173,7 @@ first entry in @file{/etc/fb.modes}.
 Fetch the tarball and compile it more or less as any Linux package:
 @enumerate
 @item
-@kbd{tar -xvzf qingy-@value{VERSION}.tar.gz}
+@kbd{tar -jvzf qingy-@value{VERSION}.tar.bz2}
 @item
 @kbd{cd qingy-@value{VERSION}}
 @item
@@ -184,16 +184,7 @@ Fetch the tarball and compile it more or less as any Linux package:
 @kbd{make install}
 @end enumerate
 
-@cindex @file{/etc/directfb/qingy}
-@cindex @code{mode}
-@cindex @kbd{fbset}
 @cindex @file{/etc/inittab}
-After that, you should check @file{/etc/directfbrc.qingy} (which
-should have been created by Qingy itself). It should have this line in it:
-@code{mode=1024x768} (change this with the actual value you got from fbset).
-If for some reason you don't have such file or it does contain the
-wrong stuff, please correct this manually.
-
 Finally, you should change your @file{/etc/inittab} file from something like
 
 @verbatim

@@ -1,3 +1,8 @@
+2004-03-18  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* doc/qingy.texi (Installing from the tarball):
+	Revamped installation instructions...
+
 2004-03-09  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* src/libraries/load_settings.c:
