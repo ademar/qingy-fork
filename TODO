@@ -12,3 +12,4 @@
 - Rewrite load_settings completely (it craps!)
 - Add $home/.xinitrc and/or $home/.xsession to available X sessions
 - Add ./configure option to disable PAM support
+- Add option to give root password to be allowed to shutdown
