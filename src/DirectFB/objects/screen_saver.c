@@ -36,27 +36,42 @@
 
 #include <dlfcn.h>
 
-#if HAVE_DIRENT_H
-#include <dirent.h>
-#define NAMLEN(dirent) strlen((dirent)->d_name)
-#else
-#define dirent direct
-#define NAMLEN(dirent) (dirent)->d_namlen
-#if HAVE_SYS_NDIR_H
-#include <sys/ndir.h>
-#endif
-#if HAVE_SYS_DIR_H
-#include <sys/dir.h>
-#endif
-#if HAVE_NDIR_H
-#include <ndir.h>
-#endif
-#endif
-
 #include "load_settings.h"
 #include "misc.h"
 #include "screen_saver.h"
 #include "screensaver_module.h"
+
+char** il2cc(struct _image_paths *paths)
+{
+  int max=15;
+  int n_str=0;
+  char **tbl;
+  char* holder;
+  
+  tbl=(char**)malloc(sizeof(char*) * (max +1));
+  for (; paths; paths=paths->next)
+    {
+      if (!paths->path) continue;
+
+      holder=strdup(paths->path);
+      if (n_str == max)
+	{
+	  char **temp;
+	  max+= 16;
+	  temp = (char **) realloc(tbl, (max+1)*sizeof(char *));
+	  if (!temp)
+	    {
+	      fprintf(stderr, "screen_saver: memory allocation failure!\n");
+	      abort();
+	    }
+	  tbl = temp;
+	}
+      *(tbl + n_str) = holder;
+      n_str++;
+    }
+  *(tbl + n_str)= NULL;
+  return tbl;
+}
 
 void activate_screen_saver(void)
 {
@@ -78,7 +93,7 @@ void activate_screen_saver(void)
   screenEnv.surface=screen_saver_surface;
   screenEnv.dfb=screen_saver_dfb;
   screenEnv.screen_saver_events=screen_saver_events;
-  screenEnv.params=NULL;
+  screenEnv.params=il2cc(image_paths);
 
   /* get what screensaver we want and load it */
   ssv_name=StrApp((char **)NULL, DATADIR, "screensavers/", SCREENSAVER, ".qss", (char*)NULL);
@@ -103,129 +118,9 @@ void activate_screen_saver(void)
     return;
   }
 
-  /* if(!strcmp("photo", screen_saver_kind)){ */
-  /* do_screen_saver = photo_screen_saver; */
-  /* seconds = 5; */
-  /* milli_seconds = 0; */
-  /*   } */
-  /*   else{ */
-  /* fall to default */
-  
   (*do_screen_saver)(screenEnv);
+  free(screenEnv.params);
+    
   dlclose(handle);
 }
 
-
-/* int is_image(char *filename) */
-/* { */
-/*   char *temp; */
-/*   int lun; */
-  
-/*   if (!filename) return 0; */
-/*   lun = strlen(filename); */
-/*   if (lun<5) return 0; */
-  
-/*   temp = filename + lun - 4; */
-/*   if (!strcmp(temp, ".png")) return 1; */
-/*   if (!strcmp(temp, ".jpg")) return 1; */
-  
-/*   return 0;	 */
-/* } */
-
-/* int load_images_list(void) */
-/* { */
-/*   struct _image_paths *paths; */
-/*   int n_images = 0; */
-/*   int max = 0; */
-  
-/*   for (paths = image_paths; paths != NULL; paths=paths->next) */
-/*     { */
-/*       DIR *path; */
-/*       struct dirent *entry; */
-      
-/*       if (!paths->path) continue; */
-      
-/*       if (!silent) fprintf(stderr, "Loading files from '%s': ", paths->path); */
-/*       path = opendir(paths->path); */
-/*       if (!path) continue; */
-      
-/*       while (1) */
-/*     {			 */
-/*       if (!(entry= readdir(path))) break; */
-/*       if (!strcmp(entry->d_name, "." )) continue; */
-/*       if (!strcmp(entry->d_name, "..")) continue; */
-/*       if (is_image(entry->d_name)) */
-/* 	{ */
-/* 	  char *temp = calloc(strlen(paths->path)+strlen(entry->d_name)+2, sizeof(char)); */
-/* 	  if (n_images == max) */
-/* 	    { */
-/* 	      char **temp; */
-/* 	      max+= 100; */
-/* 	      temp = (char **) realloc(images, max*sizeof(char *)); */
-/* 	      if (!temp) */
-/* 		{ */
-/* 		  fprintf(stderr, "screen_saver: memory allocation failure!\n"); */
-/* 		  abort(); */
-/* 		} */
-/* 	      images = temp; */
-/* 	    }				 */
-/* 	  strcpy(temp, paths->path); */
-/* 	  if (*(temp+strlen(temp)-1) != '/') strcat(temp, "/"); */
-/* 	  strcat(temp, entry->d_name); */
-/* 	  images[n_images] = temp; */
-/* 	  n_images++; */
-/* 	} */
-/*     } */
-/*       closedir(path); */
-/*       if (!silent) fprintf(stderr, "%d images so far...\n", n_images); */
-/*     } */
-  
-/*   return n_images; */
-/* } */
-
-/* void photo_screen_saver(IDirectFB *dfb, IDirectFBSurface *surface, int screen_width, int screen_height) */
-/* {	 */
-/*   IDirectFBImageProvider *provider;	 */
-/*   static int n_images = 0; */
-/*   static int error = 0; */
-/*   int errorcount = 0; */
-/*   int image; */
-  
-/*   if (!dfb || !surface || !image_paths) return; */
-/*   if (!n_images && !error) */
-/*     { */
-/*       time_t epoch; */
-/*       struct tm curr_time; */
-      
-/*       surface->Clear (surface, 0x00, 0x00, 0x00, 0xFF); */
-/*       surface->DrawString (surface, "Loading images list...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER); */
-/*       surface->Flip (surface, NULL, DSFLIP_BLIT);		 */
-/*       n_images = load_images_list(); */
-/*       epoch = time(NULL); */
-/*       localtime_r(&epoch, &curr_time); */
-/*       srand(curr_time.tm_sec); */
-/*     } */
-/*   if (!n_images) */
-/*     { */
-/*       static int toggle = 0; */
-/*       surface->Clear (surface, 0x00, 0x00, 0x00, 0xFF); */
-/*       if (!toggle) */
-/* 	surface->DrawString (surface, "No images to display!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER); */
-/*       surface->Flip (surface, NULL, DSFLIP_BLIT); */
-/*       toggle = !toggle; */
-/*       error = 1; */
-/*       return; */
-/*     } */
-  
-/*   while (errorcount < 100) */
-/*     { */
-/*       image = rand() % n_images; */
-/*       if (dfb->CreateImageProvider (dfb, images[image], &provider) == DFB_OK) break; */
-/*       errorcount++; */
-/*     } */
-  
-/*   surface->Clear (surface, 0x00, 0x00, 0x00, 0xFF); */
-/*   provider->RenderTo (provider, surface, NULL); */
-/*   provider->Release (provider); */
-/*   surface->Flip (surface, NULL, DSFLIP_BLIT); */
-/* } */

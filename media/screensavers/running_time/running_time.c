@@ -39,7 +39,8 @@ screen_saver_entry(Q_screen_t env)
   unsigned int seconds=0;
   unsigned int milli_seconds=50;
   
-  char string[15];
+  char string[64];
+  char* fmt;
   
   int x_slope;
   int y_slope;
@@ -55,12 +56,16 @@ screen_saver_entry(Q_screen_t env)
   
   x_slope=(rand() %2) +1 ;
   y_slope=(3-x_slope) ;
-
+  
+  if(*env.params)
+    fmt=*env.params;
+  else
+    fmt=strdup("%I:%M:%S %p");
   /* do screen saver until an input event arrives */
   while (1)
     {
       t=time(NULL);
-      strftime (string, 15, "%I:%M:%S %p", localtime(&t)); 
+      strftime (string, 64, fmt, localtime(&t)); 
       env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0xFF);
       env.surface->SetColor (env.surface, 0xFF, 0x50, 0x50, 0xFF);
       env.surface->DrawString (env.surface,
