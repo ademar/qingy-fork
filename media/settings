@@ -1,0 +1,3 @@
+FONT decker.ttf
+XSESSIONS_DIRECTORY /etc/X11/Sessions/
+XINIT /usr/X11R6/bin/xinit
