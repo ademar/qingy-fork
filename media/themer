@@ -19,12 +19,7 @@
 # along with GNU Emacs; see the file COPYING.  If not, write to the 
 # Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-$file=shift;
-rename "$file", "$file.old";
-F=open("<$file.old");
-O=open(">$file");
-
-print O <<END_O_HEAD;
+print<<END_O_HEAD;
 
 # Theme translated by $0. Please review and enhance manually!
 # $0 can be found @ http://yersinia.org/homes/paolino/projects/
@@ -34,7 +29,7 @@ theme
 background = "background.png"
 END_O_HEAD
 
-while(<F>){
+while(<>){
     s/FONT\s+(\S+)/font\="$1"/ 						or
     s/BUTTON_OPACITY\s+(\d+)/button_opacity\=$1/			or
     s/SELECTED_WINDOW_OPACITY\s+(\d+)/selected_window_opacity\=$1/	or
@@ -156,7 +151,5 @@ window
 }
 
 END_O_FOOT
-close(O);
-close(F);
 
 __END__
