@@ -37,7 +37,7 @@ static window_t wind;
 
 %%
 
-config: 
+config: /* nothing */
       | config ssav 
       | config xsessdir
       | config txtsessdir
