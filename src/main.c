@@ -54,6 +54,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#ifdef WANT_CRYPTO
+#include "crypto.h"
+#endif
+
 #include "memmgmt.h"
 #include "vt.h"
 #include "misc.h"
@@ -73,7 +77,9 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 	char    *username     = NULL;
 	char    *password     = NULL;
 	char    *session      = NULL;
-	size_t  len           = 0;
+#ifndef WANT_CRYPTO
+	size_t   len          = 0;
+#endif
 
   /* We clear the screen */
   ClearScreen();
@@ -158,8 +164,44 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 					}
 					/* remove comm file so that noone will tamper */
 					unlink(comm_file_name);
+
+#ifdef WANT_CRYPTO
+					/* we will write the public key to a (securely created) temp file... */
+					strcpy(comm_file_name + strlen(comm_file_name) - 6, "XXXXXX");
+					fd = mkstemp(comm_file_name);
+					if (fd == -1)
+					{
+						fprintf(stderr, "%s: fatal error: could not create temporary file!\n", argv[0]);
+						abort();
+					}
+					if (chmod(comm_file_name, S_IRUSR|S_IWUSR))
+					{
+						fprintf(stderr, "%s: fatal error: cannot chmod() file '%s'!\n", argv[0], comm_file_name);
+						abort();
+					}
+					fp = fdopen(fd, "w");
+					if (!fp)
+					{
+						fprintf(stderr, "%s: fatal error: unable to open temporary file '%s'!\n", argv[0], comm_file_name);
+						abort();
+					}
+					save_public_key(fp);
+
+					/* ...which we set up as standard input for our GUI */
+					if (!freopen(comm_file_name, "r", stdin))
+					{
+						fprintf(stderr, "%s: fatal error: unable to redirect standard input!\n", argv[0]);
+						exit(EXIT_FAILURE);
+					}
+					fclose(fp);
+
+					/* once set up, we unlink() it so that noone else will tamper */
+					unlink(comm_file_name);
+#endif
+
 					/* OK, let's fire up the GUI */
 					execve(gui_argv[0], gui_argv, NULL);
+
 					/* we should never get here unless the execve failed */
 					fprintf(stderr, "%s: fatal error: unable to execute %s!\n", argv[0], gui_argv[0]);
 					exit(EXIT_FAILURE);
@@ -169,9 +211,15 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 					break;
 			}
 
+#ifdef WANT_CRYPTO
+			username = decrypt_item(fp);
+			password = decrypt_item(fp);
+			session  = decrypt_item(fp);
+#else
 			if (getline(&username, &len, fp) == -1) username = NULL; len = 0;
 			if (getline(&password, &len, fp) == -1) password = NULL; len = 0;
 			if (getline(&session,  &len, fp) == -1) session  = NULL; len = 0;
+#endif
 
 			fclose(fp);
 			free(comm_file_name);
@@ -196,10 +244,12 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		free(gui_argv[--j]);
 		free(gui_argv);
 
+#ifndef WANT_CRYPTO
 		/* remove trailing newlines from these values */
 		if (username) username[strlen(username) - 1] = '\0';
 		if (password) password[strlen(password) - 1] = '\0';
 		if (session)  session [strlen(session)  - 1] = '\0';
+#endif
 	}
 	else
 	{
@@ -338,6 +388,10 @@ int main(int argc, char *argv[])
 
 	/* parse settings file again */
 	load_settings();
+
+#ifdef WANT_CRYPTO
+	generate_keys(); /* generate public/private keys */
+#endif
 
 	/* Should we log in user directly? Totally insecure, but handy */
 	if (check_autologin(our_tty_number)) start_up(argc, argv, our_tty_number, 1);

@@ -1,10 +1,10 @@
 /***************************************************************************
-                          memmgmt.c  -  description
+                           crypto.h  -  description
                             --------------------
-    begin                : Feb 16 2004
-    copyright            : (C) 2004-2005 by Noberasco Michele
-    e-mail               : noberasco.gnu@disi.unige.it
- ***************************************************************************/
+    begin                : Apr 10 2003
+    copyright            : (C) 2003-2005 by Noberasco Michele
+    e-mail               : s4t4n@gentoo.org
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -25,65 +25,17 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+/* generate a new public/private key pair */
+void generate_keys(void);
 
-#include "vt.h"
+/* save/restore public key info to/from file */
+void save_public_key   (FILE *fp);
+void restore_public_key(FILE *fp);
 
-void *my_calloc(size_t nmemb, size_t size)
-{	
-  void *temp = calloc(nmemb, size);
-  if (!temp)
-	{
-		perror("qingy: allocation error - FATAL");
-		abort();
-	}
-  
-  return temp;
-}
-
-void my_free(void *ptr)
-{
-  if (!ptr) return;
-  free(ptr);
-  ptr = NULL;
-}
-
-void my_exit(int n)
-{
-	unlock_tty_switching();
-  exit(n);
-}
-
-char *my_strdup(const char *s)
-{
-  char *temp;
-  
-  if (!s) return NULL;
-  temp = strdup(s);
-  if (!temp)
-	{
-    perror("qingy: allocation error - FATAL");
-    abort();
-  }
-  return temp;
-}
-
-char *my_strndup(const char *s, size_t len)
-{
-  char *temp;
-  
-  if (!s) return NULL;
-  temp = strndup(s, len);
-  if (!temp)
-	{
-    perror("qingy: allocation error - FATAL");
-    abort();
-  }
-  return temp;
-}
+/* encrypt and decrypt data with our current key,
+ * which must be obtained via generate_keys() or
+ * restore_public_key
+ */
+void  encrypt_item(FILE *fp, char *item);
+char *decrypt_item(FILE *fp);

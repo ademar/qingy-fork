@@ -150,6 +150,26 @@ AM_PATH_LISPDIR
 	AM_CONDITIONAL(WANT_STATIC, test "$enable_static_build" == "yes")
 # End compile statically stuff
 
+# Wether we should enable crypto support
+	AC_ARG_ENABLE(crypto, AC_HELP_STRING([--enable-crypto],
+	[make qingy encrypt communications with its user interface (default is yes)]),, [enable_crypto=yes])
+	if test "$enable_crypto" == "yes"; then
+		AC_CHECK_HEADERS([openssl/rsa.h openssl/engine.h openssl/bn.h])
+		AC_CHECK_LIB(crypto, RSA_new,[CRYPTOLIB="-lcrypto"])
+		AC_CHECK_LIB(crypto, RSA_free,[CRYPTOLIB="-lcrypto"])
+		AC_CHECK_LIB(crypto, RSA_generate_key,[CRYPTOLIB="-lcrypto"])
+		AC_CHECK_LIB(crypto, RSA_size,[CRYPTOLIB="-lcrypto"])
+		AC_CHECK_LIB(crypto, RSA_public_encrypt,[CRYPTOLIB="-lcrypto"])
+		AC_CHECK_LIB(crypto, RSA_private_decrypt,[CRYPTOLIB="-lcrypto"])
+		AC_CHECK_LIB(crypto, BN_hex2bn,[CRYPTOLIB="-lcrypto"])
+		AC_CHECK_LIB(crypto, BN_bn2hex,[CRYPTOLIB="-lcrypto"])
+		AC_DEFINE(WANT_CRYPTO, 1, [Define if we should enable crypto support])
+		AC_MSG_NOTICE([qingy will encrypt communications with its user interface])
+		AC_SUBST(CRYPTOLIB)
+	fi
+	AM_CONDITIONAL(WANT_CRYPTO, test "$enable_crypto" == "yes")
+# End check for crypto support
+
 # Wether we should disable screen saver support
 	AC_ARG_ENABLE(screen-savers, AC_HELP_STRING([--enable-screen-savers],
 	[enable support for screen savers (default is yes)]),, [enable_screen_savers=yes])
@@ -280,4 +300,5 @@ Configuration:
   Password library:           ${DISP_PASSWORD_LIBRARY}
   Screen savers support:      ${enable_screen_savers}
   gpm locking support:        ${enable_gpm_lock}
+  Crypto support:             ${enable_crypto}
 "

@@ -2,7 +2,7 @@
                           memmgmt.h  -  description
                             --------------------
     begin                : Feb 16 2004
-    copyright            : (C) 2003 by Noberasco Michele
+    copyright            : (C) 2004-2005 by Noberasco Michele
     e-mail               : noberasco.gnu@disi.unige.it
  ***************************************************************************/
 
@@ -30,11 +30,13 @@
 #endif
 
 /* safe allocation and deallocation functions */
-#define calloc my_calloc
-#define free   my_free
-#define exit   my_exit
-#define strdup my_strdup
-void *my_calloc(size_t  nmemb, size_t size);
-void  my_free  (void   *ptr);
-void  my_exit  (int     n);
-char *my_strdup(const char *s);
+#define calloc  my_calloc
+#define free    my_free
+#define exit    my_exit
+#define strdup  my_strdup
+#define strndup my_strndup
+void *my_calloc (size_t  nmemb, size_t size);
+void  my_free   (void   *ptr);
+void  my_exit   (int     n);
+char *my_strdup (const char *s);
+char *my_strndup(const char *s, size_t len);

@@ -24,10 +24,17 @@ libqingy_la_SOURCES =                 \
     misc.c           misc.h           \
     vt.c             vt.h
 
+if WANT_CRYPTO
+libqingy_la_SOURCES +=                \
+    crypto.c         crypto.h
+endif
 
-libqingy_la_LIBADD = @PASSWDLIB@
+EXTRA_libqingy_la_SOURCES =           \
+    crypto.c         crypto.h
+
+libqingy_la_LIBADD  = @PASSWDLIB@ @CRYPTOLIB@
 libqingy_la_LDFLAGS = -release @VERSION@
 
 libqingy_static_la_SOURCES = $(libqingy_la_SOURCES)
-libqingy_static_la_LIBADD = @PASSWDLIB@
+libqingy_static_la_LIBADD  = @PASSWDLIB@ @CRYPTOLIB@
 libqingy_static_la_LDFLAGS = -release @VERSION@

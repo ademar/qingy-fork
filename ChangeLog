@@ -1,3 +1,35 @@
+2005-03-16  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/Makefile.am,
+	* src/DirectFB/Makefile.am,
+	* src/libraries/Makefile.am,
+	* src/libraries/crypto.c,
+	* src/libraries/crypto.h,
+	* src/DirectFB/directfb_mode.c,
+	* src/main.c:
+	Moved crypto stuff to separate files.
+	Code clean ups...
+
+2005-03-15  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/memmgmt.h,
+	* src/libraries/memmgmt.c,
+	* configure.in,
+	* src/main.c,
+	* src/DirectFB/directfb_mode.c,
+	* src/DirectFB/Makefile.am:
+	Implemented support for encrypting communications
+	to a usable state...
+
+2005-03-14  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/main.c,
+	* src/libraries/Makefile.am, 
+	* configure.in:
+	Adding support for encrypting communications between qingy
+	and its user interface, trigered by new ./configure option:
+	--enable-crypto, enabled by default.
+
 2005-03-11  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/main.c (start_up):

@@ -38,6 +38,10 @@
 #include <directfb_keynames.h>
 #include <signal.h>
 
+#ifdef WANT_CRYPTO
+#include "crypto.h"
+#endif
+
 /* misc stuff */
 #include "memmgmt.h"
 #include "vt.h"
@@ -741,7 +745,16 @@ void start_login_sequence(DFBInputEvent *evt)
   user_name = strdup(temp);  
   user_session = strdup(session->selected->name);
   if (free_temp) free(temp);
+
+#ifdef WANT_CRYPTO
+	encrypt_item(stdout, user_name);
+	encrypt_item(stdout, password->text);
+	encrypt_item(stdout, user_session);
+	fflush(stdout);
+#else
 	fprintf(stdout, "%s\n%s\n%s\n", user_name, password->text, user_session);
+#endif
+
   free(user_name); free(user_session);
 
 	close_framebuffer_mode();
@@ -1169,6 +1182,10 @@ int main (int argc, char *argv[])
 	current_tty = ParseCMDLine(argc, argv, 0);
 	if (!load_settings()) return QINGY_FAILURE;
   if (!disable_last_user) lastuser = get_last_user();
+
+#ifdef WANT_CRYPTO
+	restore_public_key(stdin);
+#endif
 
 #ifdef USE_GPM_LOCK
   /* Stop GPM if necessary */
