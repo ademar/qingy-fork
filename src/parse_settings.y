@@ -32,6 +32,7 @@
 extern FILE* yyin;
 extern int yylex();
 extern int in_theme;
+static int clear_background_is_set = 0;
 
 static window_t wind =
   {
@@ -64,12 +65,16 @@ static window_t wind =
 %token SCREENSAVER_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK SHUTDOWN_TOK
 
 /* windows && theme blocks */
-%token THEME_TOK  WINDOW_TOK 
+%token THEME_TOK WINDOW_TOK 
 
-/* theme  */
+/* theme */
 %token RAND_TOK
+
+/* other lvals */
+%token CLEAR_BACKGROUND_TOK
+
 /* theme colors */
-%token  DEFAULT_TXT_COL_TOK DEFAULT_CUR_COL_TOK OTHER_TXT_COL_TOK 		     
+%token DEFAULT_TXT_COL_TOK DEFAULT_CUR_COL_TOK OTHER_TXT_COL_TOK 		     
 
 /* other theme lvals */
 %token BG_TOK FONT_TOK BUTTON_OPAC_TOK WIN_OP_TOK SEL_WIN_OP_TOK 			     
@@ -87,6 +92,9 @@ static window_t wind =
 /* window text orient */
 %token WTEXT_ORIENTATION WTEXT_LEFT_TOK WTEXT_CENTER_TOK WTEXT_RIGHT_TOK
 
+/* answer tokens */
+%token YES_TOK NO_TOK
+
 /* typed tokens: */
 %token <ival>  ANUM_T 		/* int */
 %token <str>   QUOTSTR_T	/* char* */
@@ -103,6 +111,9 @@ config: /* nothing */
 | config theme
 | config shutdown
 | config window
+| config CLEAR_BACKGROUND_TOK '=' YES_TOK { if (!clear_background_is_set) clear_background = 1; }
+| config CLEAR_BACKGROUND_TOK '=' NO_TOK  { if (!clear_background_is_set) clear_background = 0; }
+
 ;
 
 /* Screensaver: "name" or "name" = "option", "option"  */
@@ -167,6 +178,8 @@ themedefn: /* nothing */
 | themedefn strprop
 | themedefn anumprop
 | themedefn colorprop
+| themedefn CLEAR_BACKGROUND_TOK '=' YES_TOK { clear_background = 1; clear_background_is_set = 1; }
+| themedefn CLEAR_BACKGROUND_TOK '=' NO_TOK  { clear_background = 0; clear_background_is_set = 1; }
 ;
 
 /* color assignments */
@@ -204,14 +217,14 @@ colorprop: DEFAULT_TXT_COL_TOK '=' COLOR_T
 ;
 
 /* string properties */
-strprop: BG_TOK   '=' QUOTSTR_T { BACKGROUND = StrApp((char**)NULL, THEME_DIR, $3, (char*)NULL); }
-| FONT_TOK '=' QUOTSTR_T 	{ FONT       = StrApp((char**)NULL, THEME_DIR, $3, (char*)NULL); }
+strprop: BG_TOK '=' QUOTSTR_T { BACKGROUND = StrApp((char**)NULL, THEME_DIR, $3, (char*)NULL); }
+| FONT_TOK      '=' QUOTSTR_T { FONT       = StrApp((char**)NULL, THEME_DIR, $3, (char*)NULL); }
 ;
 
 /* numbers in themes */
-anumprop: BUTTON_OPAC_TOK '=' ANUM_T 	{ BUTTON_OPACITY          = $3; }
-| WIN_OP_TOK      '=' ANUM_T 		{ WINDOW_OPACITY          = $3; }
-| SEL_WIN_OP_TOK  '=' ANUM_T 		{ SELECTED_WINDOW_OPACITY = $3; }
+anumprop: BUTTON_OPAC_TOK '=' ANUM_T { BUTTON_OPACITY          = $3; }
+| WIN_OP_TOK              '=' ANUM_T { WINDOW_OPACITY          = $3; }
+| SEL_WIN_OP_TOK          '=' ANUM_T { SELECTED_WINDOW_OPACITY = $3; }
 ;
 
 /* a window in the theme */
@@ -219,28 +232,28 @@ window: WINDOW_TOK '{' windefns '}' { add_window_to_list(&wind); };
 
 windefns: windefn | windefns windefn;
 
-windefn: 'x'               '=' ANUM_T  	{ wind.x=$3;         		    }
-| 'y'               '=' ANUM_T    	{ wind.y=$3;                        }
-| WTYPE_TOK         '=' QUOTSTR_T 	{ wind.type     = get_win_type($3); }
-| WWIDTH_TOK        '=' ANUM_T    	{ wind.width    = $3;               }
-| WHEIGHT_TOK       '=' ANUM_T    	{ wind.height   = $3;               }
-| WCOMMAND_TOK      '=' QUOTSTR_T 	{ wind.command  = strdup($3);       }
-| WCONTENT_TOK      '=' QUOTSTR_T 	{ wind.content  = strdup($3);       }
-| WINDOW_LINK_TOK   '=' QUOTSTR_T 	{ wind.linkto   = strdup($3);       }
-| WPOLL_TIME_TOK    '=' ANUM_T    	{ wind.polltime = $3;               }
+windefn: 'x'        '=' ANUM_T    { wind.x=$3;                        }
+| 'y'               '=' ANUM_T    { wind.y=$3;                        }
+| WTYPE_TOK         '=' QUOTSTR_T { wind.type     = get_win_type($3); }
+| WWIDTH_TOK        '=' ANUM_T    { wind.width    = $3;               }
+| WHEIGHT_TOK       '=' ANUM_T    { wind.height   = $3;               }
+| WCOMMAND_TOK      '=' QUOTSTR_T { wind.command  = strdup($3);       }
+| WCONTENT_TOK      '=' QUOTSTR_T { wind.content  = strdup($3);       }
+| WINDOW_LINK_TOK   '=' QUOTSTR_T { wind.linkto   = strdup($3);       }
+| WPOLL_TIME_TOK    '=' ANUM_T    { wind.polltime = $3;               }
 | WTEXT_ORIENTATION '=' textorientation
 | WTEXT_SIZE_TOK    '=' wintextsize
 | wincolorprop
 ;
 
-textorientation: WTEXT_LEFT_TOK   	{ wind.text_orientation = LEFT;   }
-| WTEXT_CENTER_TOK 			{ wind.text_orientation = CENTER; }
-| WTEXT_RIGHT_TOK  			{ wind.text_orientation = RIGHT;  }
+textorientation: WTEXT_LEFT_TOK { wind.text_orientation = LEFT;   }
+| WTEXT_CENTER_TOK              { wind.text_orientation = CENTER; }
+| WTEXT_RIGHT_TOK               { wind.text_orientation = RIGHT;  }
 ;
 
-wintextsize: WTEXT_SMALL_TOK  	{ wind.text_size = SMALL;  }
-| WTEXT_MEDIUM_TOK 		{ wind.text_size = MEDIUM; }
-| WTEXT_LARGE_TOK 		{ wind.text_size = LARGE;  }
+wintextsize: WTEXT_SMALL_TOK { wind.text_size = SMALL;  }
+| WTEXT_MEDIUM_TOK           { wind.text_size = MEDIUM; }
+| WTEXT_LARGE_TOK            { wind.text_size = LARGE;  }
 ;
 
 /* local-to-window color properties */

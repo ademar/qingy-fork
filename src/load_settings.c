@@ -84,6 +84,7 @@ void initialize_variables(void)
   hide_last_user          = 0;
   hide_password           = 0;
   silent                  = 1;
+	clear_background        = 0;
   SHUTDOWN_POLICY         = EVERYONE;
   THEME_WIDTH             = 800;
   THEME_HEIGHT            = 600;

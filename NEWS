@@ -16,6 +16,9 @@ qingy CVS:
 - Added support for writing to /var/log/wtmp; this allows tools
   like 'who', 'w', 'finger' to be able to 'see' users logged
   in with qingy.
+- Added option in both setting and theme file to select wether you
+  want or not to clear the background image in dialogs like
+  "logging in user...".
 
 qingy 0.3.0 (09 January 2004):
 - New memory allocation/deallocation management

@@ -51,10 +51,10 @@ typedef struct _Button
 	int mouse;									 /* 1 if mouse is over button, 0 otherwise      */
 
 	/* methods */
-	void (*Destroy)(struct _Button *thiz);
-	void (*MouseOver)(struct _Button *thiz, int status);
-	void (*Show)(struct _Button *thiz);
-	void (*Hide)(struct _Button *thiz);
+	void (*Destroy)   (struct _Button *thiz);
+	void (*MouseOver) (struct _Button *thiz, int status);
+	void (*Show)      (struct _Button *thiz);
+	void (*Hide)      (struct _Button *thiz);
 
 } Button;
 
@@ -62,7 +62,7 @@ Button *Button_Create
 (
 	const char *normal,
 	const char *mouseover,
-	int xpos,  int ypos,
+	int xpos, int ypos,
 	IDirectFBDisplayLayer *layer,
 	IDirectFBSurface *primary,
 	IDirectFB *dfb

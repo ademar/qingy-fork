@@ -33,7 +33,6 @@
 #include <unistd.h>
 #include <directfb.h>
 #include <directfb_keynames.h>
-
 #include <signal.h>
 
 /* misc stuff */
@@ -52,14 +51,14 @@
 #include "screen_saver.h"
 
 
-#define POWEROFF 0
-#define REBOOT   1
+typedef enum
+{
+	STOP,
+	RESTART
+} shutdown_t;
 
 
-/*
- * Global variables... definitely too many!
- */
-
+/* some super-structures */
 typedef struct label_t
 {
   Label *label;
@@ -70,45 +69,50 @@ typedef struct label_t
   int    text_orientation;
   struct label_t *next;
 } Label_list;
-Label_list *Labels = NULL;
-
 typedef struct button_t
 {
   Button *button;
   struct button_t *next;
 } Button_list;
-Button_list *Buttons = NULL;
 
+
+
+/*
+ * Global variables... definitely too many!
+ */
+
+Label_list            *Labels             = NULL; /* This will contain all labels              */
+Button_list           *Buttons            = NULL; /* This will contain all text boxes          */
 IDirectFB             *dfb;                       /* the super interface                       */
 IDirectFBDisplayLayer *layer;                     /* the primary layer                         */
-IDirectFBSurface      *primary,                   /* surface of the primary layer              */
-  *panel_image        = NULL; /* background image                          */
+IDirectFBSurface      *primary;                   /* surface of the primary layer              */
+IDirectFBSurface      *panel_image        = NULL; /* background image                          */
 IDirectFBEventBuffer  *events;                    /* all input events will be stored here      */
 DeviceInfo            *devices            = NULL; /* the list of all input devices             */
-IDirectFBFont         *font_small,                /* fonts                                     */
-  *font_normal,
-  *font_large;  
-TextBox               *username           = NULL, /* text boxes                                */
-  *password           = NULL;
-Label                 *username_label     = NULL, /* labels                                    */
-  *password_label     = NULL,
-  *session_label      = NULL,
-  *lock_key_statusA   = NULL,
-  *lock_key_statusB   = NULL,
-  *lock_key_statusC   = NULL,
-  *lock_key_statusD   = NULL;
+IDirectFBFont         *font_small;                /* fonts                                     */
+IDirectFBFont         *font_normal;
+IDirectFBFont         *font_large;  
+TextBox               *username           = NULL; /* text boxes                                */
+TextBox               *password           = NULL;
+Label                 *username_label     = NULL; /* labels                                    */
+Label                 *password_label     = NULL;
+Label                 *session_label      = NULL;
+Label                 *lock_key_statusA   = NULL;
+Label                 *lock_key_statusB   = NULL;
+Label                 *lock_key_statusC   = NULL;
+Label                 *lock_key_statusD   = NULL;
 ComboBox              *session            = NULL; /* combo boxes                               */
-int                   we_stopped_gpm,             /* wether this program stopped gpm or not    */
-  screen_width,               /* screen resolution                         */
-  screen_height,
-  font_small_height,          /* font sizes                                */
-  font_normal_height,
-  font_large_height,
-  username_area_mouse   = 0,  /* sensible areas for mouse cursor to be in  */
-  password_area_mouse   = 0,
-  session_area_mouse    = 0,
-  screensaver_active    = 0,  /* screensaver stuff                         */
-  screensaver_countdown = 0;
+int                   we_stopped_gpm;             /* wether this program stopped gpm or not    */
+int                   screen_width;               /* screen resolution                         */
+int                   screen_height;
+int                   font_small_height;          /* font sizes                                */
+int                   font_normal_height;
+int                   font_large_height;
+int                   username_area_mouse   = 0;  /* sensible areas for mouse cursor to be in  */
+int                   password_area_mouse   = 0;
+int                   session_area_mouse    = 0;
+int                   screensaver_active    = 0;  /* screensaver stuff                         */
+int                   screensaver_countdown = 0;
 
 
 void Draw_Background_Image(int do_the_drawing)
@@ -413,12 +417,13 @@ void clear_screen(void)
   session->Hide(session);
   layer->EnableCursor (layer, 0);
   primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-  Draw_Background_Image(1);  
-  primary->SetFont (primary, font_large);
+	if (!clear_background) Draw_Background_Image(1);
+	else primary->Flip (primary, NULL, DSFLIP_BLIT);
+	primary->SetFont (primary, font_large);
   primary->SetColor (primary, OTHER_TEXT_COLOR.R, OTHER_TEXT_COLOR.G, OTHER_TEXT_COLOR.B, OTHER_TEXT_COLOR.A);
 }
 
-void begin_shutdown_sequence (int action)
+void begin_shutdown_sequence (shutdown_t action)
 {
   DFBInputEvent evt;
   char message[35];
@@ -466,18 +471,15 @@ void begin_shutdown_sequence (int action)
 		strcpy (message, "system ");
 		switch (action)
 		{
-			case POWEROFF:
+			case STOP:
 				strcat (message, "shutdown");
 				break;
-			case REBOOT:
+			case RESTART:
 				strcat (message, "restart");
 				break;
-			default:
-				Draw_Background_Image (1);
-				return;
 		}
 		primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-		Draw_Background_Image(0);
+		if (!clear_background) Draw_Background_Image(0);
 		strcat (message, " in ");
 		temp = int_to_str (countdown);
 		strcat (message, temp);
@@ -499,7 +501,7 @@ void begin_shutdown_sequence (int action)
 		primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
 		Draw_Background_Image(0);
 	}
-  if (action == POWEROFF)
+  if (action == STOP)
 	{
 		if (!no_shutdown_screen)
 		{
@@ -508,7 +510,7 @@ void begin_shutdown_sequence (int action)
 		}
 		execl ("/sbin/shutdown", "/sbin/shutdown", "-h", "now", (char*)NULL);
 	}
-  if (action == REBOOT)
+  if (action == RESTART)
 	{
 		if (!no_shutdown_screen)
 		{
@@ -529,8 +531,8 @@ void do_ctrl_alt_del(DFBInputEvent *evt)
   char *action = parse_inittab_file();
   
   if (!action) return;	
-  if (!strcmp(action, "poweroff")) {free(action); begin_shutdown_sequence (POWEROFF); return;}
-  if (!strcmp(action, "reboot"))   {free(action); begin_shutdown_sequence (REBOOT);   return;}
+  if (!strcmp(action, "poweroff")) {free(action); begin_shutdown_sequence (STOP);    return;}
+  if (!strcmp(action, "reboot"))   {free(action); begin_shutdown_sequence (RESTART); return;}
   
   /* we display a message */
   clear_screen();
@@ -580,10 +582,10 @@ void handle_mouse_event (DFBInputEvent *evt)
 					switch (button->command)
 					{
 						case HALT:
-							begin_shutdown_sequence (POWEROFF);
+							begin_shutdown_sequence (STOP);
 							break;
 						case REBOOT:
-							begin_shutdown_sequence (REBOOT);
+							begin_shutdown_sequence (RESTART);
 							break;
 						case SCREEN_SAVER:
 							screensaver_countdown = 0;
@@ -664,7 +666,7 @@ void start_login_sequence(DFBInputEvent *evt)
   if (!check_password(temp, password->text))
 	{
 		primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-		Draw_Background_Image(0);
+		if (!clear_background) Draw_Background_Image(0);
 		primary->DrawString (primary, "Login failed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 		primary->Flip (primary, NULL, DSFLIP_BLIT);
 		sleep(2);
@@ -674,7 +676,7 @@ void start_login_sequence(DFBInputEvent *evt)
 		return;
 	}
   primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-  Draw_Background_Image(0);
+  if (!clear_background) Draw_Background_Image(0);
   welcome_msg = get_welcome_msg(temp);
   primary->DrawString (primary, welcome_msg, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
   primary->Flip (primary, NULL, DSFLIP_BLIT);
@@ -719,9 +721,9 @@ int handle_keyboard_event(DFBInputEvent *evt)
 		if (modifier == ALT)
 		{	/* we check if user press ALT-p or ALT-r to start shutdown/reboot sequence */
 			if ((ascii_code == 'P')||(ascii_code == 'p')) 
-				begin_shutdown_sequence (POWEROFF);
+				begin_shutdown_sequence (STOP);
 			if ((ascii_code == 'R')||(ascii_code == 'r')) 
-				begin_shutdown_sequence (REBOOT);
+				begin_shutdown_sequence (RESTART);
 		}
 #ifdef POWER_KEYS
 		if (modifier == CONTROL)

@@ -36,6 +36,7 @@ int disable_last_user;
 int no_shutdown_screen;
 int use_screensaver;
 int screensaver_timeout;
+int clear_background;
 
 /* NOTE: some of these should become #defines through autoconf... */
 char *DATADIR;

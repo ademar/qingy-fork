@@ -16,6 +16,10 @@ theme
 	default_text_color   =  40, 180, 40, 255
 	default_cursor_color =  20,  90, 20, 221
 	other_text_color     = 255, 255,  0, 255
+
+# wether we should clear background image during dialogs
+# (default is no, unless you set it differently in qingy config file)...
+	clear_background = yes
 }
 
 window

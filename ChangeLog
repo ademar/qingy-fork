@@ -1,7 +1,26 @@
+2004-02-01  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/parse_settings.y:
+	* src/scan_settings.l:
+	* src/load_settings.h:
+	* src/load_settings.c:
+	* src/DirectFB/directfb_mode.c:
+	* configure.in:
+	* media/default/theme:
+	Add 'clear_background' statement support in theme
+	and settings files to tell qingy wether we should
+	clear the background image during messages like
+	'logging in xxyy...'. If set in settings file it
+	defines the default policy (we use that setting
+	if the theme file do not set it itself)...
+
 2004-01-30  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
+	* src/DirectFB/directfb_mode.c: cosmetic fixes,
+	some stuff to make it sompliant to GNU coding style
+
 	* src/session.c (add_utmp_wtmp_entry):
-	* src/session.c (add_utmp_wtmp_entry):
+	(add_utmp_wtmp_entry):
 	added functions to manage writing to /var/log/wtmp;
 	this is necessary for tools like 'who', 'w' and finger
 	to 'see' users logged in with qingy. Modified

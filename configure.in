@@ -157,13 +157,18 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	echo "#       screensaver \"pixel\"" >> media/settings
 	echo "screensaver \"running_time\"#=\"%H:%S:%M\"" >> media/settings
 	echo "" >> media/settings
-	echo "# What theme do you want (you can also specify 'random')" >> media/settings
-	echo "# theme = random" >> media/settings
-	echo "# theme = \"default\"" >> media/settings
-	echo "" >> media/settings
 	echo "# Who is allowed to shut down the system?" >> media/settings
 	echo "# Allowed options are 'everyone', 'root', 'noone'" >> media/settings
 	echo "# shutdown_policy = everyone" >> media/settings
+	echo "" >> media/settings
+	echo "# wether we should clear background image during dialogs (default is no)..." >> media/settings
+	echo "# this is the default setting, it gets overridden if the theme you are using" >> media/settings
+	echo "# sets the same setting differently..." >> media/settings
+	echo "# clear_background = yes" >> media/settings
+	echo "" >> media/settings
+	echo "# What theme do you want (you can also specify 'random')" >> media/settings
+	echo "# theme = random" >> media/settings
+	echo "# theme = \"default\"" >> media/settings
 
 	echo "done"
 # End creation of config files
