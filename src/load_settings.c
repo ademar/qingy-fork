@@ -53,27 +53,25 @@
 #include "misc.h"
 #include "chvt.h"
 
+extern FILE* yyin;
+extern int yyparse(void);
+
 char *DEFAULT_THEME;
 
 void set_default_session_dirs(void)
 {
-  X_SESSIONS_DIRECTORY = (char *) my_calloc(19, sizeof(char));
-  strcpy(X_SESSIONS_DIRECTORY, "/etc/X11/Sessions/");
-  TEXT_SESSIONS_DIRECTORY = (char *) my_calloc(20, sizeof(char));
-  strcpy(TEXT_SESSIONS_DIRECTORY, "/etc/qingy/sessions");
+  X_SESSIONS_DIRECTORY = strdup("/etc/X11/Sessions/");
+  TEXT_SESSIONS_DIRECTORY = strdup("/etc/qingy/sessions");
 }
 
 void set_default_xinit(void)
 {
-  XINIT = (char *) my_calloc(21, sizeof(char));
-  strcpy(XINIT, "/usr/X11R6/bin/xinit");
+  XINIT = strdup("/usr/X11R6/bin/xinit");
 }
 
 void set_default_font(void)
 {
-  FONT = (char *) my_calloc(strlen(DEFAULT_THEME)+11, sizeof(char));
-  strcat(FONT, DEFAULT_THEME);
-  strcat(FONT, "decker.ttf");
+  FONT = StrApp((char**)NULL, DEFAULT_THEME, "decker.ttf",(char *)NULL);
 }
 
 void set_default_colors(void)
@@ -98,7 +96,7 @@ void set_default_colors(void)
   OTHER_TEXT_COLOR_A = 0xFF;
 }
 
-void error(char *where)
+void yyerror(char *where)
 {
   if (!silent) fprintf(stderr, "qingy: parse error in %s file... reverting to text mode.\n", where);
   if (X_SESSIONS_DIRECTORY) free(X_SESSIONS_DIRECTORY);
@@ -163,11 +161,7 @@ char *get_random_theme()
 
 int load_settings(void)
 {
-  FILE *fp;
-  char *theme = NULL;
-  char tmp[MAX];
-  int temp[4];
-
+ 
   TEXT_SESSIONS_DIRECTORY = X_SESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;
 
   DATADIR = (char *) my_calloc(12, sizeof(char));
@@ -182,8 +176,8 @@ int load_settings(void)
   strcpy(DEFAULT_THEME, DATADIR);
   strcat(DEFAULT_THEME, "themes/default/");
 
-  fp = fopen(SETTINGS, "r");
-  if (!fp)
+  yyin = fopen(SETTINGS, "r");
+  if (!yyin)
   {
     if (!silent) fprintf(stderr, "load_Settings: settings file not found...\nusing internal defaults\n");
     set_default_session_dirs();
@@ -193,144 +187,8 @@ int load_settings(void)
     free(DEFAULT_THEME); DEFAULT_THEME = NULL;
     return 0;
   }
-  while (fscanf(fp, "%s", tmp) != EOF)
-  {
-    int err = 0;
-    int found = 0;
-
-		if (tmp[0] == '#')
-		{
-			char c;			
-
-			while (1)
-			{
-				c = fgetc(fp);
-				if (c == '\n') break;
-				if (c == EOF)  break;
-			}
-			continue;
-		}
-
-		if (strcmp(tmp, "SCREEN_SAVER") == 0)
-		{
-      if (fscanf(fp, "%s", tmp) == EOF)
-      {
-				err = 1;
-				break;
-      }
-			if (!strcmp(tmp, "pixel")) SCREENSAVER = PIXEL_SCREENSAVER;
-			if (!strcmp(tmp, "photo")) SCREENSAVER = PHOTO_SCREENSAVER;
-      found=1;
-		}
-    if (strcmp(tmp, "IMAGES_PATH") == 0)
-    {
-			struct _image_paths *paths = image_paths;
-			char temp[512];
-			char *path;
-			int len;
-			
-			path = fgets(temp, 512, fp);
-			if (!path)
-			{
-				err = 1;
-				break;
-			}
-			while (path)
-			{
-				if (path[0] == ' ')  {path++; continue;}
-				if (path[0] == '\t') {path++; continue;}
-				if (path[0] == '"')  path++;
-				if (path[0] == '\n') err = 1;
-				break;
-			}
-			if (err == 1) break;
-			len = strlen(path);
-			if (path[len-1] == '\n') path[--len] = '\0';
-			if (path[len-1] == '"') path[--len] = '\0';
-
-			if (!paths)
-			{
-				image_paths = (struct _image_paths *) my_calloc(1, sizeof(struct _image_paths));
-				paths = image_paths;
-			}
-			else
-			{
-				while (paths->next != NULL) paths = paths->next;
-				paths->next = (struct _image_paths *) my_calloc(1, sizeof(struct _image_paths));
-				paths = paths->next;
-			}
-			paths->path = (char *) my_calloc(len+1, sizeof(char));
-			strcpy(paths->path, path);
-			paths->next = NULL;
-      found=1;
-			if (!silent) fprintf(stderr, "Added '%s' to the image paths\n", paths->path);
-    }
-    if (strcmp(tmp, "X_SESSIONS_DIRECTORY") == 0)
-    {
-      if (fscanf(fp, "%s", tmp) == EOF)
-      {
-				err = 1;
-				break;
-      }
-      X_SESSIONS_DIRECTORY = (char *) my_calloc(strlen(tmp)+1, sizeof(char));
-      strcpy(X_SESSIONS_DIRECTORY, tmp);
-      found=1;
-    }
-    if (strcmp(tmp, "TEXT_SESSIONS_DIRECTORY") == 0)
-    {
-      if (fscanf(fp, "%s", tmp) == EOF)
-      {
-				err = 1;
-				break;
-      }
-      TEXT_SESSIONS_DIRECTORY = (char *) my_calloc(strlen(tmp)+1, sizeof(char));
-      strcpy(TEXT_SESSIONS_DIRECTORY, tmp);
-      found=1;
-    }
-    if (strcmp(tmp, "XINIT") == 0)
-    {
-      if (fscanf(fp, "%s", tmp) == EOF)
-      {
-				err = 1;
-				break;
-      }
-      XINIT = (char *) my_calloc(strlen(tmp)+1, sizeof(char));
-      strcpy(XINIT, tmp);
-      found = 1;
-    }
-    if (strcmp(tmp, "THEME") == 0)
-    {
-      if (fscanf(fp, "%s", tmp) == EOF)
-      {
-				err = 1;
-				break;
-      }
-      if (!strcmp(tmp, "random") || !strcmp(tmp, "RANDOM") || !strcmp(tmp, "Random"))
-      {
-				char *temp = get_random_theme();
-				strcpy(tmp, temp);
-				free(temp);
-      }
-      THEME_DIR = (char *) my_calloc(strlen(DATADIR)+strlen(tmp)+9, sizeof(char));
-      strcpy(THEME_DIR, DATADIR);
-      strcat(THEME_DIR, "themes/");
-      strcat(THEME_DIR, tmp);
-      if (THEME_DIR[strlen(THEME_DIR)-1] != '/')
-				THEME_DIR[strlen(THEME_DIR)] = '/';
-      theme = (char *) my_calloc(strlen(THEME_DIR)+6, sizeof(char));
-      strcpy(theme, THEME_DIR);
-      strcat(theme, "theme");
-      found = 1;
-    }
-    if (!found || err)
-    {
-      error("settings");
-      fclose(fp);
-      free(DEFAULT_THEME); DEFAULT_THEME = NULL;
-      return 0;
-    }
-  }
-  fclose(fp);
+  yyparse();
+  fclose(yyin);
 
   if (!X_SESSIONS_DIRECTORY) set_default_session_dirs();
   if (!XINIT) set_default_xinit();
