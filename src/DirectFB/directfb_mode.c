@@ -331,7 +331,7 @@ void begin_shutdown_sequence (int action)
 	switch (SHUTDOWN_POLICY)
 	{
 	case NOONE: /* no one is allowed to shut down the system */
-    primary->DrawString (primary, "Shuttting down this machine is not allowed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+    primary->DrawString (primary, "Shutting down this machine is not allowed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
     primary->Flip (primary, NULL, 0);
 		sleep(2);
 		events->GetEvent(events, DFB_EVENT (&evt));
