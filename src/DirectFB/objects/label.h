@@ -26,10 +26,15 @@
  ***************************************************************************/
 
 
+/* text alignment */
 #define LEFT         0
 #define CENTER       1
 #define RIGHT        2
 #define CENTERBOTTOM 3
+
+/* modes of displaying */
+#define NORMAL 0
+#define SOLID  1
 
 typedef struct _Label
 {

@@ -390,8 +390,8 @@ void restore_default_contents(window_t *window)
   window->polltime          = 0;
 	window->text_size         = LARGE;
 	window->text_orientation  = LEFT;
-	window->text_color        = NULL;
-	window->cursor_color      = NULL;
+	window->text_color        = &DEFAULT_TEXT_COLOR;
+	window->cursor_color      = &DEFAULT_CURSOR_COLOR;
   window->type              = UNKNOWN;
   window->next              = NULL;
 	window->content           = NULL;
@@ -414,15 +414,13 @@ int add_window_to_list(window_t *w)
 		{
 			if (temp->type == w->type)
 			{ /* we overwrite old settings with new ones */
-				temp->x              = w->x;
-				temp->y              = w->y;
-				temp->width          = w->width;
-				temp->height         = w->height;
-				temp->text_size      = w->text_size;
-				if (w->text_color) temp->text_color = w->text_color;
-				else temp->text_color = &DEFAULT_TEXT_COLOR;	
-				if (w->cursor_color) temp->cursor_color = w->cursor_color;
-				else temp->cursor_color = &DEFAULT_CURSOR_COLOR;
+				temp->x            = w->x;
+				temp->y            = w->y;
+				temp->width        = w->width;
+				temp->height       = w->height;
+				temp->text_size    = w->text_size;
+				temp->text_color   = w->text_color;
+				temp->cursor_color = w->cursor_color;
 				/*
 				 * other settings are not used in this kind of window
 				 * so we don't bother copying them...
@@ -458,10 +456,8 @@ int add_window_to_list(window_t *w)
   aux->content          = strdup(w->content);
 	aux->linkto           = strdup(w->linkto);
   aux->next             = NULL;
-	if (w->text_color) aux->text_color = w->text_color;
-	else aux->text_color = &DEFAULT_TEXT_COLOR;	
-	if (w->cursor_color) aux->cursor_color = w->cursor_color;
-	else aux->cursor_color = &DEFAULT_CURSOR_COLOR;
+	aux->text_color       = w->text_color;	
+	aux->cursor_color     = w->cursor_color;
 
 	restore_default_contents(w);
 
@@ -524,7 +520,7 @@ int check_windows_sanity()
 			fprintf(stderr, "Invalid combo window: forbidden command '%s'.\n", temp->command);
 			return 0;
 		case BUTTON:
-			if (temp->command)
+			if (temp->content && temp->command)
 			{
 				if (!strcmp(temp->command, "halt"       )) break;
 				if (!strcmp(temp->command, "reboot"     )) break;
@@ -533,6 +529,7 @@ int check_windows_sanity()
 			}
 			fprintf(stderr, "Invalid button: command must be one of the following:\n");
 			fprintf(stderr, "halt, reboot, sleep, screensaver\n");
+			fprintf(stderr, "And content must point to button images\n");
 			return 0;
 		case LABEL:
 			break;

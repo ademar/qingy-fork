@@ -6,7 +6,7 @@ theme
 # opacity values, from 0 (transparent) to 255 (opaque)
 	button_opacity          = 255
 	window_opacity          = 128
-	selected_window_opacity = 207
+	selected_window_opacity = 255
 
 # Colors can be given in a hex quadruplet (values from 00 to ff)
 # or via comma-separated decimals (0 to 255). Format is RGBA
@@ -38,13 +38,14 @@ window
 	#cursor_color =  90, 20, 20, 221
 
 	# update time, 0 means do not update, which is default
-	#time = 0
+	# this setting has meaning only if window type is "label"
+	# time = 0
 
 	# window type, allowed values are:
 	# "label", "button", "login", "password", "combo"
 	type    = "label"
 	content = "Welcome to <INS_CMD_HERE>"
-	# The <INS_CMD_HERE> above is substituted with the output of the following
+	# The <INS_CMD_HERE> above is substituted with the output of 'command'
 	command = "hostname"
 }
 
@@ -63,7 +64,7 @@ window
 
 	type    = "label"
 	content = "<INS_CMD_HERE>"
-	command = "uptime"
+	command = "echo `date +%a,` `date +%d` `date +%b` `date +%Y,` `uptime`"
 }
 
 window

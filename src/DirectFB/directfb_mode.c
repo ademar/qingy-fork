@@ -75,29 +75,32 @@ Button_list *Buttons = NULL;
 /*
  * Global variables... definitely too many!
  */
-IDirectFB             *dfb;                    /* the super interface                       */
-IDirectFBDisplayLayer *layer;                  /* the primary layer                         */
-IDirectFBSurface      *primary,                /* surface of the primary layer              */
-                      *panel_image     = NULL; /* background image                          */
-IDirectFBEventBuffer  *events;                 /* all input events will be stored here      */
-DeviceInfo            *devices         = NULL; /* the list of all input devices             */
-IDirectFBFont         *font_small,             /* fonts                                     */
+IDirectFB             *dfb;                     /* the super interface                       */
+IDirectFBDisplayLayer *layer;                   /* the primary layer                         */
+IDirectFBSurface      *primary,                 /* surface of the primary layer              */
+                      *panel_image      = NULL; /* background image                          */
+IDirectFBEventBuffer  *events;                  /* all input events will be stored here      */
+DeviceInfo            *devices          = NULL; /* the list of all input devices             */
+IDirectFBFont         *font_small,              /* fonts                                     */
                       *font_normal,
                       *font_large;  
-TextBox               *username        = NULL, /* text boxes                                */
-                      *password        = NULL;
-Label                 *username_label  = NULL, /* labels                                    */
-                      *password_label  = NULL,
-                      *session_label   = NULL,
-                      *lock_key_status = NULL;
-ComboBox              *session         = NULL; /* combo boxes                               */
-int                   we_stopped_gpm,          /* wether this program stopped gpm or not    */
-                      screen_width,            /* screen resolution                         */
+TextBox               *username         = NULL, /* text boxes                                */
+                      *password         = NULL;
+Label                 *username_label   = NULL, /* labels                                    */
+                      *password_label   = NULL,
+                      *session_label    = NULL,
+                      *lock_key_statusA = NULL,
+                      *lock_key_statusB = NULL,
+                      *lock_key_statusC = NULL,
+                      *lock_key_statusD = NULL;
+ComboBox              *session          = NULL; /* combo boxes                               */
+int                   we_stopped_gpm,           /* wether this program stopped gpm or not    */
+                      screen_width,             /* screen resolution                         */
                       screen_height,
-                      font_small_height,       /* font sizes                                */
+                      font_small_height,        /* font sizes                                */
                       font_normal_height,
                       font_large_height,
-                      username_area_mouse = 0, /* sensible areas for mouse cursor to be in  */
+                      username_area_mouse = 0,  /* sensible areas for mouse cursor to be in  */
                       password_area_mouse = 0,
                       session_area_mouse  = 0;
 
@@ -187,7 +190,10 @@ void close_framebuffer_mode (void)
 	}
 
   if (panel_image) panel_image->Release (panel_image);
-  if (lock_key_status) lock_key_status->Destroy(lock_key_status);
+  if (lock_key_statusA) lock_key_statusA->Destroy(lock_key_statusA);
+	if (lock_key_statusB) lock_key_statusB->Destroy(lock_key_statusB);
+	if (lock_key_statusC) lock_key_statusC->Destroy(lock_key_statusC);
+	if (lock_key_statusD) lock_key_statusD->Destroy(lock_key_statusD);
   if (username) username->Destroy(username);
   if (password) password->Destroy(password);
   if (session) session->Destroy(session);
@@ -324,8 +330,20 @@ void handle_mouse_movement (void)
 
 void show_lock_key_status(DFBInputEvent *evt)
 {
-  if (lock_is_pressed(evt) == 3) lock_key_status->Show(lock_key_status);
-  else lock_key_status->Hide(lock_key_status);
+  if (lock_is_pressed(evt) == 3)
+	{
+		lock_key_statusA->Show(lock_key_statusA);
+		lock_key_statusB->Show(lock_key_statusB);
+		lock_key_statusC->Show(lock_key_statusC);
+		lock_key_statusD->Show(lock_key_statusD);
+	}
+  else
+	{
+		lock_key_statusA->Hide(lock_key_statusA);
+		lock_key_statusB->Hide(lock_key_statusB);
+		lock_key_statusC->Hide(lock_key_statusC);
+		lock_key_statusD->Hide(lock_key_statusD);
+	}
 }
 
 void reset_screen(DFBInputEvent *evt)
@@ -376,7 +394,10 @@ void clear_screen(void)
 
   username->Hide(username);
   password->Hide(password);
-  lock_key_status->Hide(lock_key_status);
+  lock_key_statusA->Hide(lock_key_statusA);
+	lock_key_statusB->Hide(lock_key_statusB);
+	lock_key_statusC->Hide(lock_key_statusC);
+	lock_key_statusD->Hide(lock_key_statusD);
   session->Hide(session);
   layer->EnableCursor (layer, 0);
   primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
@@ -928,15 +949,35 @@ int create_windows()
 	}
 	destroy_windows_list(windowsList);
 
+	/* Finally we create the four "CAPS LOCK is pressed" windows... */
   window_desc.posx   = 0;
   window_desc.posy   = screen_height - (font_small_height);
   window_desc.width  = screen_width/5;
   window_desc.height = font_small_height;
-  lock_key_status = Label_Create(layer, font_small, &OTHER_TEXT_COLOR, &window_desc);
-	lock_key_status->SetFocus(lock_key_status, 1);
-	lock_key_status->Hide(lock_key_status);
-  if (!lock_key_status) return 0;
-	lock_key_status->SetText(lock_key_status, "CAPS LOCK is pressed", CENTERBOTTOM);
+  lock_key_statusA = Label_Create(layer, font_small, &OTHER_TEXT_COLOR, &window_desc);
+	if (!lock_key_statusA) return 0;
+	lock_key_statusA->SetFocus(lock_key_statusA, 1);
+	lock_key_statusA->Hide(lock_key_statusA);  
+	lock_key_statusA->SetText(lock_key_statusA, "CAPS LOCK is pressed", CENTERBOTTOM);
+	window_desc.posy = 0;
+  lock_key_statusB = Label_Create(layer, font_small, &OTHER_TEXT_COLOR, &window_desc);
+  if (!lock_key_statusB) return 0;
+	lock_key_statusB->SetFocus(lock_key_statusB, 1);
+	lock_key_statusB->Hide(lock_key_statusB);
+	lock_key_statusB->SetText(lock_key_statusB, "CAPS LOCK is pressed", LEFT);
+	window_desc.posx = screen_width - screen_width/5;
+	window_desc.height = 2*font_small_height;
+  lock_key_statusC = Label_Create(layer, font_small, &OTHER_TEXT_COLOR, &window_desc);
+  if (!lock_key_statusC) return 0;
+	lock_key_statusC->SetFocus(lock_key_statusC, 1);
+	lock_key_statusC->Hide(lock_key_statusC);
+	lock_key_statusC->SetText(lock_key_statusC, "CAPS LOCK is pressed", RIGHT);
+	window_desc.posy = screen_height - (font_small_height);
+  lock_key_statusD = Label_Create(layer, font_small, &OTHER_TEXT_COLOR, &window_desc);
+  if (!lock_key_statusD) return 0;
+	lock_key_statusD->SetFocus(lock_key_statusD, 1);
+	lock_key_statusD->Hide(lock_key_statusD);
+	lock_key_statusD->SetText(lock_key_statusD, "CAPS LOCK is pressed", RIGHT);
 
 	return 1;
 }

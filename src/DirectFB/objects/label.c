@@ -40,7 +40,9 @@
 void Plot(Label *thiz)
 {
 	if (!thiz || !thiz->surface) return;
+
 	thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
+
 	if (thiz->text)
 		switch (thiz->alignment)
 		{
