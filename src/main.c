@@ -52,7 +52,7 @@
 
 char *fb_device = NULL;
 
-void Error()
+void PrintUsage()
 {
   printf("\nqingy version %s\n", VERSION);
   printf("\nusage: ginqy <ttyname> [options]\n");
@@ -74,11 +74,6 @@ void Error()
   printf("\t--black-screen-workaround\n");
   printf("\tTry this if you get a black screen instead of a text console.\n");
   printf("\tNote: switching to another vt and back also solves the problem.\n\n");
-
-	/* We reenable VT switching if it is disabled */
-	unlock_tty_switching();
-  
-  exit(EXIT_FAILURE);
 }
 
 void text_mode()
@@ -88,6 +83,16 @@ void text_mode()
   /* We should never get here... */
   fprintf(stderr, "\nCannot exec \"/bin/login\"...\n");
   exit(EXIT_FAILURE);
+}
+
+void Error(int fatal)
+{
+	/* We reenable VT switching if it is disabled */
+	unlock_tty_switching();   
+
+	PrintUsage();
+	if (!fatal) text_mode();
+	exit(EXIT_FAILURE);
 }
 
 void start_up(void)
@@ -154,17 +159,17 @@ int ParseCMDLine(int argc, char *argv[])
   char *tty;
   int our_tty_number;
      
-  if (argc < 2) Error();
+  if (argc < 2) Error(1);
   tty= argv[1];
-  if (strncmp(tty, "tty", 3) != 0) Error();
+  if (strncmp(tty, "tty", 3) != 0) Error(1);
   our_tty_number= atoi(tty+3);
-  if (our_tty_number < 1) Error();
+  if (our_tty_number < 1) Error(1);
      
   for (i=2; i<argc; i++)
   {
     if (strcmp(argv[i], "--fb-device") == 0)
     {
-      if (i == argc) Error();
+      if (i == argc) Error(0);
       i++;
       fb_device = argv[i];
       continue;
@@ -174,10 +179,10 @@ int ParseCMDLine(int argc, char *argv[])
     {
       int temp;
 	       
-      if (i == argc) Error();
+      if (i == argc) Error(0);
       i++;
       temp = atoi(argv[i]);
-      if (temp < 0) Error();
+      if (temp < 0) Error(0);
       if (!temp)
       {
 				use_screensaver = 0;
@@ -214,7 +219,7 @@ int ParseCMDLine(int argc, char *argv[])
       continue;
     }
 	  
-    Error();
+    Error(0);
   }
      
   return our_tty_number;

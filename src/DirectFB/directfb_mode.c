@@ -711,7 +711,7 @@ int directfb_mode (int argc, char *argv[])
   ScreenSaver screen_saver;
 
   /* load settings from file */
-  load_settings();
+  if (!load_settings()) return TEXT_MODE;
   lastuser = get_last_user();
 
   /* Stop GPM if necessary */

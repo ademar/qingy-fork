@@ -100,7 +100,7 @@ void set_default_colors(void)
 
 void error(char *where)
 {
-  if (!silent) fprintf(stderr, "load_settings: parse error in %s file... using defaults\n", where);
+  if (!silent) fprintf(stderr, "qingy: parse error in %s file... reverting to text mode.\n", where);
   if (X_SESSIONS_DIRECTORY) free(X_SESSIONS_DIRECTORY);
   if (TEXT_SESSIONS_DIRECTORY) free(TEXT_SESSIONS_DIRECTORY);
   if (XINIT) free(XINIT);
