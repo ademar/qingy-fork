@@ -57,7 +57,7 @@ It allows the user to log in and start the session of his choice
 \----------------/
 Output of 'qingy -h':
 
-qingy version 0.4.0
+qingy version 0.5.0
 
 usage: ginqy <ttyname> [options]
 Options:
@@ -84,10 +84,6 @@ Options:
         Activate screensaver after <timeout> minutes (default is 5).
         A value of 0 disables screensaver completely.
 
-        -b, --black-screen-workaround
-        Try this if you get a black screen instead of a text console.
-        Note: switching to another vt and back also solves the problem.
-
         -r <xres>x<yres>, --resolution <xres>x<yres>
         Do not detect framebuffer resolution, use this one instead.
 
@@ -105,4 +101,5 @@ that you can tweak as you need/like.
 
 Qingy comes with extensive documentation in the form of TeXinfo
 documents (the GNU standard documentation method). Just type `info
-qingy` from a shell to browse it.
+qingy` from a shell to browse it. It is quite outdated now, but
+still useful...
