@@ -74,6 +74,23 @@
 - someone reported that user gets increased when logging in, but not
   decreased when logging out!
 
+- write a FAQ
+
+- allow for buttons with no action associated to them, like "command = NULL"
+
+- allow for linkings elements together, so that when you mouse over 
+  one of them, all get the mouseover effect...
+	window {
+		id = pippo
+		...
+	}
+	window {
+		if = pluto
+		mouseOver.linkTo = "pippo"
+  }
+
+- Support for scripting things...
+
 --
 Items marked as * are those we are currently working on.
 For stuff already done, see NEWS file...

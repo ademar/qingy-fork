@@ -32,6 +32,7 @@
 /* available commands */
 typedef enum
 {
+	NO_ACTION,
 	HALT,
 	REBOOT,
 	SLEEP,

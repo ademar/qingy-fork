@@ -618,6 +618,8 @@ void handle_mouse_event (DFBInputEvent *evt)
 							reset_screen(&evt);
 							break;
 						}
+						default: /* no action */
+							break;
 					}
 
 			if (username_area_mouse && status == 1)
@@ -996,10 +998,15 @@ int create_windows()
 				buttons->next = NULL;
 				buttons->button->MouseOver(buttons->button, 0);
 				free(image1); free(image2);
-				if (!strcmp(window->command, "halt"       )) buttons->button->command = HALT;
-				if (!strcmp(window->command, "reboot"     )) buttons->button->command = REBOOT;
-				if (!strcmp(window->command, "sleep"      )) buttons->button->command = SLEEP;
-				if (!strcmp(window->command, "screensaver")) buttons->button->command = SCREEN_SAVER;
+				if (!window->command)
+					buttons->button->command = NO_ACTION;
+				else
+				{
+					if (!strcmp(window->command, "halt"       )) buttons->button->command = HALT;
+					if (!strcmp(window->command, "reboot"     )) buttons->button->command = REBOOT;
+					if (!strcmp(window->command, "sleep"      )) buttons->button->command = SLEEP;
+					if (!strcmp(window->command, "screensaver")) buttons->button->command = SCREEN_SAVER;
+				}
 				break;
 			}
 			case COMBO:

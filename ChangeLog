@@ -1,9 +1,18 @@
+2004-06-14  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/DirectFB/objects/button.h (enum),
+	* src/DirectFB/directfb_mode.c (create_windows),
+	(handle_mouse_event),
+	* src/libraries/load_settings.c (check_windows_sanity),
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l:
+	Allow for buttons with no action associated to them.
+
 2004-04-26  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* most_files_have_been_changed,
 	* qingy.spec.in added:
-	Accepted huge patch from Konstantin Korikov
-	<lostclus@ukr.net>:
+	Accepted huge patch from Konstantin Korikov <lostclus@ukr.net>:
 	"I send to you two patches: first fixes building
 	and configuration process, second fixes bug in opening
 	session using PAM.

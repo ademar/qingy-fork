@@ -83,6 +83,9 @@ static window_t wind =
 /* other lvals */
 %token CLEAR_BACKGROUND_TOK LOCK_SESSIONS_TOK
 
+/* other rvals */
+%token NULL_TOK
+
 /* theme colors */
 %token DEFAULT_TXT_COL_TOK DEFAULT_CUR_COL_TOK OTHER_TXT_COL_TOK 		     
 
@@ -320,13 +323,17 @@ windefn: 'x'        '=' ANUM_T    { TTY_CHECK_COND wind.x=$3;                   
 | WTYPE_TOK         '=' QUOTSTR_T { TTY_CHECK_COND wind.type     = get_win_type($3); }
 | WWIDTH_TOK        '=' ANUM_T    { TTY_CHECK_COND wind.width    = $3;               }
 | WHEIGHT_TOK       '=' ANUM_T    { TTY_CHECK_COND wind.height   = $3;               }
-| WCOMMAND_TOK      '=' QUOTSTR_T { TTY_CHECK_COND wind.command  = strdup($3);       }
+| WCOMMAND_TOK      '=' buttoncommand
 | WCONTENT_TOK      '=' QUOTSTR_T { TTY_CHECK_COND wind.content  = strdup($3);       }
 | WINDOW_LINK_TOK   '=' QUOTSTR_T { TTY_CHECK_COND wind.linkto   = strdup($3);       }
 | WPOLL_TIME_TOK    '=' ANUM_T    { TTY_CHECK_COND wind.polltime = $3;               }
 | WTEXT_ORIENTATION '=' textorientation
 | WTEXT_SIZE_TOK    '=' wintextsize
 | wincolorprop
+;
+
+buttoncommand: NULL_TOK { TTY_CHECK_COND wind.command = NULL;       }
+| QUOTSTR_T             { TTY_CHECK_COND wind.command = strdup($1); }
 ;
 
 textorientation: WTEXT_LEFT_TOK { TTY_CHECK_COND wind.text_orientation = LEFT;   }

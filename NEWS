@@ -7,6 +7,9 @@ qingy CVS:
 - Made sure that if qingy dies horribly during initialization,
   it does it with tty switching enabled so that user is not
   stuck in front of a 'respawning too fast' message...
+- Allow for buttons with no action associated to them,
+  just use "action = NULL", thanks to a suggestion from
+  Dark Liquid (http://www.darkliquid.net/)
 
 
 qingy 0.4.0 (18 March 2004):

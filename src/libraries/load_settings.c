@@ -1,3 +1,4 @@
+
 /***************************************************************************
                        load_settings.c  -  description
                             --------------------
@@ -600,8 +601,9 @@ int check_windows_sanity()
 				fprintf(stderr, "Invalid combo window: forbidden command '%s'.\n", temp->command);
 				return 0;
 			case BUTTON:
-				if (temp->content && temp->command)
+				if (temp->content)
 				{
+					if (!temp->command) break;
 					if (!strcmp(temp->command, "halt"       )) break;
 					if (!strcmp(temp->command, "reboot"     )) break;
 					if (!strcmp(temp->command, "sleep"      )) break;
