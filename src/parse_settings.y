@@ -64,12 +64,24 @@ themedefn: 			/* nothing */
 
 colorprop: MASK_TXT_COL_TOK '=' COLOR_T { MASK_TEXT_COLOR_R=$3[3]; MASK_TEXT_COLOR_G=$3[2]; 
 					  MASK_TEXT_COLOR_B=$3[1]; MASK_TEXT_COLOR_A=$3[0];}
-
+	  | MASK_TXT_COL_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T {
+                                              MASK_TEXT_COLOR_R = $3; MASK_TEXT_COLOR_G= $5; 
+					      MASK_TEXT_COLOR_B = $7; MASK_TEXT_COLOR_A= $9; 
+	   }
+ 
 	   | TXT_CUR_COL_TOK '=' COLOR_T  { TEXT_CURSOR_COLOR_R=$3[3]; TEXT_CURSOR_COLOR_G=$3[2]; 
    					    TEXT_CURSOR_COLOR_B=$3[1]; TEXT_CURSOR_COLOR_A=$3[0];}
+	   | TXT_CUR_COL_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T {
+	     				      TEXT_CURSOR_COLOR_R = $3; TEXT_CURSOR_COLOR_G= $5; 
+					      TEXT_CURSOR_COLOR_B = $7; TEXT_CURSOR_COLOR_A= $9; 
+	   }
 
 	   | OTHER_TXT_COL_TOK '=' COLOR_T { OTHER_TEXT_COLOR_R=$3[3]; OTHER_TEXT_COLOR_G=$3[2]; 
     					     OTHER_TEXT_COLOR_B=$3[1]; OTHER_TEXT_COLOR_A=$3[0]; }
+	   | OTHER_TXT_COL_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T {
+	     				      OTHER_TEXT_COLOR_R = $3; OTHER_TEXT_COLOR_G= $5; 
+					      OTHER_TEXT_COLOR_B = $7; OTHER_TEXT_COLOR_A= $9; 
+	   }
 	   ;
 
 strprop: BG_TOK '=' QUOTSTR_T {BACKGROUND=StrApp((char**)0, THEME_DIR, $3, (char*)0); }
