@@ -261,6 +261,7 @@ int main(int argc, char *argv[])
   initialize_variables();	/* NOTE: Check alot more... Macros? Structs? etc.? */
   
   our_tty_number = ParseCMDLine(argc, argv); /* wie gesagt: getopt? */
+	current_tty    = our_tty_number;
   
   /* We switch to tty <tty> */
   if (!switch_to_tty(our_tty_number))

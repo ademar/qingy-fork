@@ -1,3 +1,20 @@
+2004-02-03  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/main.c (main): 
+	* src/load_settings.h: 
+	* src/scan_settings.l:
+	* src/parse_settings.y: 
+	* src/load_settings.c (add_window_to_list): 
+	* configure.in:
+	Added support for tty specific options. In settings file
+	use something like this:
+	tty = 3
+	{
+	  theme = "fireplace"
+	  screensaver "pixel"
+	}
+	These settings will take effect only if qingy is started from tty3
+
 2004-02-01  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* src/parse_settings.y:

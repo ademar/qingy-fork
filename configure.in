@@ -168,7 +168,14 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	echo "" >> media/settings
 	echo "# What theme do you want (you can also specify 'random')" >> media/settings
 	echo "# theme = random" >> media/settings
-	echo "# theme = \"default\"" >> media/settings
+	echo "theme = \"default\"" >> media/settings
+	echo "" >> media/settings
+	echo "# these options are valid only if qingy is started from tty3" >> media/settings
+	echo "#tty = 3" >> media/settings
+	echo "#{" >> media/settings
+	echo "#	theme = \"fireplace\"" >> media/settings
+	echo "#	screensaver \"pixel\"" >> media/settings
+	echo "#}" >> media/settings
 
 	echo "done"
 # End creation of config files

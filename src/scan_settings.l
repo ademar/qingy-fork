@@ -134,6 +134,7 @@ right                   return WTEXT_RIGHT_TOK;
 yes                     return YES_TOK;
 no                      return NO_TOK;
 clear_background        return CLEAR_BACKGROUND_TOK;
+tty                     return TTY_TOK;
 
 "#"[^\n]*"\n" ;			/* skip comments */
 

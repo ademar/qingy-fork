@@ -141,15 +141,15 @@ void add_to_options(char *option)
   
   if (!option) return;
   if (!temp)
-    {
-      screensaver_options = (struct _screensaver_options *) calloc(1, sizeof(struct _screensaver_options));
-      temp = screensaver_options;
-    }
+	{
+		screensaver_options = (struct _screensaver_options *) calloc(1, sizeof(struct _screensaver_options));
+		temp = screensaver_options;
+	}
   else
-    {
-      temp->next = (struct _screensaver_options *) calloc(1, sizeof(struct _screensaver_options));
-      temp = temp->next;
-    }
+	{
+		temp->next = (struct _screensaver_options *) calloc(1, sizeof(struct _screensaver_options));
+		temp = temp->next;
+	}
   
   temp->option = strdup(option);
   temp->next = NULL;
@@ -186,10 +186,10 @@ char *get_random_theme()
     
     temp = StrApp((char**)NULL, themes_dir, entry->d_name, (char*)NULL);
     if (is_a_directory(temp))
-      {
-	themes[n_themes] = strdup(entry->d_name);
-	n_themes++;
-      }
+		{
+			themes[n_themes] = strdup(entry->d_name);
+			n_themes++;
+		}
     free(temp);
   }
   if(closedir(dir)== -1) 
@@ -215,10 +215,10 @@ char *get_random_theme()
 void yyerror(char *error)
 {
   if (!silent)
-    {
-      fprintf(stderr, "qingy: error in configuration file %s:\n", file_error);
-      fprintf(stderr, "       %s.\n", error);
-    }
+	{
+		fprintf(stderr, "qingy: error in configuration file %s:\n", file_error);
+		fprintf(stderr, "       %s.\n", error);
+	}
   free(X_SESSIONS_DIRECTORY);
   free(TEXT_SESSIONS_DIRECTORY);
   free(XINIT);
@@ -238,10 +238,10 @@ char *get_last_user(void)
   
   if (!fp) {perror("Qingy error"); return NULL;}
   if (fscanf(fp, "%s", tmp) != 1)
-    {
-      fclose(fp);
-      return NULL;
-    }
+	{
+		fclose(fp);
+		return NULL;
+	}
   fclose(fp);
   
   return strdup(tmp);
@@ -284,11 +284,11 @@ char *get_last_session(char *user)
     return NULL;
   }
   if (!get_line(tmp, fp, MAX))
-    {
-      if(fclose(fp)==EOF) 
-	perror("Qingy error");
-      return NULL;
-    }
+	{
+		if(fclose(fp)==EOF) 
+			perror("Qingy error");
+		return NULL;
+	}
   if(fclose(fp)==EOF) perror("Qingy error");
   return strdup(tmp);
 }
@@ -351,18 +351,18 @@ char *get_welcome_msg(char *username)
   free(path);
   
   if (fp)
-    {
-      while (fgets(line, 255, fp))
 	{
-	  user = strtok(line, " \t");
-	  if(!strcmp(user, username))
+		while (fgets(line, 255, fp))
+		{
+			user = strtok(line, " \t");
+			if(!strcmp(user, username))
 	    {
 	      welcome_msg = strdup(strtok(NULL, "\n"));
 	      break;
 	    }
+		}
+		fclose(fp);
 	}
-      fclose(fp);
-    }
   if (!welcome_msg) 
     welcome_msg = strdup("Starting selected session...");
   return welcome_msg;
@@ -377,11 +377,11 @@ char *get_action(char *action)
   /* should we shutdown? */
   temp = strstr(action, "shutdown");
   if (temp)
-    {
-      if (strstr(temp + 8, "-h")) return strdup("poweroff");
-      if (strstr(temp + 8, "-r")) return strdup("reboot");
-      return NULL;
-    }
+	{
+		if (strstr(temp + 8, "-h")) return strdup("poweroff");
+		if (strstr(temp + 8, "-r")) return strdup("reboot");
+		return NULL;
+	}
   if (strstr(action, "poweroff")) return strdup("poweroff");
   if (strstr(action, "halt"))     return strdup("poweroff");
   if (strstr(action, "reboot"))   return strdup("reboot");
@@ -390,15 +390,15 @@ char *get_action(char *action)
   temp = strstr(action, "echo");
   if (temp)
   {
-       size_t  length;
-       char   *begin;
-       temp = strchr(temp+4, '"');
-       if (!temp) return NULL;
-       begin = temp + 1;
-       temp = strchr(begin, '"');
-       if (!temp) return NULL;
-       length = temp - begin;
-       return strndup(begin, length);		
+		size_t  length;
+		char   *begin;
+		temp = strchr(temp+4, '"');
+		if (!temp) return NULL;
+		begin = temp + 1;
+		temp = strchr(begin, '"');
+		if (!temp) return NULL;
+		length = temp - begin;
+		return strndup(begin, length);		
   }
   
   return NULL;
@@ -414,13 +414,13 @@ char *parse_inittab_file(void)
   if (!fp) return NULL;
   
   while (getline(&line, &length, fp) != -1)
-    {
-      char *test = strstr(line, ":ctrlaltdel:");
-      if (!test) continue;
-      if (*line == '#') continue;
-      result = get_action(test + 12);
-      break; 
-    }
+	{
+		char *test = strstr(line, ":ctrlaltdel:");
+		if (!test) continue;
+		if (*line == '#') continue;
+		result = get_action(test + 12);
+		break; 
+	}
   fclose(fp);
   
   if (length) free(line);
@@ -448,17 +448,23 @@ void restore_default_contents(window_t *window)
 int add_window_to_list(window_t *w)
 {
   static window_t *aux = NULL;
-  
-  if (!w) return 0;
+
+	if (!w) return 0;
+
+	/*
+	 * this seems redundant, but it is not: if we reset theme (i.e. global theme is "bleargh"
+	 * but for tty3 theme "urgh" is selected) we need to clear this also...
+	 */
+	if (!windowsList) aux = NULL;  
   
   /* there can be only one login, one password and one session window... */
   if (windowsList && (w->type == LOGIN || w->type == PASSWORD || (w->type == COMBO && !strcmp(w->command, "sessions"))))
-    { /* we search for an already-defined one */
-      window_t *temp = windowsList;
+	{ /* we search for an already-defined one */
+		window_t *temp = windowsList;
       
-      while (temp)
-	{
-	  if (temp->type == w->type)
+		while (temp)
+		{
+			if (temp->type == w->type)
 	    { /* we overwrite old settings with new ones */
 	      temp->x            = w->x;
 	      temp->y            = w->y;
@@ -474,21 +480,21 @@ int add_window_to_list(window_t *w)
 	      restore_default_contents(w);
 	      return 1;
 	    }
-	  temp = temp->next;
+			temp = temp->next;
+		}
 	}
-    }
   
   /* Now we are sure that there is only one login and password window */
   if (!aux)
-    {
-      aux = (window_t *) calloc(1, sizeof(window_t));
-      windowsList = aux;
-    }
+	{
+		aux = (window_t *) calloc(1, sizeof(window_t));
+		windowsList = aux;
+	}
   else
-    {
-      aux->next = (window_t *) calloc(1, sizeof(window_t));
-      aux = aux->next;
-    }
+	{
+		aux->next = (window_t *) calloc(1, sizeof(window_t));
+		aux = aux->next;
+	}
   
   aux->type             = w->type;
   aux->x                = w->x;
@@ -511,19 +517,19 @@ int add_window_to_list(window_t *w)
 }
 
 void destroy_windows_list(window_t *w)
-{	
+{
   while (w)
-    {
-      window_t *temp = w;
-      w = w->next;
+	{
+		window_t *temp = w;
+		w = w->next;
       
-      free(temp->command);
-      free(temp->content);
-      free(temp->linkto);
-      if (temp->text_color   != &DEFAULT_TEXT_COLOR)   free(temp->text_color);
-      if (temp->cursor_color != &DEFAULT_CURSOR_COLOR) free(temp->cursor_color);
-      free(temp);
-    }
+		free(temp->command);
+		free(temp->content);
+		free(temp->linkto);
+		if (temp->text_color   != &DEFAULT_TEXT_COLOR)   free(temp->text_color);
+		if (temp->cursor_color != &DEFAULT_CURSOR_COLOR) free(temp->cursor_color);
+		free(temp);
+	}	
 }
 
 int get_win_type(const char* name)
@@ -548,42 +554,42 @@ int check_windows_sanity()
   int got_session = 0;
   
   while(temp)
-    {
-      switch (temp->type)
 	{
-	case LOGIN:
-	  got_login  = 1;
-	  break;
-	case PASSWORD:
-	  got_passwd = 1;
-	  break;
-	case COMBO:
-	  if (temp->command) if (!strcmp(temp->command, "sessions"))
-	    {
-	      got_session = 1;
-	      break;
-	    }
-	  fprintf(stderr, "Invalid combo window: forbidden command '%s'.\n", temp->command);
-	  return 0;
-	case BUTTON:
-	  if (temp->content && temp->command)
-	    {
-	      if (!strcmp(temp->command, "halt"       )) break;
-	      if (!strcmp(temp->command, "reboot"     )) break;
-	      if (!strcmp(temp->command, "sleep"      )) break;
-	      if (!strcmp(temp->command, "screensaver")) break;
-	    }
-	  fprintf(stderr, "Invalid button: command must be one of the following:\n");
-	  fprintf(stderr, "halt, reboot, sleep, screensaver\n");
-	  fprintf(stderr, "And content must point to button images\n");
-	  return 0;
-	case LABEL:
-	  break;
-	default:
-	  return 0;
+		switch (temp->type)
+		{
+			case LOGIN:
+				got_login  = 1;
+				break;
+			case PASSWORD:
+				got_passwd = 1;
+				break;
+			case COMBO:
+				if (temp->command) if (!strcmp(temp->command, "sessions"))
+				{
+					got_session = 1;
+					break;
+				}
+				fprintf(stderr, "Invalid combo window: forbidden command '%s'.\n", temp->command);
+				return 0;
+			case BUTTON:
+				if (temp->content && temp->command)
+				{
+					if (!strcmp(temp->command, "halt"       )) break;
+					if (!strcmp(temp->command, "reboot"     )) break;
+					if (!strcmp(temp->command, "sleep"      )) break;
+					if (!strcmp(temp->command, "screensaver")) break;
+				}
+				fprintf(stderr, "Invalid button: command must be one of the following:\n");
+				fprintf(stderr, "halt, reboot, sleep, screensaver\n");
+				fprintf(stderr, "And content must point to button images\n");
+				return 0;
+			case LABEL:
+				break;
+			default:
+				return 0;
+		}
+		temp = temp->next;
 	}
-      temp = temp->next;
-    }
   if (!got_login || !got_passwd || !got_session) return 0;
   
   return 1;
@@ -603,14 +609,14 @@ int load_settings(void)
   
   yyin = fopen(SETTINGS, "r");
   if (!yyin)
-    {
-      if (!silent) fprintf(stderr, "load_settings: settings file not found...\nusing internal defaults\n");
-      set_default_session_dirs();
-      set_default_xinit();
-      set_default_font();
-      set_default_colors();
-      return 1;
-    }
+	{
+		if (!silent) fprintf(stderr, "load_settings: settings file not found...\nusing internal defaults\n");
+		set_default_session_dirs();
+		set_default_xinit();
+		set_default_font();
+		set_default_colors();
+		return 1;
+	}
   file_error = SETTINGS;
   yyparse();
   fclose(yyin);
@@ -619,20 +625,20 @@ int load_settings(void)
   if (!X_SESSIONS_DIRECTORY) set_default_session_dirs();
   if (!XINIT) set_default_xinit();
   if (!GOT_THEME)
-    {
-      char *theme = strdup("default");
-      set_theme(theme);
-      free(theme);
-    }
+	{
+		char *theme = strdup("default");
+		set_theme(theme);
+		free(theme);
+	}
   
   if (!FONT) set_default_font();
   
   if (!check_windows_sanity())
-    {
-      fprintf(stderr, "Error in windows configuration:\n");
-      fprintf(stderr, "make sure you set up at least login password and session windows!\n");
-      return 0;
-    }
+	{
+		fprintf(stderr, "Error in windows configuration:\n");
+		fprintf(stderr, "make sure you set up at least login password and session windows!\n");
+		return 0;
+	}
   
   return 1;
 }

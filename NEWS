@@ -19,6 +19,8 @@ qingy CVS:
 - Added option in both setting and theme file to select wether you
   want or not to clear the background image in dialogs like
   "logging in user...".
+- Added support for tty specific options. See the new settings file
+  for an example on how this works.
 
 qingy 0.3.0 (09 January 2004):
 - New memory allocation/deallocation management

@@ -28,11 +28,15 @@
 #include "misc.h"
   
 #define YYERROR_VERBOSE
+#define TTY_CHECK_COND if (!intended_tty || intended_tty == current_tty)
   
 extern FILE* yyin;
 extern int yylex();
 extern int in_theme;
 static int clear_background_is_set = 0;
+static int intended_tty = 0;
+extern int current_tty;
+static int theme_is_set = 0;
 
 static window_t wind =
   {
@@ -62,7 +66,7 @@ static window_t wind =
 }
 
 /* settings only lvals */
-%token SCREENSAVER_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK SHUTDOWN_TOK
+%token SCREENSAVER_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK SHUTDOWN_TOK TTY_TOK
 
 /* windows && theme blocks */
 %token THEME_TOK WINDOW_TOK 
@@ -104,32 +108,48 @@ static window_t wind =
 
 /* a configuration */
 config: /* nothing */
+| config tty_specific
 | config ssav  
 | config xsessdir
 | config txtsessdir
 | config xinit
-| config theme
+| config theme { theme_is_set = 1; }
 | config shutdown
 | config window
 | config CLEAR_BACKGROUND_TOK '=' YES_TOK { if (!clear_background_is_set) clear_background = 1; }
 | config CLEAR_BACKGROUND_TOK '=' NO_TOK  { if (!clear_background_is_set) clear_background = 0; }
+;
 
+/* options that will apply to a specific tty only */
+tty_specific: TTY_TOK '=' ANUM_T { intended_tty = $3; } '{' config_tty '}' { intended_tty = 0; };
+
+/* tty specific allowed configuration */
+config_tty: /* nothing */
+| config_tty ssav
+| config_tty xsessdir
+| config_tty txtsessdir
+| config_tty xinit
+| config_tty theme { theme_is_set = 1; }
+| config_tty shutdown
+| config_tty window
+| config_tty CLEAR_BACKGROUND_TOK '=' YES_TOK { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 1;} }
+| config_tty CLEAR_BACKGROUND_TOK '=' NO_TOK  { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 0;} }
 ;
 
 /* Screensaver: "name" or "name" = "option", "option"  */
-ssav:	SCREENSAVER_TOK QUOTSTR_T { SCREENSAVER = $2;}
-| SCREENSAVER_TOK QUOTSTR_T '=' scrsvr_with_options  { SCREENSAVER = $2;}
+ssav:	SCREENSAVER_TOK QUOTSTR_T { TTY_CHECK_COND SCREENSAVER = $2;}
+| SCREENSAVER_TOK QUOTSTR_T '=' scrsvr_with_options  { TTY_CHECK_COND SCREENSAVER = $2;}
 ;
 
-scrsvr_with_options: QUOTSTR_T	{ add_to_options($1); }
-| scrsvr_with_options ',' QUOTSTR_T { add_to_options($3); }
+scrsvr_with_options: QUOTSTR_T	{ TTY_CHECK_COND add_to_options($1); }
+| scrsvr_with_options ',' QUOTSTR_T { TTY_CHECK_COND add_to_options($3); }
 ;
 
 /* Directory where to look for xsessions. Note that it cannot be in theme file.. */
 xsessdir: XSESSION_DIR_TOK '=' QUOTSTR_T 
 	{
 	  if(in_theme) yyerror("Setting 'x_sessions' is not allowed in theme file.");
-	  X_SESSIONS_DIRECTORY = strdup($3);
+	  TTY_CHECK_COND X_SESSIONS_DIRECTORY = strdup($3);
 	};
 
 
@@ -137,40 +157,40 @@ xsessdir: XSESSION_DIR_TOK '=' QUOTSTR_T
 txtsessdir: TXTSESSION_DIR_TOK '=' QUOTSTR_T
 	{
 	  if(in_theme) yyerror("Setting 'test_sessions' is not allowed in theme file.");
-	  TEXT_SESSIONS_DIRECTORY = strdup($3);
+	  TTY_CHECK_COND TEXT_SESSIONS_DIRECTORY = strdup($3);
 	};
 
 /* xinit executable.  Note that it cannot be in theme file..  */
 xinit: XINIT_TOK '=' QUOTSTR_T
 	{
 	  if(in_theme) yyerror("Setting 'xinit' is not allowed in theme file");
-	  XINIT = strdup($3);
+	  TTY_CHECK_COND XINIT = strdup($3);
 	};
 
 /* shutdown policies */
 shutdown: SHUTDOWN_TOK '=' EVERYONE_TOK
 	{
 	  if (in_theme) yyerror("Setting 'shutdown_policy' is not allowed in theme file.");
-	  SHUTDOWN_POLICY = EVERYONE;
+	  TTY_CHECK_COND SHUTDOWN_POLICY = EVERYONE;
 	}
 | SHUTDOWN_TOK '=' ONLY_ROOT_TOK
 	{
 	  fprintf(stderr,"c)INTHEME: %d\n", in_theme);
 	  if (in_theme) yyerror("Setting 'shutdown_policy' is not allowed in theme file.");
-	  SHUTDOWN_POLICY = ROOT;
+	  TTY_CHECK_COND SHUTDOWN_POLICY = ROOT;
 	}
 | SHUTDOWN_TOK '=' NO_ONE_TOK
 	{
 	  if (in_theme) yyerror("Setting 'shutdown_policy' is not allowed in theme file.");
-	  SHUTDOWN_POLICY = NOONE;
+	  TTY_CHECK_COND SHUTDOWN_POLICY = NOONE;
 	}
 ;
 
  
 /* theme: either random, ="themeName" or { definition }  */
-theme: THEME_TOK '=' RAND_TOK  { char *temp = get_random_theme(); set_theme(temp); free(temp); }
-| THEME_TOK '=' QUOTSTR_T { set_theme($3); }
-| THEME_TOK '{' themedefn '}' 
+theme: THEME_TOK '=' RAND_TOK { TTY_CHECK_COND {char *temp = get_random_theme(); set_theme(temp); free(temp);} }
+| THEME_TOK '=' QUOTSTR_T { TTY_CHECK_COND set_theme($3); }
+| THEME_TOK '{' themedefn '}'
 ;
 
 /* a theme def */
@@ -178,108 +198,151 @@ themedefn: /* nothing */
 | themedefn strprop
 | themedefn anumprop
 | themedefn colorprop
-| themedefn CLEAR_BACKGROUND_TOK '=' YES_TOK { clear_background = 1; clear_background_is_set = 1; }
-| themedefn CLEAR_BACKGROUND_TOK '=' NO_TOK  { clear_background = 0; clear_background_is_set = 1; }
+| themedefn CLEAR_BACKGROUND_TOK '=' YES_TOK { TTY_CHECK_COND {clear_background = 1; clear_background_is_set = 1;} }
+| themedefn CLEAR_BACKGROUND_TOK '=' NO_TOK  { TTY_CHECK_COND {clear_background = 0; clear_background_is_set = 1;} }
 ;
 
 /* color assignments */
 colorprop: DEFAULT_TXT_COL_TOK '=' COLOR_T
-	{
-		if (!silent) fprintf(stderr, "Setting default color to %d\n", *($3));	  
-	  DEFAULT_TEXT_COLOR.R=$3[3]; DEFAULT_TEXT_COLOR.G=$3[2]; 
-	  DEFAULT_TEXT_COLOR.B=$3[1]; DEFAULT_TEXT_COLOR.A=$3[0];
+	{ 
+		TTY_CHECK_COND
+		{
+			if (!silent) fprintf(stderr, "Setting default color to %d\n", *($3));	  
+			DEFAULT_TEXT_COLOR.R=$3[3]; DEFAULT_TEXT_COLOR.G=$3[2]; 
+			DEFAULT_TEXT_COLOR.B=$3[1]; DEFAULT_TEXT_COLOR.A=$3[0];
+		}
 	}
 | DEFAULT_TXT_COL_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T
 	{
-	  DEFAULT_TEXT_COLOR.R = $3; DEFAULT_TEXT_COLOR.G= $5;
-	  DEFAULT_TEXT_COLOR.B = $7; DEFAULT_TEXT_COLOR.A= $9;
+		TTY_CHECK_COND
+		{
+			DEFAULT_TEXT_COLOR.R = $3; DEFAULT_TEXT_COLOR.G= $5;
+			DEFAULT_TEXT_COLOR.B = $7; DEFAULT_TEXT_COLOR.A= $9;
+		}
 	}
 |  DEFAULT_CUR_COL_TOK '=' COLOR_T
-	{
-	  DEFAULT_CURSOR_COLOR.R=$3[3]; DEFAULT_CURSOR_COLOR.G=$3[2];
-	  DEFAULT_CURSOR_COLOR.B=$3[1]; DEFAULT_CURSOR_COLOR.A=$3[0];
+	{ 
+		TTY_CHECK_COND
+		{
+			DEFAULT_CURSOR_COLOR.R=$3[3]; DEFAULT_CURSOR_COLOR.G=$3[2];
+			DEFAULT_CURSOR_COLOR.B=$3[1]; DEFAULT_CURSOR_COLOR.A=$3[0];
+		}
 	}
 |  DEFAULT_CUR_COL_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T
-	{
-	  DEFAULT_CURSOR_COLOR.R = $3; DEFAULT_CURSOR_COLOR.G= $5; 
-	  DEFAULT_CURSOR_COLOR.B = $7; DEFAULT_CURSOR_COLOR.A= $9; 
+	{ 
+		TTY_CHECK_COND
+		{
+			DEFAULT_CURSOR_COLOR.R = $3; DEFAULT_CURSOR_COLOR.G= $5; 
+			DEFAULT_CURSOR_COLOR.B = $7; DEFAULT_CURSOR_COLOR.A= $9; 
+		}
 	}
 | OTHER_TXT_COL_TOK '=' COLOR_T
-	{
-	  OTHER_TEXT_COLOR.R=$3[3]; OTHER_TEXT_COLOR.G=$3[2]; 
-	  OTHER_TEXT_COLOR.B=$3[1]; OTHER_TEXT_COLOR.A=$3[0];
+	{ 
+		TTY_CHECK_COND
+		{
+			OTHER_TEXT_COLOR.R=$3[3]; OTHER_TEXT_COLOR.G=$3[2]; 
+			OTHER_TEXT_COLOR.B=$3[1]; OTHER_TEXT_COLOR.A=$3[0];
+		}
 	}
 | OTHER_TXT_COL_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T
-	{
-	  OTHER_TEXT_COLOR.R = $3; OTHER_TEXT_COLOR.G= $5; 
-	  OTHER_TEXT_COLOR.B = $7; OTHER_TEXT_COLOR.A= $9;
+	{ 
+		TTY_CHECK_COND
+		{
+			OTHER_TEXT_COLOR.R = $3; OTHER_TEXT_COLOR.G= $5; 
+			OTHER_TEXT_COLOR.B = $7; OTHER_TEXT_COLOR.A= $9;
+		}
 	}
 ;
 
 /* string properties */
-strprop: BG_TOK '=' QUOTSTR_T { BACKGROUND = StrApp((char**)NULL, THEME_DIR, $3, (char*)NULL); }
-| FONT_TOK      '=' QUOTSTR_T { FONT       = StrApp((char**)NULL, THEME_DIR, $3, (char*)NULL); }
+strprop: BG_TOK '=' QUOTSTR_T { TTY_CHECK_COND BACKGROUND = StrApp((char**)NULL, THEME_DIR, $3, (char*)NULL); }
+| FONT_TOK      '=' QUOTSTR_T { TTY_CHECK_COND FONT       = StrApp((char**)NULL, THEME_DIR, $3, (char*)NULL); }
 ;
 
 /* numbers in themes */
-anumprop: BUTTON_OPAC_TOK '=' ANUM_T { BUTTON_OPACITY          = $3; }
-| WIN_OP_TOK              '=' ANUM_T { WINDOW_OPACITY          = $3; }
-| SEL_WIN_OP_TOK          '=' ANUM_T { SELECTED_WINDOW_OPACITY = $3; }
+anumprop: BUTTON_OPAC_TOK '=' ANUM_T { TTY_CHECK_COND BUTTON_OPACITY          = $3; }
+| WIN_OP_TOK              '=' ANUM_T { TTY_CHECK_COND WINDOW_OPACITY          = $3; }
+| SEL_WIN_OP_TOK          '=' ANUM_T { TTY_CHECK_COND SELECTED_WINDOW_OPACITY = $3; }
 ;
 
 /* a window in the theme */
-window: WINDOW_TOK '{' windefns '}' { add_window_to_list(&wind); }; 
+window: WINDOW_TOK '{' windefns '}'
+	{
+		TTY_CHECK_COND
+		{
+			if (theme_is_set)
+			{
+				destroy_windows_list(windowsList); 
+				windowsList  = NULL;
+				theme_is_set = 0;
+			}
+			add_window_to_list(&wind);
+		}
+	}
+; 
 
 windefns: windefn | windefns windefn;
 
-windefn: 'x'        '=' ANUM_T    { wind.x=$3;                        }
-| 'y'               '=' ANUM_T    { wind.y=$3;                        }
-| WTYPE_TOK         '=' QUOTSTR_T { wind.type     = get_win_type($3); }
-| WWIDTH_TOK        '=' ANUM_T    { wind.width    = $3;               }
-| WHEIGHT_TOK       '=' ANUM_T    { wind.height   = $3;               }
-| WCOMMAND_TOK      '=' QUOTSTR_T { wind.command  = strdup($3);       }
-| WCONTENT_TOK      '=' QUOTSTR_T { wind.content  = strdup($3);       }
-| WINDOW_LINK_TOK   '=' QUOTSTR_T { wind.linkto   = strdup($3);       }
-| WPOLL_TIME_TOK    '=' ANUM_T    { wind.polltime = $3;               }
+windefn: 'x'        '=' ANUM_T    { TTY_CHECK_COND wind.x=$3;                        }
+| 'y'               '=' ANUM_T    { TTY_CHECK_COND wind.y=$3;                        }
+| WTYPE_TOK         '=' QUOTSTR_T { TTY_CHECK_COND wind.type     = get_win_type($3); }
+| WWIDTH_TOK        '=' ANUM_T    { TTY_CHECK_COND wind.width    = $3;               }
+| WHEIGHT_TOK       '=' ANUM_T    { TTY_CHECK_COND wind.height   = $3;               }
+| WCOMMAND_TOK      '=' QUOTSTR_T { TTY_CHECK_COND wind.command  = strdup($3);       }
+| WCONTENT_TOK      '=' QUOTSTR_T { TTY_CHECK_COND wind.content  = strdup($3);       }
+| WINDOW_LINK_TOK   '=' QUOTSTR_T { TTY_CHECK_COND wind.linkto   = strdup($3);       }
+| WPOLL_TIME_TOK    '=' ANUM_T    { TTY_CHECK_COND wind.polltime = $3;               }
 | WTEXT_ORIENTATION '=' textorientation
 | WTEXT_SIZE_TOK    '=' wintextsize
 | wincolorprop
 ;
 
-textorientation: WTEXT_LEFT_TOK { wind.text_orientation = LEFT;   }
-| WTEXT_CENTER_TOK              { wind.text_orientation = CENTER; }
-| WTEXT_RIGHT_TOK               { wind.text_orientation = RIGHT;  }
+textorientation: WTEXT_LEFT_TOK { TTY_CHECK_COND wind.text_orientation = LEFT;   }
+| WTEXT_CENTER_TOK              { TTY_CHECK_COND wind.text_orientation = CENTER; }
+| WTEXT_RIGHT_TOK               { TTY_CHECK_COND wind.text_orientation = RIGHT;  }
 ;
 
-wintextsize: WTEXT_SMALL_TOK { wind.text_size = SMALL;  }
-| WTEXT_MEDIUM_TOK           { wind.text_size = MEDIUM; }
-| WTEXT_LARGE_TOK            { wind.text_size = LARGE;  }
+wintextsize: WTEXT_SMALL_TOK { TTY_CHECK_COND wind.text_size = SMALL;  }
+| WTEXT_MEDIUM_TOK           { TTY_CHECK_COND wind.text_size = MEDIUM; }
+| WTEXT_LARGE_TOK            { TTY_CHECK_COND wind.text_size = LARGE;  }
 ;
 
 /* local-to-window color properties */
 wincolorprop: WTEXT_COLOR_TOK '=' COLOR_T
-	{
-	  wind.text_color = (color_t *) calloc(1, sizeof(color_t));
-	  wind.text_color->R=$3[3]; wind.text_color->G=$3[2]; 
-	  wind.text_color->B=$3[1]; wind.text_color->A=$3[0];
+	{ 
+		TTY_CHECK_COND
+		{
+			wind.text_color = (color_t *) calloc(1, sizeof(color_t));
+			wind.text_color->R=$3[3]; wind.text_color->G=$3[2]; 
+			wind.text_color->B=$3[1]; wind.text_color->A=$3[0];
+		}
 	}
 | WTEXT_COLOR_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T
-	{
-	  wind.text_color = (color_t *) calloc(1, sizeof(color_t));
-	  wind.text_color->R = $3; wind.text_color->G = $5;
-	  wind.text_color->B = $7; wind.text_color->A = $9;
+	{ 
+		TTY_CHECK_COND
+		{
+			wind.text_color = (color_t *) calloc(1, sizeof(color_t));
+			wind.text_color->R = $3; wind.text_color->G = $5;
+			wind.text_color->B = $7; wind.text_color->A = $9;
+		}
 	}
 | WCURSOR_COLOR_TOK '=' COLOR_T
-	{
-	  wind.cursor_color = (color_t *) calloc(1, sizeof(color_t));
-	  wind.cursor_color->R=$3[3]; wind.cursor_color->G=$3[2]; 
-	  wind.cursor_color->B=$3[1]; wind.cursor_color->A=$3[0];
+	{	
+		TTY_CHECK_COND
+		{
+			wind.cursor_color = (color_t *) calloc(1, sizeof(color_t));
+			wind.cursor_color->R=$3[3]; wind.cursor_color->G=$3[2]; 
+			wind.cursor_color->B=$3[1]; wind.cursor_color->A=$3[0];
+		}
 	}
 | WCURSOR_COLOR_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T
 	{
-	  wind.cursor_color = (color_t *) calloc(1, sizeof(color_t));
-	  wind.cursor_color->R = $3; wind.cursor_color->G = $5;
-	  wind.cursor_color->B = $7; wind.cursor_color->A = $9;
+		TTY_CHECK_COND
+		{
+			wind.cursor_color = (color_t *) calloc(1, sizeof(color_t));
+			wind.cursor_color->R = $3; wind.cursor_color->G = $5;
+			wind.cursor_color->B = $7; wind.cursor_color->A = $9;
+		}
 	}
 ;
 

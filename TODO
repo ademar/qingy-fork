@@ -1,7 +1,5 @@
 - option for selecting session based on tty, not on user
 
-- option for selecting theme based on tty 
-
 - drop down menu for sessions 
 
 - allow session locking 
