@@ -30,13 +30,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <directfb.h>
-#include <directfb_keynames.h>
 
 #include "directfb_textbox.h"
-#include "directfb_utils.h"
 #include "framebuffer_mode.h"
 #include "misc.h"
-
 
 int parse_input(int *input, char *buffer, int *length, int *position)
 {
@@ -179,7 +176,6 @@ void TextBox_SetFocus(TextBox *thiz, int focus)
 
 	if (focus)
 	{
-		if (thiz->hasfocus) return;
 		thiz->window->RequestFocus(thiz->window);
 		thiz->hasfocus=1;
 		thiz->window->SetOpacity(thiz->window, SELECTED_WINDOW_OPACITY);
@@ -189,7 +185,6 @@ void TextBox_SetFocus(TextBox *thiz, int focus)
 		return;
 	}
 
-	if (!(thiz->hasfocus)) return;
 	thiz->hasfocus = 0;
 	thiz->window->SetOpacity(thiz->window, WINDOW_OPACITY);
 	TextBox_KeyEvent(thiz, REDRAW, 0);
@@ -203,11 +198,13 @@ TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWi
 
 	newbox = (TextBox *) calloc(1, sizeof(TextBox));
 	newbox->text     = NULL;
-	newbox->xpos     = window_desc->posx;
-	newbox->ypos     = window_desc->posy;
+	newbox->xpos     = (unsigned int) window_desc->posx;
+	newbox->ypos     = (unsigned int) window_desc->posy;
 	newbox->width    = window_desc->width;
 	newbox->height   = window_desc->height;
 	newbox->hasfocus = 0;
+	newbox->mask_text= 0;
+	newbox->position = 0;
 	newbox->window   = NULL;
 	newbox->surface  = NULL;
 
@@ -219,9 +216,6 @@ TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWi
 	newbox->surface->SetFont (newbox->surface, font);
 	newbox->surface->SetColor (newbox->surface, MASK_TEXT_COLOR);
 	newbox->window->RaiseToTop(newbox->window);
-	newbox->mask_text = 0;
-	newbox->position = 0;
-	newbox->mouse = 0;
 
 	return newbox;
 }

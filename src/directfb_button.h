@@ -1,5 +1,5 @@
 /***************************************************************************
-                      directfb_textbox.h  -  description
+                      directfb_button.h  -  description
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
@@ -26,41 +26,24 @@
  ***************************************************************************/
 
 
-#define BACKSPACE       8
-#define TAB             9
-#define RETURN         13
-#define ESCAPE         27
-#define DELETE        127
-#define ARROW_LEFT  61440
-#define ARROW_RIGHT 61441
-#define ARROW_UP    61442
-#define ARROW_DOWN  61443
-#define HOME        61445
-#define END         61446
-
-typedef struct
+/* two functions to create and destroy buttons */
+typedef struct button
 {
-	char *text;
-	unsigned int xpos, ypos;
-	unsigned int width, height;
-	int hasfocus;
-	int mask_text;
-	int position;
-	IDirectFBWindow	*window;
-	IDirectFBSurface *surface;
-} TextBox;
+	IDirectFBWindow  *window;    /* window that will contain the button 				*/
+	IDirectFBSurface *surface;   /* surface of the above                        */
+	IDirectFBSurface *normal;    /* normal button appearance                    */
+	IDirectFBSurface *mouseover; /* button appearance when mouse is over it     */
+	int xpos;										 /* x position of the button                    */
+	int ypos;										 /* y position of the button                    */
+	unsigned int width;					 /* width of the button                         */
+	unsigned int height;				 /* height of the button                        */
+	int mouse;									 /* 1 if mouse is over button, 0 otherwise      */
+} Button;
 
-TextBox *TextBox_Create
-(
-	IDirectFBDisplayLayer *layer,
-	IDirectFBFont *font,
-	DFBWindowDescription *window_desc
-);
-
-void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int draw_cursor);
-void TextBox_SetFocus(TextBox *thiz, int focus);
-void TextBox_SetText(TextBox *thiz, char *text);
-void TextBox_ClearText(TextBox *thiz);
-void TextBox_Hide(TextBox *thiz);
-void TextBox_Show(TextBox *thiz);
-void TextBox_Destroy(TextBox *thiz);
+Button *Button_Create(const char *normal, const char *mouseover, int relx, int rely, IDirectFBDisplayLayer *layer, IDirectFBSurface *primary, IDirectFB *dfb);
+void Button_Destroy(Button *thiz);
+void Button_MouseOver(Button *thiz, int status);
+void Button_Show(Button *thiz);
+void Button_Hide(Button *thiz);
+/* return a surface with an image loaded from disk */
+IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb);

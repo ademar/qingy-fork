@@ -34,3 +34,7 @@ int get_active_tty(void);
 
 /* jump to another tty */
 int set_active_tty(int tty);
+
+/* enable or disable stderr */
+void stderr_disable(void);
+void stderr_enable(void);

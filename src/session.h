@@ -26,21 +26,11 @@
  ***************************************************************************/
 
 
-struct session
-{
-	char *name;
-	int id;
-	struct session *next;
-	struct session *prev;
-};
-
-struct session sessions;
-
 /* get info about available sessions */
-int get_sessions(void);
+void get_sessions(/*ComboBox*/void *sessions);
 
 /* Password autentication */
 int check_password(char *username, char *password);
 
 /* Start the session of your choice */
-void start_session(char *username, int session_id, int workaround);
+void start_session(char *username, char *session, int workaround);

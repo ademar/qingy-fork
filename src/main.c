@@ -70,8 +70,8 @@ void text_mode()
 	username = (char *) calloc(MAX, sizeof(char));
 	while (strlen(username)==0)
 	{
-		gethostname(username, MAX);
-	  printf("\n%s login: ", username); scanf("%s", username); /* quick and dirty */
+		printf("%s", print_welcome_message("\n", " login: "));
+		scanf("%s", username); /* quick and dirty */
 	}
 	execl("/bin/login", "/bin/login", "--", username, (char *) 0);
 

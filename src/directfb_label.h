@@ -1,5 +1,5 @@
 /***************************************************************************
-                      directfb_textbox.h  -  description
+                      directfb_label.h  -  description
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
@@ -26,17 +26,10 @@
  ***************************************************************************/
 
 
-#define BACKSPACE       8
-#define TAB             9
-#define RETURN         13
-#define ESCAPE         27
-#define DELETE        127
-#define ARROW_LEFT  61440
-#define ARROW_RIGHT 61441
-#define ARROW_UP    61442
-#define ARROW_DOWN  61443
-#define HOME        61445
-#define END         61446
+#define LEFT         0
+#define CENTER       1
+#define RIGHT        2
+#define CENTERBOTTOM 3
 
 typedef struct
 {
@@ -44,23 +37,21 @@ typedef struct
 	unsigned int xpos, ypos;
 	unsigned int width, height;
 	int hasfocus;
-	int mask_text;
-	int position;
+	int alignment;
 	IDirectFBWindow	*window;
 	IDirectFBSurface *surface;
-} TextBox;
+} Label;
 
-TextBox *TextBox_Create
+Label *Label_Create
 (
 	IDirectFBDisplayLayer *layer,
 	IDirectFBFont *font,
 	DFBWindowDescription *window_desc
 );
 
-void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int draw_cursor);
-void TextBox_SetFocus(TextBox *thiz, int focus);
-void TextBox_SetText(TextBox *thiz, char *text);
-void TextBox_ClearText(TextBox *thiz);
-void TextBox_Hide(TextBox *thiz);
-void TextBox_Show(TextBox *thiz);
-void TextBox_Destroy(TextBox *thiz);
+void Label_SetFocus(Label *thiz, int focus);
+void Label_SetText(Label *thiz, char *text, int alignment);
+void Label_ClearText(Label *thiz);
+void Label_Hide(Label *thiz);
+void Label_Show(Label *thiz);
+void Label_Destroy(Label *thiz);

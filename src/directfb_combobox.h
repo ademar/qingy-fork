@@ -1,5 +1,5 @@
 /***************************************************************************
-                      directfb_textbox.h  -  description
+                     directfb_combobox.h  -  description
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
@@ -26,41 +26,39 @@
  ***************************************************************************/
 
 
-#define BACKSPACE       8
-#define TAB             9
-#define RETURN         13
-#define ESCAPE         27
-#define DELETE        127
-#define ARROW_LEFT  61440
-#define ARROW_RIGHT 61441
-#define ARROW_UP    61442
-#define ARROW_DOWN  61443
-#define HOME        61445
-#define END         61446
+#define UP       2
+#define DOWN    -2
+
+typedef struct _item
+{
+	char *name;
+	struct _item *next;
+	struct _item *prev;
+} item;
 
 typedef struct
 {
-	char *text;
+	item *items;
+	item *selected;
 	unsigned int xpos, ypos;
 	unsigned int width, height;
 	int hasfocus;
-	int mask_text;
 	int position;
 	IDirectFBWindow	*window;
 	IDirectFBSurface *surface;
-} TextBox;
+} ComboBox;
 
-TextBox *TextBox_Create
+ComboBox *ComboBox_Create
 (
 	IDirectFBDisplayLayer *layer,
 	IDirectFBFont *font,
 	DFBWindowDescription *window_desc
 );
 
-void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int draw_cursor);
-void TextBox_SetFocus(TextBox *thiz, int focus);
-void TextBox_SetText(TextBox *thiz, char *text);
-void TextBox_ClearText(TextBox *thiz);
-void TextBox_Hide(TextBox *thiz);
-void TextBox_Show(TextBox *thiz);
-void TextBox_Destroy(TextBox *thiz);
+void ComboBox_KeyEvent(ComboBox *thiz, int direction);
+void ComboBox_SetFocus(ComboBox *thiz, int focus);
+void ComboBox_AddItem(ComboBox *thiz, char *item);
+void ComboBox_ClearItems(ComboBox *thiz);
+void ComboBox_Hide(ComboBox *thiz);
+void ComboBox_Show(ComboBox *thiz);
+void ComboBox_Destroy(ComboBox *thiz);

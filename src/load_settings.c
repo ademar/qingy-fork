@@ -174,7 +174,7 @@ char *get_last_session(char *user)
 	strcat(filename, ".qingy");
 	fp = fopen(filename, "r");
 	if (!fp) return NULL;
-	if (fscanf(fp, "%s", tmp) != 1)
+	if (get_line(tmp, fp, MAX) == 0)
 	{
 		fclose(fp);
 		return NULL;

@@ -34,6 +34,17 @@
 #define TEXT_CURSOR_COLOR 0x80, 0x00, 0x00, 0xDD
 #define OTHER_TEXT_COLOR  0x40, 0x40, 0x40, 0xFF
 #define TEXT_MODE -2
+#define REDRAW      55555
+
+/* macro for a safe call to DirectFB functions */
+#define DFBCHECK(x...)																					\
+{																																\
+	err = x;																											\
+	if (err != DFB_OK)																						\
+	{																															\
+		DirectFBErrorFatal( #x, err );															\
+	}																															\
+}
 
 /* Init framebuffer mode */
 int framebuffer_mode(int argc, char *argv[], int workaround);

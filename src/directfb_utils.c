@@ -30,7 +30,9 @@
 #include <stdlib.h>
 #include <directfb.h>
 #include <directfb_keynames.h>
+
 #include "directfb_utils.h"
+
 
 int lock_is_pressed(DFBInputEvent *evt)
 {
@@ -56,6 +58,7 @@ int lock_is_pressed(DFBInputEvent *evt)
 
 int modifier_is_pressed(DFBInputEvent *evt)
 {
+	int result = 0;
 	struct
 	{
 		DFBInputDeviceModifierMask  modifier;
@@ -77,9 +80,12 @@ int modifier_is_pressed(DFBInputEvent *evt)
 	if (!(evt->flags & DIEF_MODIFIERS)) return 0;
 	for (i=0; i<n_modifiers; i++)
 		if (evt->modifiers & modifiers[i].modifier)
-			return (i+1);
+		{
+			if (!result) result = i+1;
+			else if (result == CONTROL && (i+1) == ALT) result = CTRLALT;
+		}
 
-	return 0;
+	return result;
 }
 
 int left_mouse_button_down(DFBInputEvent *evt)
@@ -97,93 +103,6 @@ int left_mouse_button_down(DFBInputEvent *evt)
 
 	if (evt->buttons & buttons[0].mask) return 1;
 	return 0;
-}
-
-IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb)
-{
-	IDirectFBImageProvider *provider;
-	IDirectFBSurface *tmp = NULL;
-	IDirectFBSurface *surface = NULL;
-	DFBSurfaceDescription dsc;
-	DFBResult err;
-
-	err = dfb->CreateImageProvider (dfb, filename, &provider);
-	if (err != DFB_OK)
-	{
-		fprintf (stderr, "Couldn't load image from file '%s': %s\n", filename, DirectFBErrorString (err));
-		return NULL;
-	}
-
-	provider->GetSurfaceDescription (provider, &dsc);
-	dsc.flags = DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PIXELFORMAT;
-	dsc.pixelformat = DSPF_ARGB;
-	if (dfb->CreateSurface (dfb, &dsc, &tmp) == DFB_OK) provider->RenderTo (provider, tmp, NULL);
-
-	provider->Release (provider);
-
-	if (tmp)
-	{
-		primary->GetPixelFormat (primary, &dsc.pixelformat);
-		if (dfb->CreateSurface (dfb, &dsc, &surface) == DFB_OK)
-		{
-			surface->Clear (surface, 0, 0, 0, 0x00);
-			surface->SetBlittingFlags (surface, DSBLIT_BLEND_ALPHACHANNEL);
-			surface->Blit (surface, tmp, NULL, 0, 0);
-		}
-		tmp->Release (tmp);
-	}
-
-	return surface;
-}
-
-struct button *load_button (const char *normal, const char *mouseover, int relx, int rely, IDirectFBDisplayLayer *layer, IDirectFBSurface *primary, IDirectFB *dfb, __u8 opacity)
-{
-	struct button *but;
-	IDirectFBWindow *window;
-	IDirectFBSurface *surface;
-	DFBWindowDescription window_desc;
-	DFBResult err;
-
-	but = (struct button *) calloc (1, sizeof (struct button));
-	but->normal = load_image (normal, primary, dfb);
-	but->normal->GetSize (but->normal, &(but->width), &(but->height));
-	but->mouseover = load_image (mouseover, primary, dfb);
-	but->xpos = relx - but->width;
-	but->ypos = rely - but->height;
-
-	window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
-	window_desc.posx   = but->xpos;
-	window_desc.posy   = but->ypos;
-	window_desc.width  = but->width;
-	window_desc.height = but->height;
-	window_desc.caps   = DWCAPS_ALPHACHANNEL;
-
-	DFBCHECK(layer->CreateWindow (layer, &window_desc, &window));
-	window->SetOpacity( window, 0x00 );
-	window->RaiseToTop( window );
-	window->GetSurface( window, &surface );
-	surface->SetBlittingFlags (surface, DSBLIT_BLEND_ALPHACHANNEL);
-	window->SetOpacity( window, opacity );
-	but->mouse = 0;
-	but->surface = surface;
-	but->window = window;
-
-	surface->SetSrcColorKey(surface, 0x00, 0x00, 0x00);
-	surface->SetBlittingFlags(surface, DSBLIT_SRC_COLORKEY);
-
-	return but;
-}
-
-void destroy_button (struct button *button)
-{
-	if (!button) return;
-	if (button->normal) button->normal->Release (button->normal);
-	if (button->mouseover) button->mouseover->Release (button->mouseover);
-	if (button->surface) button->surface->Release (button->surface);
-	if (button->window) button->window->Release (button->window);
-
-	free (button);
-	button = NULL;
 }
 
 int compare_symbol (const void *a, const void *b)

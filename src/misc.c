@@ -31,8 +31,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 #include <sys/types.h>
 
+#include "misc.h"
 
 int log10(int n)
 {
@@ -115,4 +117,35 @@ char *get_home_dir(char *user)
 	homedir = pwd->pw_dir;
 
 	return homedir;
+}
+
+int get_line(char *tmp, FILE *fp, int max)
+{
+	int result = 0;
+	int temp;
+
+	if (!tmp || !fp || max<1) return 0;
+	while((temp = fgetc(fp)) != EOF)
+	{
+		if (temp == '\n') break;
+		if (result == max-1) break;
+		tmp[result] = (char) temp;
+		result++;
+	}
+	tmp[result] = '\0';
+
+	return result;
+}
+
+char *print_welcome_message(char *preamble, char *postamble)
+{
+	char *text = (char *) calloc(MAX, sizeof(char));
+	int len;
+
+	if (!!preamble) strncpy(text, preamble, MAX-1);
+	len = strlen(text);
+	gethostname(&(text[len]), MAX-len);
+	if (!!postamble) strncat(text, postamble, MAX-1);
+
+	return text;
 }

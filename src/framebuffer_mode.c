@@ -34,8 +34,11 @@
 #include <directfb_keynames.h>
 
 #include "framebuffer_mode.h"
+#include "directfb_button.h"
 #include "directfb_utils.h"
 #include "directfb_textbox.h"
+#include "directfb_combobox.h"
+#include "directfb_label.h"
 #include "chvt.h"
 #include "misc.h"
 #include "session.h"
@@ -43,11 +46,6 @@
 
 #define POWEROFF 0
 #define REBOOT   1
-#define UP       2
-#define DOWN    -2
-#define YES      1
-#define NO       0
-#define DESTROY -1
 
 DeviceInfo *devices = NULL;   /* the list of all input devices             */
 IDirectFBEventBuffer *events; /* input interfaces: device and its buffer   */
@@ -55,25 +53,25 @@ IDirectFB *dfb;               /* the super interface                       */
 IDirectFBSurface *primary;    /* surface of the primary layer              */
 IDirectFBDisplayLayer *layer; /* the primary layer                         */
 struct button *power, *reset; /* buttons                                   */
-int mouse_x, mouse_y;         /* mouse coordinates                         */
 int we_stopped_gpm;           /* wether this program stopped gpm or not    */
-IDirectFBSurface *panel_image=NULL;/* background image                     */
-IDirectFBWindow	 *button_window = NULL;/* window for displaying buttons    */
-IDirectFBSurface *button_window_surface = NULL;/* surface of the above     */
-unsigned int screen_width, screen_height;/* screen resolution              */
-IDirectFBFont *font_small, *font_normal, *font_large;/* fonts              */
+IDirectFBSurface *panel_image=NULL; /* background image                    */
+int screen_width, screen_height; /* screen resolution                      */
+IDirectFBFont *font_small, *font_normal, *font_large; /* fonts             */
 int font_small_height, font_normal_height, font_large_height;/* font sizes */
-TextBox *username = NULL, *password = NULL;
-int session_hasfocus = 0;
-int workaround = -1;
-
-void username_event(int *input, char *output, int action, __u8 opacity);
-void password_event(int *input, char *output, int action, __u8 opacity);
+Label *welcome_label = NULL, *username_label = NULL; /* text labels        */
+Label *password_label = NULL, *session_label = NULL; /* more text labels   */
+Label *lock_key_status = NULL;/* yet more text labels                      */
+TextBox *username = NULL, *password = NULL; /* text boxes                  */
+ComboBox *session = NULL;     /* combo boxes                               */
+int username_area_mouse = 0;  /* sensible area for mouse cursor to be in   */
+int password_area_mouse = 0;  /* sensible area for mouse cursor to be in   */
+int session_area_mouse = 0;   /* sensible area for mouse cursor to be in   */
+int workaround = -1;          /* do you black tty workaround? I do         */
 
 void Draw_Background_Image()
 {
 	/* width and height of the background image */
-	static unsigned int panel_width, panel_height;
+	static int panel_width, panel_height;
 
 	/* We clear the primary surface */
 	primary->Clear (primary, 0, 0, 0, 0);
@@ -81,7 +79,7 @@ void Draw_Background_Image()
 	{ /* we design the surface */
 		panel_image = load_image (DATADIR "background.png", primary, dfb);
 		if (panel_image != NULL)
-			panel_image->GetSize (panel_image, (unsigned int *) &panel_width, (unsigned int *) &panel_height);
+			panel_image->GetSize (panel_image, &panel_width, &panel_height);
 	}
 	/* we put the backgound image in the center of the screen if it fits
 	   the screen otherwise we stretch it to make it fit                    */
@@ -96,486 +94,206 @@ void Draw_Background_Image()
 	primary->Flip (primary, NULL, DSFLIP_BLIT);
 }
 
-void show_welcome_window(int action)
+/* plot previous session of <user> if it exists,
+   otherwise plot default vaule                  */
+void set_user_session(char *user)
 {
-	static IDirectFBWindow	*window = NULL; /* window for welcome message */
-	static IDirectFBSurface *window_surface= NULL; /* surface of the above       */
+	item *temp;
+	char *user_session = get_last_session(user);
+	if (!session || !session->items) return;
 
-	if (!window && action != DESTROY)
+	if (!user_session)
 	{
-		DFBResult err;
-		DFBWindowDescription window_desc;	/* description of the window above						*/
-		/* This will contain Host name and welcome message */
-		char *welcome_message;
-		int len;
-
-		welcome_message = (char *) calloc(MAX, sizeof(char));
-		strncpy(welcome_message, "Welcome to ", MAX-1);
-		len = strlen(welcome_message);
-		gethostname(&(welcome_message[len]), MAX-len);
-
-		/* All the necessary stuff to create a window */
-		window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
-		window_desc.posx   = 0;
-		window_desc.posy   = screen_height/8;
-		window_desc.width  = screen_width;
-		window_desc.height = 2*font_large_height;
-		window_desc.caps   = DWCAPS_ALPHACHANNEL;
-		DFBCHECK(layer->CreateWindow (layer, &window_desc, &window));
-		window->SetOpacity(window, 0x00);
-		window->GetSurface(window, &window_surface);
-		window_surface->Clear(window_surface, 0x00, 0x00, 0x00, 0x00);
-		window_surface->SetFont (window_surface, font_large);
-		window_surface->SetColor (window_surface, MASK_TEXT_COLOR);
-		window_surface->DrawString (window_surface, welcome_message, -1, window_desc.width/2, window_desc.height/2, DSTF_CENTER);
-		window_surface->Flip(window_surface, NULL, 0);
-		window->RequestFocus(window);
-		window->RaiseToTop(window);
-		free(welcome_message);
+		temp = session->selected;
+		while (strcmp(session->selected->name, "Text Console") != 0)
+			session->selected = session->selected->next;
+		if (session->selected != temp) ComboBox_KeyEvent(session, REDRAW);
 	}
-
-	switch (action)
+	else
 	{
-		case YES:
-			window->SetOpacity(window, WINDOW_OPACITY);
-			break;
-		case NO:
-			window->SetOpacity(window, 0x00);
-			break;
-		case DESTROY:
-			if (window_surface) window_surface->Release (window_surface);
-			if (window) window->Release (window);
-			window = NULL; window_surface = NULL;
-			break;
-	}
-}
-
-void show_login_window(int action, __u8 opacity)
-{
-	static IDirectFBWindow	*window = NULL;
-	static IDirectFBSurface *window_surface= NULL;
-
-	if (!window && action != DESTROY)
-	{
-		DFBResult err;
-		DFBWindowDescription window_desc;
-
-		window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
-		window_desc.posx   = screen_width/8;
-		window_desc.posy   = 3*screen_height/8-font_large_height;
-		window_desc.width  = 3*screen_width/20;
-		window_desc.height = 2*font_large_height;
-		window_desc.caps   = DWCAPS_ALPHACHANNEL;
-
-		DFBCHECK(layer->CreateWindow (layer, &window_desc, &window));
-		window->SetOpacity( window, 0x00 );
-		window->GetSurface( window, &window_surface );
-		window_surface->Clear(window_surface, 0x00, 0x00, 0x00, 0x00);
-		window_surface->SetFont (window_surface, font_large);
-		window_surface->SetColor (window_surface, MASK_TEXT_COLOR);
-		window_surface->DrawString (window_surface, "login:", -1, window_desc.width, window_desc.height/2, DSTF_RIGHT);
-		window_surface->Flip(window_surface, NULL, 0);
-		window->RequestFocus(window);
-		window->RaiseToTop(window);
-	}
-
-	switch (action)
-	{
-		case YES:
-			window->SetOpacity( window, opacity);;
-			break;
-		case NO:
-			window->SetOpacity( window, 0x00 );;
-			break;
-		case DESTROY:
-			if (window_surface) window_surface->Release (window_surface);
-			if (window) window->Release (window);
-			window = NULL; window_surface = NULL;
-			break;
-	}
-}
-
-void show_passwd_window(int action, __u8 opacity)
-{
-	static IDirectFBWindow	*window = NULL;
-	static IDirectFBSurface *window_surface= NULL;
-
-	if (!window && action != DESTROY)
-	{
-		DFBResult err;
-		DFBWindowDescription window_desc;
-
-		window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
-		window_desc.posx   = screen_width/8;
-		window_desc.posy   = 4*screen_height/8-font_large_height;
-		window_desc.width  = 3*screen_width/20;
-		window_desc.height = 2*font_large_height;
-		window_desc.caps   = DWCAPS_ALPHACHANNEL;
-
-		DFBCHECK(layer->CreateWindow (layer, &window_desc, &window));
-		window->SetOpacity( window, 0x00 );
-		window->GetSurface( window, &window_surface );
-		window_surface->Clear(window_surface, 0x00, 0x00, 0x00, 0x00);
-		window_surface->SetFont (window_surface, font_large);
-		window_surface->SetColor (window_surface, MASK_TEXT_COLOR);
-		window_surface->DrawString (window_surface, "passwd:", -1, window_desc.width, window_desc.height/2, DSTF_RIGHT);
-		window_surface->Flip( window_surface, NULL, 0 );
-		window->RequestFocus( window );
-		window->RaiseToTop( window );
-	}
-
-	switch (action)
-	{
-		case YES:
-			window->SetOpacity( window, opacity);;
-			break;
-		case NO:
-			window->SetOpacity( window, 0x00 );;
-			break;
-		case DESTROY:
-			if (window_surface) window_surface->Release (window_surface);
-			if (window) window->Release (window);
-			window = NULL; window_surface = NULL;
-			break;
-	}
-}
-
-void show_session_window(int action, __u8 opacity)
-{
-	static IDirectFBWindow	*window = NULL;
-	static IDirectFBSurface *window_surface= NULL;
-
-	if (!window && action != DESTROY)
-	{
-		DFBResult err;
-		DFBWindowDescription window_desc;
-
-		window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
-		window_desc.posx   = screen_width/8;
-		window_desc.posy   = 5*screen_height/8-font_large_height;
-		window_desc.width  = 3*screen_width/20;
-		window_desc.height = 2*font_large_height;
-		window_desc.caps   = DWCAPS_ALPHACHANNEL;
-
-		DFBCHECK(layer->CreateWindow (layer, &window_desc, &window));
-		window->SetOpacity( window, 0x00 );
-		window->GetSurface( window, &window_surface );
-		window_surface->Clear(window_surface, 0x00, 0x00, 0x00, 0x00);
-		window_surface->SetFont (window_surface, font_large);
-		window_surface->SetColor (window_surface, MASK_TEXT_COLOR);
-		window_surface->DrawString (window_surface, "session:", -1, window_desc.width, window_desc.height-window_desc.height/2, DSTF_RIGHT);
-		window_surface->Flip( window_surface, NULL, 0 );
-		window->RequestFocus( window );
-		window->RaiseToTop( window );
-	}
-
-	switch (action)
-	{
-		case YES:
-			window->SetOpacity( window, opacity);;
-			break;
-		case NO:
-			window->SetOpacity( window, 0x00 );;
-			break;
-		case DESTROY:
-			if (window_surface) window_surface->Release (window_surface);
-			if (window) window->Release (window);
-			window = NULL; window_surface = NULL;
-			break;
-	}
-}
-
-int print_session_name(int action, char *user, __u8 opacity)
-{
-	static struct session *session = NULL;
-	static IDirectFBWindow	*window = NULL;
-	static IDirectFBSurface *window_surface= NULL;
-	static DFBWindowDescription window_desc;
-
-	if (!session)
-	{ /* Get info about available sessions */
-		get_sessions();
-		session = &sessions;
-	}
-	if (!window && action != DESTROY)
-	{
-		DFBResult err;
-
-		window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
-		window_desc.posx   = 3*screen_width/10;
-		window_desc.posy   = 5*screen_height/8-font_large_height;
-		window_desc.width  = 3*screen_width/4 - window_desc.posx;
-		window_desc.height = 2*font_large_height;
-
-		window_desc.caps   = DWCAPS_ALPHACHANNEL;
-		DFBCHECK(layer->CreateWindow (layer, &window_desc, &window));
-		window->SetOpacity( window, 0x00 );
-		window->GetSurface( window, &window_surface );
-		window_surface->Clear(window_surface, 0x00, 0x00, 0x00, 0x00);
-		window_surface->SetFont (window_surface, font_large);
-		window_surface->SetColor (window_surface, MASK_TEXT_COLOR);
-		window_surface->DrawString (window_surface, session->name, -1, 0, window_desc.height/2, DSTF_LEFT);
-		window_surface->Flip( window_surface, NULL, 0 );
-		window->RequestFocus( window );
-		window->RaiseToTop( window );
-	}
-
-	switch (action)
-	{
-		case YES:
-			if (user != NULL)
+		temp = session->items;
+		while (1)
+		{
+			if (strcmp(user_session, temp->name) == 0)
 			{
-				struct session *first = session;
-				char *user_session = get_last_session(user);
-
-				if (!!user_session)
-				{
-					while (strcmp(session->name, user_session) != 0)
-					{
-						session = session->next;
-						if (session == first) break;
-					}
-					if (session != first)
-					{
-						window_surface->Clear(window_surface, 0x00, 0x00, 0x00, 0x00);
-						window_surface->DrawString (window_surface, session->name, -1, 0, window_desc.height/2, DSTF_LEFT);
-						window_surface->Flip( window_surface, NULL, 0 );
-					}
-				}
+				session->selected = temp;
+				ComboBox_KeyEvent(session, REDRAW);
+				return;
 			}
-			window->SetOpacity( window, opacity);
-			break;
-		case NO:
-			window->SetOpacity( window, 0x00);
-			break;
-		case DESTROY:
-			if (window_surface) window_surface->Release (window_surface);
-			if (window) window->Release (window);
-			window = NULL; window_surface = NULL;
-			break;
-		case UP:
-			session= session->prev;
-			window_surface->Clear(window_surface, 0x00, 0x00, 0x00, 0x00);
-			window_surface->DrawString (window_surface, session->name, -1, 0, window_desc.height/2, DSTF_LEFT);
-			window_surface->Flip( window_surface, NULL, 0 );
-			break;
-		case DOWN:
-			session= session->next;
-			window_surface->Clear(window_surface, 0x00, 0x00, 0x00, 0x00);
-			window_surface->DrawString (window_surface, session->name, -1, 0, window_desc.height/2, DSTF_LEFT);
-			window_surface->Flip( window_surface, NULL, 0 );
-			break;
-	}
-
-	return session->id;
-}
-
-void show_lock_key_status(DFBInputEvent *evt, int action)
-{
-	static IDirectFBWindow	*window = NULL;
-	static IDirectFBSurface *window_surface = NULL;
-	__u8 opacity;
-
-	if (!window_surface)
-	{
-		DFBWindowDescription window_desc;
-		DFBResult err;
-
-		window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
-		window_desc.posx   = 0;
-		window_desc.posy   = screen_height - (font_small_height);
-		window_desc.width  = screen_width/5;
-		window_desc.height = font_small_height;
-		window_desc.caps   = DWCAPS_ALPHACHANNEL;
-		DFBCHECK(layer->CreateWindow (layer, &window_desc, &window));
-		window->GetSurface(window, &window_surface );
-		window_surface->SetFont (window_surface, font_small);
-		window_surface->SetColor (window_surface, MASK_TEXT_COLOR);
-		window_surface->DrawString (window_surface, "CAPS LOCK is pressed", -1, window_desc.width/2, window_desc.height+1, DSTF_CENTER|DSTF_BOTTOM );
-		window_surface->Flip(window_surface, NULL, 0);
-		window->SetOpacity(window, 0x00);
-		window->RaiseToTop(window);
-	}
-
-	switch (action)
-	{
-		case DESTROY:
-			if (window_surface) window_surface->Release (window_surface);
-			if (window) window->Release (window);
-			break;
-		case NO:
-			window->SetOpacity(window, 0x00);
-			break;
-		case YES:
-			window->GetOpacity(window, &opacity);
-			if (lock_is_pressed(evt) == 3)
-			{
-				if (opacity == 0x00) window->SetOpacity(window, WINDOW_OPACITY);
-			}
-			else
-			{
-				if (opacity != 0x00) window->SetOpacity(window, 0x00);
-			}
-			break;
+			temp = temp->next;
+			if (temp == session->items) break;
+		}
 	}
 }
 
 void close_framebuffer_mode (void)
 {
-	/* release our interfaces to shutdown DirectFB */
+	if (power) Button_Destroy(power);
+	if (reset) Button_Destroy(reset);
+	if (panel_image) panel_image->Release (panel_image);
+	Label_Destroy(welcome_label);
+	Label_Destroy(lock_key_status);
+	Label_Destroy(username_label);
+	TextBox_Destroy(username);
+	Label_Destroy(password_label);
+	TextBox_Destroy(password);
+	Label_Destroy(session_label);
+	ComboBox_Destroy(session);
+	font_small->Release (font_small);
+	font_normal->Release (font_normal);
+	font_large->Release (font_large);
+	primary->Release (primary);
+	events->Release (events);
+	layer->Release (layer);
 	while (devices)
 	{
 		DeviceInfo *next = devices->next;
 		free (devices);
 		devices = next;
 	}
-	if (power) destroy_button (power);
-	if (reset) destroy_button (reset);
-	if (panel_image) panel_image->Release (panel_image);
-	font_small->Release (font_small);
-	font_normal->Release (font_normal);
-	font_large->Release (font_large);
-	show_welcome_window(DESTROY);
-	show_lock_key_status(NULL, DESTROY);
-	print_session_name(DESTROY, NULL, 0x00);
-	show_login_window(DESTROY, 0x00);
-	TextBox_Destroy(username); username = NULL;
-	show_passwd_window(DESTROY, 0x00);
-	TextBox_Destroy(password); password = NULL;
-	show_session_window(DESTROY, 0x00);
-	primary->Release (primary);
-	events->Release (events);
-	layer->Release (layer);
 	dfb->Release (dfb);
 	if (we_stopped_gpm) start_gpm();
 }
 
-void handle_buttons(void)
+/* mouse movement in buttons area */
+void handle_buttons(int *mouse_x, int *mouse_y)
 {
 	/* mouse over power button */
-	if ((mouse_x >= power->xpos) && (mouse_x <= (power->xpos + (int) power->width)))
-		if ((mouse_y >= power->ypos) && (mouse_y <= (power->ypos + (int) power->height)))
+	if ((*mouse_x >= power->xpos) && (*mouse_x <= (power->xpos + (int) power->width)))
+		if ((*mouse_y >= power->ypos) && (*mouse_y <= (power->ypos + (int) power->height)))
 		{
 			if (!power->mouse)
 			{
-				power->mouse = 1;
-				power->surface->Clear (power->surface, 0x00, 0x00, 0x00, 0x00);
-				power->surface->Blit(power->surface, power->mouseover, NULL, 0, 0);
-				power->surface->Flip(power->surface, NULL, 0);
-				if (reset->mouse)
-				{
-					reset->mouse = 0;
-					reset->surface->Clear (reset->surface, 0x00, 0x00, 0x00, 0x00);
-					reset->surface->Blit(reset->surface, reset->normal, NULL, 0, 0);
-					reset->surface->Flip(reset->surface, NULL, 0);
-				}
+				Button_MouseOver(power, 1);
+				if (reset->mouse) Button_MouseOver(reset, 0);
 				return;
 			}
 			else return;		/* we already plotted this event */
 		}
 
 	/* mouse over reset button */
-	if ((mouse_x >= reset->xpos) && (mouse_x <= (reset->xpos + (int) reset->width)))
-		if ((mouse_y >= reset->ypos) && (mouse_y <= (reset->ypos + (int) reset->height)))
+	if ((*mouse_x >= reset->xpos) && (*mouse_x <= (reset->xpos + (int) reset->width)))
+		if ((*mouse_y >= reset->ypos) && (*mouse_y <= (reset->ypos + (int) reset->height)))
 		{
 			if (!reset->mouse)
 			{
-				reset->mouse = 1;
-				reset->surface->Clear (reset->surface, 0x00, 0x00, 0x00, 0x00);
-				reset->surface->Blit(reset->surface, reset->mouseover, NULL, 0, 0);
-				reset->surface->Flip(reset->surface, NULL, 0);
-				if (power->mouse)
-				{
-					power->mouse = 0;
-					power->surface->Clear (power->surface, 0x00, 0x00, 0x00, 0x00);
-					power->surface->Blit(power->surface, power->normal, NULL, 0, 0);
-					power->surface->Flip(power->surface, NULL, 0);
-				}
+				Button_MouseOver(reset, 1);
+				if (power->mouse) Button_MouseOver(power, 0);
 				return;
 			}
 			else return;		/* we already plotted this event */
 		}
 
 	/* mouse not over any power button */
-	if (power->mouse)
-	{
-		power->mouse = 0;
-		power->surface->Clear (power->surface, 0x00, 0x00, 0x00, 0x00);
-		power->surface->Blit(power->surface, power->normal, NULL, 0, 0);
-		power->surface->Flip(power->surface, NULL, 0);
-	}
-	if (reset->mouse)
-	{
-		reset->mouse = 0;
-		reset->surface->Clear (reset->surface, 0x00, 0x00, 0x00, 0x00);
-		reset->surface->Blit(reset->surface, reset->normal, NULL, 0, 0);
-		reset->surface->Flip(reset->surface, NULL, 0);
-	}
+	if (power->mouse) Button_MouseOver(power, 0);
+	if (reset->mouse) Button_MouseOver(reset, 0);
 }
 
-void handle_textboxes(void)
+/* mouse movement in textboxes and comboboxes area */
+void handle_text_combo_boxes(int *mouse_x, int *mouse_y)
 {
 	/* mouse over username area */
-	if ( (mouse_x >= (int) username->xpos) && (mouse_x <= (int) username->xpos + (int) username->width) )
-		if ( (mouse_y >= (int) username->ypos) && (mouse_y <= (int) username->ypos + (int) username->height) )
+	if ( (*mouse_x >= (int) username->xpos) && (*mouse_x <= (int) username->xpos + (int) username->width) )
+		if ( (*mouse_y >= (int) username->ypos) && (*mouse_y <= (int) username->ypos + (int) username->height) )
 		{
-			username->mouse = 1;
-			password->mouse = 0;
+			username_area_mouse = 1;
 			return;
 		}
 
 	/* mouse over password area */
-	if ( (mouse_x >= (int) password->xpos) && (mouse_x <= (int) password->xpos + (int) password->width) )
-		if ( (mouse_y >= (int) password->ypos) && (mouse_y <= (int) password->ypos + (int) password->height) )
+	if ( (*mouse_x >= (int) password->xpos) && (*mouse_x <= (int) password->xpos + (int) password->width) )
+		if ( (*mouse_y >= (int) password->ypos) && (*mouse_y <= (int) password->ypos + (int) password->height) )
 		{
-			username->mouse = 0;
-			password->mouse = 1;
+			password_area_mouse = 1;
 			return;
 		}
 
-	/* mouse not over any textbox */
-	username->mouse = 0;
-	password->mouse = 0;
+	/* mouse over session area */
+	if ( (*mouse_x >= (int) session->xpos) && (*mouse_x <= (int) session->xpos + (int) session->width) )
+		if ( (*mouse_y >= (int) session->ypos) && (*mouse_y <= (int) session->ypos + (int) session->height) )
+		{
+			session_area_mouse = 1;
+			return;
+		}
+}
+
+/* mouse movement in labels area */
+void handle_labels(int *mouse_x, int *mouse_y)
+{
+	/* mouse over username area */
+	if ( (*mouse_x >= (int) username_label->xpos) && (*mouse_x <= (int) username_label->xpos + (int) username_label->width) )
+		if ( (*mouse_y >= (int) username_label->ypos) && (*mouse_y <= (int) username_label->ypos + (int) username_label->height) )
+		{
+			username_area_mouse = 1;
+			return;
+		}
+
+	/* mouse over password area */
+	if ( (*mouse_x >= (int) password_label->xpos) && (*mouse_x <= (int) password_label->xpos + (int) password_label->width) )
+		if ( (*mouse_y >= (int) password_label->ypos) && (*mouse_y <= (int) password_label->ypos + (int) password_label->height) )
+		{
+			password_area_mouse = 1;
+			return;
+		}
+
+	/* mouse over session area */
+	if ( (*mouse_x >= (int) session_label->xpos) && (*mouse_x <= (int) session_label->xpos + (int) session_label->width) )
+		if ( (*mouse_y >= (int) session_label->ypos) && (*mouse_y <= (int) session_label->ypos + (int) session_label->height) )
+		{
+			session_area_mouse = 1;
+			return;
+		}
 }
 
 void handle_mouse_movement (void)
 {
-	handle_buttons();
-	handle_textboxes();
+	int mouse_x, mouse_y;
+
+	username_area_mouse = 0;
+	password_area_mouse = 0;
+	session_area_mouse = 0;
+
+	layer->GetCursorPosition (layer, &mouse_x, &mouse_y);
+	handle_buttons(&mouse_x, &mouse_y);
+	handle_text_combo_boxes(&mouse_x, &mouse_y);
+	handle_labels(&mouse_x, &mouse_y);
+}
+
+void show_lock_key_status(DFBInputEvent *evt)
+{
+	if (lock_is_pressed(evt) == 3) Label_Show(lock_key_status);
+	else Label_Hide(lock_key_status);
 }
 
 void reset_screen(DFBInputEvent *evt)
 {
 	Draw_Background_Image ();
-	power->mouse = 0;
-	reset->mouse = 0;
-	power->window->SetOpacity(power->window, BUTTON_OPACITY);
-	reset->window->SetOpacity(reset->window, BUTTON_OPACITY);
-	show_welcome_window(YES);
-	show_login_window(YES, (username->hasfocus) ? SELECTED_WINDOW_OPACITY : WINDOW_OPACITY);
+	Button_Show(power);
+	Button_Show(reset);
+	Label_Show(welcome_label);
+	Label_Show(username_label);
+	Label_Show(password_label);
+	Label_Show(session_label);
 	TextBox_Show(username);
-	show_passwd_window(YES, (password->hasfocus) ? SELECTED_WINDOW_OPACITY : WINDOW_OPACITY);
 	TextBox_Show(password);
-	show_session_window(YES, (session_hasfocus) ? SELECTED_WINDOW_OPACITY : WINDOW_OPACITY);
-	print_session_name(YES, NULL, (session_hasfocus) ? SELECTED_WINDOW_OPACITY : WINDOW_OPACITY);
-	show_lock_key_status(evt, YES);
-	layer->GetCursorPosition (layer, &mouse_x, &mouse_y);
+	ComboBox_Show(session);
+	show_lock_key_status(evt);
 	handle_mouse_movement();
 	layer->EnableCursor (layer, 1);
 }
 
 void clear_screen(void)
 {
-	power->window->SetOpacity(power->window, 0x00 );
-	reset->window->SetOpacity(reset->window, 0x00 );
-	show_login_window(NO, 0x00);
+	Button_Hide(power);
+	Button_Hide(reset);
+	Label_Hide(welcome_label);
 	TextBox_Hide(username);
 	TextBox_Hide(password);
-	show_passwd_window(NO, 0x00);
-	show_session_window(NO, 0x00);
-	show_welcome_window(NO);
-	show_lock_key_status(NULL, NO);
-	print_session_name(NO, NULL, 0x00);
+	Label_Hide(username_label);
+	Label_Hide(password_label);
+	Label_Hide(session_label);
+	Label_Hide(lock_key_status);
+	ComboBox_Hide(session);
 	layer->EnableCursor (layer, 0);
 	primary->Clear (primary, 0, 0, 0, 0);
 	primary->Flip (primary, NULL, DSFLIP_BLIT);
@@ -655,40 +373,47 @@ void handle_mouse_event (DFBInputEvent *evt)
 	{	/* mouse button press or release */
 		if (left_mouse_button_down (evt))
 		{	/* left mouse button is down:
-			   we check wether mouse pointer is over a button */
+			   we check wether mouse pointer is over a specific area */
 			if (power->mouse) status = 1;
 			if (reset->mouse) status = 2;
-			if (username->mouse) status = 3;
-			if (password->mouse) status = 4;
+			if (username_area_mouse) status = 3;
+			if (password_area_mouse) status = 4;
+			if (session_area_mouse) status = 5;
 		}
 		else
 		{	/* left mouse button is up:
-			   if it was on a button when down we check if it is still there */
+			   if it was on a specific area when down we check if it is still there */
 			if ((power->mouse) && (status == 1))	/* power button has been clicked! */
 				begin_shutdown_sequence (POWEROFF);
 			if ((reset->mouse) && (status == 2))	/* reset button has been clicked! */
 				begin_shutdown_sequence (REBOOT);
-			if ((username->mouse) && (status == 3))	/* username textbox has been clicked! */
-			{
-				session_hasfocus  = 0;
+			if (username_area_mouse && status == 3)
+			{	/* username area has been clicked! */
 				TextBox_SetFocus(username, 1);
-				show_login_window(YES, SELECTED_WINDOW_OPACITY);
+				Label_SetFocus(username_label, 1);
 				TextBox_SetFocus(password, 0);
-				show_passwd_window(YES, WINDOW_OPACITY);
-				show_session_window(YES, WINDOW_OPACITY);
-				print_session_name(YES, NULL, WINDOW_OPACITY);
+				Label_SetFocus(password_label, 0);
+				ComboBox_SetFocus(session, 0);
+				Label_SetFocus(session_label, 0);
 			}
-			if ((password->mouse) && (status == 4))	/* username textbox has been clicked! */
-			{
-				session_hasfocus  = 0;
+			if (password_area_mouse && status == 4)
+			{	/* password area has been clicked! */
 				TextBox_SetFocus(username, 0);
-				show_login_window(YES, WINDOW_OPACITY);
+				Label_SetFocus(username_label, 0);
 				TextBox_SetFocus(password, 1);
-				show_passwd_window(YES, SELECTED_WINDOW_OPACITY);
-				show_session_window(YES, WINDOW_OPACITY);
-				print_session_name(YES, NULL, WINDOW_OPACITY);
+				Label_SetFocus(password_label, 1);
+				ComboBox_SetFocus(session, 0);
+				Label_SetFocus(session_label, 0);
 			}
-
+			if (session_area_mouse && status == 5)
+			{	/* session area has been clicked! */
+				TextBox_SetFocus(username, 0);
+				Label_SetFocus(username_label, 0);
+				TextBox_SetFocus(password, 0);
+				Label_SetFocus(password_label, 0);
+				ComboBox_SetFocus(session, 1);
+				Label_SetFocus(session_label, 1);
+			}
 			status = 0;		/* we reset click status because button went up */
 		}
 	}
@@ -696,12 +421,11 @@ void handle_mouse_event (DFBInputEvent *evt)
 
 void start_login_sequence(DFBInputEvent *evt)
 {
-	int session_id;
 	char message[MAX];
 	char *user_name;
+	char *user_session;
 
 	if (strlen(username->text) == 0) return;
-	session_id = print_session_name(YES, NULL, WINDOW_OPACITY);
 	strncpy(message, "Logging in ", MAX);
 	strncat(message, username->text, MAX-strlen(message));
 	strncat(message, "...", MAX-strlen(message));
@@ -726,11 +450,14 @@ void start_login_sequence(DFBInputEvent *evt)
 	sleep(1);
 	user_name = (char *) calloc(strlen(username->text)+1, sizeof(char));
 	strcpy(user_name, username->text);
+	user_session = (char *) calloc(strlen(session->selected->name)+1, sizeof(char));
+	strcpy(user_session, session->selected->name);
 	close_framebuffer_mode();
-	start_session(user_name, session_id, workaround);
+	start_session(user_name, user_session, workaround);
 
 	/* The above never returns, so... */
 	free(user_name); user_name = NULL;
+	free(user_session); user_session = NULL;
 	fprintf(stderr, "Go tell my creator his brains went pop!\n");
 	exit(0);
 }
@@ -744,31 +471,36 @@ int handle_keyboard_event(DFBInputEvent *evt)
 	static int last_symbol;
 	int returnstatus = -1;
  	int allow_tabbing = 1;
+	int modifier = 0;
 	int ascii_code = (int) evt->key_symbol;
 
-	show_lock_key_status(evt, YES);
-	/* If user presses ESC two times, we bo back to text mode */
+	show_lock_key_status(evt);
+	/* If user presses ESC two times, we go back to text mode */
 	if ((last_symbol == ESCAPE) && (ascii_code == ESCAPE)) return TEXT_MODE;
 	/* We store the previous keystroke */
 	last_symbol = ascii_code;
 	symbol_name = bsearch (&(evt->key_symbol), keynames, sizeof (keynames) / sizeof (keynames[0]) - 1, sizeof (keynames[0]), compare_symbol);
-	if (modifier_is_pressed(evt) == ALT)
-	{ /* we check if the user is pressing ALT-number with 1 <= number <= 12
-		   if so we close directfb mode and send him to that tty              */
-		if (symbol_name)
-			if ((strlen (symbol_name->name) <= 3) && (strncmp (symbol_name->name, "F", 1) == 0))
-			{
-				temp = atoi (symbol_name->name + 1);
-				if ((temp > 0) && (temp < 13))
-					if (get_active_tty () != temp)
-						return temp;
-			}
-		/* we check if user press ALT-p or ALT-r to start shutdown/reboot sequence */
-		if ((ascii_code == 'P')||(ascii_code == 'p')) begin_shutdown_sequence (POWEROFF);
-		if ((ascii_code == 'R')||(ascii_code == 'r')) begin_shutdown_sequence (REBOOT);
-		/* we get here only if user aborted shutdown */
-		layer->EnableCursor (layer, 1);
-		return returnstatus;
+	modifier = modifier_is_pressed(evt);
+	if (!!modifier)
+	{
+		if (modifier == ALT)
+		{	/* we check if user press ALT-p or ALT-r to start shutdown/reboot sequence */
+			if ((ascii_code == 'P')||(ascii_code == 'p')) begin_shutdown_sequence (POWEROFF);
+			if ((ascii_code == 'R')||(ascii_code == 'r')) begin_shutdown_sequence (REBOOT);
+		}
+		if (modifier == ALT || modifier == CTRLALT)
+		{ /* we check if the user is pressing [CTRL-]ALT-number with 1 <= number <= 12
+			   if so we close directfb mode and send him to that tty              */
+			if (symbol_name)
+				if ((strlen (symbol_name->name) <= 3) && (strncmp (symbol_name->name, "F", 1) == 0))
+				{
+					temp = atoi (symbol_name->name + 1);
+					if ((temp > 0) && (temp < 13))
+						if (get_active_tty () != temp)
+							return temp;
+				}
+			return returnstatus;
+		}
 	}
 
 	if (symbol_name)
@@ -782,28 +514,23 @@ int handle_keyboard_event(DFBInputEvent *evt)
 			if (ascii_code == TAB)
 			{
 				allow_tabbing = 0;
+				Label_SetFocus(username_label, 0);
 				TextBox_SetFocus(username, 0);
-				show_login_window(YES, WINDOW_OPACITY);
 				if (modifier_is_pressed(evt) != SHIFT)
 				{
+					Label_SetFocus(password_label, 1);
 					TextBox_SetFocus(password, 1);
-					show_passwd_window(YES, SELECTED_WINDOW_OPACITY);
 				}
 				else
 				{
-					session_hasfocus  = 1;
-					show_session_window(YES, SELECTED_WINDOW_OPACITY);
-					print_session_name(YES, NULL, SELECTED_WINDOW_OPACITY);
+					Label_SetFocus(session_label, 1);
+					ComboBox_SetFocus(session, 1);
 				}
 			}
 			else
 			{
-				char old_user[MAX];
-
-				strncpy(old_user, username->text, MAX-1);
 				TextBox_KeyEvent(username, ascii_code, 1);
-				if (strcmp(old_user,username->text) != 0)
-					print_session_name(YES, username->text, WINDOW_OPACITY);				
+				set_user_session(username->text);
 			}
 		}
 
@@ -813,51 +540,87 @@ int handle_keyboard_event(DFBInputEvent *evt)
 			if (ascii_code == TAB)
 			{
 				allow_tabbing = 0;
+				Label_SetFocus(password_label, 0);
 				TextBox_SetFocus(password, 0);
-				show_passwd_window(YES, WINDOW_OPACITY);
 				if (modifier_is_pressed(evt) != SHIFT)
 				{
-					session_hasfocus  = 1;
-					show_session_window(YES, SELECTED_WINDOW_OPACITY);
-					print_session_name(YES, NULL, SELECTED_WINDOW_OPACITY);
+					Label_SetFocus(session_label, 1);
+					ComboBox_SetFocus(session, 1);
 				}
 				else
 				{
+					Label_SetFocus(username_label, 1);
 					TextBox_SetFocus(username, 1);
-					show_login_window(YES, SELECTED_WINDOW_OPACITY);
 				}
 			}
 			else TextBox_KeyEvent(password, ascii_code, 1);
 		}
 
 		/* session events */
-		if (session_hasfocus && allow_tabbing)
+		if (session->hasfocus && allow_tabbing)
 		{
-			if (ascii_code == ARROW_UP) print_session_name(UP, NULL, WINDOW_OPACITY);
-			if (ascii_code == ARROW_DOWN) print_session_name(DOWN, NULL, WINDOW_OPACITY);
+			if (ascii_code == ARROW_UP) ComboBox_KeyEvent(session, UP);
+			if (ascii_code == ARROW_DOWN) ComboBox_KeyEvent(session, DOWN);
 			if (ascii_code == TAB)
 			{
-				session_hasfocus  = 0;
 				allow_tabbing = 0;
-				show_session_window(YES, WINDOW_OPACITY);
-				print_session_name(YES, NULL, WINDOW_OPACITY);
+				Label_SetFocus(session_label, 0);
+				ComboBox_SetFocus(session, 0);
 				if (modifier_is_pressed(evt) != SHIFT)
 				{
+					Label_SetFocus(username_label, 1);
 					TextBox_SetFocus(username, 1);
-					show_login_window(YES, SELECTED_WINDOW_OPACITY);
 				}
 				else
 				{
+					Label_SetFocus(password_label, 1);
 					TextBox_SetFocus(password, 1);
-					show_passwd_window(YES, SELECTED_WINDOW_OPACITY);
 				}
 			}
 		}
 	}
 
-	/* Sometimes mouse cursor disappears after a keystroke, we make it visible again */
-	layer->EnableCursor (layer, 1);
 	return returnstatus;
+}
+
+void Create_Labels_TextBoxes_ComboBoxes(void)
+{
+	DFBWindowDescription window_desc;
+
+	window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
+	window_desc.posx   = 0;
+	window_desc.posy   = screen_height/8;
+	window_desc.width  = screen_width;
+	window_desc.height = 2*font_large_height;
+	window_desc.caps   = DWCAPS_ALPHACHANNEL;
+	welcome_label = Label_Create(layer, font_large, &window_desc);
+	Label_SetText(welcome_label, print_welcome_message("Welcome to ", NULL), CENTER);
+	window_desc.posx = screen_width/8;
+	window_desc.posy   = 3*screen_height/8-font_large_height;
+	window_desc.width  = 3*screen_width/20;
+	username_label = Label_Create(layer, font_large, &window_desc);
+	Label_SetText(username_label, "login:", RIGHT);
+	window_desc.posy   = 4*screen_height/8-font_large_height;
+	password_label = Label_Create(layer, font_large, &window_desc);
+	Label_SetText(password_label, "passwd:", RIGHT);
+	window_desc.posy   = 5*screen_height/8-font_large_height;
+	session_label = Label_Create(layer, font_large, &window_desc);
+	Label_SetText(session_label, "session:", RIGHT);
+	window_desc.posx   = 3*screen_width/10;
+	window_desc.posy   = 3*screen_height/8-font_large_height;
+	window_desc.width  = screen_width - window_desc.posx;
+	window_desc.height = 2*font_large_height;
+	username = TextBox_Create(layer, font_large, &window_desc);
+	window_desc.posy   = 4*screen_height/8-font_large_height;
+	password = TextBox_Create(layer, font_large, &window_desc);
+	window_desc.posy = 5*screen_height/8-font_large_height;
+	session = ComboBox_Create(layer, font_large, &window_desc);
+	window_desc.posx   = 0;
+	window_desc.posy   = screen_height - (font_small_height);
+	window_desc.width  = screen_width/5;
+	window_desc.height = font_small_height;
+	lock_key_status = Label_Create(layer, font_small, &window_desc);
+	Label_SetText(lock_key_status, "CAPS LOCK is pressed", CENTERBOTTOM);
 }
 
 void set_font_sizes ()
@@ -880,11 +643,11 @@ void set_font_sizes ()
 
 int framebuffer_mode (int argc, char *argv[], int do_workaround)
 {
-	int returnstatus = -1;			/* return value of this function...											*/
-	DFBResult err;							/* used by that bloody macro to check for errors				*/
-	DFBSurfaceDescription sdsc;	/* this will be the description for the primary surface	*/
-	DFBInputEvent evt;					/* generic input events will be stored here							*/
-	char *lastuser = NULL;
+	int returnstatus = -1;      /* return value of this function...             */
+	DFBResult err;              /* the bloody macro uses it to check for errors */
+	DFBSurfaceDescription sdsc; /* description for the primary surface          */
+	DFBInputEvent evt;          /* generic input events will be stored here     */
+	char *lastuser = get_last_user(); /* last user logged in                    */
 
 	if (do_workaround != -1) workaround = do_workaround;
 
@@ -892,13 +655,16 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 	we_stopped_gpm= stop_gpm();
 
 	/* we initialize directfb */
+
+	stderr_disable();
 	DFBCHECK (DirectFBInit (&argc, &argv));
+	stderr_enable();
 	DFBCHECK (DirectFBCreate (&dfb));
 	dfb->EnumInputDevices (dfb, enum_input_device, &devices);
 	DFBCHECK (dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &events));
 	DFBCHECK (dfb->GetDisplayLayer (dfb, DLID_PRIMARY, &layer));
 	layer->SetCooperativeLevel (layer, DLSCL_ADMINISTRATIVE);
-	layer->EnableCursor (layer, 1);
+	layer->EnableCursor (layer, 0);
 	sdsc.flags = DSDESC_CAPS;
 	sdsc.caps  = DSCAPS_PRIMARY | DSCAPS_FLIPPING;
 	DFBCHECK(dfb->CreateSurface( dfb, &sdsc, &primary ));
@@ -907,75 +673,48 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 	set_font_sizes ();
 	Draw_Background_Image();
 
-	/* we load and draw buttons */
-	power = load_button (DATADIR "power_normal.png", DATADIR "power_mouseover.png", screen_width, screen_height, layer, primary, dfb, BUTTON_OPACITY );
-	reset = load_button (DATADIR "reset_normal.png", DATADIR "reset_mouseover.png", power->xpos - 10, screen_height, layer, primary, dfb, BUTTON_OPACITY );
-	power->surface->Clear(power->surface, 0x00, 0x00, 0x00, 0x00);
-	reset->surface->Clear(reset->surface, 0x00, 0x00, 0x00, 0x00);
-	power->surface->Blit (power->surface, power->normal, NULL, 0, 0);
-	reset->surface->Blit (reset->surface, reset->normal, NULL, 0, 0);
-	power->surface->Flip(power->surface, NULL, 0);
-	reset->surface->Flip(reset->surface, NULL, 0);
+	/* we create buttons */
+	power = Button_Create(DATADIR "power_normal.png", DATADIR "power_mouseover.png", screen_width, screen_height, layer, primary, dfb);
+	reset = Button_Create(DATADIR "reset_normal.png", DATADIR "reset_mouseover.png", power->xpos - 10, screen_height, layer, primary, dfb);
+	Button_MouseOver(power, 0);
+	Button_MouseOver(reset, 0);
 
-	lastuser = get_last_user();
-
-	/* we show windows */
-	show_welcome_window(YES);
+	/* we create labels, textboxes and comboboxes */
+	Create_Labels_TextBoxes_ComboBoxes();
+	password->mask_text = 1;
+	get_sessions(session);
 	if (!!lastuser)
 	{
-		show_login_window(YES, WINDOW_OPACITY);
-		show_passwd_window(YES, SELECTED_WINDOW_OPACITY);
-	}
-	else
-	{
-		show_login_window(YES, SELECTED_WINDOW_OPACITY);
-		show_passwd_window(YES, WINDOW_OPACITY);
-	}
-	show_session_window(YES, WINDOW_OPACITY);
-	print_session_name(YES, lastuser, WINDOW_OPACITY);
-
-	/* we create textboxes */
-	if (!username)
-	{
-		DFBWindowDescription window_desc;
-
-		window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
-		window_desc.posx   = 3*screen_width/10;
-		window_desc.posy   = 3*screen_height/8-font_large_height;
-		window_desc.width  = screen_width - window_desc.posx;
-		window_desc.height = 2*font_large_height;
-		window_desc.caps   = DWCAPS_ALPHACHANNEL;
-		username = TextBox_Create(layer, font_large, &window_desc);
-		window_desc.posy   = 4*screen_height/8-font_large_height;
-		password = TextBox_Create(layer, font_large, &window_desc);
-		password->mask_text = 1;
-		if (!!lastuser)
-		{
-			TextBox_SetText(username, lastuser);
-			username->hasfocus = 1;
-			TextBox_SetFocus(username, 0);
-			TextBox_SetFocus(password, 1);
-		}
-		else TextBox_SetFocus(username, 1);
-	}
-
-	if (!!lastuser)
-	{
+		Label_SetFocus(username_label, 0);
+		Label_SetFocus(password_label, 1);
+		TextBox_SetText(username, lastuser);
+		TextBox_SetFocus(username, 0);
+		TextBox_SetFocus(password, 1);
+		set_user_session(lastuser);
 		free(lastuser);
 		lastuser = NULL;
 	}
+	else
+	{
+		Label_SetFocus(username_label, 1);
+		Label_SetFocus(password_label, 0);
+		TextBox_SetFocus(username, 1);
+	}
+	Label_SetFocus(welcome_label, 0);
+	Label_SetFocus(session_label, 0);
+	ComboBox_SetFocus(session, 0);
 
+	layer->EnableCursor (layer, 1);
 	/* we go on for ever... or until the user does something in particular */
 	while (returnstatus == -1)
 	{
-		/* we wait for an input event */
+		/* we wait for an input event... */
 		events->WaitForEventWithTimeout(events, 0, 500);
 		if (events->HasEvent(events) == DFB_OK)
-		{
+		{ /* ...got that! */
 			events->GetEvent (events, DFB_EVENT (&evt));
 			if ((evt.type == DIET_AXISMOTION) || (evt.type == DIET_BUTTONPRESS) || (evt.type == DIET_BUTTONRELEASE))
 			{	/* handle mouse */
-				layer->GetCursorPosition (layer, &mouse_x, &mouse_y);
 				handle_mouse_event (&evt);
 			}
 			if (evt.type == DIET_KEYPRESS)
@@ -984,18 +723,13 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 			}
 		}
 		else
-		{
-			static int do_switch = 0;
+		{ /* Let there be a flashing cursor! */
+			static int flashing_cursor = 0;
 			if (username->hasfocus)
-			{
-				TextBox_KeyEvent(username, REDRAW, do_switch);
-				do_switch = !do_switch;
-			}
+				TextBox_KeyEvent(username, REDRAW, flashing_cursor);
 			if (password->hasfocus)
-			{
-				TextBox_KeyEvent(password, REDRAW, do_switch);
-				do_switch = !do_switch;
-			}
+				TextBox_KeyEvent(password, REDRAW, flashing_cursor);
+			flashing_cursor = !flashing_cursor;
 		}
 	}
 

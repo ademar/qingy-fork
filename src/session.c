@@ -37,6 +37,7 @@
 #include <syslog.h>
 #include <time.h>
 #include <unistd.h>
+#include <directfb.h>
 
 #if HAVE_DIRENT_H
 	# include <dirent.h>
@@ -75,6 +76,7 @@
 #include "chvt.h"
 #include "misc.h"
 #include "load_settings.h"
+#include "directfb_combobox.h"
 
 #define UNKNOWN_USER   0
 #define WRONG_PASSWORD 1
@@ -84,47 +86,30 @@
 int current_vt;
 extern char **environ;
 
-int get_sessions(void)
+void get_sessions(void *sessions)
 {
-	struct session *curr;
-	struct dirent *entry;
 	DIR *dir;
-	int i=0;
+	struct dirent *entry;
 
-	curr= &sessions;
-
-	curr->name = (char *) calloc(13, sizeof(char));
-	strcpy(curr->name, "Text Console");
-	curr->id = i;
-	curr->next = curr;
-	curr->prev = curr;
+	if (!sessions) return;
+	ComboBox_AddItem(sessions, "Text Console");
 
 	dir= opendir(XSESSIONS_DIRECTORY);
 	if (dir == NULL)
 	{
 	  fprintf(stderr, "session: unable to open directory \"%s\"\n", XSESSIONS_DIRECTORY);
-		return (i+1);
+		return;
 	}
 	while ((entry= readdir(dir)) != NULL)
 	{
 	  if (strcmp(entry->d_name, "." ) != 0)
 		if (strcmp(entry->d_name, "..") != 0)
 		if (strcmp(entry->d_name, "Xsession") != 0)
-		{
-			i++;
-			curr->next = (struct session *) calloc(1, sizeof(struct session));
-			curr->next->prev = curr;
-			curr = curr->next;
-			curr->name = (char *) calloc(strlen(entry->d_name)+1, sizeof(char));
-			strcpy(curr->name, entry->d_name);
-			curr->id = i;
-		}
+			ComboBox_AddItem(sessions, entry->d_name);
 	}
 	closedir(dir);
-	curr->next = &sessions;
-	sessions.prev = curr;
 
-	return (i+1);
+	return;
 }
 
 /* write events to system logs */
@@ -364,7 +349,7 @@ int which_X_server(void)
 	return num;
 }
 
-void Graph_Login(struct passwd *pw, char *script, char *username)
+void Graph_Login(struct passwd *pw, char *session, char *username)
 {
 	pid_t proc_id;
 	int dest_vt = current_vt + 20;
@@ -386,7 +371,7 @@ void Graph_Login(struct passwd *pw, char *script, char *username)
 		strcpy(args[2], XINIT);
 		strcat(args[2], " ");
 		strcat(args[2], XSESSIONS_DIRECTORY);
-		strcat(args[2], script);
+		strcat(args[2], session);
 		strcat(args[2], " -- :");
 		strcat(args[2], int_to_str(which_X_server()));
 		strcat(args[2], " vt");
@@ -409,9 +394,9 @@ void Graph_Login(struct passwd *pw, char *script, char *username)
 		exit(0);
 	}
 	set_last_user(username);
-	set_last_session(username, script);
+	set_last_session(username, session);
 	free(username);
-	
+
 	/* wait a bit, then clear console from X starting messages */
 	sleep(3);
 	ClearScreen();
@@ -433,14 +418,14 @@ void Graph_Login(struct passwd *pw, char *script, char *username)
 	}
 	LogEvent(pw, CLOSE_SESSION);
 	if (get_active_tty() == dest_vt) set_active_tty(current_vt);
+	free(session);
 
 	exit(0);
 }
 
 /* Start the session of your choice */
-void start_session(char *username, int session_id, int workaround)
+void start_session(char *username, char *session, int workaround)
 {
-	struct session *curr = &sessions;
 	struct passwd *pwd = getpwnam(username);
 
 	endpwent();
@@ -457,15 +442,18 @@ void start_session(char *username, int session_id, int workaround)
 	{
 		fprintf(stderr, "user %s not found in /etc/passwd\n", username);
 		free(username);
+		free(session);
 		exit(0);
 	}
 
-	while (curr->id != session_id) curr= curr->next;
 	ClearScreen();
 
-	if (strcmp(curr->name, "Text Console") == 0)
+	if (strcmp(session, "Text Console") == 0)
+	{
+		free(session);
 		Text_Login(pwd, username);
-	else Graph_Login(pwd, curr->name, username);
+	}
+	else Graph_Login(pwd, session, username);
 
 	/* we don't get here unless we couldn't start user session */
 	fprintf(stderr, "Couldn't login user '%s'!\n", username);

@@ -81,15 +81,21 @@ int getfd()
 	return -1;	/* total failure */
 }
 
-int switch_to_tty(int tty)
+char *create_tty_name(int tty)
 {
-	char *ttyname;
-
-	ttyname = (char *) calloc(11+log10(tty), sizeof(char));
+	char *ttyname = (char *) calloc(11+log10(tty), sizeof(char));
 	if (ttyname == NULL) return 0;
 	strcpy(ttyname, "/dev/tty");
 	strcat(ttyname, int_to_str(tty));
 
+	return ttyname;
+}
+
+int switch_to_tty(int tty)
+{
+	char *ttyname = create_tty_name(tty);
+
+	if (!ttyname) return 0;
   /* we set stdin, stdout and stderr to the new tty */
 	stdin  = freopen(ttyname, "r", stdin);
 	stdout = freopen(ttyname, "w", stdout);
@@ -124,4 +130,17 @@ int set_active_tty(int tty)
   if (close(fd) != 0) return 0;
 
 	return 1;
+}
+
+void stderr_disable(void)
+{
+	stderr = freopen("/dev/null", "w", stderr);
+}
+
+void stderr_enable(void)
+{
+	char *ttyname = create_tty_name(get_active_tty());
+
+	if (!ttyname) return;
+	stderr = freopen(ttyname, "w", stderr);
 }
