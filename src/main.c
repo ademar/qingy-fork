@@ -39,16 +39,6 @@
 	   user name and passing control to passwd
 ****************************************************************************/
 
-/****** Yet to do:
-- option for selecting session based on tty, not on user
-- drop down menu for sessions
-- allow session locking
-- add a clock and/or uptime thingie!
-- start some apps before/after X session
-- multilanguage support
-- extend theme support (for qingy 0.3 series)
-*******/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -1,0 +1,8 @@
+- option for selecting session based on tty, not on user
+- drop down menu for sessions
+- allow session locking
+- add a clock and/or uptime thingie!
+- start some apps before/after X session
+- multilanguage support
+- extend theme support (for qingy 0.3 series)
+- remove limit of 12 ttys
