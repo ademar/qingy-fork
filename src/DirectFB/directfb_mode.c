@@ -674,14 +674,13 @@ void start_login_sequence(DFBInputEvent *evt)
   Draw_Background_Image(0);
   /* see if we know this guy... */
   {
-    char *welcome_msg;
+    char *welcome_msg = NULL;
     char *user = NULL;
     char  line[128];
+		char *path  = StrApp((char**)NULL, DATADIR, "welcomes", (char*)NULL);
     FILE *users = fopen("/etc/qingy/welcomes", "r");
-    if(!strcmp(temp, "root"))
-      welcome_msg = strdup("Greetings, Master...");
-    else
-      welcome_msg = strdup("Starting selected session...");
+
+		free(path);
     if (users)
       while (fgets(line, 127, users))
 			{
@@ -693,6 +692,7 @@ void start_login_sequence(DFBInputEvent *evt)
 					break;
 				}
 			}
+		if (!welcome_msg) welcome_msg = strdup("Starting selected session...");
 
     primary->DrawString (primary, welcome_msg, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
     primary->Flip (primary, NULL, DSFLIP_BLIT);

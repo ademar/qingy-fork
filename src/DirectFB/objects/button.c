@@ -162,9 +162,9 @@ Button *Button_Create(const char *normal, const char *mouseover, int xpos, int y
 	but->surface = surface;
 	but->window = window;
 
-/* We need to add REAL transparency in button PNGs!         */
-/* surface->SetSrcColorKey(surface, 0x00, 0x00, 0x00);      */
-/* surface->SetBlittingFlags(surface, DSBLIT_SRC_COLORKEY); */
+	/* We need to add REAL transparency in button PNGs! */
+	surface->SetSrcColorKey(surface, 0x00, 0x00, 0x00);
+	surface->SetBlittingFlags(surface, DSBLIT_SRC_COLORKEY);
 
 	return but;
 }
