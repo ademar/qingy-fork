@@ -36,8 +36,6 @@
 
 char *DEFAULT_THEME;
 
-int silent = 0;
-
 void set_default_xsession_dir(void)
 {
 	XSESSIONS_DIRECTORY = (char *) calloc(19, sizeof(char));
@@ -95,15 +93,14 @@ void error(char *where)
 	strcpy(THEME_DIR, DEFAULT_THEME);
 }
 
-int load_settings(int be_silent)
+int load_settings(void)
 {
 	FILE *fp;
 	char *theme = NULL;
 	char tmp[MAX];
 	int temp[4];
 
-	XSESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;
-	if (be_silent) silent = 1;
+	XSESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;	
 
 	DATADIR = (char *) calloc(12, sizeof(char));
 	strcpy(DATADIR, "/etc/qingy/");

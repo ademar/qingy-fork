@@ -25,6 +25,13 @@
  *                                                                         *
  ***************************************************************************/
 
+
+char *tty;
+int our_tty_number;
+int width, height;
+int workaround;
+int silent;
+
 char *DATADIR;
 char *SETTINGS;
 char *LAST_USER;
@@ -54,7 +61,7 @@ __u8 OTHER_TEXT_COLOR_B;
 __u8 OTHER_TEXT_COLOR_A;
 
 /* get program settings from config file */
-int load_settings(int silent);
+int load_settings(void);
 
 /* get/set name of last user that logged in */
 char *get_last_user(void);

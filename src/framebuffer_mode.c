@@ -66,7 +66,6 @@ ComboBox *session = NULL;     /* combo boxes                               */
 int username_area_mouse = 0;  /* sensible area for mouse cursor to be in   */
 int password_area_mouse = 0;  /* sensible area for mouse cursor to be in   */
 int session_area_mouse = 0;   /* sensible area for mouse cursor to be in   */
-int workaround = -1;          /* do you black tty workaround? I do         */
 
 void Draw_Background_Image()
 {
@@ -640,7 +639,7 @@ void set_font_sizes ()
 	font_small_height = fdsc.height;
 }
 
-int framebuffer_mode (int argc, char *argv[], int width, int height, int be_silent, int do_workaround)
+int framebuffer_mode (int argc, char *argv[])
 {
 	int returnstatus = -1;      /* return value of this function...             */
 	DFBResult err;              /* the bloody macro uses it to check for errors */
@@ -648,15 +647,11 @@ int framebuffer_mode (int argc, char *argv[], int width, int height, int be_sile
 	DFBInputEvent evt;          /* generic input events will be stored here     */
 	char *lastuser;             /* last user logged in                    */
 
-	if (be_silent) silent = 1;
-	else silent = 0;
-	if (do_workaround != -1) workaround = do_workaround;
-
 	/* Stop GPM if necessary */
 	we_stopped_gpm= stop_gpm();
 
 	/* load settings from file */
-	load_settings(silent);
+	load_settings();
 	lastuser = get_last_user();
 
 	/* we initialize directfb */

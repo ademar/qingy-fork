@@ -39,15 +39,29 @@
 	   user name and passing control to passwd
 ****************************************************************************/
 
+/*To do:
+- option for hiding password chars completely
+- option for hiding last user name
+- drop down menu for sessions
+- enter from username sends to password
+- check PAM user permissions
+- allow session locking
+- option to show or hide shutdown messages
+- language support
+- option for starting wms in an unique X server?!?
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include <directfb.h>
 
 #include "chvt.h"
 #include "misc.h"
 #include "framebuffer_mode.h"
+#include "load_settings.h"
 
 void Error()
 {
@@ -84,7 +98,7 @@ void text_mode()
 	exit(EXIT_FAILURE);
 }
 
-void start_up(int width, int height, int silent, int workaround)
+void start_up(void)
 {
 	int returnstatus;
 	int argc = 2;
@@ -100,7 +114,7 @@ void start_up(int width, int height, int silent, int workaround)
 	argv[2]= NULL;
 
 	/* Now we try to initialize the framebuffer */
-	returnstatus = framebuffer_mode(argc, argv, width, height, silent, workaround);
+	returnstatus = framebuffer_mode(argc, argv);
 
 	/* We get here only if directfb fails or user wants to change tty */
 	free(argv[1]); free(argv[0]); argv[1]= argv[0]= NULL;
@@ -130,47 +144,35 @@ void start_up(int width, int height, int silent, int workaround)
 	exit(EXIT_FAILURE);
 }
 
-int get_resolution(char *resolution, int *width, int *height)
+int get_resolution(char *resolution)
 {
 	char *temp;
-	int *value = width;
+	int *value = &width;
 
 	if (!resolution) return 0;
 	for(temp = resolution; (int)*temp; temp++)
 		switch (*temp)
 		{
 			case 'x': case 'X':
-				if (!*width) return 0;
-				if (value == height) return 0;
-				value = height;
+				if (!width) return 0;
+				if (value == &height) return 0;
+				value = &height;
 				break;
 			default:
 				if ((*temp) > '9' || (*temp) < '0') return 0;
 				(*value) *= 10;
 				(*value) += (*temp) - '0';
 		}
-	if (!*width)  return 0;
-	if (!*height) return 0;
+	if (!width)  return 0;
+	if (!height) return 0;
 
 	return 1;
 }
 
-int main(int argc, char *argv[])
+void ParseCMDLine(int argc, char *argv[])
 {
-	char *tty;
-	int our_tty_number;
-	int user_tty_number;
-	int width=0, height=0;
-	int workaround = -1;
-	int silent = 0;
 	int i = 3;
-	struct timespec delay;
 
-	/* We set up a delay of 0.5 seconds */
-	delay.tv_sec= 0;
-	delay.tv_nsec= 500000000;
-
-	/* Some consistency checks... */
 	if (argc < 2 || argc > 5) Error();
 	tty= argv[1];
 	if (strncmp(tty, "tty", 3) != 0) Error();
@@ -181,7 +183,7 @@ int main(int argc, char *argv[])
 	{
 		if (strncmp(argv[i], "--resolution:", 13) == 0)
 		{
-			if (!get_resolution((argv[i]+13), &width, &height)) Error();
+			if (!get_resolution((argv[i]+13))) Error();
 		}
 		else if (strcmp(argv[i], "--silent") == 0)
 			silent = 1;
@@ -190,6 +192,24 @@ int main(int argc, char *argv[])
 		else Error();
 		i++;
 	}
+}
+
+int main(int argc, char *argv[])
+{
+	int user_tty_number;
+	struct timespec delay;
+
+	/* We set up a delay of 0.5 seconds */
+	delay.tv_sec= 0;
+	delay.tv_nsec= 500000000;
+
+	/* We set up some default values */
+	width=0;
+	height=0;
+	workaround = -1;
+	silent = 0;
+
+	ParseCMDLine(argc, argv);
 
 	/* We switch to tty <tty> */
 	if (!switch_to_tty(our_tty_number))
@@ -207,7 +227,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "\nfatal error: cannot get active tty number!\n");
 			return EXIT_FAILURE;
 		}
-		if (user_tty_number == our_tty_number) start_up(width, height, silent, workaround);
+		if (user_tty_number == our_tty_number) start_up();
 		nanosleep(&delay, NULL); /* wait a little before checking again */
 	}
 
