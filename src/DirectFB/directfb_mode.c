@@ -1101,7 +1101,7 @@ int directfb_mode (int argc, char *argv[])
 
   /* we initialize directfb */
   if (silent) stderr_disable();
-  result = DirectFBInit (&argc, &argv);
+	result = DirectFBInit (&argc, &argv);
   if (result == DFB_OK) result = DirectFBSetOption("session","-1");
   if (result == DFB_OK) result = DirectFBCreate (&dfb);
   if (silent) stderr_enable();
@@ -1110,11 +1110,11 @@ int directfb_mode (int argc, char *argv[])
   if (result == DFB_OK) result = dfb->GetDisplayLayer (dfb, DLID_PRIMARY, &layer);
 
   /* any errors so far? */
-  if (result != DFB_OK)
+	if (result != DFB_OK)
 	{
 		DirectFB_Error();
 		return TEXT_MODE;
-	}
+		}
 
   /* more initialization */
   layer->SetCooperativeLevel (layer, DLSCL_ADMINISTRATIVE);

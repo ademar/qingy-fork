@@ -12,9 +12,6 @@
   shortcuts, like switch to the right workspace, or to the left, ot
   to the previous one...
 
-* Make buttons use own pixmaps alpha channel for transparency instead of
-  black...
-
 - Make applets possible... A mix of shared modules and window managing :P
   Maybe we could even port wmaker dockapps... just a dream of mine ;-)
 
@@ -90,6 +87,8 @@
   }
 
 - Support for scripting things...
+
+- Add a timeout (with fading) to the mouseover effect
 
 --
 Items marked as * are those we are currently working on.

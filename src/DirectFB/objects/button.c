@@ -40,7 +40,6 @@
 #include "load_settings.h"
 #include "misc.h"
 
-
 void Button_MouseOver(Button *thiz, int status)
 {
 	if (!thiz) return;
@@ -75,7 +74,7 @@ void Button_Destroy(Button *button)
 	free (button);
 }
 
-IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb)
+IDirectFBSurface *load_image_int(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb, int db, int x, int y)
 {
 	IDirectFBImageProvider *provider;
 	IDirectFBSurface *tmp = NULL;
@@ -102,20 +101,37 @@ IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, ID
 	if (dfb->CreateSurface (dfb, &dsc, &tmp) == DFB_OK) provider->RenderTo (provider, tmp, NULL);
 
 	provider->Release (provider);
+	primary->SetBlittingFlags (primary, DSBLIT_BLEND_ALPHACHANNEL);
 
 	if (tmp)
 	{
 		primary->GetPixelFormat (primary, &dsc.pixelformat);
 		if (dfb->CreateSurface (dfb, &dsc, &surface) == DFB_OK)
 		{
-			surface->Clear (surface, 0x00, 0x00, 0x00, 0x00);
-			surface->SetBlittingFlags (surface, DSBLIT_BLEND_ALPHACHANNEL);			
+			surface->SetBlittingFlags (surface, DSBLIT_BLEND_ALPHACHANNEL);
+			if (db)
+			{
+				IDirectFBSurface *back = NULL;
+				DFBRectangle rect;
+
+				rect.x = x;
+				rect.y = y;
+				tmp->GetSize (tmp, (int *)&(rect.w), (int *)&(rect.h));
+				primary->GetSubSurface(primary, &rect, &back);
+				surface->Blit (surface, back, NULL, 0, 0);
+				back->Release(back);
+			}
 			surface->Blit (surface, tmp, NULL, 0, 0);
 		}
 		tmp->Release (tmp);
 	}
 
 	return surface;
+}
+
+IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb)
+{
+	return load_image_int(filename, primary, dfb, 0, 0, 0);
 }
 
 Button *Button_Create(const char *normal, const char *mouseover, int xpos, int ypos, IDirectFBDisplayLayer *layer, IDirectFBSurface *primary, IDirectFB *dfb)
@@ -128,14 +144,14 @@ Button *Button_Create(const char *normal, const char *mouseover, int xpos, int y
 	if (!normal || !mouseover || !layer || !primary || !dfb) return NULL;
 
 	but = (Button *) calloc (1, sizeof (Button));
-	but->normal = load_image (normal, primary, dfb);
+	but->normal = load_image_int(normal, primary, dfb, 1, xpos, ypos);
 	if (!but->normal)
 	{
 		free(but);
 		return NULL;
 	}
 	but->normal->GetSize (but->normal, (int *)&(but->width), (int *)&(but->height));
-	but->mouseover = load_image (mouseover, primary, dfb);
+	but->mouseover = load_image_int(mouseover, primary, dfb, 1, xpos, ypos);
 	if (!but->mouseover)
 	{
 		but->normal->Release (but->normal);
@@ -160,15 +176,10 @@ Button *Button_Create(const char *normal, const char *mouseover, int xpos, int y
 	window->SetOpacity( window, 0x00 );
 	window->RaiseToTop( window );
 	window->GetSurface( window, &surface );
-	surface->SetBlittingFlags (surface, DSBLIT_BLEND_ALPHACHANNEL);
 	window->SetOpacity( window, BUTTON_OPACITY );
 	but->mouse = 0;
 	but->surface = surface;
 	but->window = window;
-
-	/* We need to add REAL transparency in button PNGs! */
-	surface->SetSrcColorKey(surface, 0x00, 0x00, 0x00);
-	surface->SetBlittingFlags(surface, DSBLIT_SRC_COLORKEY);
 
 	return but;
 }

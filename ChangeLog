@@ -1,3 +1,12 @@
+2004-06-17  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/DirectFB/objects/button.c (load_image_int),
+	(load_image, Button_Create):
+	Added proper support for transparent pixmaps, now qingy
+	will honour the transparency instead of faking it by
+	making the black pixels transparent...
+	Code still in need of some cleaning up, but it works...
+
 2004-06-14  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* src/DirectFB/objects/button.h (enum),
