@@ -21,5 +21,4 @@ libdirectfb_la_LIBADD       = ../libqingy.la
 libdirectfb_la_DEPENDENCIES = libqingy.la
 
 libqingy.la:
-	cd ..
 	make --directory=../ libqingy.la
