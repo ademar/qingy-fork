@@ -2,6 +2,23 @@
 
 	* media/screensavers/Makefile.am: added, completing Make-tree
 
+2004-01-24  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/DirectFB/directfb_mode.c (begin_shutdown_sequence):
+	minor clean ups
+
+	* src/scan_settings.l: removed some tokens
+
+	* src/parse_settings.y: use the 'silent' variable;
+	removed some screensaver tokens no longer necessary,
+	some little clean up
+
+	* src/DirectFB/objects/screen_saver.c (activate_screen_saver):
+	made it pass the 'silent' env variable, too.
+
+	* media/screensavers/photos/photos_screensvr.c: made it work with new
+	modular screensaver stuff...
+
 2004-01-22  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
 
 	* doc/qingy.texi (Rolling your own screensavers): updated with
