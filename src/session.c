@@ -511,8 +511,10 @@ void dolastlog(struct passwd *pwd, int quiet)
 void Text_Login(struct passwd *pw, char *session, char *username)
 {
   pid_t proc_id;
-  int retval;
   char *args[4];
+#ifdef USE_PAM
+  int retval;
+#endif
 
   args[0] = shell_base_name(pw->pw_shell);
 
@@ -571,11 +573,10 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   restore_tty_ownership();
 
   /* free allocated stuff */
-  if (args[0]) free(args[0]);
-  if (args[1]) free(args[1]);
-  if (args[2]) free(args[2]);
-
-  exit(0);
+  free(args[0]);
+  free(args[1]);
+  free(args[2]);
+  exit(EXIT_SUCCESS);
 }
 
 /* if somebody else, somewhere else, sometime else
@@ -610,10 +611,12 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 {
   pid_t proc_id;
   int dest_vt = get_available_tty();
-  int retval;
   char *temp1 = int_to_str(which_X_server());
   char *temp2 = NULL;
   char *args[4];
+#ifdef USE_PAM
+  int retval;
+#endif
 
 	if (dest_vt != -1) temp2 = int_to_str(dest_vt);
 	else
@@ -626,8 +629,8 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   args[1] = (char *) calloc(3, sizeof(char));
   strcpy(args[1], "-c");
   args[2] = StrApp((char **)0, XINIT, " ", X_SESSIONS_DIRECTORY, session, " -- :", temp1, " vt", temp2, " >& /dev/null", (char*)0);
-  if (temp1) free(temp1);
-  if (temp2) free(temp2);
+  free(temp1);
+  free(temp2);
   args[3] = NULL;
 
   proc_id = fork();
@@ -697,10 +700,10 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	/* disallocate tty X was running in */
 	disallocate_tty(dest_vt);
 
-  if (args[0]) free(args[0]);
-  if (args[1]) free(args[1]);
-  if (args[2]) free(args[2]);
-  exit(0);
+  free(args[0]);
+  free(args[1]);
+  free(args[2]);
+  exit(EXIT_SUCCESS);
 }
 
 /* Start the session of your choice */

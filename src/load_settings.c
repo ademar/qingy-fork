@@ -171,8 +171,6 @@ int set_theme(char *theme)
 {
 	char *file;
 	FILE *oldfile = yyin;
-	/*char tmp[MAX] = {'\0'};
-		int temp[4];*/
 
 	if (!theme) return 0;
 
@@ -182,111 +180,16 @@ int set_theme(char *theme)
   yyin = fopen(file, "r");
   if (!yyin)
   {
-    if (!silent) fprintf(stderr, "load_settings: selected theme does not exist. Using internal defaults\n");
-    error("");
+    if (!silent) fprintf(stderr, "load_settings: theme '%s' does not exist.\n", theme);
 		yyin = oldfile;
     return 0;
   }
 	yyparse();
   fclose(yyin);
 	yyin = oldfile;
-/*
-  BACKGROUND = (char *) calloc(strlen(THEME_DIR)+15, sizeof(char));
-  strcpy(BACKGROUND, THEME_DIR);
-  strcat(BACKGROUND, "background.png");
-  while (fscanf(fp, "%s", tmp) != EOF)
-  {
-    int err = 0;
-    int found = 0;
 
-    if (strcmp(tmp, "FONT") == 0)
-    {
-      if (fscanf(fp, "%s", tmp) == EOF)
-      {
-				err = 1;
-				break;
-      }
-      FONT = (char *) calloc(strlen(THEME_DIR)+strlen(tmp)+1, sizeof(char));
-      strcpy(FONT, THEME_DIR);
-      strcat(FONT, tmp);
-      found = 1;
-    }
-    if (strcmp(tmp, "BUTTON_OPACITY") == 0)
-    {
-      if (fscanf(fp, "%d", &(temp[0])) == EOF)
-      {
-				err = 1;
-				break;
-      }
-      BUTTON_OPACITY = temp[0];
-      found = 1;
-    }
-    if (strcmp(tmp, "WINDOW_OPACITY") == 0)
-    {
-      if (fscanf(fp, "%d", &(temp[0])) == EOF)
-      {
-				err = 1;
-				break;
-      }
-      WINDOW_OPACITY = temp[0];
-      found = 1;
-    }
-    if (strcmp(tmp, "SELECTED_WINDOW_OPACITY") == 0)
-    {
-      if (fscanf(fp, "%d", &(temp[0])) == EOF)
-      {
-				err = 1;
-				break;
-      }			
-      SELECTED_WINDOW_OPACITY = temp[0];
-      found = 1;
-    }
-    if (strcmp(tmp, "MASK_TEXT_COLOR") == 0)
-    {
-      if (fscanf(fp, "%d%d%d%d", &(temp[0]), &(temp[1]), &(temp[2]), &(temp[3])) == EOF)
-      {
-				err = 1;
-				break;
-      }
-      MASK_TEXT_COLOR_R = temp[0];
-      MASK_TEXT_COLOR_G = temp[1];
-      MASK_TEXT_COLOR_B = temp[2];
-      MASK_TEXT_COLOR_A = temp[3];
-      found = 1;
-    }
-    if (strcmp(tmp, "TEXT_CURSOR_COLOR") == 0)
-    {
-      if (fscanf(fp, "%d%d%d%d", &(temp[0]), &(temp[1]), &(temp[2]), &(temp[3])) == EOF)
-      {
-				err = 1;
-				break;
-      }
-      TEXT_CURSOR_COLOR_R = temp[0];
-      TEXT_CURSOR_COLOR_G = temp[1];
-      TEXT_CURSOR_COLOR_B = temp[2];
-      TEXT_CURSOR_COLOR_A = temp[3];
-      found = 1;
-    }
-    if (strcmp(tmp, "OTHER_TEXT_COLOR") == 0)
-    {
-      if (fscanf(fp, "%d%d%d%d", &(temp[0]), &(temp[1]), &(temp[2]), &(temp[3])) == EOF)
-      {
-				err = 1;
-				break;
-      }
-      OTHER_TEXT_COLOR_R = temp[0];
-      OTHER_TEXT_COLOR_G = temp[1];
-      OTHER_TEXT_COLOR_B = temp[2];
-      OTHER_TEXT_COLOR_A = temp[3];
-      found = 1;
-    }
-    if (!found || err)
-    {
-      error("theme");
-      fclose(fp);
-      return 0;
-    }
-		}*/
+	GOT_THEME = 1;
+	return 1;
 }
 
 int load_settings(void)
