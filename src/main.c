@@ -62,11 +62,15 @@
 #include "framebuffer_mode.h"
 #include "load_settings.h"
 
+char *fb_device = NULL;
+
 void Error()
 {
 	printf("\nqingy version " VERSION "\n");
 	printf("\nusage: ginqy <ttyname> [options]\n");
 	printf("Options:\n");
+	printf("\t--fb-device <device>\n");
+	printf("\tUse <device> as framebuffer device.\n\n");
 	printf("\t--hide-password\n");
 	printf("\tDo not show password asterisks.\n\n");
 	printf("\t--hide-lastuser\n");
@@ -113,10 +117,15 @@ void start_up(void)
 	ClearScreen();
 
 	argv[0]= (char *) my_calloc(6, sizeof(char));
-	argv[1]= (char *) my_calloc(33, sizeof(char));
+	argv[1]= (char *) my_calloc(50, sizeof(char));
 	strcpy(argv[0], "qingy");
 	strcpy(argv[1], "--dfb:no-vt-switch,bg-none");
 	if (silent) strcat(argv[1], ",quiet");
+	if (fb_device)
+	{
+		strcat(argv[1], ",");
+		strcat(argv[1], fb_device);
+	}
 	argv[2]= NULL;
 
 	/* Now we try to initialize the framebuffer */
@@ -166,6 +175,14 @@ int ParseCMDLine(int argc, char *argv[])
 	for (i=2; i<argc; i++)
 	{
 		int error = 1;
+
+		if (strcmp(argv[i], "--fb-device <device>") == 0)
+		{
+			if (i == argc) Error();
+			i++;
+			fb_device = argv[i];
+			error = 0;
+		}
 
 		if (strcmp(argv[i], "--silent") == 0)
 		{
