@@ -1,5 +1,5 @@
 /***************************************************************************
-                     framebuffer_mode.h  -  description
+                      directfb_mode.h  -  description
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
@@ -29,17 +29,6 @@
 /* constants that we make use of */
 #define TEXT_MODE    -2
 #define REDRAW    55555
-
-/* macro for a safe call to DirectFB functions */
-#define DFBCHECK(x...)                                                  \
-{                                                                       \
-	DFBResult err = x;                                                    \
-	if (err != DFB_OK)                                                    \
-	{                                                                     \
-		if (!silent) fprintf( stderr, "%s <%d>:\n\t", __FILE__, __LINE__ ); \
-		DirectFBErrorFatal( #x, err );                                      \
-	}                                                                     \
-}
 
 /* Init framebuffer mode */
 int directfb_mode(int argc, char *argv[]);

@@ -1,5 +1,5 @@
 /***************************************************************************
-                     framebuffer_mode.c  -  description
+                      directfb_mode.c  -  description
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
