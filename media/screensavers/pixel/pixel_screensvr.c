@@ -28,14 +28,14 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <screensaver_module.h>
+
 void 
-screen_saver_entry(IDirectFB *dfb, IDirectFBSurface *surface,
-		   IDirectFBEventBuffer * screen_saver_events, 
-		   int screen_width, int screen_height)
+screen_saver_entry(Q_screen_t env)
 {
   static int toggle = 1;
-  int width  = screen_width  / 200;
-  int height = screen_height / 300;
+  int width  = env.screen_width  / 200;
+  int height = env.screen_height / 300;
   int posx;
   int posy;
   unsigned int seconds=0;
@@ -43,32 +43,32 @@ screen_saver_entry(IDirectFB *dfb, IDirectFBSurface *surface,
   
   srand((unsigned)time(NULL));
   
-  if (!dfb || !surface) return;
+  if (!env.dfb || !env.surface) return;
   /* we clear event buffer to avoid being bailed out immediately */
-  screen_saver_events->Reset(screen_saver_events);
+  env.screen_saver_events->Reset( env.screen_saver_events);
   
   /* do screen saver until an input event arrives */
   while (1)
     {
       if (toggle)
 	{
-	  posx = rand() % screen_width;
-	  posy = rand() % screen_height;
+	  posx = rand() % env.screen_width;
+	  posy = rand() % env.screen_height;
 	  
-	  surface->Clear (surface, 0x00, 0x00, 0x00, 0xFF);
-	  surface->SetColor (surface, 0x50, 0x50, 0x50, 0xFF);
-	  surface->FillRectangle (surface, posx, posy, width, height);
-	  surface->Flip (surface, NULL, DSFLIP_BLIT);
+	  env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0xFF);
+	  env.surface->SetColor (env.surface, 0x50, 0x50, 0x50, 0xFF);
+	  env.surface->FillRectangle (env.surface, posx, posy, width, height);
+	  env.surface->Flip (env.surface, NULL, DSFLIP_BLIT);
 	  toggle = 0;
 	}
       else
 	{
-	  surface->Clear (surface, 0x00, 0x00, 0x00, 0xFF);
-	  surface->Flip (surface, NULL, DSFLIP_BLIT);
+	  env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0xFF);
+	  env.surface->Flip (env.surface, NULL, DSFLIP_BLIT);
 	  toggle = 1;
 	}
-      screen_saver_events->WaitForEventWithTimeout(screen_saver_events, seconds, milli_seconds);
-      if (screen_saver_events->HasEvent(screen_saver_events) == DFB_OK)
+      env.screen_saver_events->WaitForEventWithTimeout(env.screen_saver_events, seconds, milli_seconds);
+      if (env.screen_saver_events->HasEvent(env.screen_saver_events) == DFB_OK)
 	break;
     }
 }

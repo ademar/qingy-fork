@@ -55,14 +55,8 @@
 
 #include "load_settings.h"
 #include "misc.h"
-#include "directfb_mode.h"
 #include "screen_saver.h"
-
-//static char **images;		/* data from config file */
-
-/* void screen_saver_entry(IDirectFB *dfb, IDirectFBSurface *surface, */
-/* 			IDirectFBEventBuffer * screen_saver_events, */
-/* 			int screen_width, int screen_height); */
+#include "screensaver_module.h"
 
 void activate_screen_saver(void)
 {
@@ -71,33 +65,39 @@ void activate_screen_saver(void)
   int screen_height;
   char* ssv_name = NULL;
   char* error;
-  /* We put here the actual screen saver function to launch */
-  void (*do_screen_saver)(IDirectFB *dfb, IDirectFBSurface *surface,
-			  IDirectFBEventBuffer * screen_saver_events, 
-			  int screen_width, int screen_height);
-
-  /* Update rate of screen saver */
   
+  Q_screen_t screenEnv;
+  
+  /* We put here the actual screen saver function to launch */
+  void (*do_screen_saver)(Q_screen_t);
+
   if (!screen_saver_surface) return;
   if (!screen_saver_events) return;
   
-  screen_saver_surface->GetSize(screen_saver_surface, &screen_width, &screen_height);
-  
+  screen_saver_surface->GetSize(screen_saver_surface, &(screenEnv.screen_width), &(screenEnv.screen_height));
+  screenEnv.surface=screen_saver_surface;
+  screenEnv.dfb=screen_saver_dfb;
+  screenEnv.screen_saver_events=screen_saver_events;
+  screenEnv.params=NULL;
+
   /* get what screensaver we want and load it */
   ssv_name=StrApp((char **)NULL, DATADIR, "screensavers/", SCREENSAVER, ".qss", (char*)NULL);
   handle=dlopen(ssv_name, RTLD_NOW); 
   if (!handle) { 
     clear_screen();
-    screen_saver_surface->DrawString (screen_saver_surface, "Not able to open screensaver.", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+    screen_saver_surface->DrawString (screen_saver_surface, 
+				      "Not able to open screensaver.",
+				      -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
     screen_saver_surface->Flip (screen_saver_surface, NULL, 0);
     sleep(2);
     return;
   }
   
   do_screen_saver=dlsym(handle, "screen_saver_entry");
-  if ((error = dlerror()) != NULL)  {
+  if((error = dlerror()) != NULL)  {
     clear_screen();
-    screen_saver_surface->DrawString (screen_saver_surface, "Not able to open symbol.\n", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+    screen_saver_surface->DrawString (screen_saver_surface, "Not able to launch screensaver.", 
+				      -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
     screen_saver_surface->Flip (screen_saver_surface, NULL, 0);
     sleep(2);
     return;
@@ -111,7 +111,7 @@ void activate_screen_saver(void)
   /*   else{ */
   /* fall to default */
   
-  (*do_screen_saver)(screen_saver_dfb, screen_saver_surface, screen_saver_events, screen_width, screen_height);
+  (*do_screen_saver)(screenEnv);
   dlclose(handle);
 }
 
