@@ -1,8 +1,11 @@
 /***********************************************************************/
 /*  pixel_screensvr.c - Pixel screensaver module for Qingy 	       */
 /*  v. 0.1 							       */
-/*  Copyright (C) 2004 Paolo Gianrossi - All rights reserved 	       */
-/*  by Paolo Gianrossi <paolino.gnu@disi.unige.it> 		       */
+/*  Copyright (C) 2004 Paolo Gianrossi, Michele Noberasco              */
+/* - All rights reserved 	       				       */
+/*  								       */	
+/*    Michele Noberasco <noberasco.gnu@disi.unige.it>		       */	
+/*    Paolo Gianrossi <paolino.gnu@disi.unige.it> 		       */
 /*  								       */
 /* This program is free software; you can redistribute it and/or       */
 /* modify it under the terms of the GNU General Public License as      */
