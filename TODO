@@ -9,5 +9,5 @@
 - allow selection of alternate x server layouts
 - Allow for global and tty specific options in config file
 - Add an option to pass parameters to X server
-- parse /etc/inittab to decide behaviour when user pressed ctrl-alt-del
+- parse /etc/inittab to decide behaviour when user presses ctrl-alt-del
 - Rewrite load_settings completely (it craps!)
