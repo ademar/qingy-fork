@@ -706,6 +706,7 @@ int directfb_mode (int argc, char *argv[])
   int returnstatus = -1;        /* return value of this function...         */
   DFBSurfaceDescription sdsc;   /* description for the primary surface      */
   DFBInputEvent evt;            /* generic input events will be stored here */
+	DFBResult result;             /* we store eventual errors here            */
   char *lastuser;               /* last user logged in                      */
   char *temp1, *temp2;
   ScreenSaver screen_saver;
@@ -719,22 +720,22 @@ int directfb_mode (int argc, char *argv[])
 
   /* we initialize directfb */
   if (silent) stderr_disable();
-  DFBCHECK(DirectFBInit (&argc, &argv));
-	DirectFBSetOption("session","-1");
-  DFBCHECK(DirectFBCreate (&dfb));  
+  result = DirectFBInit (&argc, &argv);
+	if (result == DFB_OK) result = DirectFBSetOption("session","-1");
+  if (result == DFB_OK) result = DirectFBCreate (&dfb);
   if (silent) stderr_enable();
+  if (result == DFB_OK) result = dfb->EnumInputDevices (dfb, enum_input_device, &devices);
+  if (result == DFB_OK) result = dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &events);
+  if (result == DFB_OK) result = dfb->GetDisplayLayer (dfb, DLID_PRIMARY, &layer);
 
-  dfb->EnumInputDevices (dfb, enum_input_device, &devices);
-  if (dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &events) != DFB_OK)
+	/* any errors this far? */
+	if (result != DFB_OK)
   {
     DirectFB_Error();
     return TEXT_MODE;
   }
-  if (dfb->GetDisplayLayer (dfb, DLID_PRIMARY, &layer) != DFB_OK)
-  {
-    DirectFB_Error();
-    return TEXT_MODE;
-  }
+
+	/* more initialization */
   layer->SetCooperativeLevel (layer, DLSCL_ADMINISTRATIVE);
   layer->EnableCursor (layer, 0);
   sdsc.flags = DSDESC_CAPS;
