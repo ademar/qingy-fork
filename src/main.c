@@ -129,6 +129,7 @@ void start_up(void)
   if (fb_device)  StrApp(&(argv[1]), ",fbdev=", fb_device, (char*)NULL);
 	if (resolution) StrApp(&(argv[1]), ",mode=", resolution, (char*)NULL);
   argv[2]= NULL;
+	if (resolution) free(resolution);
   
   /* Now we try to initialize the framebuffer */
   returnstatus = directfb_mode(argc, argv);		
