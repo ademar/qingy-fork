@@ -586,7 +586,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 	static DFBInputDeviceKeySymbol last_symbol = DIKS_NULL;
 	struct DFBKeyIdentifierName *id_name;
 	int returnstatus = -1;
-	int allow_tabbing = 1;
+ int allow_tabbing = 1;
 
 	show_lock_key_status(evt, 0);
 	/* If user presses ESC two times, we bo back to text mode */
@@ -622,16 +622,18 @@ int handle_keyboard_event(DFBInputEvent *evt)
 		}
 	}
 
-	if (id_name)
+	if (symbol_name)
 	{
 		/* Rock'n Roll! */
-		if (strcmp(id_name->name, "ENTER" ) == 0)
+		if (strcmp(symbol_name->name, "RETURN" ) == 0)
+		{
 			start_login_sequence(evt);
+		}
 
 		/* user name events */
 		if (username_hasfocus && allow_tabbing)
 		{
-			if (strcmp(id_name->name, "TAB" ) == 0)
+			if (strcmp(symbol_name->name, "TAB" ) == 0)
 			{
 				username_hasfocus = 0;
 				password_hasfocus = 1;
@@ -643,7 +645,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 		/* password events */
 		if (password_hasfocus && allow_tabbing)
 		{
-			if (strcmp(id_name->name, "TAB" ) == 0)
+			if (strcmp(symbol_name->name, "TAB" ) == 0)
 			{
 				password_hasfocus = 0;
 				session_hasfocus  = 1;
@@ -655,9 +657,9 @@ int handle_keyboard_event(DFBInputEvent *evt)
 		/* session events */
 		if (session_hasfocus && allow_tabbing)
 		{
-			if (strcmp(id_name->name, "UP"  ) == 0) print_session_name(UP);
-			if (strcmp(id_name->name, "DOWN") == 0) print_session_name(DOWN);
-			if (strcmp(id_name->name, "TAB" ) == 0)
+			if (strcmp(symbol_name->name, "CURSOR_UP"  ) == 0) print_session_name(UP);
+			if (strcmp(symbol_name->name, "CURSOR_DOWN") == 0) print_session_name(DOWN);
+			if (strcmp(symbol_name->name, "TAB" ) == 0)
 			{
 				session_hasfocus  = 0;
 				username_hasfocus = 1;
