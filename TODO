@@ -7,6 +7,7 @@
 
 - make the GPM start/stop stuff work for distros other
   than Gentoo, too...
+  BETTER YET, wipe it out completely, since DirectFB 0.9.21 finally supports it!
 
 - extend the --verbose option to virtually report all that can be reported ;-)
 

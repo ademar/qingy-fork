@@ -1,5 +1,5 @@
 qingy 0.5.3 (not yet released):
-- Finally implemented the code behind the 'sleep' button:
+- Finally the code behind the 'sleep' button has been implemented:
   just set up the 'sleep' variable in config file to the
   command you would like to execute for sleep mode, and
   press the button in qingy...
@@ -16,7 +16,7 @@ qingy 0.5.3 (not yet released):
 - Fix stuff so that qingy links correctly against the PAM
   library when compiled as a static binary.
 - Session files containing spaces are now supported
-- Reworked qingy PAM module to work with more distros
+- Reworked qingy PAM module to make it work with more distros
   (tested on Fedora, Debian, Gentoo)
 - Added support for 'retries' setting in config file
   which allows user to specify how many times qingy

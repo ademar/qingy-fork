@@ -1,3 +1,8 @@
+2004-12-24  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/misc.c (PrintUsage):
+	Changed help message slightly.
+
 2004-12-21  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* media/Makefile.am (settings),

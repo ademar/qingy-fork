@@ -363,7 +363,7 @@ void PrintUsage()
 	printf("\t-r <xres>x<yres>, --resolution <xres>x<yres>\n");
 	printf("\tDo not detect framebuffer resolution, use this one instead.\n\n");
 	printf("\t-h, --help\n");
-	printf("\tPrint this help.\n\n");
+	printf("\tPrint this help message.\n\n");
 }
 
 
