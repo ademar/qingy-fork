@@ -3,8 +3,7 @@ OBJECTS=$(patsubst %.c,%.o,$(wildcard *.c))
 SOURCES=$(wildcard *.c)
 AUX=Makefile COPYING
 INSTALLDIR=/etc/qingy/screensavers
-
-CFLAGS=-g -I/usr/include/directfb -I/etc/qingy/screensavers -fpic 
+CFLAGS=-DHAVE_DIRENT_H -g -I/usr/include/directfb -I/etc/qingy/screensavers -fpic 
 
 all: $(TARGET)
 

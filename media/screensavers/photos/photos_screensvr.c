@@ -33,6 +33,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <screensaver_module.h>
 
 #if HAVE_DIRENT_H
 # include <dirent.h>
@@ -51,79 +52,8 @@
 # endif
 #endif
 
-#include "load_settings.h"
-#include "screen_saver.h"
-#include "misc.h"
 
-int screen_width;
-int screen_height;
 static char **images;
-
-void pixel_screen_saver(IDirectFB *dfb, IDirectFBSurface *surface);
-void photo_screen_saver(IDirectFB *dfb, IDirectFBSurface *surface);
-
-void activate_screen_saver(ScreenSaver *thiz)
-{
-	/* We put here the actual screen saver function to launch */
-  void (*do_screen_saver)(IDirectFB *dfb, IDirectFBSurface *surface);
-	/* Update rate of screen saver */
-  unsigned int seconds;
-  unsigned int milli_seconds;
-
-  if (!thiz) return;
-  if (!thiz->surface) return;
-  if (!thiz->events) return;
-
-  thiz->surface->GetSize(thiz->surface, &screen_width, &screen_height);
-
-  switch (thiz->kind)
-  {
-		case PHOTO_SCREENSAVER:
-			do_screen_saver = photo_screen_saver;
-			seconds = 5;
-			milli_seconds = 0;
-			break;
-		case PIXEL_SCREENSAVER: /* fall to default */
-		default:
-			do_screen_saver = pixel_screen_saver;
-			seconds = 0;
-			milli_seconds = 500;
-  }
-
-  /* do screen saver until an input event arrives */
-  while (1)
-  {
-		do_screen_saver(thiz->dfb, thiz->surface);
-    thiz->events->WaitForEventWithTimeout(thiz->events, seconds, milli_seconds);
-    if (thiz->events->HasEvent(thiz->events) == DFB_OK) break;    
-  }
-}
-
-void pixel_screen_saver(IDirectFB *dfb, IDirectFBSurface *surface)
-{
-  static int toggle = 1;
-  int width  = screen_width  / 200;
-  int height = screen_height / 300;
-  int posx   = rand() % screen_width;
-  int posy   = rand() % screen_height;
-
-  if (!dfb || !surface) return;
-
-  if (toggle)
-  {
-    surface->Clear (surface, 0x00, 0x00, 0x00, 0xFF);
-    surface->SetColor (surface, 0x50, 0x50, 0x50, 0xFF);
-    surface->FillRectangle (surface, posx, posy, width, height);
-    surface->Flip (surface, NULL, DSFLIP_BLIT);
-    toggle = 0;
-  }
-  else
-  {
-    surface->Clear (surface, 0x00, 0x00, 0x00, 0xFF);
-    surface->Flip (surface, NULL, DSFLIP_BLIT);
-    toggle = 1;
-  }
-}
 
 
 int is_image(char *filename)
@@ -139,34 +69,32 @@ int is_image(char *filename)
 	if (!strcmp(temp, ".png")) return 1;
 	if (!strcmp(temp, ".jpg")) return 1;
 
-	return 0;	
+	return 0;
 }
 
-int load_images_list(void)
+int load_images_list(char **params, int silent)
 {
-	struct _image_paths *paths;
 	int n_images = 0;
-	int max = 0;
+	int max      = 0;
+	int i        = 0;
 
-  for (paths = image_paths; paths != NULL; paths=paths->next)
+  for (; params[i]; i++)
   {
     DIR *path;
     struct dirent *entry;
 
-    if (!paths->path) continue;
-
-		if (!silent) fprintf(stderr, "Loading files from '%s': ", paths->path);
-    path = opendir(paths->path);
+		if (!silent) fprintf(stderr, "Loading files from '%s': ", params[i]);
+    path = opendir(params[i]);
     if (!path) continue;
 
     while (1)
-    {			
+    {
       if (!(entry= readdir(path))) break;
       if (!strcmp(entry->d_name, "." )) continue;
       if (!strcmp(entry->d_name, "..")) continue;
 			if (is_image(entry->d_name))
 			{
-				char *temp = calloc(strlen(paths->path)+strlen(entry->d_name)+2, sizeof(char));
+				char *temp = calloc(strlen(params[i])+strlen(entry->d_name)+2, sizeof(char));
 				if (n_images == max)
 				{
 					char **temp;
@@ -178,8 +106,8 @@ int load_images_list(void)
 						abort();
 					}
 					images = temp;
-				}				
-				strcpy(temp, paths->path);
+				}
+				strcpy(temp, params[i]);
 				if (*(temp+strlen(temp)-1) != '/') strcat(temp, "/");
 				strcat(temp, entry->d_name);
 				images[n_images] = temp;
@@ -193,49 +121,73 @@ int load_images_list(void)
 	return n_images;
 }
 
-void photo_screen_saver(IDirectFB *dfb, IDirectFBSurface *surface)
-{	
-	IDirectFBImageProvider *provider;	
+void screen_saver_entry(Q_screen_t env)
+{
+	IDirectFBImageProvider *provider;
 	static int n_images = 0;
-	static int error = 0;
 	int errorcount = 0;
 	int image;
+  unsigned int seconds=5;
+  unsigned int milli_seconds=0;
 
-  if (!dfb || !surface || !image_paths) return;
-  if (!n_images && !error)
+
+  if (!env.dfb || !env.surface) return;
+  /* we clear event buffer to avoid being bailed out immediately */
+  env.screen_saver_events->Reset(env.screen_saver_events);
+
+	if (!n_images)
 	{
 		time_t epoch;
 		struct tm curr_time;
-
-		surface->Clear (surface, 0x00, 0x00, 0x00, 0xFF);
-		surface->DrawString (surface, "Loading images list...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
-		surface->Flip (surface, NULL, DSFLIP_BLIT);		
-		n_images = load_images_list();
+		
+		env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0xFF);
+		env.surface->DrawString (env.surface, "Loading images list...", -1, env.screen_width / 2, env.screen_height / 2, DSTF_CENTER);
+		env.surface->Flip (env.surface, NULL, DSFLIP_BLIT);
+		n_images = load_images_list(env.params, env.silent);
 		epoch = time(NULL);
 		localtime_r(&epoch, &curr_time);
 		srand(curr_time.tm_sec);
 	}
-	if (!n_images)
-	{
-		static int toggle = 0;
-		surface->Clear (surface, 0x00, 0x00, 0x00, 0xFF);
-		if (!toggle)
-			surface->DrawString (surface, "No images to display!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
-		surface->Flip (surface, NULL, DSFLIP_BLIT);
-		toggle = !toggle;
-		error = 1;
-		return;
-	}
 
-	while (errorcount < 100)
+  /* do screen saver until an input event arrives */
+  while (1)
 	{
-		image = rand() % n_images;
-		if (dfb->CreateImageProvider (dfb, images[image], &provider) == DFB_OK) break;
-		errorcount++;
-	}
+		if (!n_images)
+		{
+			static int toggle = 0;
+			env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0xFF);
+			if (!toggle)
+				env.surface->DrawString (env.surface, "No images to display!", -1, env.screen_width / 2, env.screen_height / 2, DSTF_CENTER);
+			env.surface->Flip (env.surface, NULL, DSFLIP_BLIT);
+			toggle = !toggle;
+			seconds       = 2;
+			milli_seconds = 0;
+			env.screen_saver_events->WaitForEventWithTimeout(env.screen_saver_events, seconds, milli_seconds);
+			if (env.screen_saver_events->HasEvent(env.screen_saver_events) == DFB_OK) return;
+			continue;
+		}
 
-	surface->Clear (surface, 0x00, 0x00, 0x00, 0xFF);
-	provider->RenderTo (provider, surface, NULL);
-	provider->Release (provider);
-	surface->Flip (surface, NULL, DSFLIP_BLIT);
+		while (errorcount < 100)
+		{
+			image = rand() % n_images;
+			if (env.dfb->CreateImageProvider (env.dfb, images[image], &provider) == DFB_OK) break;
+			errorcount++;
+			if (errorcount == 100)
+			{
+				env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0xFF);
+				env.surface->DrawString (env.surface, "Error loading images!", -1, env.screen_width / 2, env.screen_height / 2, DSTF_CENTER);
+				env.surface->Flip (env.surface, NULL, DSFLIP_BLIT);
+				sleep(5);
+				return;
+			}
+		}
+
+		env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0xFF);
+		provider->RenderTo (provider, env.surface, NULL);
+		provider->Release (provider);
+		env.surface->Flip (env.surface, NULL, DSFLIP_BLIT);
+
+		env.screen_saver_events->WaitForEventWithTimeout(env.screen_saver_events, seconds, milli_seconds);
+		if (env.screen_saver_events->HasEvent(env.screen_saver_events) == DFB_OK) return;
+	}
 }
