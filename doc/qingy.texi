@@ -25,7 +25,7 @@ Free Documentation License".
 
 @dircategory System programs
 @direntry
-* qingy: (qingy)Invoking qingy.    
+* qingy: (qingy).
 @end direntry
 
 @titlepage

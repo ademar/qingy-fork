@@ -36,6 +36,8 @@ qingy CVS:
   to explain it all here: see updated documentation for all
   details. In short: all stuff you see on screen can be
   added, removed, moved, changed... you got the point :-)
+- added user-oriented welcome messages. See documentation.
+  Thanks, again, to Paolino <paolino.gnu@disi.unige.it>
 - Many fixes and clean ups
 
 qingy 0.2.3 (21 October 2003):
