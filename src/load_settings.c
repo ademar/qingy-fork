@@ -229,7 +229,6 @@ int load_settings(void)
 	if (XSESSIONS_DIRECTORY == NULL) set_default_xsession_dir();
 	if (XINIT == NULL) set_default_xinit();
 	if (FONT == NULL) set_default_font();
-	//set_default_colors();
 
 	return 1;
 }
