@@ -110,7 +110,10 @@ typedef struct _window {
 
 window_t* windowsList;
 
+int add_window_to_list(window_t w);
+
 /* initialize some stuff */
+
 void initialize_variables(void);
 
 /* get program settings from config file */
