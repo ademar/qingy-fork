@@ -516,14 +516,13 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 
   args[0] = shell_base_name(pw->pw_shell);
 
-  if (session && !strcmp(session, "Console"))
+  if (session && !strcmp(session+6, "Console"))
     args[1] = NULL;
   else
   {
-    FILE *fp = fopen("/pippo", "w");
-    args[1] = "-c";
-    args[2] = StrApp((char **)0, TEXT_SESSIONS_DIRECTORY, session, (char *)0);
-    fprintf(fp, "from %s and %s to '%s'\n", TEXT_SESSIONS_DIRECTORY, session, args[2]); fclose(fp);
+    args[1] = (char *) calloc(3, sizeof(char));
+    strcpy(args[1], "-c");
+    args[2] = StrApp((char **)0, TEXT_SESSIONS_DIRECTORY, session+6, (char *)0);
     args[3] = NULL;
   }
 
@@ -555,8 +554,8 @@ void Text_Login(struct passwd *pw, char *session, char *username)
     my_exit(0);
   }
   set_last_user(username);
-  set_last_session(username, "Text Console");
-  free(username);
+  set_last_session(username, session);
+  free(username); free(session);
 
   wait(NULL);
 #ifdef USE_PAM
@@ -571,7 +570,11 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   /* Restore tty ownership to root:tty */
   restore_tty_ownership();
 
+  /* free allocated stuff */
   if (args[0]) free(args[0]);
+  if (args[1]) free(args[1]);
+  if (args[2]) free(args[2]);
+
   my_exit(0);
 }
 
@@ -732,7 +735,7 @@ void start_session(char *username, char *session)
   }
 #endif
 
-  if (strncmp(session, "Text: ", 6) == 0) Text_Login(pwd, session+6, username);
+  if (strncmp(session, "Text: ", 6) == 0) Text_Login(pwd, session, username);
   else Graph_Login(pwd, session, username);
 
   /* we don't get here unless we couldn't start user session */

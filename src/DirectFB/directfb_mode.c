@@ -106,7 +106,7 @@ void set_user_session(char *user)
   if (!user_session)
   {
     temp = session->selected;
-    while (strcmp(session->selected->name, "Text Console") != 0)
+    while (strcmp(session->selected->name, "Text: Console") != 0)
       session->selected = session->selected->next;
     if (session->selected != temp) session->KeyEvent(session, REDRAW);
   }

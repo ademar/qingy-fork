@@ -11,7 +11,6 @@
 - add more screen savers
 - ldap support for authentication (with pam?)
 - allow selection of alternate x server layouts
-- add a /etc/qingy/sessions to hold scripts to start console sessions
 - Allow for global and tty specific options in config file
 - Add an option to pass parameters to X server
 - parse /etc/inittab to decide behaviour when user pressed ctrl-alt-del
