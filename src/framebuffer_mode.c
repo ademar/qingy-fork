@@ -659,11 +659,11 @@ int framebuffer_mode (int argc, char *argv[], int be_silent, int do_workaround)
 	load_settings(silent);
 
 	/* we initialize directfb */
-	stderr_disable();
+	if (silent) stderr_disable();
 	DFBCHECK (DirectFBInit (&argc, &argv));
-	stderr_enable();
-
 	DFBCHECK (DirectFBCreate (&dfb));
+	if (silent) stderr_enable();
+
 	dfb->EnumInputDevices (dfb, enum_input_device, &devices);
 	DFBCHECK (dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &events));
 	DFBCHECK (dfb->GetDisplayLayer (dfb, DLID_PRIMARY, &layer));
