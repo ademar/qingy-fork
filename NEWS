@@ -43,6 +43,16 @@ qingy CVS:
   to switch to the tty they are running in. This option can be
   disabled with by passing the '--enable-static-build' argument
   to ./configure
+- Be nicer to Slackware (and maybe other distros as well ;-)
+  This means:
+  - qingy now sets also the PATH env variable (otherwise qingy is
+    not able to start an X session because xinit is not able to
+    find the location of the X server; this is true for Slackware).
+  - Slackware puts its X session scripts in /etc/X11/xinit/
+    now we honour that, too, following their name pattern "xinitrc.*"
+- Screen saver support is now optional (but enabled by default), for
+  those security paranoids ;-P
+
 
 qingy 0.3.0 (09 January 2004):
 - New memory allocation/deallocation management
@@ -93,6 +103,7 @@ qingy 0.3.0 (09 January 2004):
   Pa0lino... just issue a 'info qingy'!
 - Many fixes and clean ups
 
+
 qingy 0.2.3 (21 October 2003):
 - Now qingy locks vt switching when it enters DirectFB mode.
   So it no longer crashes when you switch VT while it is starting
@@ -119,6 +130,7 @@ qingy 0.2.3 (21 October 2003):
 - A surprise now awaits the rightful master ;-)	
 - The usual minor fixes and clean ups
 
+
 qingy 0.2.2 (29 September 2003):
 - Starting X sessions for users with a shell other than bash
   should no longer fail with strange errors
@@ -135,6 +147,7 @@ qingy 0.2.2 (29 September 2003):
   hopefully the proper resolution already detected.
   Note: you need the 'fbset' program for this.
 
+
 qingy 0.2.1 (01 September 2003):
 - correctly changes tty ownership
 - Hopefully solves PAM issues
@@ -148,16 +161,19 @@ qingy 0.2.1 (01 September 2003):
 - Message "Login failed" now appears for 2 seconds
 - Various fixes and clean ups (memory leaks, allocation failures...)
 
+
 qingy 0.2 (18 July 2003):
 - Added PAM support
 - Added --silent option to avoid diagnostic messages on stderr
 - Various clean ups
+
 
 qingy 0.1.1 (09 July 2003):
 - embedded object related functions into object structures themselves
 - full theme support
 - Changed default theme to the Ant one
 - Various clean ups
+
 
 qingy 0.1 (05 July 2003):
 - first public release

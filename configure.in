@@ -147,6 +147,16 @@ AC_PROG_YACC
 	AM_CONDITIONAL(WANT_STATIC, test "$enable_static_build" == "yes")
 # End compile statically stuff
 
+# Wether we should disable screen saver support
+	AC_ARG_ENABLE(screen-savers, AS_HELP_STRING(--enable-screen-savers,enable support for screen savers (default is yes)),, [enable_screen_savers=yes])
+	if test "$enable_screen_savers" == "yes"; then
+		CFLAGS="$CFLAGS -DUSE_SCREEN_SAVERS"
+	else
+		AC_MSG_NOTICE([Support for screen savers is disabled])
+	fi
+	AM_CONDITIONAL(WANT_SCREEN_SAVERS, test "$enable_screen_savers" == "yes")
+# End screen saver stuff
+
 CFLAGS="$CFLAGS -DLinux"
 
 # Check for DirectFB >= 0.9.18
@@ -157,6 +167,30 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 *** of DirectFB is available from http://www.directfb.org/.]))
 # End check for DirectFB
 
+# Check wether we can determine the distribution we are running in
+	AC_MSG_CHECKING([for host distribution])
+	DISTRO="unknown"
+	if test "`ls /etc/*release   2>/dev/null | grep \"redhat\"`"    != ""; then
+		DISTRO="redhat"
+	fi
+	if test "`ls /etc/*release   2>/dev/null | grep \"mandrake\"`"  != ""; then
+		DISTRO="mandrake"
+	fi
+	if test "`ls /etc/*release   2>/dev/null | grep \"gentoo\"`"    != ""; then
+		DISTRO="gentoo"
+	fi
+	if test "`ls /etc/debian*    2>/dev/null | grep \"debian\"`"    != ""; then
+		DISTRO="debian"
+	fi
+	if test "`ls /etc/slackware* 2>/dev/null | grep \"slackware\"`" != ""; then
+		 DISTRO="slackware"
+	fi
+	if test "$DISTRO" != "unknown"; then
+		CFLAGS="$CFLAGS -D$DISTRO"
+	fi
+	AC_MSG_RESULT([$DISTRO])
+# End check for distribution
+
 # Let's create /etc/qingy/settings config file
 	AC_PATH_PROG([XINIT], [xinit], [/usr/X11R6/bin/xinit], [$PATH:/usr/X11R6/bin:/usr/bin/X11:/usr/bin:/usr/local/bin])
 	echo -n "Creating config file... "
@@ -165,19 +199,25 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	fi
 
 	echo "# Directory containing X sessions" >> media/settings
-	echo "x_sessions = \"/etc/X11/Sessions/\"" >> media/settings
+	if test "$DISTRO" == "slackware"; then
+		echo "x_sessions = \"/etc/X11/xinit/\"" >> media/settings
+	else
+		echo "x_sessions = \"/etc/X11/Sessions/\"" >> media/settings
+	fi
 	echo "# Directory containing text mode sessions" >> media/settings
 	echo "text_sessions = \"/etc/qingy/sessions/\"" >> media/settings
 	echo "" >> media/settings
 	echo "# Full path to the 'xinit' executable" >> media/settings
 	echo "xinit = \"$XINIT\"" >> media/settings
 	echo "" >> media/settings
-	echo "# Where are the screen savers?" >> media/settings
-	echo "screensavers_dir = \"/usr/lib/qingy/screensavers\"" >> media/settings
-	echo "" >> media/settings
-	echo "#       screensaver \"pixel\"" >> media/settings
-	echo "screensaver \"running_time\"#=\"%H:%S:%M\"" >> media/settings
-	echo "" >> media/settings
+	if test "$enable_screen_savers" == "yes"; then
+		echo "# Where are the screen savers?" >> media/settings
+		echo "screensavers_dir = \"/usr/lib/qingy/screensavers\"" >> media/settings
+		echo "" >> media/settings
+		echo "#       screensaver \"pixel\"" >> media/settings
+		echo "screensaver \"running_time\"#=\"%H:%S:%M\"" >> media/settings
+		echo "" >> media/settings
+	fi
 	echo "# Where are the themes?" >> media/settings
 	echo "themes_dir = \"/usr/share/qingy/themes\"" >> media/settings
 	echo "" >> media/settings
@@ -205,7 +245,9 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	echo "#tty = 3" >> media/settings
 	echo "#{" >> media/settings
 	echo "#	theme = \"fireplace\"" >> media/settings
-	echo "#	screensaver \"pixel\"" >> media/settings
+	if test "$enable_screen_savers" == "yes"; then
+		echo "#	screensaver \"pixel\"" >> media/settings
+	fi
 	echo "#}" >> media/settings
 
 	echo "done"

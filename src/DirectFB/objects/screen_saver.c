@@ -27,6 +27,7 @@
  ***************************************************************************/
 
 
+#ifdef USE_SCREEN_SAVERS
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -126,3 +127,4 @@ void activate_screen_saver(void)
     
   dlclose(handle);
 }
+#endif /* want screen savers */

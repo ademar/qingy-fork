@@ -183,7 +183,13 @@ char *get_sessions(void)
 				if (!strcmp(entry->d_name, "..")) continue;      
 				if (dirname == X_SESSIONS_DIRECTORY)
 				{
+#ifdef slackware
+					if (strncmp(entry->d_name, "xinitrc.", 8)) continue;
+#else /* !slackware  */
+#ifdef gentoo
 					if (!strcmp(entry->d_name, "Xsession")) continue;
+#endif /* gentoo     */
+#endif /* !slackware */
 					return strdup(entry->d_name);
 				}
 				else return StrApp((char**)NULL, "Text: ", entry->d_name, (char*)NULL);
@@ -378,18 +384,54 @@ char *shell_base_name(char *name)
 
 void setEnvironment(struct passwd *pwd)
 {
-  char *mail = StrApp((char**)NULL, _PATH_MAILDIR, "/", pwd->pw_name, (char*)NULL);
+#ifdef USE_PAM
+	int    i;
+	char **env   = pam_getenvlist(pamh);
+#endif
+  char  *mail  = StrApp((char**)NULL, _PATH_MAILDIR, "/", pwd->pw_name, (char*)NULL);
+	char  *path  = strdup("/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin");
+	char  *xinit = NULL;
   
-  environ = (char **) calloc(2, sizeof(char *));
-  environ[0] = 0;
-  setenv("TERM", "linux", 0);
-  setenv("HOME", pwd->pw_dir, 1);
-  setenv("SHELL", pwd->pw_shell, 1);
-  setenv("USER", pwd->pw_name, 1);
-  setenv("LOGNAME", pwd->pw_name, 1);
-  setenv("MAIL", mail, 1);
+  environ    = (char **) calloc(2, sizeof(char *));
+  environ[0] = NULL;
+
+ /*
+	* if XINIT is set, we add it's path to PATH,
+	* assuming that X will sit in the same directory...
+	*/
+	if (XINIT)
+	{
+		int i = strlen(XINIT);
+
+		for (; i>=0; i--)
+			if (XINIT[i] == '/')
+			{
+				xinit = strndup(XINIT, (i+1)*sizeof(char));
+				break;
+			}
+	}
+	if (xinit)
+	{
+		StrApp(&path, ":", xinit, (char*)NULL);
+		free(xinit);
+	}
+
+	setenv("PATH",    path,          1);
+  setenv("TERM",    "linux",       1);
+  setenv("HOME",    pwd->pw_dir,   1);
+  setenv("SHELL",   pwd->pw_shell, 1);
+  setenv("USER",    pwd->pw_name,  1);
+  setenv("LOGNAME", pwd->pw_name,  1);
+  setenv("MAIL",    mail,          1);
   chdir(pwd->pw_dir);
   free(mail);
+	free(path);
+
+#ifdef USE_PAM
+	if (env)
+		for (i = 0; env[i++];)
+			putenv (env[i - 1]);
+#endif
 }
 
 void restore_tty_ownership(void)
@@ -636,7 +678,8 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   if (dest_vt != -1) vt = int_to_str(dest_vt);
   else
 	{
-		fprintf(stderr, "session: fatal error: cannot find an unused vt!\n");
+		fprintf(stderr, "%s: fatal error: cannot find an unused vt!\n", program_name);
+		sleep(5); /* be nice to init and allow user to read message */
 		exit(EXIT_FAILURE);
 	}
   
@@ -756,8 +799,7 @@ void start_session(char *username, char *session)
   
 #ifdef USE_PAM
   if (update_token)
-	{
-		/*
+	{ /*
 		 * This is a quick hack... for some reason, if I try to
 		 * do things properly, PAM output on screen when updating
 		 * authorization token is all garbled, so for now I'll

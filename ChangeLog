@@ -1,3 +1,33 @@
+2004-03-09  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/libraries/load_settings.c:
+	various code clean-ups
+	
+	* configure.in,
+	* src/libraries/load_settings.c,
+	* src/DirectFB/directfb_mode.c,
+	* src/DirectFB/objects/screen_saver.c,
+	* media/screensavers/pixel/Makefile.am,
+	* media/screensavers/photos/Makefile.am,
+	* media/screensavers/running_time/Makefile.am,
+	* media/screensavers/matrix/Makefile.am:
+	Screen saver support is now optional (enabled by default).
+
+	* src/libraries/session.c (get_sessions),
+	* configure.in:
+	Be nicer to Slackware: X sessions path is /etc/X11/xinit/
+	and X session names in there match pattern "xinitrc.*"
+
+	* src/libraries/session.c (setEnvironment):
+	Also set PATH env variable: not doing this sometimes leads
+	to the impossibility to fire up an X session because the X
+	server cannot be found (true for Slackware, maybe others).
+
+2004-02-29  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/libraries/session.c:
+	code cleanups.
+
 2004-02-27  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* src/libraries/tty_guardian.c:

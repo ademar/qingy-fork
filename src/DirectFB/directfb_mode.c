@@ -49,7 +49,10 @@
 #include "textbox.h"
 #include "combobox.h"
 #include "label.h"
+
+#ifdef USE_SCREEN_SAVERS
 #include "screen_saver.h"
+#endif
 
 typedef enum
 {
@@ -111,9 +114,10 @@ int                   font_large_height;
 int                   username_area_mouse   = 0;  /* sensible areas for mouse cursor to be in  */
 int                   password_area_mouse   = 0;
 int                   session_area_mouse    = 0;
+#ifdef USE_SCREEN_SAVERS
 int                   screensaver_active    = 0;  /* screensaver stuff                         */
 int                   screensaver_countdown = 0;
-
+#endif
 
 void Draw_Background_Image(int do_the_drawing)
 {
@@ -588,11 +592,13 @@ void handle_mouse_event (DFBInputEvent *evt)
 							begin_shutdown_sequence (RESTART);
 							break;
 						case SCREEN_SAVER:
+#ifdef USE_SCREEN_SAVERS
 							screensaver_countdown = 0;
 							screensaver_active    = 1;
 							clear_screen();
 							primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
 							primary->Flip  (primary, NULL, DSFLIP_BLIT);
+#endif
 							break;
 						case SLEEP:
 						{
@@ -730,6 +736,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 		{
 			if(ascii_code == 'c')
 				kill(getpid(), SIGINT);
+#ifdef USE_SCREEN_SAVERS
 			if(ascii_code == 'z')
 			{	    
 				ascii_code            = 0;
@@ -741,8 +748,9 @@ int handle_keyboard_event(DFBInputEvent *evt)
 				primary->Flip  (primary, NULL, DSFLIP_BLIT);
 				sleep(1);
 			}
+#endif /* screen saver stuff */
 		}
-#endif
+#endif /* powerkeys stuff */
 		if (modifier == ALT || modifier == CTRLALT)
 		{ 
 			if (symbol_name)
@@ -1136,11 +1144,13 @@ int directfb_mode (int argc, char *argv[])
 
   layer->EnableCursor (layer, 1);
 
+#ifdef USE_SCREEN_SAVERS
   /* initialize screen saver stuff */
   screen_saver_kind    = SCREENSAVER;
   screen_saver_surface = primary;
   screen_saver_dfb     = dfb;
   screen_saver_events  = events;
+#endif
 
   /* it should be now safe to unlock vt switching again */
   unlock_tty_switching();
@@ -1148,10 +1158,13 @@ int directfb_mode (int argc, char *argv[])
   /* we go on for ever... or until the user does something in particular */
   while (returnstatus == -1)
 	{
+#ifdef USE_SCREEN_SAVERS
 		if (!screensaver_countdown)
 			screensaver_countdown = screensaver_timeout * 120;		
+#endif
       
 		/* we wait for an input event... */
+#ifdef USE_SCREEN_SAVERS
 		if (!screensaver_active) events->WaitForEventWithTimeout(events, 0, 500);
 		else
 		{
@@ -1159,16 +1172,21 @@ int directfb_mode (int argc, char *argv[])
 			primary->SetColor (primary, OTHER_TEXT_COLOR.R, OTHER_TEXT_COLOR.G, OTHER_TEXT_COLOR.B, OTHER_TEXT_COLOR.A);
 			activate_screen_saver();
 		}
+#else  /* don't want screensavers */
+		events->WaitForEventWithTimeout(events, 0, 500);
+#endif /* screensaver stuff */
 
 		if (events->HasEvent(events) == DFB_OK)
 		{ /* ...got that! */
 			events->GetEvent (events, DFB_EVENT (&evt));
+#ifdef USE_SCREEN_SAVERS
 			screensaver_countdown = screensaver_timeout * 120;			
 			if (screensaver_active)
 	    {
 	      screensaver_active = 0;
 	      reset_screen(&evt);
 	    }
+#endif
 			switch (evt.type)
 	    {
 				case DIET_AXISMOTION:
@@ -1186,7 +1204,8 @@ int directfb_mode (int argc, char *argv[])
 		else
 		{ /* Let there be a flashing cursor! */
 			static int flashing_cursor = 0;
-	  
+
+#ifdef USE_SCREEN_SAVERS	  
 			if (!screensaver_active)
 	    {
 	      if (username->hasfocus) username->KeyEvent(username, REDRAW, flashing_cursor);
@@ -1202,6 +1221,12 @@ int directfb_mode (int argc, char *argv[])
 	      primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
 	      primary->Flip  (primary, NULL, DSFLIP_BLIT);
 	    }
+#else  /* don't want screensavers */
+			if (username->hasfocus) username->KeyEvent(username, REDRAW, flashing_cursor);
+			if (password->hasfocus) password->KeyEvent(password, REDRAW, flashing_cursor);
+			flashing_cursor = !flashing_cursor;
+			update_labels();
+#endif /* screensaver stuff */
 		}
 	}
 

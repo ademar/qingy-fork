@@ -80,10 +80,8 @@ void initialize_variables(void)
   screensaver_options     = NULL;
   windowsList             = NULL;
   black_screen_workaround = 0;
-  screensaver_timeout     = 5;
   no_shutdown_screen      = 0;
   disable_last_user       = 0;
-  use_screensaver         = 1;
   hide_last_user          = 0;
   hide_password           = 0;
   silent                  = 1;
@@ -92,6 +90,13 @@ void initialize_variables(void)
   THEME_WIDTH             = 800;
   THEME_HEIGHT            = 600;
 	lock_sessions           = 0;
+#ifdef USE_SCREEN_SAVERS
+	screensaver_timeout     = 5;
+	use_screensaver         = 1;
+#else
+	screensaver_timeout     = 0;
+	use_screensaver         = 0;
+#endif
 }
 
 void set_default_session_dirs(void)
@@ -153,6 +158,7 @@ void erase_options(void)
 
 void add_to_options(char *option)
 {
+#ifdef USE_SCREEN_SAVERS
   static struct _screensaver_options *temp = NULL;
   
   if (!option) return;
@@ -174,6 +180,9 @@ void add_to_options(char *option)
   temp->option = strdup(option);
   temp->next = NULL;
   if (!silent) fprintf(stderr, "Added '%s' to screen saver options...\n", option);
+#else  /* no screensaver support */
+	if (option) {} /* only to avoid compiler warnings */
+#endif
 }
 
 char *get_random_theme()
@@ -192,6 +201,7 @@ char *get_random_theme()
     /* perror("Qingy error"); */
 		/* This is not a qingy error ;-P */
 		fprintf(stderr, "qingy: get_random_theme(): cannot open directory \"%s\"!\n", themes_dir);
+		free(themes_dir);
     return strdup("default");
   }
 
@@ -262,7 +272,12 @@ char *get_last_user(void)
   FILE *fp = fopen(LAST_USER, "r");
   char tmp[MAX];  
   
-  if (!fp) {perror("Qingy error"); return NULL;}
+	/*
+	 * no point in printing out an error:
+	 * it just means that no user has
+	 * logged in with qingy, yet
+	 */
+  if (!fp) return NULL;
   if (fscanf(fp, "%s", tmp) != 1)
 	{
 		fclose(fp);
@@ -279,10 +294,12 @@ int set_last_user(char *user)
   
   if (!user) return 0;
   fp = fopen(LAST_USER, "w");
-  if(!fp){
-    perror("Qingy error");
-    return 0;
-  }
+	/*
+	 * no point in printing out an error:
+	 * it just means that on next launch
+	 * we will ask for user name, too
+	 */
+  if (!fp) return 0;
   fprintf(fp, "%s", user);
   fclose(fp);
   
@@ -328,12 +345,12 @@ char *get_last_session(char *user)
 
 int set_last_session(char *user, char *session)
 {
-  char *homedir = get_home_dir(user);
+  char *homedir;
   char *filename;
   FILE *fp;
   
-  if (!user)    return 0;
-  if (!session) return 0;
+  if (!user || !session) return 0;
+	homedir = get_home_dir(user);
   if (!homedir) return 0;
   
   filename = (char *) calloc(strlen(homedir)+8, sizeof(char));
@@ -437,7 +454,7 @@ char *get_action(char *action)
 		begin = temp + 1;
 		temp = strchr(begin, '"');
 		if (!temp) return NULL;
-		length = temp - begin;
+		length = (size_t)(temp - begin);
 		return strndup(begin, length);		
   }
   

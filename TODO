@@ -35,10 +35,14 @@
 
 - Add support for wildcards in paths in config files...
 
-- Add option to disable compilation of non esential stuff like screen savers.
-
-- Check agetty source code and see wether there is some code there to
+* Check agetty source code and see wether there is some code there to
   handle console keymaps that we should support as well...
+	NOTE: it appears there is no such code: still digging.
+
+- test in on Mandrake (8.2) as people reported issues with this distro.
+
+- make images scale according to virtualized / real resolution
+  instead of always rendering them their actual size...
 
 --
 Items marked as * are those we are currently working on.
