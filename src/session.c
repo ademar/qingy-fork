@@ -52,8 +52,8 @@
 #define OPEN_SESSION   2
 #define CLOSE_SESSION  3
 
-extern char **environ;
 int current_vt;
+extern char **environ;
 
 int get_sessions(void)
 {
@@ -162,27 +162,48 @@ int check_password(char *username, char *password)
 	return 0;
 }
 
-char *baseName(char *name)
+char *shell_base_name(char *name)
 {
-	char *base;
+	char *base = name;
+	char *temp = name;
+	char *shellname;
 
-	base = name;
-	while (*name)
+	while (*temp)
 	{
-		if (*name == '/') base = name + 1;
-		++name;
+		if (*temp == '/') base = temp + 1;
+		temp++;
 	}
 
-	return (char *) base;
+	shellname = (char *) calloc(strlen(base)+2, sizeof(char));
+	*shellname = '-';
+	strcat(shellname, base);
+
+	return shellname;
+}
+
+void setEnvironment(struct passwd *pwd)
+{
+	char *mail;
+
+	environ = (char **) calloc(2, sizeof(char *));
+	environ[0] = 0;
+	setenv("TERM", "linux", 0);
+	setenv("HOME", pwd->pw_dir, 1);
+	setenv("SHELL", pwd->pw_shell, 1);
+	setenv("USER", pwd->pw_name, 1);
+	setenv("LOGNAME", pwd->pw_name, 1);
+	setenv("DISPLAY", ":0.0", 1);
+	mail = (char *) calloc(strlen(_PATH_MAILDIR) + strlen(pwd->pw_name) + 2, sizeof(char));
+	strcpy(mail, _PATH_MAILDIR);
+	strcat(mail, "/");
+	strcat(mail, pwd->pw_name);
+	setenv("MAIL", mail, 1);
+	chdir(pwd->pw_dir);
 }
 
 void Text_Login(struct passwd *pw)
 {
-	char exec[MAX];
 	pid_t proc_id;
-
-	strcpy(exec, strdup(pw->pw_shell));
-	strcat(exec, " -l");
 
 	proc_id = fork();
 	if (proc_id == -1)
@@ -192,8 +213,12 @@ void Text_Login(struct passwd *pw)
 	}
 	if (!proc_id)
 	{
-		if (system(exec) == -1)
-			fprintf(stderr, "session: fatal error: cannot start your session!\n");
+		char *args[2];
+		args[0] = shell_base_name(pw->pw_shell);
+		args[1] = NULL;
+		execve(pw->pw_shell, args, environ);
+		/* execve should never return! */
+		fprintf(stderr, "session: fatal error: cannot start your session!\n");
 		exit(0);
 	}
 	LogEvent(pw, OPEN_SESSION);
@@ -230,21 +255,8 @@ int which_X_server(void)
 
 void Graph_Login(struct passwd *pw, char *path, char *script)
 {
-	char exec[MAX];
 	pid_t proc_id;
 	int dest_vt = current_vt + 20;
-
-	strcpy(exec, strdup(pw->pw_shell));
-	strcat(exec, " -l -c \"");
-	strcat(exec, XINIT);
-	strcat(exec, " ");
-	strcat(exec, path);
-	strcat(exec, script);
-	strcat(exec, " -- :");
-	strcat(exec, int_to_str(which_X_server()));
-	strcat(exec, " vt");
-	strcat(exec, int_to_str(dest_vt));
-	strcat(exec, "\" >/dev/null 2>/dev/null");
 
 	proc_id = fork();
 	if (proc_id == -1)
@@ -254,12 +266,30 @@ void Graph_Login(struct passwd *pw, char *path, char *script)
 	}
 	if (!proc_id)
 	{
-		fprintf(stderr, "Switching to X Server...\n");
-		if (system(exec) == -1)
-			fprintf(stderr, "session: fatal error: cannot start your session!\n");
+		char *args[4];
+		args[0] = shell_base_name(pw->pw_shell);
+		args[1] = (char *) calloc(3, sizeof(char));
+		strcpy(args[1], "-c");
+		args[2] = (char *) calloc(MAX, sizeof(char));
+		strcpy(args[2], XINIT);
+		strcat(args[2], " ");
+		strcat(args[2], path);
+		strcat(args[2], script);
+		strcat(args[2], " -- :");
+		strcat(args[2], int_to_str(which_X_server()));
+		strcat(args[2], " vt");
+		strcat(args[2], int_to_str(dest_vt));
+		strcat(args[2], ">/dev/null 2>/dev/null");
+		args[3] = NULL;
+		execve(pw->pw_shell, args, environ);
+		/* execve should never return! */
+		fprintf(stderr, "session: fatal error: cannot start your session!\n");
 		exit(0);
 	}
 	LogEvent(pw, OPEN_SESSION);
+	sleep(1);
+	ClearScreen();
+	fprintf(stderr, "Switching to X Server...\n");
 	while(1)
 	{
 		pid_t result;
@@ -276,26 +306,6 @@ void Graph_Login(struct passwd *pw, char *path, char *script)
 	if (get_active_tty() == dest_vt) set_active_tty(current_vt);
 
 	exit(0);
-}
-
-void setEnvironment(struct passwd *pwd)
-{
-	char *mail;
-
-	environ = (char **) calloc(2, sizeof(char *));
-	environ[0] = 0;
-	setenv("TERM", "linux", 0);
-	setenv("HOME", pwd->pw_dir, 1);
-	setenv("SHELL", pwd->pw_shell, 1);
-	setenv("USER", pwd->pw_name, 1);
-	setenv("LOGNAME", pwd->pw_name, 1);
-	setenv("DISPLAY", ":0.0", 1);
-	mail = (char *) calloc(strlen(_PATH_MAILDIR) + strlen(pwd->pw_name) + 2, sizeof(char));
-	strcpy(mail, _PATH_MAILDIR);
-	strcat(mail, "/");
-	strcat(mail, pwd->pw_name);
-	setenv("MAIL", mail, 1);
-	chdir(pwd->pw_dir);
 }
 
 void switchUser(struct passwd *pwd, char *path, char *script)
@@ -384,8 +394,8 @@ void start_session(char *username, int session_id, int workaround)
 	free(username);
 
 	while (curr->id != session_id) curr= curr->next;
-
 	ClearScreen();
+
 	if (strcmp(curr->name, "Text Console") == 0)
 	{
 		dolastlog(pwd, 0);
