@@ -500,7 +500,6 @@ int check_windows_sanity()
  
 	while(temp)
 	{
-		fprintf(stderr, "command:\"%s\"\n", temp->command);
 		switch (temp->type)
 		{
 		case LOGIN:

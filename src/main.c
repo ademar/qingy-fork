@@ -111,10 +111,10 @@ void start_up(void)
 	char *argv[3];
   
   /* First of all, we lock vt switching */
-  //lock_tty_switching();
+  lock_tty_switching();
   
   /* We clear the screen */
-  //ClearScreen();
+  ClearScreen();
 
   /* Set up some stuff */
   argv[0]= strdup("qingy");

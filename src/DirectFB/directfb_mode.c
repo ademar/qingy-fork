@@ -608,7 +608,7 @@ void start_login_sequence(DFBInputEvent *evt)
   if (!check_password(temp, password->text))
   {
     primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-		Draw_Background_Image(1);
+		Draw_Background_Image(0);
     primary->DrawString (primary, "Login failed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
     primary->Flip (primary, NULL, DSFLIP_BLIT);
     sleep(2);
@@ -618,7 +618,7 @@ void start_login_sequence(DFBInputEvent *evt)
     return;
   }
   primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-	Draw_Background_Image(1);
+	Draw_Background_Image(0);
   if (!strcmp(temp, "root"))
     primary->DrawString (primary, "Greetings, Master...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
   else primary->DrawString (primary, "Starting selected session...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);

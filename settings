@@ -8,9 +8,9 @@ xinit = "/usr/X11R6/bin/xinit"
 
 #	screensaver pixel	
 screensaver photos =
-	"/mnt/documenti/Immagini/Spazio/Caldo",
-	"/mnt/documenti/Immagini/Spazio/Freddo",
-	"/mnt/documenti/Immagini/Spazio/Fresco&Tiepido"
+#	"/mnt/documenti/Immagini/Spazio/Freddo",
+#	"/mnt/documenti/Immagini/Spazio/Fresco&Tiepido",
+	"/mnt/documenti/Immagini/foto screen saver"
 
 # What theme do you want (you can also specify 'random')
 # theme = "default"

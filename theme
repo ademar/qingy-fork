@@ -13,71 +13,192 @@ theme
 #	mask_text_color   = [ 28b428ff ]
 #	cursor_text_color = [ 145a14dd ]
 #	other_text_color  = [ 404040ff ]
-	mask_text_color   = 40, 180, 40, 255
-	cursor_text_color = 20, 90,  20, 221
-	other_text_color  = 64, 64,  64, 255
-}
-
-#login window
-window
-{
-	# window geometry
-	x       = 50
-	y       = 100
-	width   = 1000
-	height  = 50
-
-	text_size = medium
-	text_color  = 40, 180, 40, 255
-	cursor_color = 20, 90,  20, 221
-
-	# update time, 0 means do not update
-	time    = 0
-
-	# window type, allowed values are:
-	# "label", "button", "login", "password", "combo"
-	type    = "login"
+	default_text_color   = 40, 180, 40, 255
+	default_cursor_color = 20,  90, 20, 221
+	other_text_color     =  0, 255,  0, 255
 }
 
 window
 {
 	# window geometry
-	x       = 50
-	y       = 200
-	width   = 1000
-	height  = 50
+	x      = 0
+	y      = 75
+	width  = 800
+	height = 50
 
-	text_size = medium
-	text_color  = 40, 180, 40, 255
-	cursor_color = 20, 90,  20, 221
+	text_size        = large
+	text_orientation = center
+	text_color       = 40, 180, 40, 255
+	cursor_color     = 20, 90,  20, 221
 
 	# update time, 0 means do not update
-	time    = 0
+	time = 0
 
 	# window type, allowed values are:
 	# "label", "button", "login", "password", "combo"
-	type    = "password"
+	type    = "label"
+	content = "Welcome to <INS_CMD_HERE>"
+	command = "cat /etc/hostname"
 }
 
 window
 {
 	# window geometry
-	x       = 50
-	y       = 300
-	width   = 1000
-	height  = 50
+	x      = 100
+	y      = 220
+	width  = 120
+	height = 50
 
-	text_size = small
-	text_color  = 40, 180, 40, 255
-	cursor_color = 20, 90,  20, 221
+	text_size        = large
+	text_orientation = right
+	text_color       = 40, 180, 40, 255
+	cursor_color     = 20, 90,  20, 221
 
 	# update time, 0 means do not update
-	time    = 0
+	time = 0
 
 	# window type, allowed values are:
 	# "label", "button", "login", "password", "combo"
-	type    = "combo"
+	type    = "label"
+	content = "login:"
+	linkto  = "login"
+}
+
+window
+{
+	# window geometry
+	x      = 240
+	y      = 220
+	width  = 560
+	height = 50
+
+	text_size    = large
+	text_color   = 40, 180, 40, 255
+	cursor_color = 20, 90,  20, 221
+
+	# update time, 0 means do not update
+	time = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type = "login"
+}
+
+window
+{
+	# window geometry
+	x      = 100
+	y      = 295
+	width  = 120
+	height = 50
+
+	text_size        = large
+	text_orientation = right
+	text_color       = 40, 180, 40, 255
+	cursor_color     = 20, 90,  20, 221
+
+	# update time, 0 means do not update
+	time = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type    = "label"
+	content = "passwd:"
+	linkto  = "password"
+}
+
+window
+{
+	# window geometry
+	x      = 240
+	y      = 295
+	width  = 560
+	height = 50
+
+	text_size    = large
+	text_color   = 40, 180, 40, 255
+	cursor_color = 20, 90,  20, 221
+
+	# update time, 0 means do not update
+	time = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type = "password"
+}
+
+window
+{
+	# window geometry
+	x      = 100
+	y      = 370
+	width  = 120
+	height = 50
+
+	text_size        = large
+	text_orientation = right
+	text_color       = 40, 180, 40, 255
+	cursor_color     = 20, 90,  20, 221
+
+	# update time, 0 means do not update
+	time = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type    = "label"
+	content = "session:"
+	linkto  = "session"
+}
+
+window
+{
+	# window geometry
+	x      = 240
+	y      = 370
+	width  = 560
+	height = 50
+
+	text_size    = large
+	text_color   = 40, 180, 40, 255
+	cursor_color = 20, 90,  20, 221
+
+	# update time, 0 means do not update
+	time = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type = "combo"
 
 	# In this case: what text do you want to display?
 	command = "sessions"
+}
+
+window
+{
+	# window geometry
+	x = 755
+	y = 562
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type = "button"
+
+	# In this case: what text do you want to display?
+	command = "halt"
+	content = "power"
+}
+
+window
+{
+	# window geometry
+	x = 700
+	y = 562
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type = "button"
+
+	# In this case: what text do you want to display?
+	command = "reboot"
+	content = "reset"
 }
