@@ -1,3 +1,29 @@
+2004-08-16  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* most_files_have_been_changed:
+	Tonight I got really pissed for the 'DirectFB crash on shutdown issue',
+	so I thought that if I cannot prevent it, maybe I can circumvent it,
+	so an evil evil idea came to my mind (satanic cackling with mad laughter follows):
+	I split qingy into two executables, one with the interface
+	and one that does the actual login. This way it does not matter anymore
+	how the interface dies, because it communicates username, password
+	and session to start to the other via a pipe.
+	As a result of this I have successfully logged in with qingy using
+	gentoo-dev-sources-2.6.8 and vanilla-sources-2.6.8. As a side result,
+	the qingy instance that logs you in will use about 2.5M of RAM against
+	the 40M of the old solution (this because DirectFB leaves a lot of used RAM
+	even after shutting down its graphic mode, but that gets cleaned when
+	the qingy-interface dies).
+	This looks like a big improvement to me, worth a new major release of qingy.
+	Also, it paves the way for support of other graphic toolkits in qingy
+	(bare framebuffer, SVGAlib, maybe others): each interface will have
+	its own executable, and the main qingy will just have to launch it
+	depending on user preferences...
+
+	* lotsa_files_have_been_changed:
+	Remove support for the '--black-screen-workaround'
+	cmd line arg, as it is no longer needed.
+
 2004-08-10  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/libraries/session.c (check_password):

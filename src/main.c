@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <time.h>
 
@@ -55,6 +56,7 @@
 #include "misc.h"
 #include "directfb_mode.h"
 #include "load_settings.h"
+#include "session.h"
 
 
 #define Switch_TTY                                                                          \
@@ -91,9 +93,6 @@ void PrintUsage()
   printf("\t-s <timeout>, --screensaver <timeout>\n");
   printf("\tActivate screensaver after <timeout> minutes (default is 5).\n");
   printf("\tA value of 0 disables screensaver completely.\n\n");
-  printf("\t-b, --black-screen-workaround\n");
-  printf("\tTry this if you get a black screen instead of a text console.\n");
-  printf("\tNote: switching to another vt and back also solves the problem.\n\n");
 	printf("\t-r <xres>x<yres>, --resolution <xres>x<yres>\n");
 	printf("\tDo not detect framebuffer resolution, use this one instead.\n\n");
 }
@@ -133,11 +132,19 @@ void Error(int fatal)
   exit(EXIT_FAILURE);
 }
 
-void start_up(void)
+void start_up(int our_tty_number)
 {
+	FILE *fp;
   int returnstatus;
-  int argc = 2;
-  char *argv[3];
+	char *interface     = NULL;
+	char *temp          = NULL;
+	size_t len = 0;
+	char *username = NULL;
+	char *password = NULL;
+	char *session  = NULL;
+	
+	/* parse settings file */
+	load_settings();
 
   /* We clear the screen */
   ClearScreen();
@@ -145,47 +152,60 @@ void start_up(void)
 	/* get resolution of console framebuffer */
 	if (!resolution) resolution = get_fb_resolution( (fb_device) ? fb_device : "/dev/fb0" );
 	if (!silent && resolution) fprintf(stderr, "framebuffer resolution is '%s'.\n", resolution);
-  
-  /* Set up some stuff */
-  argv[0]= strdup(program_name);
-  argv[1]= strdup("--dfb:no-vt-switch,bg-none");
-  if (silent)     StrApp(&(argv[1]), ",quiet", (char*)NULL);
-  if (fb_device)  StrApp(&(argv[1]), ",fbdev=", fb_device,  (char*)NULL);
-	if (resolution) StrApp(&(argv[1]), ",mode=",  resolution, (char*)NULL);
-  argv[2]= NULL;
+
+	/* Set up some stuff */
+	temp = int_to_str(our_tty_number);
+	interface = StrApp((char**)NULL, DFB_INTERFACE, " ", temp, " --dfb:vt-switch,bg-none", (char*)NULL);
+	free(temp);
+	if (silent)     StrApp(&interface, ",quiet", (char*)NULL);
+	if (fb_device)  StrApp(&interface, ",fbdev=", fb_device,  (char*)NULL);
+	if (resolution) StrApp(&interface, ",mode=",  resolution, (char*)NULL);
 	if (resolution) free(resolution);
 	if (fb_device)  free(fb_device);
 
 	/* let's go! */
-	returnstatus = directfb_mode(argc, argv);
-  
-  /* We get here only if directfb fails or user wants to change tty */  
-  free(argv[1]); free(argv[0]);
-  
-  /* re-allow vt switching if it is still disabled */
-  unlock_tty_switching();
-  
-  /* if user wants to switch to another tty ... */
-  if (returnstatus != TEXT_MODE)
+	fp = popen(interface, "r");
+	free(interface);
+	if (getline(&username, &len, fp) == -1) username=NULL; len=0;
+	if (getline(&password, &len, fp) == -1) password=NULL; len=0;
+	if (getline(&session,  &len, fp) == -1) session=NULL;  len=0;
+	returnstatus = WEXITSTATUS(pclose(fp));
+
+	/* remove trailing newlines from these values */
+	if (username) username[strlen(username)-1] = '\0';
+	if (password) password[strlen(password)-1] = '\0';
+	if (session)  session [strlen(session) -1] = '\0'; 
+
+	/* re-allow vt switching if it is still disabled */
+	unlock_tty_switching();
+
+	/* return to our righteous tty */
+	set_active_tty(our_tty_number);
+
+	switch (returnstatus)
 	{
-		if (!set_active_tty(returnstatus))
-		{
-			fprintf(stderr, "\nfatal error: unable to change active tty!\n");
-			exit(EXIT_FAILURE);
-		}
-		exit(EXIT_SUCCESS); /* init will restart us in listen mode */    
+		case EXIT_SUCCESS:
+			if (check_password(username, password))
+				start_session(username, session);
+			break;
+		case TEXT_MODE:
+			text_mode();
+			break;
+		case SHUTDOWN_R:
+			execl ("/sbin/shutdown", "/sbin/shutdown", "-r", "now", (char*)NULL);
+			break;
+		case SHUTDOWN_H:
+			execl ("/sbin/shutdown", "/sbin/shutdown", "-h", "now", (char*)NULL);
+			break;
+		default: /* user wants to switch to another tty ... */
+			if (!set_active_tty(returnstatus))
+			{
+				fprintf(stderr, "\nfatal error: unable to change active tty!\n");
+				exit(EXIT_FAILURE);
+			}
+			exit(EXIT_SUCCESS); /* init will restart us in listen mode */
 	}
-  
-  /*
-   * framebuffer init failed or user pressed ESC twice...
-   * ... we revert to text mode
-   */
-  
-  /* This is to avoid a black display after framebuffer dies */
-  if (black_screen_workaround) tty_redraw();
-  
-  text_mode(); /* This call does not return */
-  
+
   /* We should never get here */
   fprintf(stderr, "\nGo tell my creator that his brains went pop!\n");
   /* NOTE (paolino): I never got here, but still your brains are gone pop! */
@@ -230,7 +250,7 @@ int ParseCMDLine(int argc, char *argv[])
 {
 	extern char *optarg;
 	extern int optind, opterr, optopt;
-	const char optstring[] = "f:pldvns:br";
+	const char optstring[] = "f:pldvns:r";
 	const struct option longopts[] =
 	{
 		{"fb-device",               required_argument, NULL, 'f'},
@@ -240,7 +260,6 @@ int ParseCMDLine(int argc, char *argv[])
 		{"verbose",                 no_argument,       NULL, 'v'},
 		{"no-shutdown-screen",      no_argument,       NULL, 'n'},
 		{"screensaver",             required_argument, NULL, 's'},
-		{"black-screen-workaround", no_argument,       NULL, 'b'},
 		{"resolution",              required_argument, NULL, 'r'},
 		{0, 0, 0, 0}
 	};
@@ -298,9 +317,6 @@ int ParseCMDLine(int argc, char *argv[])
 				screensaver_timeout = temp;
 				break;
 			}
-			case 'b': /* black-screen-workaround */
-				black_screen_workaround = 1;
-				break;
 			case 'r': /* use this framebuffer resolution */
 				resolution = get_resolution(optarg);
 				break;
@@ -336,13 +352,13 @@ int main(int argc, char *argv[])
   initialize_variables();
 	program_name   = argv[0];
 	if ((ptr = strrchr(argv[0], '/')))
-		program_name = ++ptr;	
+		program_name = ++ptr;
   our_tty_number = ParseCMDLine(argc, argv);
 	current_tty    = our_tty_number;
   
   /* We switch to tty <tty> */
 	Switch_TTY;
-  
+
   /* Main loop: we wait until the user switches to the tty we are running in */
   while (1)
 	{
@@ -352,7 +368,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "\nfatal error: cannot get active tty number!\n");
 			return EXIT_FAILURE;
 		}
-		if (user_tty_number == our_tty_number) start_up();
+		if (user_tty_number == our_tty_number) start_up(our_tty_number);
 		nanosleep(&delay, NULL); /* wait a little before checking again */
 	}
   

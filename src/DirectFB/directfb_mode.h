@@ -27,7 +27,9 @@
 
 
 /* constants that we make use of */
-#define TEXT_MODE    -2
+#define SHUTDOWN_R  253
+#define SHUTDOWN_H  254
+#define TEXT_MODE   255
 #define REDRAW    55555
 
 /* Init framebuffer mode */

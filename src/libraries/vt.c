@@ -153,29 +153,6 @@ int get_available_tty(void)
   return available;
 }
 
-void tty_redraw(void)
-{
-  int active_tty = get_active_tty();
-  int temp_tty   = get_available_tty();
-
-	if (active_tty == -1) return;
-	if (temp_tty   == -1) return;
-  /*
-	 * Actually, this is implemented as a hack
-	 * I do not think that a *real* way to do 
-	 * this even exists...
-	 */ 
-  if (temp_tty != -1)
-	{
-		if (!set_active_tty(temp_tty)) return;
-		(void)set_active_tty(active_tty);
-		/*
-		 * we would be able to do nothing if the above fails anyway,
-		 * so we don't care at all ;-P
-		 */
-	}
-}
-
 int disallocate_tty(int tty)
 {
   int fd = getfd();

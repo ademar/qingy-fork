@@ -806,7 +806,6 @@ void start_session(char *username, char *session)
   
   endpwent();
   
-  if (black_screen_workaround) tty_redraw();
   current_vt = get_active_tty();
   
   if (!pwd)

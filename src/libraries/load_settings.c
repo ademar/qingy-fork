@@ -73,6 +73,7 @@ void initialize_variables(void)
   TEXT_SESSIONS_DIRECTORY = NULL;
   X_SESSIONS_DIRECTORY    = NULL;
 	SCREENSAVERS_DIR        = NULL;
+	DFB_INTERFACE           = StrApp((char**)NULL, SBINDIR, "qingy-DirectFB", (char*)NULL);
   BACKGROUND              = NULL;
 	THEMES_DIR              = NULL;
   THEME_DIR               = NULL;
@@ -84,7 +85,6 @@ void initialize_variables(void)
   FONT                    = NULL;
   screensaver_options     = NULL;
   windowsList             = NULL;
-  black_screen_workaround = 0;
   no_shutdown_screen      = 0;
   disable_last_user       = 0;
   hide_last_user          = 0;

@@ -192,48 +192,55 @@ void set_user_session(char *user)
 
 void close_framebuffer_mode (void)
 {
-  /* destroy all labels */
-  while (Labels)
-	{
-		Label_list *temp = Labels;
-		Labels = Labels->next;
-		if (temp->label) temp->label->Destroy(temp->label);
-		temp->next = NULL;
-		free(temp->content);
-		free(temp->command);
-		free(temp);
-	}
-  /* destroy all buttons */
-  while (Buttons)
-	{
-		Button_list *temp = Buttons;
-		Buttons = Buttons->next;
-		if (temp->button) temp->button->Destroy(temp->button);
-		temp->next = NULL;
-		free(temp);
-	}
+
+	/* 
+	 * DirectFB has not been nice to us recently,
+	 * so we are not being nice to it any more!
+	 */
+
+
+/*   /\* destroy all labels *\/ */
+/*   while (Labels) */
+/* 	{ */
+/* 		Label_list *temp = Labels; */
+/* 		Labels = Labels->next; */
+/* 		if (temp->label) temp->label->Destroy(temp->label); */
+/* 		temp->next = NULL; */
+/* 		free(temp->content); */
+/* 		free(temp->command); */
+/* 		free(temp); */
+/* 	} */
+/*   /\* destroy all buttons *\/ */
+/*   while (Buttons) */
+/* 	{ */
+/* 		Button_list *temp = Buttons; */
+/* 		Buttons = Buttons->next; */
+/* 		if (temp->button) temp->button->Destroy(temp->button); */
+/* 		temp->next = NULL; */
+/* 		free(temp); */
+/* 	} */
   
-  if (panel_image) panel_image->Release (panel_image);
-  if (lock_key_statusA) lock_key_statusA->Destroy(lock_key_statusA);
-  if (lock_key_statusB) lock_key_statusB->Destroy(lock_key_statusB);
-  if (lock_key_statusC) lock_key_statusC->Destroy(lock_key_statusC);
-  if (lock_key_statusD) lock_key_statusD->Destroy(lock_key_statusD);
-  if (username) username->Destroy(username); /* nice: suicide */
-  if (password) password->Destroy(password);
-  if (session) session->Destroy(session);
-  if (font_small) font_small->Release (font_small);
-  if (font_normal) font_normal->Release (font_normal);
-  if (font_large) font_large->Release (font_large);
-  if (primary) primary->Release (primary);
-  if (events) events->Release (events);
-  if (layer) layer->Release (layer);
-  while (devices)
-	{
-		DeviceInfo *next = devices->next;
-		free (devices);
-		devices = next;
-	}
-  if (dfb) dfb->Release (dfb);
+/*   if (panel_image) panel_image->Release (panel_image); */
+/*   if (lock_key_statusA) lock_key_statusA->Destroy(lock_key_statusA); */
+/*   if (lock_key_statusB) lock_key_statusB->Destroy(lock_key_statusB); */
+/*   if (lock_key_statusC) lock_key_statusC->Destroy(lock_key_statusC); */
+/*   if (lock_key_statusD) lock_key_statusD->Destroy(lock_key_statusD); */
+/*   if (username) username->Destroy(username); /\* nice: suicide *\/ */
+/*   if (password) password->Destroy(password); */
+/*   if (session) session->Destroy(session); */
+/*   if (font_small) font_small->Release (font_small); */
+/*   if (font_normal) font_normal->Release (font_normal); */
+/*   if (font_large) font_large->Release (font_large); */
+/*   if (primary) primary->Release (primary); */
+/*   if (events) events->Release (events); */
+/*   if (layer) layer->Release (layer); */
+/*   while (devices) */
+/* 	{ */
+/* 		DeviceInfo *next = devices->next; */
+/* 		free (devices); */
+/* 		devices = next; */
+/* 	} */
+/*   if (dfb) dfb->Release (dfb); */
 #ifdef USE_GPM_LOCK
   if (we_stopped_gpm) start_gpm();
 #endif
@@ -242,7 +249,7 @@ void close_framebuffer_mode (void)
 void DirectFB_Error()
 {
   fprintf(stderr, "Unrecoverable error: reverting to text mode!\n"); /* dammit! */
-  close_framebuffer_mode();
+	close_framebuffer_mode();
 }
 
 /* mouse movement in buttons area */
@@ -505,7 +512,8 @@ void begin_shutdown_sequence (shutdown_t action)
   if (no_shutdown_screen)
 	{
 		close_framebuffer_mode ();
-		if (black_screen_workaround != -1) tty_redraw();
+		if (action == STOP)    exit(SHUTDOWN_H);
+		if (action == RESTART) exit(SHUTDOWN_R);
 	}
   else
 	{
@@ -700,13 +708,11 @@ void start_login_sequence(DFBInputEvent *evt)
   user_name = strdup(temp);  
   user_session = strdup(session->selected->name);
   if (free_temp) free(temp);
-  close_framebuffer_mode();
-  start_session(user_name, user_session);
-
-  /* The above never returns, so... */
+	fprintf(stdout, "%s\n%s\n%s\n", user_name, password->text, user_session);
   free(user_name); free(user_session);
-  fprintf(stderr, "Go tell my creator his brains went pop!\n");
-  exit(EXIT_FAILURE);
+
+	close_framebuffer_mode();
+  exit(EXIT_SUCCESS);
 }
 
 int handle_keyboard_event(DFBInputEvent *evt)
@@ -776,7 +782,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 				{
 					temp = atoi (symbol_name->name + 1);
 					if ((temp > 0) && (temp < 13))
-						if (get_active_tty () != temp)
+						if (current_tty != temp)
 							return temp;
 				}
 	    }
@@ -1080,7 +1086,7 @@ int set_font_sizes ()
   return 1;
 }
 
-int directfb_mode (int argc, char *argv[])
+int main (int argc, char *argv[])
 {
   int returnstatus = -1;        /* return value of this function...         */
   DFBSurfaceDescription sdsc;   /* description for the primary surface      */
@@ -1089,14 +1095,16 @@ int directfb_mode (int argc, char *argv[])
   char *lastuser=NULL;          /* latest user who logged in                */
 
   /* load settings from file */
+	initialize_variables();
 	if (!load_settings()) return TEXT_MODE;
   if (!disable_last_user) lastuser = get_last_user();
 
+	current_tty = atoi(argv[1]);
   /* user changed vt while we were doing our stuff */
-	if (get_active_tty() != current_tty) exit(EXIT_SUCCESS);
+	//if (get_active_tty() != current_tty) exit(EXIT_SUCCESS);
 
   /* lock vt switching */
-  lock_tty_switching();
+  //lock_tty_switching();
 
 #ifdef USE_GPM_LOCK
   /* Stop GPM if necessary */
@@ -1118,7 +1126,7 @@ int directfb_mode (int argc, char *argv[])
 	{
 		DirectFB_Error();
 		return TEXT_MODE;
-		}
+	}
 
   /* more initialization */
   layer->SetCooperativeLevel (layer, DLSCL_ADMINISTRATIVE);

@@ -73,6 +73,7 @@ static window_t wind =
 /* settings only lvals */
 %token SCREENSAVER_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK 
 %token SHUTDOWN_TOK TTY_TOK SCRSVRS_DIR_TOK THEMES_DIR_TOK X_SERVER_TOK
+%token DFB_INTERFACE_TOK
 
 /* windows && theme blocks */
 %token THEME_TOK WINDOW_TOK 
@@ -122,6 +123,7 @@ config: /* nothing */
 | config scrsvrs_dir
 | config themes_dir
 | config ssav { TTY_CHECK_COND ssaver_is_set = 1; }
+| config dfb_interface
 | config xsessdir
 | config txtsessdir
 | config xinit
@@ -142,6 +144,7 @@ config_tty: /* nothing */
 | config_tty scrsvrs_dir
 | config_tty themes_dir
 | config_tty ssav { TTY_CHECK_COND ssaver_is_set = 1; }
+| config_tty dfb_interface
 | config_tty xsessdir
 | config_tty txtsessdir
 | config_tty xinit
@@ -152,6 +155,12 @@ config_tty: /* nothing */
 | config_tty CLEAR_BACKGROUND_TOK '=' YES_TOK { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 1;} }
 | config_tty CLEAR_BACKGROUND_TOK '=' NO_TOK  { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 0;} }
 ;
+
+dfb_interface: DFB_INTERFACE_TOK '=' QUOTSTR_T
+	{
+	  if(in_theme) yyerror("Setting 'qingy_DirectFB' is not allowed in theme file.");
+	  TTY_CHECK_COND { if (DFB_INTERFACE) free(DFB_INTERFACE); DFB_INTERFACE = strdup($3); }
+	};
 
 /* options to enable or disable session locking */
 lck_sess: LOCK_SESSIONS_TOK '=' YES_TOK { TTY_CHECK_COND lock_sessions = 1; }

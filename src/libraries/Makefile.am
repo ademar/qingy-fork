@@ -4,7 +4,7 @@ AM_YFLAGS     = -d
 INCLUDES      = -I../.. -I../
 BUILT_SOURCES = parse_settings.h
 
-AM_CFLAGS = -DSETTINGS_DIR=\"$(sysconfdir)/qingy\"
+AM_CFLAGS = -DSETTINGS_DIR=\"$(sysconfdir)/qingy\" -DSBINDIR=\"$(sbindir)/\"
 
 if !WANT_STATIC
 pkglib_LTLIBRARIES = libqingy.la
@@ -14,10 +14,15 @@ pkglib_LTLIBRARIES =
 noinst_LTLIBRARIES = libqingy_static.la
 endif
 
-libqingy_la_SOURCES = scan_settings.l  parse_settings.y \
-                      load_settings.c  load_settings.h  \
-                      session.c        session.h        \
-                      tty_guardian.c   tty_guardian.h
+libqingy_la_SOURCES =                 \
+    scan_settings.l  parse_settings.y \
+    load_settings.c  load_settings.h  \
+    session.c        session.h        \
+    tty_guardian.c   tty_guardian.h   \
+    memmgmt.c        memmgmt.h        \
+    misc.c           misc.h           \
+    vt.c             vt.h
+
 
 libqingy_la_LIBADD = @PASSWDLIB@
 

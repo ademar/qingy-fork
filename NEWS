@@ -1,3 +1,6 @@
+qingy 0.5.0:
+
+
 qingy 0.4.1 (28 Jul 2004):
 - Added proper support for transparent pixmaps, now qingy
   will honour the transparency instead of faking it by

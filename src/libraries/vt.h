@@ -54,9 +54,6 @@ int is_tty_available(int tty);
 int lock_tty_switching(void);
 int unlock_tty_switching(void);
 
-/* Redraw active tty contents */
-void tty_redraw(void);
-
 /* disallocate tty */
 int disallocate_tty(int tty);
 

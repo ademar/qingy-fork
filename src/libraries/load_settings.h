@@ -32,7 +32,6 @@
 #include <config.h>
 #endif
 
-int black_screen_workaround;
 int silent;
 int hide_password;
 int hide_last_user;
@@ -58,6 +57,7 @@ char *FONT;
 char *BACKGROUND;
 char *THEME_DIR;
 char *THEMES_DIR;
+char *DFB_INTERFACE;
 
 int BUTTON_OPACITY;
 int WINDOW_OPACITY;

@@ -3,15 +3,9 @@
 INCLUDES  = -I../.. -Iobjects -I../ -I../libraries
 AM_CFLAGS = @DIRECTFB_CFLAGS@
 
-if !WANT_STATIC
-pkglib_LTLIBRARIES     = libqingyui_directfb.la
-noinst_LTLIBRARIES     =
-else
-pkglib_LTLIBRARIES     =
-noinst_LTLIBRARIES     = libqingyui_directfb_static.la
-endif
-
-libqingyui_directfb_la_SOURCES =    objects/screensaver_module.h   \
+sbin_PROGRAMS          = qingy-DirectFB
+qingy_DirectFB_SOURCES =                                           \
+    objects/screensaver_module.h                                   \
     objects/button.c         objects/button.h                      \
     objects/label.c          objects/label.h                       \
     objects/textbox.c        objects/textbox.h                     \
@@ -20,6 +14,10 @@ libqingyui_directfb_la_SOURCES =    objects/screensaver_module.h   \
     objects/screen_saver.c   objects/screen_saver.h                \
     directfb_mode.c          directfb_mode.h
 
-libqingyui_directfb_static_la_SOURCES = $(libqingyui_directfb_la_SOURCES)
-libqingyui_directfb_static_la_LIBADD  = @DIRECTFB_LIBS@
-libqingyui_directfb_la_LDFLAGS = @DIRECTFB_LIBS@
+if !WANT_STATIC
+qingy_DirectFB_LDADD   = ../libraries/libqingy.la @DIRECTFB_LIBS@
+qingy_DirectFB_LDFLAGS = -rdynamic
+else
+qingy_DirectFB_LDADD   = ../libraries/libqingy_static.la @DIRECTFB_LIBS@
+qingy_DirectFB_LDFLAGS = -static
+endif
