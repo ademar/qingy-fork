@@ -183,7 +183,7 @@ char *get_sessions(void)
   switch (status)
   {
   case 0:
-    temp = (char *) calloc(13, sizeof(char));
+    temp = (char *) my_calloc(13, sizeof(char));
     strcpy(temp, "Text: Console");
     status = 1;
     return temp;
@@ -205,12 +205,12 @@ char *get_sessions(void)
       if (dirname == X_SESSIONS_DIRECTORY)
       {
 	if (!strcmp(entry->d_name, "Xsession")) continue;
-	temp = (char *) calloc(strlen(entry->d_name)+1, sizeof(char));
+	temp = (char *) my_calloc(strlen(entry->d_name)+1, sizeof(char));
 	strcpy(temp, entry->d_name);
       }
       else
       {
-	temp = (char *) calloc(strlen(entry->d_name)+7, sizeof(char));
+	temp = (char *) my_calloc(strlen(entry->d_name)+7, sizeof(char));
 	strcpy(temp, "Text: ");
 	strcat(temp, entry->d_name);
       }
@@ -520,7 +520,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
     args[1] = NULL;
   else
   {
-    args[1] = (char *) calloc(3, sizeof(char));
+    args[1] = (char *) my_calloc(3, sizeof(char));
     strcpy(args[1], "-c");
     args[2] = StrApp((char **)0, TEXT_SESSIONS_DIRECTORY, session+6, (char *)0);
     args[3] = NULL;

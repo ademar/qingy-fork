@@ -1,8 +1,10 @@
 qingy CVS:
-- unlock vt switching before dying (yes, this was annoying)
-- now qingy reverts to text mode instead of dying when it
+- Unlock vt switching before dying (yes, this was annoying)
+- Now qingy reverts to text mode instead of dying when it
   encounters non-fatal errors in command line parameters or
   settings / theme file...
+- Various previously unchecked allocations got leashed
+- Fixes and clean ups
 
 qingy 0.2.3 (21 October 2003):
 - Now qingy locks vt switching when it enters DirectFB mode.

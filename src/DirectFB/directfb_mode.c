@@ -483,10 +483,10 @@ void start_login_sequence(DFBInputEvent *evt)
   else primary->DrawString (primary, "Starting selected session...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
   primary->Flip (primary, NULL, DSFLIP_BLIT);
   sleep(1);
-  user_name = (char *) calloc(strlen(temp)+1, sizeof(char));
+  user_name = (char *) my_calloc(strlen(temp)+1, sizeof(char));
   strcpy(user_name, temp);
   if (free_temp) free(temp);
-  user_session = (char *) calloc(strlen(session->selected->name)+1, sizeof(char));
+  user_session = (char *) my_calloc(strlen(session->selected->name)+1, sizeof(char));
   strcpy(user_session, session->selected->name);
   close_framebuffer_mode();
   start_session(user_name, user_session);

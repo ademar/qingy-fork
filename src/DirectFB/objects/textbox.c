@@ -56,7 +56,7 @@ int parse_input(int *input, char *buffer, int *length, int *position)
 			buffer[*length] = '\0';
 			return 1;
 		case ARROW_LEFT:
-			if (*position == 0) return 0;
+			if (!(*position)) return 0;
 			(*position)--;
 			return 1;
 		case ARROW_RIGHT:
@@ -64,7 +64,7 @@ int parse_input(int *input, char *buffer, int *length, int *position)
 			(*position)++;
 			return 1;
 		case HOME:
-			if (*position == 0) return 0;
+			if (!(*position)) return 0;
 			(*position) = 0;
 			return 1;
 		case END:
@@ -104,14 +104,14 @@ void DrawCursor(TextBox *thiz)
 	if (thiz->mask_text)
 	{
 		int length = strlen(thiz->text);
-		text = (char *) calloc(length+1, sizeof(char));
+		text = (char *) my_calloc(length+1, sizeof(char));
 		text[length] = '\0';
 		for(length--; length>=0; length--) text[length] = '*';
 		free_text = 1;
 	}
 	else if (thiz->hide_text)
 	{
-		text = (char *) calloc(1, sizeof(char));
+		text = (char *) my_calloc(1, sizeof(char));
 		text[0] = '\0';
 		free_text = 1;
 		position = 0;
@@ -141,7 +141,7 @@ void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int draw_cursor)
 
 	if (!buffer)
 	{
-		buffer = (char *) calloc(MAX, sizeof(char));
+		buffer = (char *) my_calloc(MAX, sizeof(char));
 		thiz->text = buffer;
 	}
 	length = strlen(thiz->text);
@@ -152,7 +152,7 @@ void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int draw_cursor)
 		if (draw_cursor) DrawCursor(thiz);
 		if (thiz->mask_text)
 		{
-			char *tmp = (char *) calloc(length+1, sizeof(char));
+			char *tmp = (char *) my_calloc(length+1, sizeof(char));			
 			tmp[length] = '\0';
 			for(length--; length>=0; length--) tmp[length] = '*';
 			window_surface->DrawString (window_surface, tmp, -1, 0, 0, DSTF_LEFT|DSTF_TOP);
@@ -168,7 +168,7 @@ void TextBox_SetText(TextBox *thiz, char *text)
 {
 	if (!thiz || !text) return;
 	if (strlen(text) >= MAX-1) return;
-	if (!thiz->text) thiz->text = (char *) calloc(MAX, sizeof(char));
+	if (!thiz->text) thiz->text = (char *) my_calloc(MAX, sizeof(char));
 	strcpy(thiz->text, text);
 	thiz->position = strlen(thiz->text);
 	if (thiz->hasfocus) TextBox_KeyEvent(thiz, REDRAW, 1);
@@ -229,7 +229,7 @@ TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWi
 {
 	TextBox *newbox = NULL;
 
-	newbox = (TextBox *) calloc(1, sizeof(TextBox));
+	newbox = (TextBox *) my_calloc(1, sizeof(TextBox));
 	newbox->text       = NULL;
 	newbox->xpos       = (unsigned int) window_desc->posx;
 	newbox->ypos       = (unsigned int) window_desc->posy;

@@ -99,7 +99,7 @@ void start_up(void)
 {
   int returnstatus;
   int argc = 2;
-  char *argv[3];
+	char *argv[3];
   
   /* First of all, we lock vt switching */
   lock_tty_switching();
@@ -120,11 +120,11 @@ void start_up(void)
   }
   argv[2]= NULL;
 
-  /* Now we try to initialize the framebuffer */
-  returnstatus = directfb_mode(argc, argv);
+	/* Now we try to initialize the framebuffer */
+	returnstatus = directfb_mode(argc, argv);		
 
-  /* We get here only if directfb fails or user wants to change tty */
-  free(argv[1]); free(argv[0]); argv[1]= argv[0]= NULL;
+  /* We get here only if directfb fails or user wants to change tty */  
+	free(argv[1]); free(argv[0]); argv[1]= argv[0]= NULL;	
 
   /* re-allow vt switching if it is still disabled */
   unlock_tty_switching();

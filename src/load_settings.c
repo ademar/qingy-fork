@@ -57,21 +57,21 @@ char *DEFAULT_THEME;
 
 void set_default_session_dirs(void)
 {
-  X_SESSIONS_DIRECTORY = (char *) calloc(19, sizeof(char));
+  X_SESSIONS_DIRECTORY = (char *) my_calloc(19, sizeof(char));
   strcpy(X_SESSIONS_DIRECTORY, "/etc/X11/Sessions/");
-  TEXT_SESSIONS_DIRECTORY = (char *) calloc(20, sizeof(char));
+  TEXT_SESSIONS_DIRECTORY = (char *) my_calloc(20, sizeof(char));
   strcpy(TEXT_SESSIONS_DIRECTORY, "/etc/qingy/sessions");
 }
 
 void set_default_xinit(void)
 {
-  XINIT = (char *) calloc(21, sizeof(char));
+  XINIT = (char *) my_calloc(21, sizeof(char));
   strcpy(XINIT, "/usr/X11R6/bin/xinit");
 }
 
 void set_default_font(void)
 {
-  FONT = (char *) calloc(strlen(DEFAULT_THEME)+11, sizeof(char));
+  FONT = (char *) my_calloc(strlen(DEFAULT_THEME)+11, sizeof(char));
   strcat(FONT, DEFAULT_THEME);
   strcat(FONT, "decker.ttf");
 }
@@ -111,7 +111,7 @@ void error(char *where)
   set_default_xinit();
   set_default_font();
   set_default_colors();
-  THEME_DIR = (char *) calloc(strlen(DEFAULT_THEME)+1, sizeof(char));
+  THEME_DIR = (char *) my_calloc(strlen(DEFAULT_THEME)+1, sizeof(char));
   strcpy(THEME_DIR, DEFAULT_THEME);
 }
 
@@ -130,7 +130,7 @@ char *get_random_theme()
   dir= opendir(themes_dir);
   if (!dir)
   {
-    temp = (char *) calloc(8, sizeof(char));
+    temp = (char *) my_calloc(8, sizeof(char));
     strcpy(temp, "default");
     return temp;
   }
@@ -140,12 +140,12 @@ char *get_random_theme()
     if (!strcmp(entry->d_name, "." )) continue;
     if (!strcmp(entry->d_name, "..")) continue;    
 
-    temp = (char *) calloc(strlen(themes_dir)+strlen(entry->d_name)+1, sizeof(char));
+    temp = (char *) my_calloc(strlen(themes_dir)+strlen(entry->d_name)+1, sizeof(char));
     strcpy(temp, themes_dir);
     strcat(temp, entry->d_name);
     if (is_a_directory(temp))
     {
-      themes[n_themes] = (char *) calloc(strlen(entry->d_name)+1, sizeof(char));
+      themes[n_themes] = (char *) my_calloc(strlen(entry->d_name)+1, sizeof(char));
       strcpy(themes[n_themes], entry->d_name);
       n_themes++;
     }
@@ -170,15 +170,15 @@ int load_settings(void)
 
   TEXT_SESSIONS_DIRECTORY = X_SESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;
 
-  DATADIR = (char *) calloc(12, sizeof(char));
+  DATADIR = (char *) my_calloc(12, sizeof(char));
   strcpy(DATADIR, "/etc/qingy/");
-  SETTINGS = (char *) calloc(9+strlen(DATADIR), sizeof(char));
+  SETTINGS = (char *) my_calloc(9+strlen(DATADIR), sizeof(char));
   strcpy(SETTINGS, DATADIR);
   strcat(SETTINGS, "settings");
-  LAST_USER = (char *) calloc(9+strlen(DATADIR), sizeof(char));
+  LAST_USER = (char *) my_calloc(9+strlen(DATADIR), sizeof(char));
   strcpy(LAST_USER, DATADIR);
   strcat(LAST_USER, "lastuser");
-  DEFAULT_THEME = (char *) calloc(16+strlen(DATADIR), sizeof(char));
+  DEFAULT_THEME = (char *) my_calloc(16+strlen(DATADIR), sizeof(char));
   strcpy(DEFAULT_THEME, DATADIR);
   strcat(DEFAULT_THEME, "themes/default/");
 
@@ -250,16 +250,16 @@ int load_settings(void)
 
 			if (!paths)
 			{
-				image_paths = (struct _image_paths *) calloc(1, sizeof(struct _image_paths));
+				image_paths = (struct _image_paths *) my_calloc(1, sizeof(struct _image_paths));
 				paths = image_paths;
 			}
 			else
 			{
 				while (paths->next != NULL) paths = paths->next;
-				paths->next = (struct _image_paths *) calloc(1, sizeof(struct _image_paths));
+				paths->next = (struct _image_paths *) my_calloc(1, sizeof(struct _image_paths));
 				paths = paths->next;
 			}
-			paths->path = (char *) calloc(len+1, sizeof(char));
+			paths->path = (char *) my_calloc(len+1, sizeof(char));
 			strcpy(paths->path, path);
 			paths->next = NULL;
       found=1;
@@ -272,7 +272,7 @@ int load_settings(void)
 				err = 1;
 				break;
       }
-      X_SESSIONS_DIRECTORY = (char *) calloc(strlen(tmp)+1, sizeof(char));
+      X_SESSIONS_DIRECTORY = (char *) my_calloc(strlen(tmp)+1, sizeof(char));
       strcpy(X_SESSIONS_DIRECTORY, tmp);
       found=1;
     }
@@ -283,7 +283,7 @@ int load_settings(void)
 				err = 1;
 				break;
       }
-      TEXT_SESSIONS_DIRECTORY = (char *) calloc(strlen(tmp)+1, sizeof(char));
+      TEXT_SESSIONS_DIRECTORY = (char *) my_calloc(strlen(tmp)+1, sizeof(char));
       strcpy(TEXT_SESSIONS_DIRECTORY, tmp);
       found=1;
     }
@@ -294,7 +294,7 @@ int load_settings(void)
 				err = 1;
 				break;
       }
-      XINIT = (char *) calloc(strlen(tmp)+1, sizeof(char));
+      XINIT = (char *) my_calloc(strlen(tmp)+1, sizeof(char));
       strcpy(XINIT, tmp);
       found = 1;
     }
@@ -311,13 +311,13 @@ int load_settings(void)
 				strcpy(tmp, temp);
 				free(temp);
       }
-      THEME_DIR = (char *) calloc(strlen(DATADIR)+strlen(tmp)+9, sizeof(char));
+      THEME_DIR = (char *) my_calloc(strlen(DATADIR)+strlen(tmp)+9, sizeof(char));
       strcpy(THEME_DIR, DATADIR);
       strcat(THEME_DIR, "themes/");
       strcat(THEME_DIR, tmp);
       if (THEME_DIR[strlen(THEME_DIR)-1] != '/')
 				THEME_DIR[strlen(THEME_DIR)] = '/';
-      theme = (char *) calloc(strlen(THEME_DIR)+6, sizeof(char));
+      theme = (char *) my_calloc(strlen(THEME_DIR)+6, sizeof(char));
       strcpy(theme, THEME_DIR);
       strcat(theme, "theme");
       found = 1;
@@ -336,9 +336,9 @@ int load_settings(void)
   if (!XINIT) set_default_xinit();
   if (!theme)
   {
-    THEME_DIR = (char *) calloc(strlen(DEFAULT_THEME)+1, sizeof(char));
+    THEME_DIR = (char *) my_calloc(strlen(DEFAULT_THEME)+1, sizeof(char));
     strcpy(THEME_DIR, DEFAULT_THEME);
-    theme = (char *) calloc(strlen(THEME_DIR)+6, sizeof(char));
+    theme = (char *) my_calloc(strlen(THEME_DIR)+6, sizeof(char));
     strcpy(theme, THEME_DIR);
     strcat(theme, "theme");
   }
@@ -352,7 +352,7 @@ int load_settings(void)
     return 0;
   }
 
-  BACKGROUND = (char *) calloc(strlen(THEME_DIR)+15, sizeof(char));
+  BACKGROUND = (char *) my_calloc(strlen(THEME_DIR)+15, sizeof(char));
   strcpy(BACKGROUND, THEME_DIR);
   strcat(BACKGROUND, "background.png");
   while (fscanf(fp, "%s", tmp) != EOF)
@@ -367,7 +367,7 @@ int load_settings(void)
 				err = 1;
 				break;
       }
-      FONT = (char *) calloc(strlen(THEME_DIR)+strlen(tmp)+1, sizeof(char));
+      FONT = (char *) my_calloc(strlen(THEME_DIR)+strlen(tmp)+1, sizeof(char));
       strcpy(FONT, THEME_DIR);
       strcat(FONT, tmp);
       found = 1;
@@ -470,7 +470,7 @@ char *get_last_user(void)
     return NULL;
   }
   fclose(fp);
-  user = (char *) calloc(strlen(tmp)+1, sizeof(char));
+  user = (char *) my_calloc(strlen(tmp)+1, sizeof(char));
   strcpy(user, tmp);
 
   return user;
@@ -499,7 +499,7 @@ char *get_last_session(char *user)
   if (!user) return NULL;
   homedir = get_home_dir(user);
   if (!homedir) return NULL;
-  filename = (char *) calloc(strlen(homedir)+8, sizeof(char));
+  filename = (char *) my_calloc(strlen(homedir)+8, sizeof(char));
   strcpy(filename, homedir);
   if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
   strcat(filename, ".qingy");
@@ -511,7 +511,7 @@ char *get_last_session(char *user)
     return NULL;
   }
   fclose(fp);
-  session = (char *) calloc(strlen(tmp)+1, sizeof(char));
+  session = (char *) my_calloc(strlen(tmp)+1, sizeof(char));
   strcpy(session, tmp);
 
   return session;
@@ -526,7 +526,7 @@ int set_last_session(char *user, char *session)
   if (!user || !session) return 0;
   homedir = get_home_dir(user);
   if (!homedir) return 0;
-  filename = (char *) calloc(strlen(homedir)+8, sizeof(char));
+  filename = (char *) my_calloc(strlen(homedir)+8, sizeof(char));
   strcpy(filename, homedir);
   if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
   strcat(filename, ".qingy");

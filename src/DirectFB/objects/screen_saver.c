@@ -172,7 +172,7 @@ int load_images_list(void)
 					max+= 100;
 					images = (char **) realloc(images, max*sizeof(char *));					
 				}
-				char *temp= (char *) calloc(strlen(paths->path)+strlen(entry->d_name)+2, sizeof(char));
+				char *temp= (char *) my_calloc(strlen(paths->path)+strlen(entry->d_name)+2, sizeof(char));
 				strcpy(temp, paths->path);
 				if (*(temp+strlen(temp)-1) != '/') strcat(temp, "/");
 				strcat(temp, entry->d_name);
