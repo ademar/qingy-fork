@@ -1,0 +1,21 @@
+# Directory containing X sessions
+x_sessions = "/etc/X11/Sessions/"
+# Directory containing text mode sessions
+text_sessions = "/etc/qingy/sessions/"
+
+# Full path to the 'xinit' executable
+xinit = "/usr/X11R6/bin/xinit"
+
+screensaver pixel
+#screensaver photos =
+#       "/mnt/documenti/Immagini/Spazio/Freddo",
+#       "/mnt/documenti/Immagini/Spazio/Fresco&Tiepido",
+#       "/mnt/documenti/Immagini/foto screen saver"
+
+# What theme do you want (you can also specify 'random')
+# theme = random
+# theme = "default"
+
+# Who is allowed to shut down the system?
+# Allowed options are 'everyone', 'root', 'noone'
+# shutdown_policy = everyone
