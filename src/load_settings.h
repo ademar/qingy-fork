@@ -48,20 +48,20 @@ int BUTTON_OPACITY;
 int WINDOW_OPACITY;
 int SELECTED_WINDOW_OPACITY;
 
-int MASK_TEXT_COLOR_R;
-int MASK_TEXT_COLOR_G;
-int MASK_TEXT_COLOR_B;
-int MASK_TEXT_COLOR_A;
+unsigned int MASK_TEXT_COLOR_R;
+unsigned int MASK_TEXT_COLOR_G;
+unsigned int MASK_TEXT_COLOR_B;
+unsigned int MASK_TEXT_COLOR_A;
 
-int TEXT_CURSOR_COLOR_R;
-int TEXT_CURSOR_COLOR_G;
-int TEXT_CURSOR_COLOR_B;
-int TEXT_CURSOR_COLOR_A;
+unsigned int TEXT_CURSOR_COLOR_R;
+unsigned int TEXT_CURSOR_COLOR_G;
+unsigned int TEXT_CURSOR_COLOR_B;
+unsigned int TEXT_CURSOR_COLOR_A;
 
-int OTHER_TEXT_COLOR_R;
-int OTHER_TEXT_COLOR_G;
-int OTHER_TEXT_COLOR_B;
-int OTHER_TEXT_COLOR_A;
+unsigned int OTHER_TEXT_COLOR_R;
+unsigned int OTHER_TEXT_COLOR_G;
+unsigned int OTHER_TEXT_COLOR_B;
+unsigned int OTHER_TEXT_COLOR_A;
 
 /* screen saver stuff */
 struct _image_paths

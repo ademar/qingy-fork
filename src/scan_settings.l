@@ -1,9 +1,6 @@
 %{
-#include <stdlib.h>
+
 #include <string.h>
-
-#include <stdio.h>
-
 #include "parse_settings.h"
 
 #define MAX_STR_CONST 256
@@ -67,28 +64,28 @@ char *string_buf_ptr;
     *string_buf_ptr++ = *yptr++;
 }
 
-screensaver        	return SCREENSAVER_TOK;
-pixel              	return PIXEL_TOK;
-photos             	return PHOTOS_TOK;
-x_sessions         	return XSESSION_DIR_TOK;
-text_sessions      	return TXTSESSION_DIR_TOK;
-xinit		   	return XINIT_TOK;
-theme		   	return THEME_TOK;
-random		   	return RAND_TOK;
-mask_text_color    	return MASK_TXT_COL_TOK;
-cursor_text_color  	return TXT_CUR_COL_TOK;
-other_text_color   	return OTHER_TXT_COL_TOK;
-background	   	return BG_TOK;
-font		   	return FONT_TOK;
-button_opacity	        return BUTTON_OPAC_TOK;
-window_opacity		return WIN_OP_TOK;
+screensaver             return SCREENSAVER_TOK;
+pixel                   return PIXEL_TOK;
+photos                  return PHOTOS_TOK;
+x_sessions              return XSESSION_DIR_TOK;
+text_sessions           return TXTSESSION_DIR_TOK;
+xinit                   return XINIT_TOK;
+theme                   return THEME_TOK;
+random                  return RAND_TOK;
+mask_text_color         return MASK_TXT_COL_TOK;
+cursor_text_color       return TXT_CUR_COL_TOK;
+other_text_color        return OTHER_TXT_COL_TOK;
+background              return BG_TOK;
+font                    return FONT_TOK;
+button_opacity          return BUTTON_OPAC_TOK;
+window_opacity          return WIN_OP_TOK;
 selected_window_opacity return SEL_WIN_OP_TOK;
 
 "#"[^\n]*"\n" ;			/* skip comments */
 
 [1-9][0-9]{1,2} { sscanf(yytext, "%i", &(yylval.ival)); return ANUM_T;}
 
-"\["[0-9a-fA-F]{6}"\]" { sscanf(yytext, "[%x]", yylval.color); return COLOR_T;}
+"\["[0-9a-fA-F]{8}"\]" { sscanf(yytext, "[%x]", (unsigned int *)yylval.color); return COLOR_T;}
 
 [ \n\t] ; 			/* skip blanks */
 
@@ -97,34 +94,3 @@ selected_window_opacity return SEL_WIN_OP_TOK;
 %%
 
 int yywrap(){return 1;}
-
-/* int do_the_parsing(char* filename) */
-/* { */
-/*   short retval=1; */
-/*   int token; */
-  
-/*   FILE* mainfile; */
-/*   FILE* themefile; */
-/*   if(!(mainfile=fopen(filename, "r"))) */
-/*     return 0; */
-  
-/*   yyin=mainfile; */
-/*   while((token=yylex())){ */
-/*     switch(token){ */
-/*     case 0:  */
-/*       return retval; */
-/*       break; */
-/*     case SCREENSAVER_TOK: */
-/*       if((token=yylex())==PIXEL_TOK){ */
-/* 	printf("screensaver is pixel!\n"); */
-/* 	break; */
-/*       } */
-/*       if(token==PHOTO_TOK){ */
-/* 	/\* might have photo dirs *\/ */
-/*       } */
-/*     } */
-/*   } */
-/* } */
-	
-  
-    

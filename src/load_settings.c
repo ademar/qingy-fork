@@ -129,11 +129,12 @@ void add_to_paths(char *path)
 	
 	temp->path = strdup(path);
 	temp->next = NULL;
+	if (!silent) fprintf(stderr, "Added '%s' to image paths...\n", path);
 }
 
-void yyerror(char *where)
+void yyerror(char *error)
 {
-  if (!silent) fprintf(stderr, "qingy: parse error in %s file... using defaults.\n", where);
+  if (!silent) fprintf(stderr, "qingy: %s.\n", error);
   free(X_SESSIONS_DIRECTORY);
   free(TEXT_SESSIONS_DIRECTORY);
   free(XINIT);
@@ -224,8 +225,8 @@ int load_settings(void)
 	FONT                    = NULL;
 
   DATADIR   = strdup("/etc/qingy/");
-	SETTINGS  = StrApp((char**)NULL, DATADIR, "settings",        (char*)NULL);
-  LAST_USER = StrApp((char**)NULL, DATADIR, "lastuser",        (char*)NULL);  
+	SETTINGS  = StrApp((char**)NULL, DATADIR, "settings", (char*)NULL);
+  LAST_USER = StrApp((char**)NULL, DATADIR, "lastuser", (char*)NULL);  
 
   yyin = fopen(SETTINGS, "r");
   if (!yyin)
@@ -235,7 +236,7 @@ int load_settings(void)
     set_default_xinit();
     set_default_font();
     set_default_colors();
-    return 0;
+    return 1;
   }
   yyparse();
   fclose(yyin);
@@ -250,6 +251,24 @@ int load_settings(void)
 	}
 
   if (!FONT) set_default_font();
+
+	/* let's display some info */
+	if (!silent)
+	{
+		fprintf(stderr, "XINIT is '%s'\n", XINIT);
+		fprintf(stderr, "X_SESSIONS_DIRECTORY is '%s'\n", X_SESSIONS_DIRECTORY);
+		fprintf(stderr, "TEXT_SESSIONS_DIRECTORY is '%s'\n",  TEXT_SESSIONS_DIRECTORY);
+		fprintf(stderr, "FONT is '%s'\n", FONT);
+		fprintf(stderr, "BACKGROUND is '%s'\n", BACKGROUND);
+
+		fprintf(stderr, "BUTTON_OPACITY is %d\n", BUTTON_OPACITY);
+		fprintf(stderr, "WINDOW_OPACITY is %d\n", WINDOW_OPACITY);
+		fprintf(stderr, "SELECTED_WINDOW_OPACITY is %d\n", SELECTED_WINDOW_OPACITY);
+
+		fprintf(stderr, "MASK_TEXT_COLOR is %d, %d, %d, %d\n", MASK_TEXT_COLOR_R, MASK_TEXT_COLOR_G, MASK_TEXT_COLOR_B, MASK_TEXT_COLOR_A);
+		fprintf(stderr, "TEXT_CURSOR_COLOR is %d, %d, %d, %d\n", TEXT_CURSOR_COLOR_R, TEXT_CURSOR_COLOR_G, TEXT_CURSOR_COLOR_B, TEXT_CURSOR_COLOR_A);
+		fprintf(stderr, "OTHER_TEXT_COLOR is %d, %d, %d, %d\n", OTHER_TEXT_COLOR_R, OTHER_TEXT_COLOR_G, OTHER_TEXT_COLOR_B, OTHER_TEXT_COLOR_A);
+	}
 
   return 1;
 }
