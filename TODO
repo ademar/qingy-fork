@@ -28,5 +28,8 @@
 - Make it possible to use e.g. mng files for animated images, for example for
   background and the like.
 
+- Make code compliant to the GNU Coding Standards.. That is to be done in order
+  to try inclusion in the GNU Project.
+
 --
-Items marked as * are those we are currently working on.
+items marked as * are those we are currently working on.
