@@ -680,7 +680,7 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 {
 	extern char *optarg;
 	extern int optind, opterr, optopt;
-	const char optstring[] = "-f:pldvns:r";
+	const char optstring[] = "-f:pldvns:rh";
 	const struct option longopts[] =
 	{
 		{"fb-device",               required_argument, NULL, 'f'},
@@ -690,7 +690,7 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 		{"verbose",                 no_argument,       NULL, 'v'},
 		{"no-shutdown-screen",      no_argument,       NULL, 'n'},
 		{"screensaver",             required_argument, NULL, 's'},
-		{"resolution",              required_argument, NULL, 'r'},
+		{"help",                    required_argument, NULL, 'h'},
 		{0, 0, 0, 0}
 	};
   char *tty;
@@ -708,9 +708,9 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 		{
 			/*
 			 * Print usage info...
-			 * I put this here as it would never have a change of
-			 * being parsed bt getopt_long() because of the
-			 * checks below...
+			 * I put this here also as it would never have a chance
+			 * of being parsed by getopt_long() because of the
+			 * checks below (if passed as first argument)
 			 */
 			PrintUsage();
 			exit(EXIT_SUCCESS);
@@ -771,6 +771,10 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 			}
 			case 'r': /* use this framebuffer resolution */
 				if (paranoia) resolution = get_resolution(optarg);
+				break;
+			case 'h': /* Print usage info... */
+				PrintUsage();
+				exit(EXIT_SUCCESS);
 				break;
 			case 1: /* not an option-like arg... we ignore it */
 				break;
