@@ -1,9 +1,9 @@
 /***************************************************************************
-                     directfb_combobox.h  -  description
+                         combobox.h  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : noberasco.gnu@disi.unige.it
+    copyright            : (C) 2003-2005 by Noberasco Michele
+    e-mail               : s4t4n@gentoo.org
  ***************************************************************************/
 
 /***************************************************************************

@@ -38,7 +38,7 @@
 #include "qingy_constants.h"
 
 
-RSA *rsa = NULL;
+static RSA *rsa = NULL;
 
 
 void encrypt_item(FILE *fp, char *item)

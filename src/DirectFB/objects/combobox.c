@@ -1,9 +1,9 @@
 /***************************************************************************
-                     directfb_combobox.c  -  description
+                         combobox.c  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : noberasco.gnu@disi.unige.it
+    copyright            : (C) 2003-2005 by Noberasco Michele
+    e-mail               : s4t4n@gentoo.org
 ***************************************************************************/
 
 /***************************************************************************
@@ -39,7 +39,6 @@
 #include "combobox.h"
 #include "directfb_mode.h"
 #include "misc.h"
-
 
 
 void PlotEvent(ComboBox *thiz, int flip)
@@ -88,7 +87,7 @@ void ComboBox_resize(ComboBox *thiz, item *selection)
 	IDirectFBFont *font;
 	char *text = selection->name;
 
-	thiz->surface->GetFont(thiz->surface,&font);		
+	thiz->surface->GetFont(thiz->surface,&font);
 	font->GetStringExtents(font, text, 0, &rect1, NULL);
 	font->GetStringExtents(font, text, strlen(text), &rect2, NULL);
 	font->GetStringWidth (font, text, 0, &(rect3.x));
@@ -98,6 +97,16 @@ void ComboBox_resize(ComboBox *thiz, item *selection)
 
 	thiz->width = rect3.w;
 }
+
+/* void ComboBox_setHeightNYpos(ComboBox *thiz, int n_items) */
+/* { */
+/* 		IDirectFBFont *font; */
+/* 		DFBRectangle   rect; */
+
+/* 		thiz->surface->GetFont(thiz->surface,&font); */
+/* 		font->GetStringExtents(font, ".", 0, &rect, NULL); */
+/* 		thiz->height = rect.h * n_items; */
+/* } */
 
 void ComboBox_SelectItem(ComboBox *thiz, item *selection)
 {
@@ -129,6 +138,23 @@ void ComboBox_Click(ComboBox *thiz)
 	thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
 	thiz->selected->name = old_text;
 	thiz->SelectItem(thiz, thiz->selected);
+
+/* 	/\* how many items do we have in this combobox? *\/ */
+/* 	int   n_items = 1; */
+/* 	item *largest = thiz->items; */
+/* 	old_text = thiz->items->name; */
+/* 	while (strcmp(thiz->items->next->name, old_text)); */
+/* 	{ */
+/* 		n_items++; */
+/* 		thiz->items = thiz->items->next; */
+/* 		/\* we also get the largest string *\/ */
+/* 		if (strlen(thiz->items->name) > strlen(largest->name)) */
+/* 			largest = thiz->items; */
+/* 	} */
+
+/* 	/\* resize the surface to hold all these items... *\/ */
+/* 	ComboBox_resize(thiz, largest); // width */
+/* 	ComboBox_setHeightNYpos(thiz, n_items); // height */
 }
 
 void ComboBox_KeyEvent(ComboBox *thiz, int direction)

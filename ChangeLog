@@ -1,4 +1,21 @@
+2005-03-17  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/objects/combobox.c,
+	* src/DirectFB/objects/listbox.h,
+	* src/DirectFB/objects/listbox.c,
+	* src/DirectFB/Makefile.am:
+	I need a new object, a listbox, to handle mouse clicks
+	on comboboxes... beginning to implement that...
+
 2005-03-16  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/crypto.c:
+	Fixed bug that prevented the public/privte keys to stay in
+	memory during the duration of the program...
+
+	* src/main.c (start_up):
+	Fixed small bug that prevented qingy to pass DirectFB related
+	cmd line args to its GUI...
 
 	* src/Makefile.am,
 	* src/DirectFB/Makefile.am,

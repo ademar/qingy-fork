@@ -1,5 +1,5 @@
 /***************************************************************************
-                           crypto.h  -  description
+                         listbox.c  -  description
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003-2005 by Noberasco Michele
@@ -25,17 +25,6 @@
  *                                                                         *
  ***************************************************************************/
 
-
-/* generate a new public/private key pair */
-void generate_keys(void);
-
-/* save/restore public key info to/from file */
-void save_public_key   (FILE *fp);
-void restore_public_key(FILE *fp);
-
-/* encrypt and decrypt data with our current key,
- * which must be obtained via generate_keys() or
- * restore_public_key()
- */
-void  encrypt_item(FILE *fp, char *item);
-char *decrypt_item(FILE *fp);
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif

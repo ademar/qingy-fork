@@ -103,7 +103,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		for (j=1; j<argc; j++)
 			gui_argv[j] = argv[j];
 
-		gui_argv[++j] = StrApp((char**)NULL, "--dfb:vt-switch,no-vt-switching,bg-none", (char*)NULL);
+		gui_argv[j] = StrApp((char**)NULL, "--dfb:vt-switch,no-vt-switching,bg-none", (char*)NULL);
 		if (silent) StrApp(&(gui_argv[j]), ",quiet", (char*)NULL);
 		if (fb_device)
 		{
