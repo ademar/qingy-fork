@@ -1,6 +1,6 @@
 How To create your own themes for qingy version 0.2 series
 
-Preample:
+Preamble:
 For qingy, a theme is a subdirectory in /etc/qingy.
 The name of this directory is the name of the theme.
 You can select a theme by editing /etc/qingy/settings

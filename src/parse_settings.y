@@ -27,7 +27,10 @@ static window_t wind;
 %token BG_TOK FONT_TOK BUTTON_OPAC_TOK WIN_OP_TOK SEL_WIN_OP_TOK 			     
 %token SHUTDOWN_TOK EVERYONE_TOK ONLY_ROOT_TOK NO_ONE_TOK
 
-%token <ival>  ANUM_T  LONGNUM_T
+%token WINDOW_TOK WPOLL_TIME_TOK
+%token WTYPE_TOK WWIDTH_TOK WHEIGHT_TOK WCOMMAND_TOK WCONTENT_TOK
+
+%token <ival>  ANUM_T 
 %token <str>   QUOTSTR_T
 %token <color> COLOR_T                                                                       
 
@@ -71,14 +74,19 @@ shutdown:  SHUTDOWN_TOK '=' EVERYONE_TOK { if(in_theme){ yyerror("Setting 'shutd
 	| SHUTDOWN_TOK '=' NO_ONE_TOK { if(in_theme){ yyerror("Setting 'shutdown_policy' is not allowed in theme file.");}  SHUTDOWN_POLICY=NOONE; }
 	;
 
-window: WINDOW_TOK '{' windefns '}' ; 
+window: WINDOW_TOK '{' windefns '}' { add_window_to_list(wind);}  ; 
 
 windefns: windefn | windefns windefn ; 
 
-windefn: 'x' '=' LONGNUM_T { wind.x=$3; } 
- |	 'y' '=' LONGNUM_T { wind.y=$3; } 
+windefn: 'x' '=' ANUM_T { wind.x=$3; } 
+ |	 'y' '=' ANUM_T { wind.y=$3; } 
  | WTYPE_TOK '=' QUOTSTR_T { wind.type=get_win_type($3);}
- |     
+ | WWIDTH_TOK '=' ANUM_T { wind.width=$3;}
+| WHEIGHT_TOK '=' ANUM_T { wind.height=$3;}
+| WCOMMAND_TOK '=' QUOTSTR_T { wind.command=strdup($3);}
+| WCONTENT_TOK '=' QUOTSTR_T { wind.content=strdup($3);}
+| WPOLL_TIME_TOK '=' ANUM_T { wind.polltime=$3;}
+;
 
 colorprop: MASK_TXT_COL_TOK '=' COLOR_T { MASK_TEXT_COLOR_R=$3[3]; MASK_TEXT_COLOR_G=$3[2]; 
 					  MASK_TEXT_COLOR_B=$3[1]; MASK_TEXT_COLOR_A=$3[0];}

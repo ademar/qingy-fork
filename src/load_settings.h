@@ -89,25 +89,22 @@ screensaver_kinds SCREENSAVER;
 
 /* Custom windows can be of the following- they mean:
    - UNKNOWN: default value, treat as error.
-   - TEXT: text input. command will be executed as `command
-   <text>`. Content is default text.
    - LABEL: display static text. if command is empty, not executable
    or error returning, display content. Otherwise, command output.
    - BUTTON: execute command when mouse pressed (key 1). content has
-   path to button root. That is, /path/to/button where in path/to
+   path to button img file stem. That is, /path/to/button where in path/to
    files button-mouseover.png and button-normal.png are found.
+   button commands may be "halt" "reboot" "sleep" "screensave"
    - LOGIN: standard login. command and content aren't used.
    - PASSWORD: standard password. command and content aren't used.
-   - SESSIONS: standard sessions combo. content has path/to/sessions,
-   command holds prefix (e.g. now "Text:").
-   - COMBO: a combo as in sessions, holding different values. command
-   holds command, content holds path/to/file/of/values. command is
-   executed as `command selected-option` 
+   - COMBO: a combo as in sessions, holding different values. command holds
+   command, content is not used. possible commands here are
+   "sessions".
  */
+
 typedef enum 
 {
   UNKOWN,
-  TEXT,
   LABEL,
   BUTTON,
   LOGIN,
@@ -122,6 +119,7 @@ typedef struct _window
   int y;
   int width;
   int height;
+  int polltime;
   window_types_t type;
   char *command;
   char *content;

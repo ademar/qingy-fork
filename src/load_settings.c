@@ -456,12 +456,13 @@ int add_window_to_list(window_t w)
   aux->type    = w.type;
   aux->x       = w.x;
   aux->y       = w.y;
-	aux->width   = w.width;
-	aux->height  = w.height;
+  aux->width   = w.width;
+  aux->height  = w.height;
   aux->command = strdup(w.command); 
+  aux->polltime = w.polltime;
   aux->content = strdup(w.content);
   aux->next    = NULL;
-
+  
   free(w.content);
 	free(w.command);
 
@@ -473,7 +474,7 @@ get_win_type(const char* name)
 {
   static char* types[]=
     {
-     "(none)", "text", "label", "button", "login", "password", "combo", (char*) NULL
+     "(none)", "label", "button", "login", "password", "combo", (char*) NULL
     };
   
   register int i;

@@ -1,3 +1,8 @@
+2003-12-10  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
+
+	* src/parse_settings.y, src/scan_settings.l, src/load_settings.c,
+	src/load_settings.h : added dynamic window support to config files.
+
 2003-12-06  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
 
 	* src/load_settings.h: added window structure and enum of types-
