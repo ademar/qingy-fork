@@ -125,3 +125,79 @@ int load_settings(void)
 
 	return 1;
 }
+
+char *get_last_user(void)
+{
+	FILE *fp = fopen(LAST_USER, "r");
+	char tmp[MAX];
+	char *user;
+
+	if (!fp) return NULL;
+	if (fscanf(fp, "%s", tmp) != 1)
+	{
+		fclose(fp);
+		return NULL;
+	}
+	fclose(fp);
+	user = (char *) calloc(strlen(tmp)+1, sizeof(char));
+	strcpy(user, tmp);
+
+	return user;
+}
+
+int set_last_user(char *user)
+{
+	FILE *fp;
+
+	if (!user) return 0;
+	fp = fopen(LAST_USER, "w");
+	fprintf(fp, "%s", user);
+	fclose(fp);
+
+	return 1;
+}
+
+char *get_last_session(char *user)
+{
+	char *homedir = get_home_dir(user);
+	char *filename;
+	char *session;
+	char tmp[MAX];
+	FILE *fp;
+
+	if (!homedir) return NULL;
+	filename = (char *) calloc(strlen(homedir)+8, sizeof(char));
+	strcpy(filename, homedir);
+	strcat(filename, "/.qingy");
+	fp = fopen(filename, "r");
+	if (!fp) return NULL;
+	if (fscanf(fp, "%s", tmp) != 1)
+	{
+		fclose(fp);
+		return NULL;
+	}
+	fclose(fp);
+	session = (char *) calloc(strlen(tmp)+1, sizeof(char));
+	strcpy(session, tmp);
+
+	return session;
+}
+
+int set_last_session(char *user, char *session)
+{
+	char *homedir = get_home_dir(user);
+	char *filename;
+	FILE *fp;
+
+	if (!homedir || !session) return 0;
+	filename = (char *) calloc(strlen(homedir)+8, sizeof(char));
+	strcpy(filename, homedir);
+	if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
+	strcat(filename, ".qingy");
+	fp = fopen(filename, "w");
+	if (!fp) return 0;
+	fprintf(fp, "%s", session);
+	fclose(fp);
+
+	return 1;
+}

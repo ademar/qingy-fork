@@ -831,6 +831,7 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 	DFBResult err;							/* used by that bloody macro to check for errors				*/
 	DFBSurfaceDescription sdsc;	/* this will be the description for the primary surface	*/
 	DFBInputEvent evt;					/* generic input events will be stored here							*/
+	char *lastuser = NULL, *user_session = NULL;
 
 	if (do_workaround != -1) workaround = do_workaround;
 
@@ -863,17 +864,41 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 	power->surface->Flip(power->surface, NULL, 0);
 	reset->surface->Flip(reset->surface, NULL, 0);
 
+	lastuser = get_last_user();
+	if (!!lastuser) user_session = get_last_session(lastuser);
+
 	/* we show windows */
 	show_welcome_window(YES);
-	show_login_window(YES, SELECTED_WINDOW_OPACITY);
-	show_passwd_window(YES, WINDOW_OPACITY);
+	if (!!lastuser)
+	{
+		show_login_window(YES, WINDOW_OPACITY);
+		show_passwd_window(YES, SELECTED_WINDOW_OPACITY);
+	}
+	else
+	{
+		show_login_window(YES, SELECTED_WINDOW_OPACITY);
+		show_passwd_window(YES, WINDOW_OPACITY);
+	}
 	show_session_window(YES, WINDOW_OPACITY);
-	print_session_name(YES, WINDOW_OPACITY);
+	if (!!user_session)
+	{
+		struct session *session, *first;
+		print_session_name(YES, WINDOW_OPACITY);
+		first = session = &sessions;
+		while (strcmp(session->name, user_session) != 0)
+		{
+			session = session->next;
+			print_session_name(DOWN, WINDOW_OPACITY);
+			if (session == first) break;
+		}
+	}
+	else print_session_name(YES, WINDOW_OPACITY);
 
 	/* we create textboxes */
 	if (!username)
 	{
 		DFBWindowDescription window_desc;
+
 		window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
 		window_desc.posx   = 3*screen_width/10;
 		window_desc.posy   = 3*screen_height/8-font_large_height;
@@ -881,10 +906,17 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 		window_desc.height = 2*font_large_height;
 		window_desc.caps   = DWCAPS_ALPHACHANNEL;
 		username = TextBox_Create(layer, font_large, &window_desc);
-    TextBox_SetFocus(username, 1);
 		window_desc.posy   = 4*screen_height/8-font_large_height;
 		password = TextBox_Create(layer, font_large, &window_desc);
 		password->mask_text = 1;
+		if (!!lastuser)
+		{
+			TextBox_SetText(username, lastuser);
+			username->hasfocus = 1;
+			TextBox_SetFocus(username, 0);
+			TextBox_SetFocus(password, 1);
+		}
+		else TextBox_SetFocus(username, 1);
 	}
 
 	/* we go on for ever... or until the user does something in particular */

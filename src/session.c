@@ -298,7 +298,7 @@ void dolastlog(struct passwd *pwd, int quiet)
 	free(tty_name);
 }
 
-void Text_Login(struct passwd *pw)
+void Text_Login(struct passwd *pw, char *username)
 {
 	pid_t proc_id;
 
@@ -329,6 +329,10 @@ void Text_Login(struct passwd *pw)
 		fprintf(stderr, "session: fatal error: cannot start your session!\n");
 		exit(0);
 	}
+	set_last_user(username);
+	set_last_session(username, "Text Console");
+	free(username);
+
 	wait(NULL);
 	LogEvent(pw, CLOSE_SESSION);
 
@@ -360,7 +364,7 @@ int which_X_server(void)
 	return num;
 }
 
-void Graph_Login(struct passwd *pw, char *script)
+void Graph_Login(struct passwd *pw, char *script, char *username)
 {
 	pid_t proc_id;
 	int dest_vt = current_vt + 20;
@@ -404,7 +408,10 @@ void Graph_Login(struct passwd *pw, char *script)
 		fprintf(stderr, "session: fatal error: cannot start your session!\n");
 		exit(0);
 	}
-
+	set_last_user(username);
+	set_last_session(username, script);
+	free(username);
+	
 	/* wait a bit, then clear console from X starting messages */
 	sleep(3);
 	ClearScreen();
@@ -452,14 +459,13 @@ void start_session(char *username, int session_id, int workaround)
 		free(username);
 		exit(0);
 	}
-	free(username);
 
 	while (curr->id != session_id) curr= curr->next;
 	ClearScreen();
 
 	if (strcmp(curr->name, "Text Console") == 0)
-		Text_Login(pwd);
-	else Graph_Login(pwd, curr->name);
+		Text_Login(pwd, username);
+	else Graph_Login(pwd, curr->name, username);
 
 	/* we don't get here unless we couldn't start user session */
 	fprintf(stderr, "Couldn't login user '%s'!\n", username);

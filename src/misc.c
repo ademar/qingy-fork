@@ -26,10 +26,13 @@
  ***************************************************************************/
 
 
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sys/types.h>
+
 
 int log10(int n)
 {
@@ -98,4 +101,18 @@ char *stringCombine(const char* str1, const char* str2)
 void ClearScreen(void)
 {
 	system("/usr/bin/clear 2>/dev/null");
+}
+
+char *get_home_dir(char *user)
+{
+	char *homedir;
+	struct passwd *pwd;
+
+	if (!user) return NULL;
+	pwd = getpwnam(user);
+	endpwent();
+	if (!pwd) return NULL;
+	homedir = pwd->pw_dir;
+
+	return homedir;
 }

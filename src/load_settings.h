@@ -28,9 +28,19 @@
 
 #define DATADIR "/etc/qingy/"
 #define SETTINGS DATADIR"settings"
+#define LAST_USER DATADIR"lastuser"
 
 char *XSESSIONS_DIRECTORY;
 char *XINIT;
 char *FONT;
 
+/* get program settings from config file */
 int load_settings(void);
+
+/* get/set name of last user that logged in */
+char *get_last_user(void);
+int set_last_user(char *user);
+
+/* get/save last session used by <user> */
+char *get_last_session(char *user);
+int set_last_session(char *user, char *session);

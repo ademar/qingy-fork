@@ -43,3 +43,6 @@ int start_gpm(void);
 
 /* I couldn'd think of an intelligent explanation for this */
 void ClearScreen(void);
+
+/* get <user> home directory */
+char *get_home_dir(char *user);

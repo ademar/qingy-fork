@@ -153,6 +153,17 @@ void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int draw_cursor)
 	}
 }
 
+void TextBox_SetText(TextBox *thiz, char *text)
+{
+	if (!thiz || !text) return;
+	if (strlen(text) >= MAX-1) return;
+	if (!thiz->text) thiz->text = (char *) calloc(MAX, sizeof(char));
+	strcpy(thiz->text, text);
+	thiz->position = strlen(thiz->text);
+	if (thiz->hasfocus) TextBox_KeyEvent(thiz, REDRAW, 1);
+	else TextBox_KeyEvent(thiz, REDRAW, 0);
+}
+
 void TextBox_ClearText(TextBox *thiz)
 {
 	if (!thiz) return;

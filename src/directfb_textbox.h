@@ -50,6 +50,7 @@ TextBox *TextBox_Create
 
 void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int draw_cursor);
 void TextBox_SetFocus(TextBox *thiz, int focus);
+void TextBox_SetText(TextBox *thiz, char *text);
 void TextBox_ClearText(TextBox *thiz);
 void TextBox_Hide(TextBox *thiz);
 void TextBox_Show(TextBox *thiz);
