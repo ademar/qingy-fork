@@ -201,114 +201,7 @@ void setEnvironment(struct passwd *pwd)
 	chdir(pwd->pw_dir);
 }
 
-void Text_Login(struct passwd *pw)
-{
-	pid_t proc_id;
-
-	proc_id = fork();
-	if (proc_id == -1)
-	{
-		fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
-		exit(0);
-	}
-	if (!proc_id)
-	{
-		char *args[2];
-		args[0] = shell_base_name(pw->pw_shell);
-		args[1] = NULL;
-		execve(pw->pw_shell, args, environ);
-		/* execve should never return! */
-		fprintf(stderr, "session: fatal error: cannot start your session!\n");
-		exit(0);
-	}
-	LogEvent(pw, OPEN_SESSION);
-	wait(NULL);
-	LogEvent(pw, CLOSE_SESSION);
-
-	exit(0);
-}
-
-/* if somebody else, somewhere else, sometime else
-   somehow started some other X servers ;-)        */
-int which_X_server(void)
-{
-	FILE *fp;
-	char filename[20];
-	int num=1;
-
-	/* we start our search from server :1 (instead of :0)
-	   to allow a console user to start his own X server
-		 using the default startx command                   */
-
-	strcpy(filename, "/tmp/.X1-lock");
-	while( (fp = fopen(filename, "r")) != NULL)
-	{
-		num++;
-		fclose(fp);
-		strcpy(filename, "/tmp/.X");
-		strcat(filename, int_to_str(num));
-		strcat(filename, "-lock");
-	}
-
-	return num;
-}
-
-void Graph_Login(struct passwd *pw, char *path, char *script)
-{
-	pid_t proc_id;
-	int dest_vt = current_vt + 20;
-
-	proc_id = fork();
-	if (proc_id == -1)
-	{
-		fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
-		exit(0);
-	}
-	if (!proc_id)
-	{
-		char *args[4];
-		args[0] = shell_base_name(pw->pw_shell);
-		args[1] = (char *) calloc(3, sizeof(char));
-		strcpy(args[1], "-c");
-		args[2] = (char *) calloc(MAX, sizeof(char));
-		strcpy(args[2], XINIT);
-		strcat(args[2], " ");
-		strcat(args[2], path);
-		strcat(args[2], script);
-		strcat(args[2], " -- :");
-		strcat(args[2], int_to_str(which_X_server()));
-		strcat(args[2], " vt");
-		strcat(args[2], int_to_str(dest_vt));
-		strcat(args[2], ">/dev/null 2>/dev/null");
-		args[3] = NULL;
-		execve(pw->pw_shell, args, environ);
-		/* execve should never return! */
-		fprintf(stderr, "session: fatal error: cannot start your session!\n");
-		exit(0);
-	}
-	LogEvent(pw, OPEN_SESSION);
-	sleep(1);
-	ClearScreen();
-	fprintf(stderr, "Switching to X Server...\n");
-	while(1)
-	{
-		pid_t result;
-
-		result = waitpid(-1, NULL, WNOHANG);
-		if (!result || result == -1)
-		{
-			if (get_active_tty() == current_vt) set_active_tty(dest_vt);
-			sleep(1);
-		}
-		else break;
-	}
-	LogEvent(pw, CLOSE_SESSION);
-	if (get_active_tty() == dest_vt) set_active_tty(current_vt);
-
-	exit(0);
-}
-
-void switchUser(struct passwd *pwd, char *path, char *script)
+void switchUser(struct passwd *pwd)
 {
 	/* Set user id */
 	if ((initgroups(pwd->pw_name, pwd->pw_gid) != 0) || (setgid(pwd->pw_gid) != 0) || (setuid(pwd->pw_uid) != 0))
@@ -319,10 +212,6 @@ void switchUser(struct passwd *pwd, char *path, char *script)
 
 	/* Execute login command */
 	setEnvironment(pwd);
-	if (!path && !script) Text_Login(pwd);
-	else Graph_Login(pwd, path, script);
-	fprintf(stderr, "could not execute login command\n");
-	exit(0);
 }
 
 void xstrncpy(char *dest, const char *src, size_t n)
@@ -369,6 +258,138 @@ void dolastlog(struct passwd *pwd, int quiet)
 	free(tty_name);
 }
 
+void Text_Login(struct passwd *pw)
+{
+	pid_t proc_id;
+
+	proc_id = fork();
+	if (proc_id == -1)
+	{
+		fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
+		exit(0);
+	}
+	if (!proc_id)
+	{
+		/* set up stuff */
+		char *args[2];
+		args[0] = shell_base_name(pw->pw_shell);
+		args[1] = NULL;
+
+		/* write to system logs */
+		dolastlog(pw, 0);
+		LogEvent(pw, OPEN_SESSION);
+
+		/* drop root privileges and set user enviroment */
+		switchUser(pw);
+
+		/* let's start the shell! */
+		execve(pw->pw_shell, args, environ);
+
+		/* execve should never return! */
+		fprintf(stderr, "session: fatal error: cannot start your session!\n");
+		exit(0);
+	}
+	wait(NULL);
+	LogEvent(pw, CLOSE_SESSION);
+
+	exit(0);
+}
+
+/* if somebody else, somewhere else, sometime else
+   somehow started some other X servers ;-)        */
+int which_X_server(void)
+{
+	FILE *fp;
+	char filename[20];
+	int num=1;
+
+	/* we start our search from server :1 (instead of :0)
+	   to allow a console user to start his own X server
+		 using the default startx command                   */
+
+	strcpy(filename, "/tmp/.X1-lock");
+	while( (fp = fopen(filename, "r")) != NULL)
+	{
+		num++;
+		fclose(fp);
+		strcpy(filename, "/tmp/.X");
+		strcat(filename, int_to_str(num));
+		strcat(filename, "-lock");
+	}
+
+	return num;
+}
+
+void Graph_Login(struct passwd *pw, char *script)
+{
+	pid_t proc_id;
+	int dest_vt = current_vt + 20;
+
+	proc_id = fork();
+	if (proc_id == -1)
+	{
+		fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
+		exit(0);
+	}
+	if (!proc_id)
+	{
+		/* set up stuff */
+		char *args[4];
+		args[0] = shell_base_name(pw->pw_shell);
+		args[1] = (char *) calloc(3, sizeof(char));
+		strcpy(args[1], "-c");
+		args[2] = (char *) calloc(MAX, sizeof(char));
+		strcpy(args[2], XINIT);
+		strcat(args[2], " ");
+		strcat(args[2], XSESSIONS_DIRECTORY);
+		strcat(args[2], script);
+		strcat(args[2], " -- :");
+		strcat(args[2], int_to_str(which_X_server()));
+		strcat(args[2], " vt");
+		strcat(args[2], int_to_str(dest_vt));
+		strcat(args[2], ">/dev/null 2>/dev/null");
+		args[3] = NULL;
+
+		/* write to system logs */
+		dolastlog(pw, 1);
+		LogEvent(pw, OPEN_SESSION);
+
+		/* drop root privileges and set user enviroment */
+		switchUser(pw);
+
+		/* start X server and selected session! */
+		execve(pw->pw_shell, args, environ);
+
+		/* execve should never return! */
+		fprintf(stderr, "session: fatal error: cannot start your session!\n");
+		exit(0);
+	}
+
+	/* wait a bit, then clear console from X starting messages */
+	sleep(3);
+	ClearScreen();
+	fprintf(stderr, "Switching to X Server...\n");
+
+	/* while X server is active, we wait for user
+	   to switch to our tty and redirect him there */
+	while(1)
+	{
+		pid_t result;
+
+		result = waitpid(-1, NULL, WNOHANG);
+		if (!result || result == -1)
+		{
+			if (get_active_tty() == current_vt) set_active_tty(dest_vt);
+			sleep(1);
+		}
+		else break;
+	}
+	LogEvent(pw, CLOSE_SESSION);
+	if (get_active_tty() == dest_vt) set_active_tty(current_vt);
+
+	exit(0);
+}
+
 /* Start the session of your choice */
 void start_session(char *username, int session_id, int workaround)
 {
@@ -397,15 +418,8 @@ void start_session(char *username, int session_id, int workaround)
 	ClearScreen();
 
 	if (strcmp(curr->name, "Text Console") == 0)
-	{
-		dolastlog(pwd, 0);
-		switchUser(pwd, NULL, NULL);
-	}
-	else
-	{
-		dolastlog(pwd, 1);
-		switchUser(pwd, XSESSIONS_DIRECTORY, curr->name);
-	}
+		Text_Login(pwd);
+	else Graph_Login(pwd, curr->name);
 
 	/* we don't get here unless we couldn't start user session */
 	fprintf(stderr, "Couldn't login user '%s'!\n", username);
