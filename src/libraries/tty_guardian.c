@@ -25,6 +25,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include <dirent.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,6 +62,109 @@
 #define PASSWD_MAX 128
 
 
+
+/* checks wether given string is a number */
+int is_number(char *string)
+{
+	char *endptr = NULL;
+
+	if (!string)         return 0;
+	if (*string == '\0') return 0;
+	(void)strtol(string, &endptr, 10);
+
+	return ((*endptr == '\0'));
+}
+
+/* we check wether <process> is qingy or getty */
+int is_getty(pid_t process)
+{
+	char *temp = int_to_str(process);
+	char *link = StrApp((char**)NULL, "/proc/", temp, "/exe", (char*)NULL);	
+	char buf[256];
+	int size;
+	int result = 0;
+
+	free(temp);
+	size = readlink(link, buf, 255);
+	free(link);
+	
+	if (size == -1) abort();
+	buf[size] = '\0';
+
+	if (strstr(buf, "getty")) result = 1;
+	if (strstr(buf, "qingy")) result = 1;
+
+	return result;
+}
+
+/*
+ * hairy stuff here: we need to parse all /proc/<number>
+ * entries to find a process that owns /dev/tty<tty>
+ * of which we return the pid
+ */
+pid_t has_controlling_process(int tty)
+{
+	struct dirent *entry;
+	char  *device = create_tty_name(tty);
+	DIR   *dir    = opendir("/proc");
+	pid_t  result = 0;
+
+	if (!dir)
+	{
+		fprintf(stderr, "program_name: tty guardian feature needs /proc filesystem support!\n");
+		sleep(5);
+		abort();
+	}
+
+	/* scan /proc for process subdirs */
+	while ((entry = readdir(dir)))
+	{
+		int counter = 0;
+		char *dirname; 
+		DIR  *dir2;
+
+    if (!strcmp(entry->d_name, "." )) continue;
+    if (!strcmp(entry->d_name, "..")) continue;
+		if (!is_number(entry->d_name))    continue;
+
+		dirname = StrApp((char**)NULL, "/proc/", entry->d_name, (char*)NULL);
+		if ((dir2=opendir(dirname)))
+		{
+			int i;
+			char *where = StrApp((char**)NULL, dirname, "/fd/", (char*)NULL);			
+
+			/* check wether this process controls /dev/tty<tty> */
+			for (i=0; i<3; i++)
+			{
+				int size;
+				char buf[16];
+				char *temp = int_to_str(i);
+				char *link = StrApp((char**)NULL, where, temp, (char*)NULL);
+
+				free(temp);
+				size = readlink(link, buf, 15);
+				free(link);
+				if (size != -1)
+				{
+					buf[size] = '\0';
+					if (!strcmp(buf, device)) counter++;
+				}
+			}
+			free(where);
+			closedir(dir2);
+		}		
+		free(dirname);
+		if (counter == 3)
+		{
+			result = atoi(entry->d_name);
+			break;
+		}
+	}
+	closedir(dir);
+	free(device);
+
+	return result;
+}
 
 /* read user password without echoing it */
 char *read_password(int tty)
@@ -172,25 +276,51 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 	{ /*
 		 * there are 2 possibilities here:
 		 * - tty is unused (thus we cannot know the user)
-		 * - tty is in use (probably an X session), thus either:
+		 * - tty is in use, thus either:
 		 *   - check wether qingy (or another getty) is running in this terminal, then
-		 *   - check owner of /dev/vc/<where_was_intruder>
+		 *   - check owner of /dev/vc/<where_was_intruder> (probably an X session)
 		 */
 		if (!is_tty_available(where_was_intruder))
-		{ /* tty is in use: we check owner of /dev/vc/<where_was_intruder> */
-			char *temp = int_to_str(where_was_intruder);
-
-			free(intruder);
-			file = StrApp((char**)NULL, "/dev/vc/", temp, (char*)NULL);
-			free(temp);
-			intruder = get_file_owner(file);
-			free(file);
-
-			if (!strcmp(intruder, dog_master) || !strcmp(intruder, "root"))
-			{ /* now we are sure about user identity */
-				already_sniffed = where_was_intruder;
+		{
+			pid_t process = has_controlling_process(where_was_intruder);
+			if (!process)
+			{ /*
+				 * This tty in not controlled by any process:
+				 * we assume an X server is running here, thus
+				 * we check owner of /dev/vc/<where_was_intruder>
+				 * to get owner of this tty
+				 */
+				char *temp = int_to_str(where_was_intruder);
+				
 				free(intruder);
-				return;
+				file = StrApp((char**)NULL, "/dev/vc/", temp, (char*)NULL);
+				free(temp);
+				intruder = get_file_owner(file);
+				free(file);
+				
+				if (!strcmp(intruder, dog_master) || !strcmp(intruder, "root"))
+				{ /* now we are sure about user identity */
+					already_sniffed = where_was_intruder;
+					free(intruder);
+					return;
+				}
+			}
+			else
+			{ /*
+				 * some process is controlling this tty:
+				 * we check wether it is some sort of getty
+				 */
+				if (is_getty(process))
+				{	/* getty is running here: we cannot know who intruder is */
+					free(intruder);
+					intruder = strdup("unknown");
+				}
+				else
+				{ /* this tty is controlled by root: we grant access */
+					already_sniffed = where_was_intruder;
+					free(intruder);
+					return;					
+				}
 			}
 		}
 		else

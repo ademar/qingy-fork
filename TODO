@@ -37,8 +37,6 @@
 
 - Add option to disable compilation of non esential stuff like screen savers.
 
-* Move some stuff to shared libraries to reduce memory usage.
-
 - Check agetty source code and see wether there is some code there to
   handle console keymaps that we should support as well...
 

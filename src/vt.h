@@ -29,7 +29,7 @@
 #define CHVT_H
 
 /* NOTE: should be an inline func, and StrApp should be probably fixed */
-#define create_tty_name(tty) StrApp((char**)0, "/dev/tty", int_to_str(tty), (char*)0)
+#define create_tty_name(tty) StrApp((char**)NULL, "/dev/tty", int_to_str(tty), (char*)NULL)
  
 /* change stdin, stdout and stderr to a new tty */
 int switch_to_tty(int tty);

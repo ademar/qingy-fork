@@ -28,14 +28,18 @@ qingy CVS:
   switch to a qingy-controlled tty whose owner is not your current
   user, you will be asked for the password of that user before being
   allowed to continue. If you are root, of course, you can switch
-  to any tty you chose to. Default setting is 'no'.
+  to any tty you chose to. Default setting is 'no'. Note: this is
+	an EXPERIMANTAL feature, so you are warned. That said, it appears
+  to work well, only issue that I know of is that if you log in into
+  a text console and later fire up an X server manually, the tty the
+  X server is running in is not guarded.
 - Made qingy install its stuff in a way that conforms to the file
   system hierarchy standards (themes are now installed to
   /usr/share/qingy/themes, screen savers to
   /usr/lib/qingy/screensavers).
 - Now qingy by default creates a bunch of shared libraries and loads
   its stuff only when it is needed. This saves a lot of memory,
-  expecially for those qingy processe that are waiting for someone
+  expecially for those qingy processes that are waiting for someone
   to switch to the tty they are running in. This option can be
   disabled with by passing the '--enable-static-build' argument
   to ./configure

@@ -52,6 +52,7 @@
 #include "directfb_mode.h"
 #include "load_settings.h"
 
+
 #define Switch_TTY                                                                          \
 	if (!switch_to_tty(our_tty_number))                                                       \
 	{                                                                                         \
@@ -101,6 +102,7 @@ void text_mode()
 
 void Error(int fatal)
 {
+	/* seconds before we die: let's be kind to init! */
 	int countdown = 16;
 
   /* We reenable VT switching if it is disabled */
@@ -112,9 +114,9 @@ void Error(int fatal)
   /*
    * we give the user some time to read the message
    * and change VT before dying
+	 * ED (paolino): was sleep(5), too fast to read errors
+	 * ED (michele): all right, but we should let them know what's happening!
    */
-	/* ED (paolino): was sleep(5), too fast to read errors */
-	/* ED (michele): all right, but we should let them know what's happening! */
 	while (--countdown)
 	{
 		fprintf(stderr, "%s will be restarted automatically in %d seconds\r", program_name, countdown);
@@ -142,7 +144,7 @@ void start_up(void)
 	if (!silent && resolution) fprintf(stderr, "framebuffer resolution is '%s'.\n", resolution);
   
   /* Set up some stuff */
-  argv[0]= strdup(program_name);	/* NOTE: get it maybe dynamic (grep strings)... Done! ;-P */
+  argv[0]= strdup(program_name);
   argv[1]= strdup("--dfb:no-vt-switch,bg-none");
   if (silent)     StrApp(&(argv[1]), ",quiet", (char*)NULL);
   if (fb_device)  StrApp(&(argv[1]), ",fbdev=", fb_device,  (char*)NULL);
@@ -187,8 +189,6 @@ void start_up(void)
   exit(EXIT_FAILURE);
 }
 
-/* okeeey... Whatabout using getopt?  */
-/* okeeey... But you do be tiresome!  */
 int ParseCMDLine(int argc, char *argv[])
 {
 	extern char *optarg;
@@ -211,9 +211,10 @@ int ParseCMDLine(int argc, char *argv[])
 	
   if (argc < 2) Error(1);
   tty= argv[1];
-  if (strncmp(tty, "tty", 3) != 0) Error(1);
+  if (strncmp(tty, "tty", 3)) Error(1);
   our_tty_number= atoi(tty+3);
-  if (our_tty_number < 1) Error(1);
+  if (our_tty_number < 1)  Error(1);
+	if (our_tty_number > 63) Error(1);
   
 	while (1)
 	{
@@ -278,10 +279,11 @@ int main(int argc, char *argv[])
   int user_tty_number;
   int our_tty_number;
   struct timespec delay;
+	char *ptr;
 
   /* We set up a delay of 0.5 seconds */
   delay.tv_sec  = 0;
-  delay.tv_nsec = 500000000;	/* that's 500M; NOTE (michele): I know, now what? */
+  delay.tv_nsec = 500000000;	/* that's 500M */
   
   /*
 	 * We enable vt switching in case some previous session
@@ -291,10 +293,10 @@ int main(int argc, char *argv[])
   
   /* We set up some default values */
   initialize_variables();
-
 	program_name   = argv[0];
-  
-  our_tty_number = ParseCMDLine(argc, argv); /* wie gesagt: getopt? Done, done ;-P */
+	if ((ptr = strrchr(argv[0], '/')))
+		program_name = ++ptr;	
+  our_tty_number = ParseCMDLine(argc, argv);
 	current_tty    = our_tty_number;
   
   /* We switch to tty <tty> */

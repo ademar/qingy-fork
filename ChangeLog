@@ -1,3 +1,17 @@
+2004-02-27  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/libraries/tty_guardian.c:
+	fixed some tty_guardian problems;
+	Remaining issues (that I know of ;-P):
+	- if you log in into a text console and later fire
+	  up an X server manually, the tty the X server is running in is
+	  not guarded.
+
+2004-02-26  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/main.c (main, ParseCMDLine):
+	Add some more sanity checks...	
+
 2004-02-25  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* src/libraries/session.c (PAM_conv):
