@@ -451,10 +451,10 @@ int add_window_to_list(window_t w)
 		{
 			if (temp->type == w.type)
 			{ /* we overwrite old settings with new ones */
-				temp->x        = w.x;
-				temp->y        = w.y;
-				temp->width    = w.width;
-				temp->height   = w.height;
+				temp->x      = w.x;
+				temp->y      = w.y;
+				temp->width  = w.width;
+				temp->height = w.height;
 				/*
 				 * other settings are not used in this kind of window
 				 * so we don't bother copying them...
