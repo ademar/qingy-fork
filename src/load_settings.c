@@ -324,6 +324,39 @@ int set_last_session(char *user, char *session)
   return 1;
 }
 
+/* see if we know this guy... */
+char *get_welcome_msg(char *username)
+{
+	char line[256];
+	char *welcome_msg = NULL;
+	char *user        = NULL;
+	char *path;
+	FILE *fp;
+	
+	if (!username) return NULL;
+
+	path = StrApp((char**)NULL, DATADIR, "welcomes", (char*)NULL);
+	fp   = fopen("/etc/qingy/welcomes", "r");
+	free(path);
+
+	if (fp)
+	{
+		while (fgets(line, 255, fp))
+		{
+			user = strtok(line, " \t");
+			if(!strcmp(user, username))
+			{
+				welcome_msg = strdup(strtok(NULL, "\n"));
+				break;
+			}
+		}
+		fclose(fp);
+	}
+	if (!welcome_msg) welcome_msg = strdup("Starting selected session...");
+
+	return welcome_msg;
+}
+
 char *get_action(char *action)
 {
   char *temp;

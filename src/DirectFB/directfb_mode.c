@@ -638,13 +638,14 @@ void handle_mouse_event (DFBInputEvent *evt)
 
 void start_login_sequence(DFBInputEvent *evt)
 {
+  int  free_temp = 0;
   char *message;
   char *user_name;
   char *user_session;
+	char *welcome_msg;
   char *temp;
-  int free_temp = 0;
 
-  if (!strlen(username->text)) return;
+  if (!strlen(username->text)) return;	
   message = StrApp((char**)NULL, "Logging in ", username->text, "...", (char*)NULL);
   clear_screen();
   primary->DrawString (primary, message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
@@ -672,37 +673,17 @@ void start_login_sequence(DFBInputEvent *evt)
 	}
   primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
   Draw_Background_Image(0);
-  /* see if we know this guy... */
-  {
-    char *welcome_msg = NULL;
-    char *user = NULL;
-    char  line[128];
-		char *path  = StrApp((char**)NULL, DATADIR, "welcomes", (char*)NULL);
-    FILE *users = fopen("/etc/qingy/welcomes", "r");
+	welcome_msg = get_welcome_msg(temp);
+	primary->DrawString (primary, welcome_msg, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+	primary->Flip (primary, NULL, DSFLIP_BLIT);
+	free(welcome_msg);
+	sleep(1);
+	user_name = strdup(temp);  
+	user_session = strdup(session->selected->name);
+	if (free_temp) free(temp);
+	close_framebuffer_mode();
+	start_session(user_name, user_session);
 
-		free(path);
-    if (users)
-      while (fgets(line, 127, users))
-			{
-				user = strtok(line, " \t");
-				if(!strcmp(user, temp))
-				{
-					free(welcome_msg);
-					welcome_msg=strtok(NULL, "\n");
-					break;
-				}
-			}
-		if (!welcome_msg) welcome_msg = strdup("Starting selected session...");
-
-    primary->DrawString (primary, welcome_msg, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
-    primary->Flip (primary, NULL, DSFLIP_BLIT);
-    sleep(1);
-    user_name = strdup(temp);  
-    user_session = strdup(session->selected->name);
-    if (free_temp) free(temp);
-    close_framebuffer_mode();
-    start_session(user_name, user_session);
-  }
   /* The above never returns, so... */
   free(user_name); free(user_session);
   fprintf(stderr, "Go tell my creator his brains went pop!\n");

@@ -173,6 +173,9 @@ int set_last_user(char *user);
 char *get_last_session(char *user);
 int set_last_session(char *user, char *session);
 
+/* see if we know this guy... */
+char *get_welcome_msg(char *user);
+
 /* theme stuff */
 int set_theme(char *theme);
 char *get_random_theme();
