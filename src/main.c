@@ -44,6 +44,7 @@
 - allow session locking
 - option for starting wms in an unique X server?!?
 - add a clock and/or uptime thingie!
+- start some apps before/after X session
 - multilanguage support
 ******* Maybe these are done
 - check PAM user permissions

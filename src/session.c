@@ -77,11 +77,12 @@
 #include "load_settings.h"
 #include "directfb_combobox.h"
 
-#define UNKNOWN_USER       0
-#define WRONG_PASSWORD     1
-#define OPEN_SESSION       2
-#define CLOSE_SESSION      3
-#define CANNOT_SWITCH_USER 4
+#define UNKNOWN_USER            0
+#define WRONG_PASSWORD          1
+#define OPEN_SESSION            2
+#define CLOSE_SESSION           3
+#define CANNOT_SWITCH_USER      4
+#define CANNOT_CHANGE_TTY_OWNER 5
 
 int current_vt;
 extern char **environ;
@@ -89,10 +90,10 @@ extern char **environ;
 #ifdef USE_PAM
 	#include <security/pam_appl.h>
 	#include <security/pam_misc.h>
-	#define PAM_FAILURE             5
-	#define PAM_ERROR               6
-	#define PAM_UPDATE_TOKEN        7
-	#define PAM_CANNOT_UPDATE_TOKEN 8
+	#define PAM_FAILURE             6
+	#define PAM_ERROR               7
+	#define PAM_UPDATE_TOKEN        8
+	#define PAM_CANNOT_UPDATE_TOKEN 9
 	char *PAM_password;
 	char *infostr, *errstr;
 	static pam_handle_t *pamh;
@@ -151,7 +152,7 @@ extern char **environ;
 					case PAM_PROMPT_ECHO_ON:
 						free(reply[count].resp);
 						break;
-					case PAM_PROMPT_ECHO_OFF:						
+					case PAM_PROMPT_ECHO_OFF:
 						free_stuff(1, reply[count].resp);
 						break;
 				}
@@ -218,6 +219,9 @@ void LogEvent(struct passwd *pw, int status)
 			break;
 		case CANNOT_SWITCH_USER:
 			syslog(LOG_AUTHPRIV|LOG_WARNING, "Fatal Error: cannot switch user id!\n");
+			break;
+		case CANNOT_CHANGE_TTY_OWNER:
+			syslog(LOG_AUTHPRIV|LOG_WARNING, "Fatal Error: cannot change tty owner!\n");
 			break;
 #ifdef USE_PAM
 		case PAM_FAILURE:
@@ -390,8 +394,27 @@ void setEnvironment(struct passwd *pwd)
 	chdir(pwd->pw_dir);
 }
 
+void restore_tty_ownership(void)
+{
+	char *our_tty_name = create_tty_name(current_vt);
+
+	/* Restore tty ownership to root:tty */
+	chown(our_tty_name, 0, 5);
+	if (our_tty_name) free(our_tty_name);
+}
+
 void switchUser(struct passwd *pwd)
 {
+	char *our_tty_name = create_tty_name(current_vt);
+
+	/* Change tty ownership */
+	if (0 != chown (our_tty_name, pwd->pw_uid, pwd->pw_gid))
+	{
+		LogEvent(pwd, CANNOT_CHANGE_TTY_OWNER);
+		my_exit(0);
+	}
+	if (our_tty_name) free(our_tty_name);
+
 	/* Set user id */
 	if ((initgroups(pwd->pw_name, pwd->pw_gid) != 0) || (setgid(pwd->pw_gid) != 0) || (setuid(pwd->pw_uid) != 0))
 	{
@@ -399,7 +422,7 @@ void switchUser(struct passwd *pwd)
 		my_exit(0);
 	}
 
-	/* Execute login command */
+	/* Set enviroment variables */
 	setEnvironment(pwd);
 }
 
@@ -497,6 +520,9 @@ void Text_Login(struct passwd *pw, char *username)
 #else
 	LogEvent(pw, CLOSE_SESSION);
 #endif
+
+	/* Restore tty ownership to root:tty */
+	restore_tty_ownership();
 
 	my_exit(0);
 }
@@ -600,6 +626,9 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 #endif
 	if (get_active_tty() == dest_vt) set_active_tty(current_vt);
 	free(session);
+
+	/* Restore tty ownership to root:tty */
+	restore_tty_ownership();
 
 	my_exit(0);
 }
