@@ -104,10 +104,16 @@ Also, if you are using Gentoo as your GNU/Linux distribution, you can
 @comment  node-name,  next,  previous,  up
 @section Installing from the tarball
 
-Before starting to compile qingy, you should check to have the DirectFB library installed. 
+@cindex installing
+@cindex tarball
+@cindex Linux
 
-Once you have the tarball on your box, you should compile it more or
-less as any Linux package: 
+Before starting to compile qingy, you should check to have the
+DirectFB library installed. You should also configure DirectFB for
+your framebuffer device: run @kbd{fbset} and paste the output as the
+first entry in /etc/fb.modes. 
+
+Fetch the tarball and compile it more or less as any Linux package:
 @enumerate
 @item
 @kbd{tar -xvzf qingy-@val{VERSION}.tar.gz}
@@ -121,7 +127,11 @@ less as any Linux package:
 @kbd{make install}
 @end enumerate
 
-After that, you should 
+After that, you should check @file{/etc/directfbrc.qingy} (which
+should have been created by Qingy itself). It should have this line in it:
+@code{mode=1024x768} (change this with the actual value you got from fbset).
+If for some reason you don't have such file or it does contain the
+wrong stuff, please correct this manually.}
 
 
 @node  Copying Qingy, Index, Fetching qingy, Top
