@@ -39,7 +39,7 @@ screen_saver_entry(Q_screen_t env)
   int posx;
   int posy;
   unsigned int seconds=0;
-  unsigned int milli_seconds=100;
+  unsigned int milli_seconds=200;
   int i, j;
   int cel_w, cel_h;
   
@@ -74,32 +74,32 @@ screen_saver_entry(Q_screen_t env)
   while (1)
     {
       for(i=0; i<COLS; i++){
-	if(!rand()%2) 
+	if(!rand()%3) 
 	  Matrix[0][i]='\0';
 	else 
 	  Matrix[0][i]=(rand()%(127-32))+32;
       }
       font_dsc.flags = DFDESC_HEIGHT;
-      font_dsc.height = 22;
+      font_dsc.height = 30;
       env.dfb->CreateFont(env.dfb, "/etc/qingy/screensavers/matr.ttf", &font_dsc, &font);
       env.surface->SetFont(env.surface, font);
       env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0xFF);
-      env.surface->SetColor (env.surface, 0x40, 0xAF, 0x40, 0xAA);
+      env.surface->SetColor (env.surface, 0x10, 0xA0, 0x10, 0x8A);
       for(i=0; i<COLS; i++){
-	if(speeds[i] > curspeed[i])
-	  {
-	    curspeed[i]++;
-	    continue;
-	  }
-	else{
-	  curspeed[i]=0;
-	  speeds[i]=rand()%100;
-	}
+/* 	if(speeds[i] > curspeed[i]) */
+/* 	  { */
+/* 	    curspeed[i]++; */
+/* 	    continue; */
+/* 	  } */
+/* 	else{ */
+/* 	  curspeed[i]=0; */
+/* 	  speeds[i]=rand()%100; */
+/* 	} */
 	for(j=0; j<ROWS; j++){
 	  if(Matrix[j][i])
 	    env.surface->DrawGlyph (env.surface,
 				    Matrix[j][i],
-				    i* cel_h,  j * 3 *cel_w, DSTF_LEFT);
+				    i* cel_h ,  j * 3 * cel_w + rand() % 20 , DSTF_LEFT);
 	}
       }
       env.surface->Flip (env.surface, NULL, DSFLIP_BLIT);
