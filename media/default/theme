@@ -1,7 +1,204 @@
-FONT decker.ttf
-BUTTON_OPACITY 255
-WINDOW_OPACITY 128
-SELECTED_WINDOW_OPACITY 207
-MASK_TEXT_COLOR    40 180  40 255
-TEXT_CURSOR_COLOR  20  90  20 221
-OTHER_TEXT_COLOR   64  64  64 255
+theme
+{	
+	background = "background.png"
+	font = "decker.ttf"
+
+# opacity values, from 0 (transparent) to 255 (opaque)
+	button_opacity          = 255
+	window_opacity          = 128
+	selected_window_opacity = 207
+
+# Colors can be given in a hex quadruplet (values from 00 to ff)
+# or via comma-separated decimals (0 to 255). Format is RGBA
+#	mask_text_color   = [ 28b428ff ]
+#	cursor_text_color = [ 145a14dd ]
+#	other_text_color  = [ 404040ff ]
+	default_text_color   = 40, 180, 40, 255
+	default_cursor_color = 20,  90, 20, 221
+	other_text_color     =  0, 255,  0, 255
+}
+
+window
+{
+	# window geometry
+	x      = 0
+	y      = 75
+	width  = 800
+	height = 50
+
+	text_size        = large
+	text_orientation = center
+	text_color       = 40, 180, 40, 255
+	cursor_color     = 20, 90,  20, 221
+
+	# update time, 0 means do not update
+	time = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type    = "label"
+	content = "Welcome to <INS_CMD_HERE>"
+	command = "cat /etc/hostname"
+}
+
+window
+{
+	# window geometry
+	x      = 100
+	y      = 220
+	width  = 120
+	height = 50
+
+	text_size        = large
+	text_orientation = right
+	text_color       = 40, 180, 40, 255
+	cursor_color     = 20, 90,  20, 221
+
+	# update time, 0 means do not update
+	time = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type    = "label"
+	content = "login:"
+	linkto  = "login"
+}
+
+window
+{
+	# window geometry
+	x      = 240
+	y      = 220
+	width  = 560
+	height = 50
+
+	text_size    = large
+	text_color   = 40, 180, 40, 255
+	cursor_color = 20, 90,  20, 221
+
+	# update time, 0 means do not update
+	time = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type = "login"
+}
+
+window
+{
+	# window geometry
+	x      = 100
+	y      = 295
+	width  = 120
+	height = 50
+
+	text_size        = large
+	text_orientation = right
+	text_color       = 40, 180, 40, 255
+	cursor_color     = 20, 90,  20, 221
+
+	# update time, 0 means do not update
+	time = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type    = "label"
+	content = "passwd:"
+	linkto  = "password"
+}
+
+window
+{
+	# window geometry
+	x      = 240
+	y      = 295
+	width  = 560
+	height = 50
+
+	text_size    = large
+	text_color   = 40, 180, 40, 255
+	cursor_color = 20, 90,  20, 221
+
+	# update time, 0 means do not update
+	time = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type = "password"
+}
+
+window
+{
+	# window geometry
+	x      = 100
+	y      = 370
+	width  = 120
+	height = 50
+
+	text_size        = large
+	text_orientation = right
+	text_color       = 40, 180, 40, 255
+	cursor_color     = 20, 90,  20, 221
+
+	# update time, 0 means do not update
+	time = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type    = "label"
+	content = "session:"
+	linkto  = "session"
+}
+
+window
+{
+	# window geometry
+	x      = 240
+	y      = 370
+	width  = 560
+	height = 50
+
+	text_size    = large
+	text_color   = 40, 180, 40, 255
+	cursor_color = 20, 90,  20, 221
+
+	# update time, 0 means do not update
+	time = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type = "combo"
+
+	# In this case: what text do you want to display?
+	command = "sessions"
+}
+
+window
+{
+	# window geometry
+	x = 755
+	y = 562
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type = "button"
+
+	# In this case: what text do you want to display?
+	command = "halt"
+	content = "power"
+}
+
+window
+{
+	# window geometry
+	x = 700
+	y = 562
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type = "button"
+
+	# In this case: what text do you want to display?
+	command = "reboot"
+	content = "reset"
+}

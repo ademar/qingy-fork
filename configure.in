@@ -142,22 +142,27 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	if test -f "media/settings"; then
 		rm media/settings
 	fi
+
 	echo "# Directory containing X sessions" >> media/settings
-	echo "X_SESSIONS_DIRECTORY /etc/X11/Sessions/" >> media/settings
+	echo "x_sessions = \"/etc/X11/Sessions/\"" >> media/settings
 	echo "# Directory containing text mode sessions" >> media/settings
-	echo "TEXT_SESSIONS_DIRECTORY /etc/qingy/sessions/" >> media/settings
+	echo "text_sessions = \"/etc/qingy/sessions/\"" >> media/settings
 	echo "" >> media/settings
 	echo "# Full path to the 'xinit' executable" >> media/settings
-	echo "XINIT $XINIT" >> media/settings
+	echo "xinit = \"$XINIT\"" >> media/settings
 	echo "" >> media/settings
-	echo "# Chose ONE screen saver" >> media/settings
-	echo "SCREEN_SAVER pixel" >> media/settings
-	echo "# SCREEN_SAVER photo # keep the double quotes in the IMAGES_PATH" >> media/settings
-	echo "# IMAGES_PATH \"/mnt/documenti/images\"" >> media/settings
-	echo "# IMAGES_PATH \"/mnt/documenti/images2\"" >> media/settings
+	echo "#       screensaver pixel" >> media/settings
+	echo "screensaver photos =" >> media/settings
+	echo "#       \"/mnt/documenti/Immagini/Spazio/Freddo\"," >> media/settings
+	echo "#       \"/mnt/documenti/Immagini/Spazio/Fresco&Tiepido\"," >> media/settings
+	echo "        \"/mnt/documenti/Immagini/foto screen saver\"" >> media/settings
 	echo "" >> media/settings
 	echo "# What theme do you want (you can also specify 'random')" >> media/settings
-	echo "THEME default" >> media/settings
+	echo "# theme = \"default\"" >> media/settings
+	echo "" >> media/settings
+	echo "# Who is allowed to shut down the system?" >> media/settings
+	echo "# Allowed options are 'everyone', 'root', 'noone'" >> media/settings
+	echo "# shutdown_policy = everyone" >> media/settings
 
 	echo "done"
 # End creation of config files
