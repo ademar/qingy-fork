@@ -80,33 +80,33 @@ Button_list *Buttons = NULL;
 IDirectFB             *dfb;                       /* the super interface                       */
 IDirectFBDisplayLayer *layer;                     /* the primary layer                         */
 IDirectFBSurface      *primary,                   /* surface of the primary layer              */
-                      *panel_image        = NULL; /* background image                          */
+	*panel_image        = NULL; /* background image                          */
 IDirectFBEventBuffer  *events;                    /* all input events will be stored here      */
 DeviceInfo            *devices            = NULL; /* the list of all input devices             */
 IDirectFBFont         *font_small,                /* fonts                                     */
-                      *font_normal,
-                      *font_large;  
+	*font_normal,
+	*font_large;  
 TextBox               *username           = NULL, /* text boxes                                */
-                      *password           = NULL;
+	*password           = NULL;
 Label                 *username_label     = NULL, /* labels                                    */
-                      *password_label     = NULL,
-                      *session_label      = NULL,
-                      *lock_key_statusA   = NULL,
-                      *lock_key_statusB   = NULL,
-                      *lock_key_statusC   = NULL,
-                      *lock_key_statusD   = NULL;
+	*password_label     = NULL,
+	*session_label      = NULL,
+	*lock_key_statusA   = NULL,
+	*lock_key_statusB   = NULL,
+	*lock_key_statusC   = NULL,
+	*lock_key_statusD   = NULL;
 ComboBox              *session            = NULL; /* combo boxes                               */
 int                   we_stopped_gpm,             /* wether this program stopped gpm or not    */
-                      screen_width,               /* screen resolution                         */
-                      screen_height,
-                      font_small_height,          /* font sizes                                */
-                      font_normal_height,
-                      font_large_height,
-                      username_area_mouse   = 0,  /* sensible areas for mouse cursor to be in  */
-                      password_area_mouse   = 0,
-                      session_area_mouse    = 0,
-                      screensaver_active    = 0,  /* screensaver stuff                         */
-                      screensaver_countdown = 0;
+	screen_width,               /* screen resolution                         */
+	screen_height,
+	font_small_height,          /* font sizes                                */
+	font_normal_height,
+	font_large_height,
+	username_area_mouse   = 0,  /* sensible areas for mouse cursor to be in  */
+	password_area_mouse   = 0,
+	session_area_mouse    = 0,
+	screensaver_active    = 0,  /* screensaver stuff                         */
+	screensaver_countdown = 0;
 
 
 void Draw_Background_Image(int do_the_drawing)
@@ -674,33 +674,34 @@ void start_login_sequence(DFBInputEvent *evt)
   Draw_Background_Image(0);
   /* see if we know this guy... */
   {
-    char* welcome_msg;
-    char* user=NULL;
-    char line[128];
-    FILE* users=fopen("/etc/qingy/welcomes", "r");
+    char *welcome_msg;
+    char *user = NULL;
+    char  line[128];
+    FILE *users = fopen("/etc/qingy/welcomes", "r");
     if(!strcmp(temp, "root"))
-      welcome_msg=strdup("Greetings, Master...");
+      welcome_msg = strdup("Greetings, Master...");
     else
-      welcome_msg=strdup("Starting selected session...");
-    if(users){
-      while(fgets(line, 127, users)){
-	user=strtok(line, " \t");
-	if(!strcmp(user, temp)){
-	  free(welcome_msg);
-	  welcome_msg=strtok(NULL, "\n");
-	  break;
-	}
+      welcome_msg = strdup("Starting selected session...");
+    if (users)
+      while (fgets(line, 127, users))
+			{
+				user = strtok(line, " \t");
+				if(!strcmp(user, temp))
+				{
+					free(welcome_msg);
+					welcome_msg=strtok(NULL, "\n");
+					break;
+				}
       }
-    }
   
-      primary->DrawString (primary, welcome_msg, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
-      primary->Flip (primary, NULL, DSFLIP_BLIT);
-      sleep(1);
-      user_name = strdup(temp);  
-      user_session = strdup(session->selected->name);
-      if (free_temp) free(temp);
-      close_framebuffer_mode();
-      start_session(user_name, user_session);
+		primary->DrawString (primary, welcome_msg, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+		primary->Flip (primary, NULL, DSFLIP_BLIT);
+		sleep(1);
+		user_name = strdup(temp);  
+		user_session = strdup(session->selected->name);
+		if (free_temp) free(temp);
+		close_framebuffer_mode();
+		start_session(user_name, user_session);
   }
   /* The above never returns, so... */
   free(user_name); free(user_session);

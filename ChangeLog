@@ -1,4 +1,4 @@
-qingy CVS:
+qingy 0.3.0:
 - New memory allocation/deallocation management
 - Unlock vt switching before dying (yes, this was annoying)
 - Solved a bug that made qingy crash when you switched to its
@@ -22,7 +22,6 @@ qingy CVS:
 - Now background image stays there when attempting to log in,
   during timeouts... It goes away only during screen saver
 - Added ./configure option to disable PAM support (--disable-pam)
-- Added ./configure option to enable debug mode (--enable-debug)
 - Added support in config file to specify a shutdown policy:
   use 'shutdown_policy = everyone' to allow everyone to shutdown
       'shutdown_policy = root' to be asked for root password
@@ -44,6 +43,8 @@ qingy CVS:
   optimization for your arch in CFLAGS; using the above
   feature overrides those settings... I added this feature
   primarily to use with Gentoo GNU Linux portage system.
+- Added info documentation for qingy, thanks (again) to
+  Pa0lino... just issue a 'info qingy'!
 - Many fixes and clean ups
 
 qingy 0.2.3 (21 October 2003):
