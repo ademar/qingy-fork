@@ -146,6 +146,13 @@ qingy_DirectFB          return DFB_INTERFACE_TOK;
 retries                 return RETRIES_TOK;
 x_args                  return X_ARGS_TOK;
 NULL                    return NULL_TOK;
+autologin               return AUTOLOGIN_TOK;
+username                return USERNAME_TOK;
+password                return PASSWORD_TOK;
+session                 return SESSION_TOK;
+relogin                 return RELOGIN_TOK;
+lastsession             return LAST_SESSION_TOK;
+temp_files_dir          return TEMP_FILES_DIR_TOK;
 
 "#"[^\n]*"\n" ;			/* skip comments */
 

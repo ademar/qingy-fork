@@ -73,7 +73,7 @@ static window_t wind =
 /* settings only lvals */
 %token SCREENSAVER_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK 
 %token SHUTDOWN_TOK TTY_TOK SCRSVRS_DIR_TOK THEMES_DIR_TOK X_SERVER_TOK
-%token DFB_INTERFACE_TOK RETRIES_TOK X_ARGS_TOK
+%token DFB_INTERFACE_TOK RETRIES_TOK X_ARGS_TOK TEMP_FILES_DIR_TOK
 
 /* windows && theme blocks */
 %token THEME_TOK WINDOW_TOK 
@@ -109,6 +109,9 @@ static window_t wind =
 /* answer tokens */
 %token YES_TOK NO_TOK
 
+/* autologin stuff tokens */
+%token AUTOLOGIN_TOK USERNAME_TOK PASSWORD_TOK SESSION_TOK RELOGIN_TOK LAST_SESSION_TOK
+
 /* typed tokens: */
 %token <ival>  ANUM_T 		/* int */
 %token <str>   QUOTSTR_T	/* char* */
@@ -122,6 +125,7 @@ config: /* nothing */
 | config lck_sess
 | config scrsvrs_dir
 | config themes_dir
+| config temp_dir
 | config ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config dfb_interface
 | config xsessdir
@@ -145,6 +149,7 @@ config_tty: /* nothing */
 | config_tty lck_sess
 | config_tty scrsvrs_dir
 | config_tty themes_dir
+| config_tty temp_dir
 | config_tty ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config_tty dfb_interface
 | config_tty xsessdir
@@ -158,13 +163,35 @@ config_tty: /* nothing */
 | config_tty window
 | config_tty CLEAR_BACKGROUND_TOK '=' YES_TOK { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 1;} }
 | config_tty CLEAR_BACKGROUND_TOK '=' NO_TOK  { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 0;} }
+| config_tty autologin { TTY_CHECK_COND DO_AUTOLOGIN=1;  }
 ;
+
+autologin: AUTOLOGIN_TOK '{' config_autologin '}'
+config_autologin: username
+| config_autologin password
+| config_autologin session
+| config_autologin RELOGIN_TOK '=' YES_TOK { TTY_CHECK_COND AUTO_RELOGIN = 1; }
+| config_autologin RELOGIN_TOK '=' NO_TOK  { TTY_CHECK_COND AUTO_RELOGIN = 0; }
+;
+
+username: USERNAME_TOK '=' QUOTSTR_T 
+	{
+	  TTY_CHECK_COND AUTOLOGIN_USERNAME = strdup($3);
+	}
+
+password: PASSWORD_TOK '=' QUOTSTR_T 
+	{
+	  TTY_CHECK_COND AUTOLOGIN_PASSWORD = strdup($3);
+	}
+
+session: SESSION_TOK '=' QUOTSTR_T { TTY_CHECK_COND AUTOLOGIN_SESSION = strdup($3); }
+| SESSION_TOK '=' LAST_SESSION_TOK { TTY_CHECK_COND AUTOLOGIN_SESSION = strdup("LAST"); }
 
 dfb_interface: DFB_INTERFACE_TOK '=' QUOTSTR_T
 	{
 	  if(in_theme) yyerror("Setting 'qingy_DirectFB' is not allowed in theme file.");
 	  TTY_CHECK_COND { if (DFB_INTERFACE) free(DFB_INTERFACE); DFB_INTERFACE = strdup($3); }
-	};
+	}
 
 /* options to enable or disable session locking */
 lck_sess: LOCK_SESSIONS_TOK '=' YES_TOK { TTY_CHECK_COND lock_sessions = 1; }
@@ -172,10 +199,25 @@ lck_sess: LOCK_SESSIONS_TOK '=' YES_TOK { TTY_CHECK_COND lock_sessions = 1; }
 ;
 
 /* where are located the screen savers? */
-scrsvrs_dir: SCRSVRS_DIR_TOK '=' QUOTSTR_T { TTY_CHECK_COND SCREENSAVERS_DIR = strdup($3); };
+scrsvrs_dir: SCRSVRS_DIR_TOK '=' QUOTSTR_T
+	{
+		if(in_theme) yyerror("Setting 'screensavers_dir' is not allowed in theme file.");
+		TTY_CHECK_COND SCREENSAVERS_DIR = strdup($3);
+	}
 
 /* where are located the themes? */
-themes_dir: THEMES_DIR_TOK '=' QUOTSTR_T { TTY_CHECK_COND THEMES_DIR = strdup($3); };
+themes_dir: THEMES_DIR_TOK '=' QUOTSTR_T
+	{
+		if(in_theme) yyerror("Setting 'themes_dir' is not allowed in theme file.");
+		TTY_CHECK_COND THEMES_DIR = strdup($3);
+	}
+
+/* where should we put the temp files? */
+temp_dir: TEMP_FILES_DIR_TOK '=' QUOTSTR_T
+	{
+		if(in_theme) yyerror("Setting 'temp_files_dir' is not allowed in theme file.");
+		TTY_CHECK_COND { if (TMP_FILE_DIR) free(TMP_FILE_DIR); TMP_FILE_DIR = strdup($3); };
+	}
 
 /* Screensaver: "name" or "name" = "option", "option"  */
 ssav:	SCREENSAVER_TOK QUOTSTR_T { TTY_CHECK_COND {SSAVER_CHECK_COND SCREENSAVER = $2;} }

@@ -20,11 +20,16 @@ settings: Makefile
 	@echo "x_sessions = \"@X_SESSIONS_DIR@/\"" >> settings
 	@echo "# Directory containing text mode sessions" >> settings
 	@echo "text_sessions = \"@TEXT_SESSIONS_DIR@/\"" >> settings
+	@echo "# Directory where qingy should put its temporary files" >> settings
+	@echo "#temp_files_dir = \"/var/lib/misc\"" >> settings
 	@echo "" >> settings
 	@echo "# Full path to the X server" >> settings
 	@echo "# x_server = \"@XFREE@\"" >> settings
 	@echo "# Full path to the 'xinit' executable" >> settings
 	@echo "xinit = \"@XINIT@\"" >> settings
+	@echo "" >> settings
+	@echo "# Parameter we should pass to the X server" >> settings
+	@echo "x_args = \"-nolisten tcp\"" >> settings
 	@echo "" >> settings
 if WANT_SCREEN_SAVERS
 	@echo "# Where are the screen savers?" >> settings
@@ -62,11 +67,26 @@ endif
 	@echo "#retries = 1" >> settings
 	@echo "" >> settings
 	@echo "# these options are valid only if qingy is started from tty3" >> settings
-	@echo "#tty = 3" >> settings
+	@echo "#tty = 1" >> settings
 	@echo "#{" >> settings
 	@echo "#	theme = \"fireplace\"" >> settings
 if WANT_SCREEN_SAVERS
 	@echo "#	screensaver \"pixel\"" >> settings
 endif
+	@echo "" >> settings
+	@echo "#	# Should we auto log in?" >> settings
+	@echo "#	# Totally insecure, but very convenient ;-)" >> settings
+	@echo "#	# Note that this section must be put inside a tty=n{} block" >> settings
+	@echo "#	# Also, if you decide to use this feature, it is better" >> settings
+	@echo "#	# that you also make this settings file readable only by root" >> settings
+	@echo "#	autologin" >> settings
+	@echo "#	{" >> settings
+	@echo "#		username = \"myuser\"" >> settings
+	@echo "#		password = \"mypassword\"" >> settings
+	@echo "#		# You can also use 'session=lastsession' to automatically choose last user session" >> settings
+	@echo "#		session  = \"Text: emacs\"" >> settings
+	@echo "#		# if set to 'no', qingy will autologin only once every system restart" >> settings
+	@echo "#		relogin  = no" >> settings
+	@echo "#	}" >> settings
 	@echo "#}" >> settings
 	@echo "done"

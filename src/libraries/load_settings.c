@@ -71,11 +71,16 @@ int   in_theme   = 0;
 
 void initialize_variables(void)
 {
-  SCREENSAVER             = NULL;  
+  SCREENSAVER             = NULL;
+	AUTOLOGIN_FILE_BASENAME = strdup("qingy-autologin-");
   TEXT_SESSIONS_DIRECTORY = NULL;
   X_SESSIONS_DIRECTORY    = NULL;
+	AUTOLOGIN_USERNAME      = NULL;
+	AUTOLOGIN_PASSWORD      = NULL;
+	AUTOLOGIN_SESSION       = NULL;
 	SCREENSAVERS_DIR        = NULL;
 	DFB_INTERFACE           = StrApp((char**)NULL, SBINDIR, "qingy-DirectFB", (char*)NULL);
+	TMP_FILE_DIR            = strdup("/var/lib/misc");
   BACKGROUND              = NULL;
 	THEMES_DIR              = NULL;
   THEME_DIR               = NULL;
@@ -90,6 +95,8 @@ void initialize_variables(void)
   windowsList             = NULL;
 	fb_device               = NULL;
 	resolution              = NULL;
+	DO_AUTOLOGIN            = 0;
+	AUTO_RELOGIN            = 0;
   no_shutdown_screen      = 0;
   disable_last_user       = 0;
   hide_last_user          = 0;
@@ -635,7 +642,7 @@ int load_settings(void)
 {
   DATADIR   = strdup(SETTINGS_DIR "/");
   SETTINGS  = StrApp((char**)NULL, DATADIR, "settings", (char*)NULL);
-  LAST_USER = StrApp((char**)NULL, "/var/lib/misc/qingy-lastuser", (char*)NULL);  
+  LAST_USER = StrApp((char**)NULL, TMP_FILE_DIR, "/qingy-lastuser", (char*)NULL);  
   
   yyin = fopen(SETTINGS, "r");
   if (!yyin)

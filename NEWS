@@ -1,6 +1,10 @@
 qingy 0.5.3 (not yet released):
+- Now the directory qingy uses to store its temporary files
+  can be customized
+- Added support for automatically logging in a user when
+  the machine powers up
 - Correctly unset the DISPLAY env variable when starting a text
-  mode session.
+  mode session, in case PAM provided one to us anyway.
 - Added support for passing user-defined arguments to the X server.
   To enhance security, as a default we now pass '-nolisten tcp'...
 - Added support for AMD Athlon64 processors optimization.

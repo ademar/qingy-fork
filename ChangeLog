@@ -1,3 +1,51 @@
+2004-11-28  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/main.c (check_autologin),
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l,
+	* media/qingy-mode.el:
+	Added support of automatically choose last session
+	when auto-logging a user...
+
+	* media/Makefile.am (settings),
+	* src/libraries/scan_settings.l,
+	* media/qingy-mode.el:
+	Now the directory where qingy puts its temporary
+	files is user-selectable...
+
+	* media/qingy-mode.el:
+	Fixed emacs major mode as it didn't always parse the
+	settings file correctly.
+
+	* src/libraries/load_settings.c (initialize_variables),
+	* src/libraries/load_settings.h (AUTO_RELOGIN),
+	* src/main.c (start_up, main, check_autologin),
+	* src/libraries/misc.h (get_system_uptime),
+	* src/libraries/misc.c (get_system_uptime): 
+	Completed autologin support...
+
+2004-11-27  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* media/Makefile.am (settings),
+	* src/main.c (start_up, main),
+	* src/libraries/load_settings.c (initialize_variables),
+	* src/libraries/load_settings.h,
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l:
+	Begin work on autologin feature...
+
+2004-11-25  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* media/Makefile.am (settings):
+	Duh, forgot to update the default settings file
+	with standard X servers arguments...
+
+2004-11-20  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/main.c (start_up):
+	Wait for 1 second before attempting to restart
+	qingy interface if previous attemt failed
+
 2004-11-16  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/libraries/session.c:

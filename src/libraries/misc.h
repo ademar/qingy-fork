@@ -67,6 +67,9 @@ int is_a_directory(char *what);
 /* function name says it all ;-P */
 char *get_file_owner(char *file);
 
+/* Get system uptime */
+int get_system_uptime();
+
 /* other stuff */
 char *assemble_message(char *content, char *command);
 void text_mode();

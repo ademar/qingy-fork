@@ -47,6 +47,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
 
@@ -58,7 +60,10 @@
 #include "session.h"
 
 
-void start_up(int argc, char *argv[], int our_tty_number)
+char *autologin_filename = NULL;
+
+
+void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 {
 	FILE *fp;
   int i, returnstatus = QINGY_FAILURE;
@@ -68,52 +73,67 @@ void start_up(int argc, char *argv[], int our_tty_number)
 	char *session    = NULL;
 	size_t len = 0;
 
-	/* parse settings file */
-	load_settings();
-
   /* We clear the screen */
   ClearScreen();
 
-	/* get resolution of console framebuffer */
-	if (!resolution) resolution = get_fb_resolution( (fb_device) ? fb_device : "/dev/fb0" );
-	if (!silent && resolution) fprintf(stderr, "framebuffer resolution is '%s'.\n", resolution);
-
-	/* Set up command line for our interface */
-	interface = StrApp((char**)NULL, DFB_INTERFACE, (char*)NULL);
-	for (i=1; i<argc; i++)
-		StrApp(&interface, " ", argv[i], (char*)NULL);
-	StrApp(&interface, " --dfb:vt-switch,bg-none", (char*)NULL);
-	if (silent)     StrApp(&interface, ",quiet", (char*)NULL);
-	if (fb_device)  StrApp(&interface, ",fbdev=", fb_device,  (char*)NULL);
-	if (resolution) StrApp(&interface, ",mode=",  resolution, (char*)NULL);
-	if (resolution) free(resolution);
-	if (fb_device)  free(fb_device);
-
-	/* let's go! */
-	for (i=0; i<=retries; i++)
+	if (!do_autologin)
 	{
-		fp = popen(interface, "r");
-		if (getline(&username, &len, fp) == -1) username = NULL; len = 0;
-		if (getline(&password, &len, fp) == -1) password = NULL; len = 0;
-		if (getline(&session,  &len, fp) == -1) session  = NULL; len = 0;
+		/* parse settings file again, it may have been changed in the mean while */
+		load_settings();
 
-		returnstatus = pclose(fp);
-		if (WIFEXITED(returnstatus))
-			returnstatus = WEXITSTATUS(returnstatus);
-		else
-			returnstatus = QINGY_FAILURE;
+		/* get resolution of console framebuffer */
+		if (!resolution) resolution = get_fb_resolution( (fb_device) ? fb_device : "/dev/fb0" );
+		if (!silent && resolution) fprintf(stderr, "framebuffer resolution is '%s'.\n", resolution);
 
-		if (returnstatus != QINGY_FAILURE) break;
-		if (username && password && session) break;
+		/* Set up command line for our interface */
+		interface = StrApp((char**)NULL, DFB_INTERFACE, (char*)NULL);
+		for (i=1; i<argc; i++)
+			StrApp(&interface, " ", argv[i], (char*)NULL);
+		StrApp(&interface, " --dfb:vt-switch,bg-none", (char*)NULL);
+		if (silent)     StrApp(&interface, ",quiet", (char*)NULL);
+		if (fb_device)  StrApp(&interface, ",fbdev=", fb_device,  (char*)NULL);
+		if (resolution) StrApp(&interface, ",mode=",  resolution, (char*)NULL);
+		if (resolution) free(resolution);
+		if (fb_device)  free(fb_device);
 
-		if (i == retries) returnstatus = TEXT_MODE;
+		/* let's go! */
+		for (i=0; i<=retries; i++)
+		{
+			fp = popen(interface, "r");
+			if (getline(&username, &len, fp) == -1) username = NULL; len = 0;
+			if (getline(&password, &len, fp) == -1) password = NULL; len = 0;
+			if (getline(&session,  &len, fp) == -1) session  = NULL; len = 0;
+
+			returnstatus = pclose(fp);
+			if (WIFEXITED(returnstatus))
+				returnstatus = WEXITSTATUS(returnstatus);
+			else
+				returnstatus = QINGY_FAILURE;
+
+			if (returnstatus != QINGY_FAILURE) break;
+			if (username && password && session) break;
+
+			if (i == retries) returnstatus = TEXT_MODE;
+			else sleep(1);
+		}
+		free(interface);
+
+		/* remove trailing newlines from these values */
+		if (username) username[strlen(username) - 1] = '\0';
+		if (password) password[strlen(password) - 1] = '\0';
+		if (session)  session [strlen(session)  - 1] = '\0';
 	}
-	free(interface);
+	else
+	{
+		/* create our already autologged temp file */
+		int fd = creat(autologin_filename, S_IRUSR|S_IWUSR);
+		close(fd);
 
-	/* remove trailing newlines from these values */
-	if (username) username[strlen(username) - 1] = '\0';
-	if (password) password[strlen(password) - 1] = '\0';
-	if (session)  session [strlen(session)  - 1] = '\0'; 
+		username     = AUTOLOGIN_USERNAME;
+		password     = AUTOLOGIN_PASSWORD;
+		session      = AUTOLOGIN_SESSION;
+		returnstatus = EXIT_SUCCESS;
+	}
 
 	/* re-allow vt switching if it is still disabled */
 	unlock_tty_switching();
@@ -151,6 +171,59 @@ void start_up(int argc, char *argv[], int our_tty_number)
   exit(EXIT_FAILURE);
 }
 
+/*
+ * if already_logged_in file exists and its modification time
+ * is not antecedent than system uptime, we disable autologin
+ * (unless of course user chooses to always re-autologin)
+ */
+int check_autologin(int our_tty_number)
+{
+	char        *temp;
+	struct stat  filestat;
+	time_t       uptime;
+
+	if (!DO_AUTOLOGIN) return 0;
+
+	/* Sanity checks */
+	if (!AUTOLOGIN_USERNAME || !AUTOLOGIN_PASSWORD || !AUTOLOGIN_SESSION)
+	{
+		fprintf(stderr, "\nAutologin disabled: insuffucient user data!\n");
+		return 0;
+	}
+	if (!strcmp(AUTOLOGIN_SESSION, "LAST"))
+	{
+		free(AUTOLOGIN_SESSION);
+		AUTOLOGIN_SESSION = get_last_session(AUTOLOGIN_USERNAME);
+		if (!AUTOLOGIN_SESSION)
+		{
+			fprintf(stderr, "\nAutologin disabled: could not get last session of user %s!\n", AUTOLOGIN_USERNAME);
+			return 0;			
+		}
+	}
+
+	if (AUTO_RELOGIN) return 1;
+
+	/* set autologin temp file name */
+	temp = int_to_str(our_tty_number);
+	autologin_filename =
+		StrApp((char**)NULL, TMP_FILE_DIR, "/", AUTOLOGIN_FILE_BASENAME, "tty", temp, (char*)NULL);
+	free(temp);	
+
+	if (access(autologin_filename, F_OK     )) return 1; /* file does not exist */
+	if (stat  (autologin_filename, &filestat)) return 0; /* Could not get file stats */
+
+	uptime = get_system_uptime();
+	if (!uptime) return 0; /* could not get system uptime */
+
+	if (filestat.st_mtime < time(NULL)-uptime)
+	{
+		unlink (autologin_filename);
+		return 1;
+	}
+
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
   int user_tty_number;
@@ -179,6 +252,12 @@ int main(int argc, char *argv[])
   /* We switch to tty <tty> */
 	Switch_TTY;
 
+	/* parse settings file again */
+	load_settings();
+
+	/* Should we log in user directly? Totally insecure, but handy */
+	if (check_autologin(our_tty_number)) start_up(argc, argv, our_tty_number, 1);
+
   /* Main loop: we wait until the user switches to the tty we are running in */
   while (1)
 	{
@@ -188,7 +267,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "\nfatal error: cannot get active tty number!\n");
 			return EXIT_FAILURE;
 		}
-		if (user_tty_number == our_tty_number) start_up(argc, argv, our_tty_number);
+		if (user_tty_number == our_tty_number) start_up(argc, argv, our_tty_number, 0);
 		nanosleep(&delay, NULL); /* wait a little before checking again */
 	}
   

@@ -60,6 +60,15 @@ char *BACKGROUND;
 char *THEME_DIR;
 char *THEMES_DIR;
 char *DFB_INTERFACE;
+char *TMP_FILE_DIR;
+
+/* autologin stuff */
+char *AUTOLOGIN_FILE_BASENAME;
+char *AUTOLOGIN_USERNAME;
+char *AUTOLOGIN_PASSWORD;
+char *AUTOLOGIN_SESSION;
+int   DO_AUTOLOGIN;
+int   AUTO_RELOGIN;
 
 /* other stuff */
 char *fb_device;

@@ -43,14 +43,19 @@
 
 (defconst qingy-font-lock-keywords-1
   (list
-   '("\\(c\\(?:lear_background\\)\\|l\\(?:ock_sessions\\)\\|s\\(?:creensavers_dir\\|creensaver\\|hutdown_policy\\)\\)" . font-lock-variable-name-face)
-   '("\\(t\\(?:hemes_dir\\|ext_sessions\\)\\|x\\(?:_sessions\\|_args\\|init\\|_server\\)\\)" . font-lock-variable-name-face)
+   '("\\(lastsession\\)" . font-lock-constant-face)
+	 '("\\(x\\(?:_sessions\\|_args\\|init\\|_server\\)\\)" . font-lock-variable-name-face)
+   '("\\(t\\(?:hemes_dir\\|ext_sessions\\|emp_files_dir\\)\\)" . font-lock-variable-name-face)
+   '("\\(c\\(?:lear_background\\)\\|l\\(?:ock_sessions\\)\\|s\\(?:creensavers_dir\\|creensaver\\|hutdown_policy\\|ession\\)\\)" . font-lock-variable-name-face)
+	 '("\\(p\\(?:assword\\)\\)" . font-lock-variable-name-face)
 	 '("\\(q\\(?:ingy_DirectFB\\)\\)" . font-lock-variable-name-face)
+	 '("\\(r\\(?:elogin\\)\\)" . font-lock-variable-name-face)
+	 '("\\(u\\(?:sername\\)\\)" . font-lock-variable-name-face)
    '("\\(content\\|default_\\(?:\\(?:cursor\\|text\\)_color\\)\\|linkto\\|text_orientation\\)" . font-lock-variable-name-face)
    '("\\(b\\(?:ackground\\|utton_opacity\\)\\|cursor_color\\|font\\|text_color\\|other_text_color\\|\\(?:selected_\\)?window_opacity\\)" . font-lock-variable-name-face)
    '("\\(center\\|\\(?:lef\\|righ\\)t\\)" . font-lock-constant-face)
    '("\\(yes\\|no\\|NULL\\)" . font-lock-constant-face)
-   '("\\(theme\\|window\\|tty\\)" . font-lock-builtin-face)
+   '("\\(theme\\|window\\|tty\\|autologin\\)" . font-lock-builtin-face)
    '("\\(everyone\\|noone\\|p\\(?:hoto\\|ixel\\)\\|r\\(?:andom\\|oot\\)\\)" . font-lock-constant-face)
    '("\\(large\\|medium\\|small\\)" . font-lock-constant-face)
    '("\\(\\[[ \t]*[0-9a-fA-F]\\{8\\}[ \t]*\\]\\)\\|\\([0-9]+\\)" . font-lock-constant-face)

@@ -27,6 +27,7 @@
 
 
 /* constants that we make use of */
+#define DO_SLEEP    252
 #define SHUTDOWN_R  253
 #define SHUTDOWN_H  254
 #define TEXT_MODE   255
