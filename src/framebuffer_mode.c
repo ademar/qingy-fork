@@ -39,6 +39,7 @@
 #include "chvt.h"
 #include "misc.h"
 #include "session.h"
+#include "load_settings.h"
 
 #define POWEROFF 0
 #define REBOOT   1

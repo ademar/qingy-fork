@@ -46,6 +46,7 @@
 #include "session.h"
 #include "chvt.h"
 #include "misc.h"
+#include "load_settings.h"
 
 #define UNKNOWN_USER   0
 #define WRONG_PASSWORD 1

@@ -26,9 +26,6 @@
  ***************************************************************************/
 
 
-#define XSESSIONS_DIRECTORY "/etc/X11/Sessions/"
-#define XINIT               "/usr/X11R6/bin/xinit"
-
 struct session
 {
 	char *name;

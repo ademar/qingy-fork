@@ -44,9 +44,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+
 #include "chvt.h"
 #include "misc.h"
 #include "framebuffer_mode.h"
+#include "load_settings.h"
 
 void Error()
 {
@@ -159,6 +161,9 @@ int main(int argc, char *argv[])
 	  fprintf(stderr, "\nUnable to switch to virtual terminal %s\n", tty);
     return EXIT_FAILURE;
 	}
+
+	/* load settings from file */
+	load_settings();
 
 	/* main loop: we wait until the user switches to the tty we are running in */
 	while (1)
