@@ -34,7 +34,7 @@
 
 typedef struct _item
 {
-	char *name;
+	char         *name;
 	struct _item *next;
 	struct _item *prev;
 } item;
@@ -42,28 +42,31 @@ typedef struct _item
 typedef struct _ComboBox
 {
 	/* properties */
-	item *items;
-	item *selected;
-	color_t text_color;
-	unsigned int xpos, ypos;
-	unsigned int width, height;
-	int hasfocus;
-	int position;
-	IDirectFBWindow	*window;
+	item             *items;
+	item             *selected;
+	color_t           text_color;
+	unsigned int      xpos;
+	unsigned int      ypos;
+	unsigned int      width;
+	unsigned int      height;
+	int               hasfocus;
+	int               position;
+	IDirectFBWindow	 *window;
 	IDirectFBSurface *surface;
-	int mouse;									 /* 1 if mouse is over button, 0 otherwise      */
+	int               mouse;    /* 1 if mouse is over button, 0 otherwise */
 
 	/* methods */
-	void (*KeyEvent)(struct _ComboBox *thiz, int direction);
-	void (*MouseOver)(struct _ComboBox *thiz, int status);
-	void (*Click)(struct _ComboBox *thiz);
-	void (*SetFocus)(struct _ComboBox *thiz, int focus);
 	void (*SetTextColor)(struct _ComboBox *thiz, color_t *text_color);
-	void (*AddItem)(struct _ComboBox *thiz, char *item);
-	void (*ClearItems)(struct _ComboBox *thiz);
-	void (*Hide)(struct _ComboBox *thiz);
-	void (*Show)(struct _ComboBox *thiz);
-	void (*Destroy)(struct _ComboBox *thiz);
+	void (*KeyEvent)    (struct _ComboBox *thiz, int      direction );
+	void (*MouseOver)   (struct _ComboBox *thiz, int      status    );
+	void (*SetFocus)    (struct _ComboBox *thiz, int      focus     );
+	void (*AddItem)     (struct _ComboBox *thiz, char    *item      );
+	void (*SelectItem)  (struct _ComboBox *thiz, item    *selection );
+	void (*ClearItems)  (struct _ComboBox *thiz);
+	void (*Click)       (struct _ComboBox *thiz);
+	void (*Hide)        (struct _ComboBox *thiz);
+	void (*Show)        (struct _ComboBox *thiz);
+	void (*Destroy)     (struct _ComboBox *thiz);
 
 } ComboBox;
 
