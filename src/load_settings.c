@@ -529,7 +529,7 @@ int load_settings(void)
 	XINIT                   = NULL;
 	FONT                    = NULL;
 
-  DATADIR   = strdup("/etc/qingy_new/");
+  DATADIR   = strdup("/etc/qingy/");
 	SETTINGS  = StrApp((char**)NULL, DATADIR, "settings", (char*)NULL);
   LAST_USER = StrApp((char**)NULL, DATADIR, "lastuser", (char*)NULL);  
 
