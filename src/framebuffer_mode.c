@@ -508,8 +508,8 @@ void reset_screen(DFBInputEvent *evt)
 	Draw_Background_Image ();
 	power->mouse = 0;
 	reset->mouse = 0;
-	power->window->SetOpacity(power->window, WINDOW_OPACITY);
-	reset->window->SetOpacity(reset->window, WINDOW_OPACITY);
+	power->window->SetOpacity(power->window, BUTTON_OPACITY);
+	reset->window->SetOpacity(reset->window, BUTTON_OPACITY);
 	show_welcome_window(YES);
 	show_login_window(YES, (username_hasfocus) ? SELECTED_WINDOW_OPACITY : WINDOW_OPACITY);
 	username_event(NULL, NULL, YES, (username_hasfocus) ? SELECTED_WINDOW_OPACITY : WINDOW_OPACITY);
@@ -952,8 +952,8 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 	Draw_Background_Image();
 
 	/* we load and draw buttons */
-	power = load_button (DATADIR "power_normal.png", DATADIR "power_mouseover.png", screen_width, screen_height, layer, primary, dfb, WINDOW_OPACITY );
-	reset = load_button (DATADIR "reset_normal.png", DATADIR "reset_mouseover.png", power->xpos - 10, screen_height, layer, primary, dfb, WINDOW_OPACITY );
+	power = load_button (DATADIR "power_normal.png", DATADIR "power_mouseover.png", screen_width, screen_height, layer, primary, dfb, BUTTON_OPACITY );
+	reset = load_button (DATADIR "reset_normal.png", DATADIR "reset_mouseover.png", power->xpos - 10, screen_height, layer, primary, dfb, BUTTON_OPACITY );
 	power->surface->Blit (power->surface, power->normal, NULL, 0, 0);
 	power->surface->Flip(power->surface, NULL, 0);
 	reset->surface->Blit (reset->surface, reset->normal, NULL, 0, 0);

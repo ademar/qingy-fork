@@ -29,6 +29,7 @@
 /* constants that we make use of */
 #define DATADIR "/etc/qingy/"
 #define FONT DATADIR "decker.ttf"
+#define BUTTON_OPACITY 0xFF
 #define WINDOW_OPACITY 0x80
 #define SELECTED_WINDOW_OPACITY 0xCF
 #define MASK_TEXT_COLOR  0xFF, 0x00, 0x00, 0xFF
