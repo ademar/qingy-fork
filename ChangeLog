@@ -1,4 +1,11 @@
-qingy 0.3.0:
+qingy CVS:
+- Made missing 'fbset' program non fatal for qingy compilation.
+  But in this case you will have to edit your /etc/directfbrc.qingy
+  by hand...
+- Pa0lino added an utility, 'themer', to convert qingy 0.2 series
+  theme files to qingy 0.3 theme structure...
+
+qingy 0.3.0 (09 January 2004):
 - New memory allocation/deallocation management
 - Unlock vt switching before dying (yes, this was annoying)
 - Solved a bug that made qingy crash when you switched to its
