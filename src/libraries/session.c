@@ -2,8 +2,8 @@
                          session.c  -  description
                             -------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : noberasco.gnu@disi.unige.it
+    copyright            : (C) 2003-2004 by Noberasco Michele
+    e-mail               : s4t4n@gentoo.org
 ***************************************************************************/
 
 /***************************************************************************
@@ -301,13 +301,20 @@ int check_password(char *username, char *user_password)
   ttyname = create_tty_name(get_active_tty());
   if ((short_ttyname = strrchr(ttyname, '/')) != NULL)
 	if (*(++short_ttyname) == '\0') short_ttyname = NULL;
-  
   if (pam_start("qingy", username, &PAM_conversation, &pamh) != PAM_SUCCESS)
 	{
 		LogEvent(pw, PAM_FAILURE);
 		return 0;
 	}
-  if ((retcode = pam_set_item(pamh, PAM_TTY, (short_ttyname)?short_ttyname:ttyname)) != PAM_SUCCESS)
+	if (!short_ttyname)
+		retcode = pam_set_item(pamh, PAM_TTY, ttyname);
+	else
+	{
+		retcode = pam_set_item(pamh, PAM_TTY, short_ttyname);
+		if (retcode != PAM_SUCCESS)
+			retcode = pam_set_item(pamh, PAM_TTY, ttyname);
+	}
+  if (retcode != PAM_SUCCESS)
 	{
 		pam_end(pamh, retcode);
 		pamh = NULL;
@@ -406,10 +413,10 @@ void setEnvironment(struct passwd *pwd)
   environ    = (char **) calloc(2, sizeof(char *));
   environ[0] = NULL;
 
- /*
-	* if XINIT is set, we add it's path to PATH,
-	* assuming that X will sit in the same directory...
-	*/
+	/*
+	 * if XINIT is set, we add it's path to PATH,
+	 * assuming that X will sit in the same directory...
+	 */
 	if (XINIT)
 	{
 		int i = strlen(XINIT);

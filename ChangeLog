@@ -1,3 +1,9 @@
+2004-08-10  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/session.c (check_password):
+	Change PAM authentication code to feed it the full
+	tty name if using the short one fails...
+
 2004-07-28  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* README (Options):
