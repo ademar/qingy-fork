@@ -13,6 +13,9 @@ qingy CVS:
 - Pa0lino added an utility, 'themer', to convert qingy 0.2 series
   theme files to qingy 0.3 theme structure...
 - Fixed some bugs in config files parser...
+- Added support for writing to /var/log/wtmp; this allows tools
+  like 'who', 'w', 'finger' to be able to 'see' users logged
+  in with qingy.
 
 qingy 0.3.0 (09 January 2004):
 - New memory allocation/deallocation management

@@ -1,5 +1,12 @@
 2004-01-30  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
+	* src/session.c (add_utmp_wtmp_entry):
+	* src/session.c (add_utmp_wtmp_entry):
+	added functions to manage writing to /var/log/wtmp;
+	this is necessary for tools like 'who', 'w' and finger
+	to 'see' users logged in with qingy. Modified
+	Text_Login() and Graph_Login() to use them
+
 	* src/chvt.c (get_fb_resolution): Added this function,
 	it gets the current console framebuffer resolution
 	(tty_redraw): de-uglified some code ;-P
