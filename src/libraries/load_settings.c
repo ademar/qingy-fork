@@ -690,7 +690,7 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 		{"verbose",                 no_argument,       NULL, 'v'},
 		{"no-shutdown-screen",      no_argument,       NULL, 'n'},
 		{"screensaver",             required_argument, NULL, 's'},
-		{"help",                    required_argument, NULL, 'h'},
+		{"help",                    no_argument,       NULL, 'h'},
 		{0, 0, 0, 0}
 	};
   char *tty;
