@@ -90,6 +90,9 @@ void activate_screen_saver(ScreenSaver *thiz)
 			milli_seconds = 500;
   }
 
+	/* we clear event buffer to avoid being bailed out immediately */
+	thiz->events->Reset(thiz->events);
+
   /* do screen saver until an input event arrives */
   while (1)
   {
