@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "load_settings.h"
+#include "misc.h"
+
 #define YYERROR_VERBOSE
 
 extern FILE* yyin;
@@ -33,20 +36,20 @@ config:
 	| config theme
 ;
 
-ssav:	SCREENSAVER_TOK PIXEL_TOK { printf("Set screensaver as pixel\n"); }
-	| SCREENSAVER_TOK PHOTOS_TOK photos { printf("Set screensaver as photos\n"); } ;
+ssav:	SCREENSAVER_TOK PIXEL_TOK { SCREENSAVER=PIXEL_SCREENSAVER; }
+	| SCREENSAVER_TOK PHOTOS_TOK '=' photos { SCREENSAVER=PHOTO_SCREENSAVER; } ;
 
 photos: 			/* nothing */
-	| photos QUOTSTR_T { printf("\tgetting photos at: %s\n", $2); };
+	| photos QUOTSTR_T { add_to_paths($2); };
 
-xsessdir: XSESSION_DIR_TOK '=' QUOTSTR_T { printf("XSESSION_DIR set as %s\n", $3); };
+xsessdir: XSESSION_DIR_TOK '=' QUOTSTR_T { XSESSIONS_DIRECTORY=strdup($3); };
 
-txtsessdir: TXTSESSION_DIR_TOK '=' QUOTSTR_T { printf("TXT SESSIONS at %s\n", $3); };
+txtsessdir: TXTSESSION_DIR_TOK '=' QUOTSTR_T { TEXT_SESSIONS_DIRECTORY=strdup($3); };
 
-xinit:	XINIT_TOK '=' QUOTSTR_T { printf("XINIT_VAL is %s\n", $3); };
+xinit:	XINIT_TOK '=' QUOTSTR_T { XINIT=strdup($3); };
  
-theme: 	THEME_TOK RAND_TOK {printf("THEME is random\n");} 
-	| THEME_TOK '=' QUOTSTR_T  {printf("THEME at %s\n", $3);}
+theme: 	THEME_TOK RAND_TOK { set_theme(get_random_theme());} 
+	| THEME_TOK '=' QUOTSTR_T  {set_theme($3);}
 	| THEME_TOK '{' themedefn '}' 
 	;
 
@@ -56,18 +59,23 @@ themedefn: 			/* nothing */
 	| themedefn colorprop
 	;
 
-colorprop: MASK_TXT_COL_TOK COLOR_T { printf("Mask text color is now #%x\n", $2); }
-	   | TXT_CUR_COL_TOK COLOR_T  {printf("Cur text color is now #%x\n", $2); }
-	   | OTHER_TXT_COL_TOK COLOR_T {printf("Other text color is now #%x\n",$2); }
+colorprop: MASK_TXT_COL_TOK '=' COLOR_T { MASK_TEXT_COLOR_R=$3[0]; MASK_TEXT_COLOR_G=$3[1]; 
+					  MASK_TEXT_COLOR_B=$3[2]; MASK_TEXT_COLOR_A=$3[3];}
+
+	   | TXT_CUR_COL_TOK '=' COLOR_T  { TEXT_CURSOR_COLOR_R=$3[0]; TEXT_CURSOR_COLOR_G=$3[1]; 
+   					    TEXT_CURSOR_COLOR_B=$3[2]; TEXT_CURSOR_COLOR_A=$3[3];}
+
+	   | OTHER_TXT_COL_TOK '=' COLOR_T { OTHER_TEXT_COLOR_R=$3[0]; OTHER_TEXT_COLOR_G=$3[1]; 
+    					     OTHER_TEXT_COLOR_B=$3[2]; OTHER_TEXT_COLOR_A=$3[3]; }
 	   ;
 
-strprop: BG_TOK QUOTSTR_T {printf("Background image will be %s\n", $2); }
-	 | FONT_TOK QUOTSTR_T {printf("Font will be %s\n", $2); }
+strprop: BG_TOK '=' QUOTSTR_T {BACKGROUND=StrApp((char**)0, THEME_DIR, $3, (char*)0); }
+	 | FONT_TOK '=' QUOTSTR_T {FONT=StrApp((char**)0, THEME_DIR, $3, (char*)0);}
 	 ;
 
-anumprop:  BUTTON_OPAC_TOK ANUM_T {printf("Button opacity at %d\n", $2);}
-	   | WIN_OP_TOK ANUM_T {printf("Window opacity at %d\n", $2);}
-	   | SEL_WIN_OP_TOK ANUM_T {printf("Selected window opacity at %d\n", $2);}
+anumprop:  BUTTON_OPAC_TOK '=' ANUM_T {BUTTON_OPACITY=$3;}
+| WIN_OP_TOK '=' ANUM_T {WINDOW_OPACITY=$3}
+	   | SEL_WIN_OP_TOK '=' ANUM_T {SELECTED_WINDOW_OPACITY=$3;}
 	   ;
 
 %%
