@@ -108,6 +108,19 @@ int get_active_tty(void)
 	return terminal_status.v_active;
 }
 
+/* disallocate tty */
+int disallocate_tty(int tty)
+{
+  int fd;
+
+  /* we switch to /dev/tty<tty> */
+	if ( (fd = getfd()) == -1) return 0;
+	if (ioctl (fd, VT_DISALLOCATE, tty) == -1) return 0;
+  if (close(fd) != 0) return 0;
+
+	return 1;
+}
+
 /* jump to another tty */
 int set_active_tty(int tty)
 {

@@ -41,6 +41,9 @@ int set_active_tty(int tty);
 int lock_tty_switching(void);
 int unlock_tty_switching(void);
 
+/* disallocate tty */
+int disallocate_tty(int tty);
+
 /* enable or disable stderr */
 void stderr_disable(void);
 void stderr_enable(void);
