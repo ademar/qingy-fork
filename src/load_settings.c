@@ -442,6 +442,30 @@ int add_window_to_list(window_t w)
 {
   static window_t *aux = NULL;
 
+	/* there can be only one login and password window... */
+	if (windowsList && (w.type == LOGIN || w.type == PASSWORD))
+	{ /* we search for an already-defined one */
+		window_t *temp = windowsList;
+
+		while (temp)
+		{
+			if (temp->type == w.type)
+			{ /* we overwrite old settings with new ones */
+				temp->x        = w.x;
+				temp->y        = w.y;
+				temp->width    = w.width;
+				temp->height   = w.height;
+				/*
+				 * other settings are not used in this kind of window
+				 * so we don't bother copying them...
+				 */
+				return 1;
+			}
+			temp = temp->next;
+		}
+	}
+
+	/* Now we are sure that there is only one login and password window */
 	if (!aux)
 	{
 		aux = (window_t *) calloc(1, sizeof(window_t));
@@ -453,15 +477,15 @@ int add_window_to_list(window_t w)
 		aux = aux->next;
 	}
 
-  aux->type    = w.type;
-  aux->x       = w.x;
-  aux->y       = w.y;
-  aux->width   = w.width;
-  aux->height  = w.height;
-  aux->command = strdup(w.command); 
-  aux->polltime = w.polltime;
-  aux->content = strdup(w.content);
-  aux->next    = NULL;
+  aux->type     = w.type;
+  aux->x        = w.x;
+  aux->y        = w.y;
+  aux->width    = w.width;
+  aux->height   = w.height;
+	aux->polltime = w.polltime;
+  aux->command  = strdup(w.command);   
+  aux->content  = strdup(w.content);
+  aux->next     = NULL;
   
   free(w.content);
 	free(w.command);
