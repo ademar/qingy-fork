@@ -56,7 +56,7 @@
 extern FILE* yyin;
 extern int yyparse(void);
 
-char *DEFAULT_THEME;
+int GOT_THEME = 0;
 
 void initialize_variables(void)
 {
@@ -84,7 +84,7 @@ void set_default_xinit(void)
 
 void set_default_font(void)
 {
-  FONT = StrApp((char**)NULL, DEFAULT_THEME, "decker.ttf",(char *)NULL);
+  FONT = StrApp((char**)NULL, THEME_DIR, "decker.ttf",(char *)NULL);
 }
 
 void set_default_colors(void)
@@ -111,7 +111,7 @@ void set_default_colors(void)
 
 void yyerror(char *where)
 {
-  if (!silent) fprintf(stderr, "qingy: parse error in %s file... reverting to text mode.\n", where);
+  if (!silent) fprintf(stderr, "qingy: parse error in %s file... using defaults.\n", where);
   free(X_SESSIONS_DIRECTORY);
   free(TEXT_SESSIONS_DIRECTORY);
   free(XINIT);
@@ -121,7 +121,6 @@ void yyerror(char *where)
   set_default_xinit();
   set_default_font();
   set_default_colors();
-  THEME_DIR = strdup(DEFAULT_THEME);
 }
 
 char *get_random_theme()
@@ -276,37 +275,42 @@ int get_theme(char *theme)
     {
       error("theme");
       fclose(fp);
-      free(DEFAULT_THEME); DEFAULT_THEME = NULL;
       return 0;
     }
   }
   fclose(fp);
 }
 
+void set_default_theme(void)
+{
+	char *theme = StrApp((char**)NULL, DATADIR, "themes/default/theme", (char*)NULL);
+
+	THEME_DIR = StrApp((char**)NULL, DATADIR, "themes/default/", (char*)NULL);
+	get_theme(theme);
+	free(theme);
+}
+
+
 int load_settings(void)
 {
-	char *theme = NULL;
-
   TEXT_SESSIONS_DIRECTORY = NULL;
 	X_SESSIONS_DIRECTORY    = NULL;
 	THEME_DIR               = NULL;
 	XINIT                   = NULL;
 	FONT                    = NULL;
 
-  DATADIR       = strdup("/etc/qingy/");
-	SETTINGS      = StrApp((char**)NULL, DATADIR, "settings",        (char*)NULL);
-  LAST_USER     = StrApp((char**)NULL, DATADIR, "lastuser",        (char*)NULL);
-  DEFAULT_THEME = StrApp((char**)NULL, DATADIR, "themes/default/", (char*)NULL);
+  DATADIR   = strdup("/etc/qingy/");
+	SETTINGS  = StrApp((char**)NULL, DATADIR, "settings",        (char*)NULL);
+  LAST_USER = StrApp((char**)NULL, DATADIR, "lastuser",        (char*)NULL);  
 
   yyin = fopen(SETTINGS, "r");
   if (!yyin)
   {
-    if (!silent) fprintf(stderr, "load_Settings: settings file not found...\nusing internal defaults\n");
+    if (!silent) fprintf(stderr, "load_settings: settings file not found...\nusing internal defaults\n");
     set_default_session_dirs();
     set_default_xinit();
     set_default_font();
     set_default_colors();
-    free(DEFAULT_THEME); DEFAULT_THEME = NULL;
     return 0;
   }
   yyparse();
@@ -314,18 +318,8 @@ int load_settings(void)
 
   if (!X_SESSIONS_DIRECTORY) set_default_session_dirs();
   if (!XINIT) set_default_xinit();
-  if (!theme)
-  {
-    THEME_DIR = (char *) calloc(strlen(DEFAULT_THEME)+1, sizeof(char));
-    strcpy(THEME_DIR, DEFAULT_THEME);
-    theme = (char *) calloc(strlen(THEME_DIR)+6, sizeof(char));
-    strcpy(theme, THEME_DIR);
-    strcat(theme, "theme");
-  }
-
-
-  if (FONT == NULL) set_default_font();
-  free(DEFAULT_THEME); DEFAULT_THEME = NULL;
+  if (!GOT_THEME) set_default_theme();
+  if (!FONT) set_default_font();
 
   return 1;
 }
