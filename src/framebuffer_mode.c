@@ -434,8 +434,9 @@ int handle_keyboard_input(int *input, char *buffer, int *length)
 		return 1;
 	}
 
-	/*if (strcmp(input, "CURSOR_LEFT") == 0)*/
-	/*if (strcmp(input, "CURSOR_RIGHT") == 0)*/
+	/*if (*input == ARROW_LEFT)
+	if (*input == ARROW_RIGHT)*/
+	
 	return 0;
 }
 
@@ -620,8 +621,6 @@ int handle_keyboard_event(DFBInputEvent *evt)
 		{
 			if (ascii_code == ARROW_UP) print_session_name(UP);
 			if (ascii_code == ARROW_DOWN) print_session_name(DOWN);
-			//if (strcmp(symbol_name->name, "CURSOR_UP"  ) == 0) print_session_name(UP);
-			//if (strcmp(symbol_name->name, "CURSOR_DOWN") == 0) print_session_name(DOWN);
 			if (ascii_code == TAB)
 			{
 				session_hasfocus  = 0;
