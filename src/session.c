@@ -93,7 +93,7 @@ extern char **environ;
 #define PAM_UPDATE_TOKEN        8
 #define PAM_CANNOT_UPDATE_TOKEN 9
 char *PAM_password;
-char *infostr, *errstr;
+char *infostr=NULL, *errstr=NULL;
 static pam_handle_t *pamh;
 static int update_token = 0;
 
@@ -325,8 +325,7 @@ int check_password(char *username, char *user_password)
     LogEvent(pw, PAM_FAILURE);
     return 0;
   }
-  if (infostr) { free (infostr); infostr = 0; }
-  if (errstr)  { free (errstr);  errstr  = 0; }
+  free (infostr); free (errstr);
 
   if ((retcode = pam_authenticate(pamh, PAM_DISALLOW_NULL_AUTHTOK)) != PAM_SUCCESS)
   {
