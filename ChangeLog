@@ -1,4 +1,4 @@
-qingy CVS
+qingy 0.2.2 (29 September 2003):
 - Starting X sessions for users with a shell other than bash
   should no longer fail with strange errors
   (this occurred at least with tcsh)
