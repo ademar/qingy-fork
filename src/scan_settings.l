@@ -105,14 +105,13 @@ everyone                return EVERYONE_TOK;
 root                    return ONLY_ROOT_TOK;
 noone                   return NO_ONE_TOK;
 
-type			return WTYPE_TOK;
+type                    return WTYPE_TOK;
 width                   return WWIDTH_TOK;
 height                  return WHEIGHT_TOK;
-command			return WCOMMAND_TOK;
-content			return WCONTENT_TOK;
-
+command                 return WCOMMAND_TOK;
+content                 return WCONTENT_TOK;
 window                  return WINDOW_TOK;
-time			return WPOLL_TIME_TOK;
+time                    return WPOLL_TIME_TOK;
 
 "#"[^\n]*"\n" ;			/* skip comments */
 

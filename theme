@@ -1,0 +1,19 @@
+theme
+{
+	background = "background.png"
+	font = "decker.ttf"
+
+# opacity values, from 0 (transparent) to 255 (opaque)
+	button_opacity          = 255
+	window_opacity          = 128
+	selected_window_opacity = 207
+
+# Colors can be given in a hex quadruplet (values from 00 to ff)
+# or via comma-separated decimals (0 to 255). Format is RGBA
+#	mask_text_color   = [ 28b428ff ]
+#	cursor_text_color = [ 145a14dd ]
+#	other_text_color  = [ 404040ff ]
+	mask_text_color   = 40, 180, 40, 255
+	cursor_text_color = 20, 90,  20, 221
+	other_text_color  = 64, 64,  64, 255
+}

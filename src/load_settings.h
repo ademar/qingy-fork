@@ -104,7 +104,7 @@ screensaver_kinds SCREENSAVER;
 
 typedef enum 
 {
-  UNKOWN,
+  UNKNOWN,
   LABEL,
   BUTTON,
   LOGIN,
@@ -129,11 +129,10 @@ typedef struct _window
 window_t* windowsList;
 
 int add_window_to_list(window_t w);
-
 int get_win_type(const char* name);
 
-/* initialize some stuff */
 
+/* initialize some stuff */
 void initialize_variables(void);
 
 /* get program settings from config file */
@@ -157,3 +156,7 @@ char *get_random_theme();
 /* stuff you don't want to know about ;-P */
 void yyerror(char *where);
 void add_to_paths(char *path);
+
+#ifdef DEBUG
+void show_windows_list(void);
+#endif

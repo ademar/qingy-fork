@@ -43,6 +43,7 @@ config:
 	| config xinit
 	| config theme
 	| config shutdown
+	| config window
 ;
 
 ssav:	SCREENSAVER_TOK PIXEL_TOK { SCREENSAVER=PIXEL_SCREENSAVER; }
@@ -79,13 +80,13 @@ window: WINDOW_TOK '{' windefns '}' { add_window_to_list(wind);}  ;
 windefns: windefn | windefns windefn ; 
 
 windefn: 'x' '=' ANUM_T { wind.x=$3; } 
- |	 'y' '=' ANUM_T { wind.y=$3; } 
- | WTYPE_TOK '=' QUOTSTR_T { wind.type=get_win_type($3);}
- | WWIDTH_TOK '=' ANUM_T { wind.width=$3;}
-| WHEIGHT_TOK '=' ANUM_T { wind.height=$3;}
-| WCOMMAND_TOK '=' QUOTSTR_T { wind.command=strdup($3);}
-| WCONTENT_TOK '=' QUOTSTR_T { wind.content=strdup($3);}
-| WPOLL_TIME_TOK '=' ANUM_T { wind.polltime=$3;}
+	|	     'y' '=' ANUM_T { wind.y=$3; } 
+	| WTYPE_TOK      '=' QUOTSTR_T { wind.type=get_win_type($3);}
+	| WWIDTH_TOK     '=' ANUM_T { wind.width=$3;}
+	| WHEIGHT_TOK    '=' ANUM_T { wind.height=$3;}
+	| WCOMMAND_TOK   '=' QUOTSTR_T { wind.command=strdup($3);}
+	| WCONTENT_TOK   '=' QUOTSTR_T { wind.content=strdup($3);}
+	| WPOLL_TIME_TOK '=' ANUM_T { wind.polltime=$3;}
 ;
 
 colorprop: MASK_TXT_COL_TOK '=' COLOR_T { MASK_TEXT_COLOR_R=$3[3]; MASK_TEXT_COLOR_G=$3[2]; 

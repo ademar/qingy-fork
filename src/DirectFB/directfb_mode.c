@@ -775,6 +775,10 @@ int directfb_mode (int argc, char *argv[])
   if (!load_settings()) return TEXT_MODE;
   if (!disable_last_user) lastuser = get_last_user();
 
+#ifdef DEBUG
+	show_windows_list();
+#endif
+
   /* Stop GPM if necessary */
   we_stopped_gpm= stop_gpm();
 

@@ -1,0 +1,40 @@
+# Directory containing X sessions
+x_sessions = "/etc/X11/Sessions/"
+# Directory containing text mode sessions
+text_sessions = "/etc/qingy/sessions/"
+
+# Full path to the 'xinit' executable
+xinit = "/usr/X11R6/bin/xinit"
+
+#	screensaver pixel	
+screensaver photos =
+	"/mnt/documenti/Immagini/Spazio/Caldo",
+	"/mnt/documenti/Immagini/Spazio/Freddo",
+	"/mnt/documenti/Immagini/Spazio/Fresco&Tiepido"
+
+# What theme do you want (you can also specify 'random')
+# theme = "default"
+
+# Who is allowed to shut down the system?
+# Allowed options are 'everyone', 'root', 'noone'
+# shutdown_policy = everyone
+
+# A test window
+window
+{
+	# window geometry
+	x       = 1000
+	y       = 20
+	width   = 200
+	height  = 30
+
+	# update time, 0 means do not update
+	time    = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type    = "label"
+
+	# In this case: what text do you want to display?
+	content = "pippo"
+}

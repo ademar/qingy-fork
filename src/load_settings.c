@@ -469,19 +469,51 @@ int add_window_to_list(window_t w)
   return 1;
 }
 
-int 
-get_win_type(const char* name)
+int get_win_type(const char* name)
 {
+	register int i;
   static char* types[]=
     {
-     "(none)", "label", "button", "login", "password", "combo", (char*) NULL
+			"(none)", "label", "button", "login", "password", "combo", (char*) NULL
     };
-  
-  register int i;
-  for(i=0; types[i]; ++i){
-    if(!strcmp(name, types[i]))
-      return i;
-  }
+    
+  for(i=0; types[i]; ++i)
+    if(!strcmp(name, types[i])) return i;
+
   return 0;
 }
 
+#ifdef DEBUG
+char *print_window_type(window_types_t type)
+{
+	switch (type)
+	{
+	case LABEL:    return "label";
+	case BUTTON:   return "button";
+	case LOGIN:    return "login";
+	case PASSWORD: return "password";
+	case COMBO:    return "combo";
+	case UNKNOWN:  /* fall trough */	
+	default:       return "invalid type!";
+	} 
+}
+
+void show_windows_list(void)
+{
+	window_t* temp = windowsList;
+
+	while (temp)
+	{
+		fprintf(stderr, "Found new window definition:\n");
+		fprintf(stderr, "\tx pos  is '%d'.\n", temp->x);
+		fprintf(stderr, "\ty pos  is '%d'.\n", temp->y);
+		fprintf(stderr, "\twidth  is '%d'.\n", temp->width);
+		fprintf(stderr, "\theight is '%d'.\n", temp->height);
+		fprintf(stderr, "\tpolling time is '%d' seconds.\n", temp->polltime);
+		fprintf(stderr, "\tcommand is '%s'.\n", temp->command);
+		fprintf(stderr, "\tcontent is '%s'.\n", temp->content);
+		fprintf(stderr, "\twindow type is '%s'.\n", print_window_type(temp->type));
+		temp = temp->next;
+	}	
+}
+#endif
