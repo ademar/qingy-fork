@@ -119,7 +119,7 @@ char *get_random_theme()
 	int n_themes = 0;
 	char *themes[128];
 	time_t epoch;
-	struct tm curr_time;	
+	struct tm curr_time;
 	int i;
 
 	dir= opendir(DATADIR);
@@ -205,17 +205,6 @@ int load_settings(void)
 			found = 1;
 		}
 		if (strcmp(tmp, "XINIT") == 0)
-		{
-			if (fscanf(fp, "%s", tmp) == EOF)
-			{
-				err = 1;
-				break;
-			}
-			XINIT = (char *) calloc(strlen(tmp)+1, sizeof(char));
-			strcpy(XINIT, tmp);
-			found = 1;
-		}
-		if (strcmp(tmp, "SCREEN_SAVER") == 0)
 		{
 			if (fscanf(fp, "%s", tmp) == EOF)
 			{
