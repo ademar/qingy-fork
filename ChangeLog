@@ -1,5 +1,13 @@
 2004-08-20  Noberasco Michele  <s4t4n@gentoo.org>
 
+	* media/pam/debian/qingy,
+	* media/pam/default/qingy,
+	* configure.in,
+	* media/pam/Makefile.am:
+	Differentiate qingy PAM module in a per-distribution way.
+	Now we have a debian specific one and a generic one
+	to be installed if distro is not debian
+
 	* src/libraries/Makefile.am (libqingy_la_LDFLAGS):
 	Add version number to qingy libraries...
 

@@ -209,6 +209,7 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 # Check wether we can determine the distribution we are running in
 	AC_MSG_CHECKING([for host distribution])
 	DISTRO="unknown"
+	PAMDATA="default/qingy"
 	if test "`ls /etc/*release   2>/dev/null | grep \"redhat\"`"    != ""; then
 		AC_DEFINE(redhat, 1, [Define if target platform is RadHat Linux])
 		DISTRO="redhat"
@@ -224,11 +225,13 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	if test "`ls /etc/debian*    2>/dev/null | grep \"debian\"`"    != ""; then
 		AC_DEFINE(debian, 1, [Define if target platform is Debian Linux])
 		DISTRO="debian"
+		PAMDATA="debian/qingy"
 	fi
 	if test "`ls /etc/slackware* 2>/dev/null | grep \"slackware\"`" != ""; then
 		AC_DEFINE(slackware, 1, [Define if target platform is Slackware Linux])
 		DISTRO="slackware"
 	fi
+	AC_SUBST(PAMDATA,)
 	AC_MSG_RESULT([$DISTRO])
 # End check for distribution
 

@@ -3,9 +3,11 @@
 pamdatadir = @PAMDIR@
 
 if USE_PAM
-pamdata_DATA = qingy
+pamdata_DATA = @PAMDATA@
 else
 pamdata_DATA =
 endif
 
-EXTRA_DIST = qingy
+EXTRA_DIST =          \
+    default/qingy     \
+    gentoo/qingy
