@@ -25,6 +25,10 @@
  *                                                                         *
  ***************************************************************************/
 
+#define BACKSPACE 8
+#define TAB       9
+#define RETURN   13
+#define ESCAPE   27
 
 /* macro for a safe call to DirectFB functions */
 #define DFBCHECK(x...)																					\

@@ -272,7 +272,7 @@ void show_lock_key_status(DFBInputEvent *evt, int force_draw)
 	{	/* All the necessary stuff to create a lock_window */
 		lock_window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
 		lock_window_desc.posx   = 0;
-		lock_window_desc.posy   = screen_height - (font_small_height + 1);
+		lock_window_desc.posy   = screen_height - (font_small_height);
 		lock_window_desc.width  = screen_width/5;
 		lock_window_desc.height = font_small_height;
 		lock_window_desc.caps   = DWCAPS_ALPHACHANNEL;
@@ -281,7 +281,7 @@ void show_lock_key_status(DFBInputEvent *evt, int force_draw)
 		lock_window_surface->Clear (lock_window_surface, 0x00, 0x00, 0x00, 0xff);
 		lock_window_surface->SetFont (lock_window_surface, font_small);
 		lock_window_surface->SetColor (lock_window_surface, MASK_TEXT_COLOR);
-		lock_window_surface->DrawString (lock_window_surface, "CAPS LOCK is pressed", -1, 0, lock_window_desc.height, DSTF_LEFT|DSTF_BOTTOM );
+		lock_window_surface->DrawString (lock_window_surface, "CAPS LOCK is pressed", -1, lock_window_desc.width/2, lock_window_desc.height+1, DSTF_CENTER|DSTF_BOTTOM );
 		lock_window_surface->Flip( lock_window_surface, NULL, 0 );
 		lock_window->SetOpacity( lock_window, 0x00 );
 		lock_window->RaiseToTop( lock_window );
@@ -414,46 +414,10 @@ void handle_mouse_event (DFBInputEvent *evt)
 	}
 }
 
-int handle_keyboard_input(char *input, char *buffer, int *length)
+int handle_keyboard_input(int *input, char *buffer, int *length)
 {
-	char typed = 0;
 
-	if (strncmp(input, "SMALL_", 6) == 0)
-	{
-		if (*length == MAX) return 0;
-		typed = input[6];
-		if ( (typed >= 'A') || (typed <= 'Z'))
-		{
-			buffer[*length] = typed - 'A' + 'a';
-			(*length)++;
-			buffer[*length] = '\0';
-
-			return 1;
-		}
-	}
-	if (strncmp(input, "CAPITAL_", 8) == 0)
-	{
-		if (*length == MAX) return 0;
-		typed = input[8];
-		if ( (typed >= 'A') || (typed <= 'Z'))
-		{
-			buffer[*length] = typed;
-			(*length)++;
-			buffer[*length] = '\0';
-			return 1;
-		}
-	}
-
-	if (strcmp(input, "SPACE") == 0)
-	{
-		if (*length == MAX) return 0;
-		buffer[*length] = ' ';
-		(*length)++;
-		buffer[*length] = '\0';
-		return 1;
-	}
-
-	if (strcmp(input, "BACKSPACE") == 0)
+	if (*input == BACKSPACE)
 	{
 		if ( !(*length) ) return 0;
 		(*length)--;
@@ -461,13 +425,21 @@ int handle_keyboard_input(char *input, char *buffer, int *length)
 		return 1;
 	}
 
-	/*if (strcmp(input, "BACKSPACE") == 0)*/
+	if ( (*input >= 32) && (*input <=255) ) /* ASCII */
+	{
+		if (*length == MAX) return 0;
+		buffer[*length] = *input;
+		(*length)++;
+		buffer[*length] = '\0';
+		return 1;
+	}
+
 	/*if (strcmp(input, "CURSOR_LEFT") == 0)*/
 	/*if (strcmp(input, "CURSOR_RIGHT") == 0)*/
 	return 0;
 }
 
-void username_event(char *input, char *output)
+void username_event(int *input, char *output)
 {
 	static char buffer[MAX];
 	static int length = 0;
@@ -498,7 +470,7 @@ void username_event(char *input, char *output)
 	if (output != NULL) strcpy(output, buffer);
 }
 
-void password_event(char *input, char *output)
+void password_event(int *input, char *output)
 {
 	static char buffer[MAX];
 	static int length = 0;
@@ -583,75 +555,64 @@ int handle_keyboard_event(DFBInputEvent *evt)
   /* we store here the symbol name of the last key the user pressed ...	*/
 	struct DFBKeySymbolName *symbol_name;
 	/* ... and here the previous one */
-	static DFBInputDeviceKeySymbol last_symbol = DIKS_NULL;
-	struct DFBKeyIdentifierName *id_name;
+	static int last_symbol;
 	int returnstatus = -1;
- int allow_tabbing = 1;
+ 	int allow_tabbing = 1;
+	int ascii_code = (int) evt->key_symbol;
 
+	fprintf(stderr, "U pressed '%d', and that is '%c'\n", ascii_code, ascii_code);
 	show_lock_key_status(evt, 0);
 	/* If user presses ESC two times, we bo back to text mode */
-	if (last_symbol == DIKS_ESCAPE && evt->key_symbol == DIKS_ESCAPE) return TEXT_MODE;
+	if ((last_symbol == ESCAPE) && (ascii_code == ESCAPE)) return TEXT_MODE;
 	/* We store the previous keystroke */
-	last_symbol = evt->key_symbol;
+	last_symbol = ascii_code;
 	symbol_name = bsearch (&(evt->key_symbol), keynames, sizeof (keynames) / sizeof (keynames[0]) - 1, sizeof (keynames[0]), compare_symbol);
-	id_name = bsearch(&(evt->key_id), idnames, sizeof(idnames) / sizeof(idnames[0]) - 1, sizeof(idnames[0]), compare_id );
-	/* we check if the user is pressing ALT-number with 1 <= number <= 12
-		 if so we close directfb mode and send him to that tty              */
 	if (modifier_is_pressed(evt) == ALT)
-	{
+	{ /* we check if the user is pressing ALT-number with 1 <= number <= 12
+		   if so we close directfb mode and send him to that tty              */
 		if (symbol_name)
-		{
 			if ((strlen (symbol_name->name) <= 3) && (strncmp (symbol_name->name, "F", 1) == 0))
 			{
 				temp = atoi (symbol_name->name + 1);
 				if ((temp > 0) && (temp < 13))
 					if (get_active_tty () != temp)
-					{
 						return temp;
-					}
 			}
-		}
 		/* we check if user press ALT-p or ALT-r to start shutdown/reboot sequence */
-		if (id_name)
-		{
-			char test= (id_name->name)[0];
-			if ((test == 'P')||(test == 'p')) begin_shutdown_sequence (POWEROFF);
-			if ((test == 'R')||(test == 'r')) begin_shutdown_sequence (REBOOT);
-			layer->EnableCursor (layer, 1);
-			return returnstatus;
-		}
+		if ((ascii_code == 'P')||(ascii_code == 'p')) begin_shutdown_sequence (POWEROFF);
+		if ((ascii_code == 'R')||(ascii_code == 'r')) begin_shutdown_sequence (REBOOT);
+		/* we get here only if user aborted shutdown */
+		layer->EnableCursor (layer, 1);
+		return returnstatus;
 	}
 
 	if (symbol_name)
 	{
 		/* Rock'n Roll! */
-		if (strcmp(symbol_name->name, "RETURN" ) == 0)
-		{
-			start_login_sequence(evt);
-		}
+		if (ascii_code == RETURN) start_login_sequence(evt);
 
 		/* user name events */
 		if (username_hasfocus && allow_tabbing)
 		{
-			if (strcmp(symbol_name->name, "TAB" ) == 0)
+			if (ascii_code == TAB)
 			{
 				username_hasfocus = 0;
 				password_hasfocus = 1;
 				allow_tabbing = 0;
 			}
-			else username_event(symbol_name->name, NULL);
+			else username_event(&ascii_code, NULL);
 		}
 
 		/* password events */
 		if (password_hasfocus && allow_tabbing)
 		{
-			if (strcmp(symbol_name->name, "TAB" ) == 0)
+			if (ascii_code == TAB)
 			{
 				password_hasfocus = 0;
 				session_hasfocus  = 1;
 				allow_tabbing = 0;
 			}
-			else password_event(symbol_name->name, NULL);
+			else password_event(&ascii_code, NULL);
 		}
 
 		/* session events */
@@ -659,7 +620,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 		{
 			if (strcmp(symbol_name->name, "CURSOR_UP"  ) == 0) print_session_name(UP);
 			if (strcmp(symbol_name->name, "CURSOR_DOWN") == 0) print_session_name(DOWN);
-			if (strcmp(symbol_name->name, "TAB" ) == 0)
+			if (ascii_code == TAB)
 			{
 				session_hasfocus  = 0;
 				username_hasfocus = 1;
@@ -670,7 +631,6 @@ int handle_keyboard_event(DFBInputEvent *evt)
 
 	/* Sometimes mouse cursor disappears after a keystroke, we make it visible again */
 	layer->EnableCursor (layer, 1);
-
 	return returnstatus;
 }
 
