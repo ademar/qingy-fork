@@ -54,10 +54,12 @@
 
 char *DEFAULT_THEME;
 
-void set_default_xsession_dir(void)
+void set_default_session_dirs(void)
 {
   X_SESSIONS_DIRECTORY = (char *) calloc(19, sizeof(char));
   strcpy(X_SESSIONS_DIRECTORY, "/etc/X11/Sessions/");
+  TEXT_SESSIONS_DIRECTORY = (char *) calloc(20, sizeof(char));
+  strcpy(TEXT_SESSIONS_DIRECTORY, "/etc/qingy/sessions");
 }
 
 void set_default_xinit(void)
@@ -99,11 +101,12 @@ void error(char *where)
 {
   if (!silent) fprintf(stderr, "load_settings: parse error in %s file... using defaults\n", where);
   if (X_SESSIONS_DIRECTORY) free(X_SESSIONS_DIRECTORY);
+  if (TEXT_SESSIONS_DIRECTORY) free(TEXT_SESSIONS_DIRECTORY);
   if (XINIT) free(XINIT);
   if (FONT) free(FONT);
   if (THEME_DIR) free(THEME_DIR);
-  X_SESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;
-  set_default_xsession_dir();
+  TEXT_SESSIONS_DIRECTORY = X_SESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;
+  set_default_session_dirs();
   set_default_xinit();
   set_default_font();
   set_default_colors();
@@ -164,7 +167,7 @@ int load_settings(void)
   char tmp[MAX];
   int temp[4];
 
-  X_SESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;
+  TEXT_SESSIONS_DIRECTORY = X_SESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;
 
   DATADIR = (char *) calloc(12, sizeof(char));
   strcpy(DATADIR, "/etc/qingy/");
@@ -182,7 +185,7 @@ int load_settings(void)
   if (!fp)
   {
     if (!silent) fprintf(stderr, "load_Settings: settings file not found...\nusing internal defaults\n");
-    set_default_xsession_dir();
+    set_default_session_dirs();
     set_default_xinit();
     set_default_font();
     set_default_colors();
@@ -203,6 +206,17 @@ int load_settings(void)
       }
       X_SESSIONS_DIRECTORY = (char *) calloc(strlen(tmp)+1, sizeof(char));
       strcpy(X_SESSIONS_DIRECTORY, tmp);
+      found=1;
+    }
+    if (strcmp(tmp, "TEXT_SESSIONS_DIRECTORY") == 0)
+    {
+      if (fscanf(fp, "%s", tmp) == EOF)
+      {
+	err = 1;
+	break;
+      }
+      TEXT_SESSIONS_DIRECTORY = (char *) calloc(strlen(tmp)+1, sizeof(char));
+      strcpy(TEXT_SESSIONS_DIRECTORY, tmp);
       found=1;
     }
     if (strcmp(tmp, "MAX_TTY") == 0)
@@ -258,7 +272,7 @@ int load_settings(void)
   }
   fclose(fp);
 
-  if (!X_SESSIONS_DIRECTORY) set_default_xsession_dir();
+  if (!X_SESSIONS_DIRECTORY) set_default_session_dirs();
   if (!XINIT) set_default_xinit();
   if (!theme)
   {
@@ -466,6 +480,6 @@ int set_last_session(char *user, char *session)
 
 void my_exit(int n)
 {
-  free_stuff(8, DATADIR, SETTINGS, LAST_USER, X_SESSIONS_DIRECTORY, XINIT, FONT, BACKGROUND, THEME_DIR);
+  free_stuff(8, DATADIR, SETTINGS, LAST_USER, TEXT_SESSIONS_DIRECTORY, X_SESSIONS_DIRECTORY, XINIT, FONT, BACKGROUND, THEME_DIR);
   exit(n);
 }

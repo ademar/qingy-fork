@@ -175,45 +175,60 @@ char *get_sessions(void)
   static DIR *dir;
   struct dirent *entry;
   static int status = 0;
+  static char *dirname = NULL;
   char *temp;
 
-  if (!status)
+  if (!dirname) dirname = X_SESSIONS_DIRECTORY;
+
+  switch (status)
   {
+  case 0:
     temp = (char *) calloc(13, sizeof(char));
-    strcpy(temp, "Text Console");
+    strcpy(temp, "Text: Console");
     status = 1;
     return temp;
-  }
-
-  if (status == 1)
-  {
-    dir= opendir(X_SESSIONS_DIRECTORY);
+  case 1:
+    dir= opendir(dirname);
     if (!dir)
     {
       status = 0;
-      fprintf(stderr, "session: unable to open directory \"%s\"\n", X_SESSIONS_DIRECTORY);
+      fprintf(stderr, "session: unable to open directory \"%s\"\n", dirname);
       return NULL;
     }
     status = 2;
-  }
-
-  if (status == 2)
-  {
+  case 2:
     while (1)
     {
       if (!(entry= readdir(dir))) break;
       if (!strcmp(entry->d_name, "." )) continue;
       if (!strcmp(entry->d_name, "..")) continue;
-      if (!strcmp(entry->d_name, "Xsession")) continue;
-      temp = (char *) calloc(strlen(entry->d_name)+1, sizeof(char));
-      strcpy(temp, entry->d_name);
+      if (dirname == X_SESSIONS_DIRECTORY && !strcmp(entry->d_name, "Xsession")) continue;
+      if (dirname == X_SESSIONS_DIRECTORY)
+      {
+	temp = (char *) calloc(strlen(entry->d_name)+1, sizeof(char));
+	strcpy(temp, entry->d_name);
+      }
+      else
+      {
+	temp = (char *) calloc(strlen(entry->d_name)+7, sizeof(char));
+	strcpy(temp, "Text: ");
+	strcat(temp, entry->d_name);
+      }
       return temp;
     }
-
-    status = 3;
     closedir(dir);
-    return NULL;
+    if (dirname == TEXT_SESSIONS_DIRECTORY)
+    {
+      dirname = NULL;
+      status = 0;
+      return NULL;
+    }
+    dirname = TEXT_SESSIONS_DIRECTORY;
+    status = 1;
+    return get_sessions();
   }
+
+  return NULL;
 }
 
 /* write events to system logs */
@@ -493,14 +508,24 @@ void dolastlog(struct passwd *pwd, int quiet)
   free(tty_name);
 }
 
-void Text_Login(struct passwd *pw, char *username)
+void Text_Login(struct passwd *pw, char *session, char *username)
 {
   pid_t proc_id;
   int retval;
-  char *args[2];
+  char *args[4];
 
   args[0] = shell_base_name(pw->pw_shell);
-  args[1] = NULL;
+
+  if (session && !strcmp(session, "Console"))
+    args[1] = NULL;
+  else
+  {
+    FILE *fp = fopen("/pippo", "w");
+    args[1] = "-c";
+    args[2] = StrApp((char **)0, TEXT_SESSIONS_DIRECTORY, session, (char *)0);
+    fprintf(fp, "from %s and %s to '%s'\n", TEXT_SESSIONS_DIRECTORY, session, args[2]); fclose(fp);
+    args[3] = NULL;
+  }
 
   proc_id = fork();
   if (proc_id == -1)
@@ -707,11 +732,7 @@ void start_session(char *username, char *session)
   }
 #endif
 
-  if (strcmp(session, "Text Console") == 0)
-  {
-    free(session);
-    Text_Login(pwd, username);
-  }
+  if (strncmp(session, "Text: ", 6) == 0) Text_Login(pwd, session+6, username);
   else Graph_Login(pwd, session, username);
 
   /* we don't get here unless we couldn't start user session */
