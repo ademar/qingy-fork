@@ -19,7 +19,8 @@ typedef struct _ss_env
   IDirectFBEventBuffer * screen_saver_events;
 	int silent;
   int screen_width;
-  int screen_height;  
+  int screen_height;
+	char *data_dir;
   char** params;
 } Q_screen_t;
 

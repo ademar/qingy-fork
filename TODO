@@ -24,9 +24,6 @@
 * Make code compliant to the GNU Coding Standards.. That is to be done in order
   to try inclusion in the GNU Project.
 
-- Make qingy install its stuff in a way that conforms to the file system
-  hierarchy standards (much too much stuff in /etc ;-P right now)
-
 - Add support for handling console bootsplash from inside qingy? That is: qingy
   background becomes framebuffer background when you log in...
 
@@ -37,6 +34,8 @@
 - Some command line options should migrate to config file...
 
 - Add support for wildcards in paths in config files...
+
+- Add option to disable compilation of non esential stuff like screen savers.
 
 --
 Items marked as * are those we are currently working on.

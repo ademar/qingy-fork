@@ -89,14 +89,15 @@ void activate_screen_saver(void)
   if (!screen_saver_events) return;
   
   screen_saver_surface->GetSize(screen_saver_surface, &(screenEnv.screen_width), &(screenEnv.screen_height));
-  screenEnv.surface=screen_saver_surface;
-  screenEnv.dfb=screen_saver_dfb;
-  screenEnv.screen_saver_events=screen_saver_events;
-  screenEnv.params=il2cc(screensaver_options);
-	screenEnv.silent = silent;
+  screenEnv.surface             = screen_saver_surface;
+  screenEnv.dfb                 = screen_saver_dfb;
+  screenEnv.screen_saver_events = screen_saver_events;
+  screenEnv.params              = il2cc(screensaver_options);
+	screenEnv.silent              = silent;
+	screenEnv.data_dir            = SCREENSAVERS_DIR;
 
   /* get what screensaver we want and load it */
-  ssv_name=StrApp((char **)NULL, DATADIR, "screensavers/", SCREENSAVER, ".qss", (char*)NULL);
+  ssv_name=StrApp((char **)NULL, SCREENSAVERS_DIR, "/", SCREENSAVER, ".qss", (char*)NULL);
   handle=dlopen(ssv_name, RTLD_NOW); 
   if (!handle) { 
     clear_screen();

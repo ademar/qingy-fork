@@ -1,12 +1,13 @@
-AC_INIT([qingy],[0.4.0CVS],[noberasco.gnu@disi.unige.it])
+AC_INIT([qingy],[0.4.0],[noberasco.gnu@disi.unige.it])
 AC_PREREQ(2.58)
 AC_CONFIG_SRCDIR(src/main.c)
-AM_INIT_AUTOMAKE()
+AM_INIT_AUTOMAKE(dist-bzip2)
 
 AC_GNU_SOURCE
+AC_LIBTOOL_DLOPEN
+AC_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_CC
-AC_PROG_RANLIB
 AM_PROG_LEX
 AC_PROG_YACC
 AM_PATH_LISPDIR
@@ -153,8 +154,18 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	echo "# Full path to the 'xinit' executable" >> media/settings
 	echo "xinit = \"$XINIT\"" >> media/settings
 	echo "" >> media/settings
+	echo "# Where are the screen savers?" >> media/settings
+	echo "screensavers_dir = \"/usr/lib/qingy/screensavers\"" >> media/settings
+	echo "" >> media/settings
 	echo "#       screensaver \"pixel\"" >> media/settings
 	echo "screensaver \"running_time\"#=\"%H:%S:%M\"" >> media/settings
+	echo "" >> media/settings
+	echo "# Where are the themes?" >> media/settings
+	echo "themes_dir = \"/usr/share/qingy/themes\"" >> media/settings
+	echo "" >> media/settings
+	echo "# What theme do you want (you can also specify 'random')" >> media/settings
+	echo "# theme = random" >> media/settings
+	echo "theme = \"default\"" >> media/settings
 	echo "" >> media/settings
 	echo "# Who is allowed to shut down the system?" >> media/settings
 	echo "# Allowed options are 'everyone', 'root', 'noone'" >> media/settings
@@ -164,10 +175,6 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	echo "# this is the default setting, it gets overridden if the theme you are using" >> media/settings
 	echo "# sets the same setting differently..." >> media/settings
 	echo "# clear_background = yes" >> media/settings
-	echo "" >> media/settings
-	echo "# What theme do you want (you can also specify 'random')" >> media/settings
-	echo "# theme = random" >> media/settings
-	echo "theme = \"default\"" >> media/settings
 	echo "" >> media/settings
 	echo "# wether to allow session locking; if you enable this, when you try to" >> media/settings
 	echo "# switch to a qingy-controlled tty whose owner is not your current" >> media/settings
@@ -186,11 +193,18 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	echo "done"
 # End creation of config files
 
-PREFIX=""
-AC_PREFIX_DEFAULT ($PREFIX)
-AC_SUBST(infodir,"[/usr/share/info]")
+# Set up the install dirs
+	PREFIX=""
+	AC_PREFIX_DEFAULT ([$PREFIX])
+	AC_SUBST(infodir,          "[/usr/share/info/]")
+	AC_SUBST(pkglibdir,        "[/usr/lib/qingy/]")
+	AC_SUBST(LIB_DIR,          "[/usr/lib/qingy/]")
+	AC_SUBST(SCREENSAVERS_DIR, "[/usr/lib/qingy/screensavers/]")
+	AC_SUBST(THEMES_DIR,       "[/usr/share/qingy/themes/]")
+	CFLAGS="$CFLAGS -DPKGLIBDIR=\\\"$pkglibdir\\\""
+# Done setting up install dirs
 
-AC_CONFIG_FILES([                                \
+AC_CONFIG_FILES([                          \
 	Makefile                                 \
 	src/Makefile                             \
 	src/DirectFB/Makefile                    \

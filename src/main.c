@@ -46,6 +46,8 @@
 #include <unistd.h>
 #include <time.h>
 
+#include <dlfcn.h>
+
 #include "chvt.h"
 #include "misc.h"
 #include "directfb_mode.h"
@@ -60,6 +62,7 @@
 
 
 char *fb_device = NULL;
+
 
 
 void PrintUsage()
@@ -128,7 +131,7 @@ void start_up(void)
   int argc = 2;
 	char *resolution;
   char *argv[3];
-  
+
   /* First of all, we lock vt switching */
   lock_tty_switching();
   
@@ -148,9 +151,37 @@ void start_up(void)
   argv[2]= NULL;
 	if (resolution) free(resolution);
 	if (fb_device)  free(fb_device);
-  
-  /* Now we try to initialize the framebuffer */
-  returnstatus = directfb_mode(argc, argv);		
+
+	{
+		void *handle;
+		int (*directfb_mode)(int, char**);
+		char *error;
+		char *libname = StrApp((char**)NULL, PKGLIBDIR, "libdirectfb.so", (char*)NULL);
+
+		handle = dlopen (libname, RTLD_LAZY);
+		free(libname);
+		if (!handle)
+		{
+			fprintf (stderr, "%s\n", dlerror());
+			sleep(2);
+			exit(1);
+		}
+
+		dlerror();    /* Clear any existing error */		
+		directfb_mode = dlsym(handle, "directfb_mode");
+		if ((error = dlerror()) != NULL)
+		{
+			fprintf (stderr, "%s\n", error);
+			sleep(2);
+			exit(1);
+		}
+
+		returnstatus = (*directfb_mode)(argc, argv);
+		dlclose(handle);
+	}
+
+	/* let's go! */
+  /* returnstatus = directfb_mode(argc, argv); */
   
   /* We get here only if directfb fails or user wants to change tty */  
   free(argv[1]); free(argv[0]);
@@ -276,7 +307,9 @@ int main(int argc, char *argv[])
   int user_tty_number;
   int our_tty_number;
   struct timespec delay;
-  
+
+	/* load_libraries(); */	
+
   /* We set up a delay of 0.5 seconds */
   delay.tv_sec  = 0;
   delay.tv_nsec = 500000000;	/* that's 500M; NOTE (michele): I know, now what? */

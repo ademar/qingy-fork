@@ -35,6 +35,7 @@
 void 
 screen_saver_entry(Q_screen_t env)
 {
+	char *font_path;
   unsigned int seconds=0;
   unsigned int milli_seconds=100;
   int i, j;
@@ -45,7 +46,11 @@ screen_saver_entry(Q_screen_t env)
   char curspeed[COLS];
   IDirectFBFont *font;
   DFBFontDescription font_dsc;
-  
+
+	font_path = (char *) calloc(strlen(env.data_dir)+10, sizeof(char));
+	strcpy(font_path, env.data_dir);
+	strcat(font_path, "/matr.ttf");
+
   /* initialize matrix to 0 */
   for(i=0; i<COLS; i++){
     for(j=1; j<ROWS; j++){
@@ -76,7 +81,7 @@ screen_saver_entry(Q_screen_t env)
 		}
 		font_dsc.flags = DFDESC_HEIGHT;
 		font_dsc.height = 30;
-		env.dfb->CreateFont(env.dfb, "/etc/qingy/screensavers/matr.ttf", &font_dsc, &font);
+		env.dfb->CreateFont(env.dfb, font_path, &font_dsc, &font);
 		env.surface->SetFont(env.surface, font);
 		env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0x01);
 		env.surface->SetColor (env.surface, 0x10, 0xA0, 0x10, 0xff);

@@ -68,7 +68,8 @@ static window_t wind =
 }
 
 /* settings only lvals */
-%token SCREENSAVER_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK SHUTDOWN_TOK TTY_TOK
+%token SCREENSAVER_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK 
+%token SHUTDOWN_TOK TTY_TOK SCRSVRS_DIR_TOK THEMES_DIR_TOK
 
 /* windows && theme blocks */
 %token THEME_TOK WINDOW_TOK 
@@ -112,6 +113,8 @@ static window_t wind =
 config: /* nothing */
 | config tty_specific
 | config lck_sess
+| config scrsvrs_dir
+| config themes_dir
 | config ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config xsessdir
 | config txtsessdir
@@ -129,6 +132,8 @@ tty_specific: TTY_TOK '=' ANUM_T { intended_tty = $3; } '{' config_tty '}' { int
 /* tty specific allowed configuration */
 config_tty: /* nothing */
 | config_tty lck_sess
+| config_tty scrsvrs_dir
+| config_tty themes_dir
 | config_tty ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config_tty xsessdir
 | config_tty txtsessdir
@@ -141,9 +146,15 @@ config_tty: /* nothing */
 ;
 
 /* options to enable or disable session locking */
-lck_sess: LOCK_SESSIONS_TOK '=' YES_TOK { TTY_CHECK_COND {lock_sessions = 1;} }
-|         LOCK_SESSIONS_TOK '=' NO_TOK  { TTY_CHECK_COND {lock_sessions = 0;} }
+lck_sess: LOCK_SESSIONS_TOK '=' YES_TOK { TTY_CHECK_COND lock_sessions = 1; }
+|         LOCK_SESSIONS_TOK '=' NO_TOK  { TTY_CHECK_COND lock_sessions = 0; }
 ;
+
+/* where are located the screen savers? */
+scrsvrs_dir: SCRSVRS_DIR_TOK '=' QUOTSTR_T { TTY_CHECK_COND SCREENSAVERS_DIR = strdup($3); };
+
+/* where are located the themes? */
+themes_dir: THEMES_DIR_TOK '=' QUOTSTR_T { TTY_CHECK_COND THEMES_DIR = strdup($3); };
 
 /* Screensaver: "name" or "name" = "option", "option"  */
 ssav:	SCREENSAVER_TOK QUOTSTR_T { TTY_CHECK_COND {SSAVER_CHECK_COND SCREENSAVER = $2;} }

@@ -29,6 +29,10 @@ qingy CVS:
   user, you will be asked for the password of that user before being
   allowed to continue. If you are root, of course, you can switch
   to any tty you chose to. Default setting is 'no'.
+- Made qingy install its stuff in a way that conforms to the file
+	system hierarchy standards (themes are now installed to
+	/usr/share/qingy/themes, screen savers to
+	/usr/lib/qingy/screensavers).
 
 qingy 0.3.0 (09 January 2004):
 - New memory allocation/deallocation management

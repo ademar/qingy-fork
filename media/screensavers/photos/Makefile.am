@@ -1,5 +1,7 @@
-pkglibdir = $(prefix)/etc/qingy/screensavers
+pkglibdir          = $(prefix)@SCREENSAVERS_DIR@
+
 pkglib_PROGRAMS    = photos.qss
 photos_qss_SOURCES = photos.c
-INCLUDES  = -Iobjects -I../ -I/etc/qingy/screensavers -I../../../src/DirectFB/objects/
+
+INCLUDES  = -I../../../src/DirectFB/objects/
 AM_CFLAGS = @DIRECTFB_CFLAGS@ -fpic -shared

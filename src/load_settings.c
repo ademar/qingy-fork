@@ -67,11 +67,13 @@ void initialize_variables(void)
   SCREENSAVER             = NULL;  
   TEXT_SESSIONS_DIRECTORY = NULL;
   X_SESSIONS_DIRECTORY    = NULL;
+	SCREENSAVERS_DIR        = NULL;
   BACKGROUND              = NULL;
+	THEMES_DIR              = NULL;
   THEME_DIR               = NULL;
   LAST_USER               = NULL;
   SETTINGS                = NULL;	
-  DATADIR                 = NULL;
+  DATADIR                 = NULL;	
   XINIT                   = NULL;
   FONT                    = NULL;
   screensaver_options     = NULL;
@@ -175,7 +177,7 @@ void add_to_options(char *option)
 char *get_random_theme()
 {
   DIR *dir;
-  char *themes_dir = StrApp((char**)NULL, DATADIR, "themes/", (char*)NULL);
+  char *themes_dir = StrApp((char**)NULL, THEMES_DIR, "/", (char*)NULL);
   char *result;
   struct dirent *entry;
   int n_themes = 0;
@@ -240,7 +242,7 @@ void yyerror(char *error)
   free(XINIT);
   free(FONT);
   free(THEME_DIR);
-  THEME_DIR = StrApp((char**)NULL, DATADIR, "themes/default/", (char*)NULL);
+  THEME_DIR = StrApp((char**)NULL, THEMES_DIR, "/default/", (char*)NULL);
   set_default_session_dirs();
   set_default_xinit();
   set_default_font();

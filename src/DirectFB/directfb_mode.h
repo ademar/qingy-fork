@@ -32,4 +32,4 @@
 
 /* Init framebuffer mode */
 int directfb_mode(int argc, char *argv[]);
-void clear_screen(void);
+/* void clear_screen(void); */

@@ -153,10 +153,11 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 	static int already_sniffed = 0;
 	int retval;
 	char *intruder;
-	char *file = create_tty_name(where_was_intruder);
+	char *file;
 
 	if (already_sniffed == where_was_intruder) return;
 
+	file = create_tty_name(where_was_intruder);
 	intruder = get_file_owner(file);
 	free(file);
 	if (!strcmp(intruder, dog_master))
@@ -170,11 +171,12 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 	{ /*
 		 * there are 2 possibilities here:
 		 * - tty is unused (thus we cannot know the user)
-		 * - tty is not free (probably an X session),
-		 *   we check owner of /dev/vc/<where_was_intruder>
+		 * - tty is in use (probably an X session), thus either:
+		 *   - check wether qingy is running in this terminal, then
+		 *   - check owner of /dev/vc/<where_was_intruder>
 		 */
 		if (!is_tty_available(where_was_intruder))
-		{ /* vt is in use: we check owner of /dev/vc/<where_was_intruder> */
+		{ /* tty is in use: we check owner of /dev/vc/<where_was_intruder> */
 			char *temp = int_to_str(where_was_intruder);
 
 			free(intruder);
@@ -207,6 +209,7 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 		return;
 	}
 
+	/* user has authenticated correctly */
 	set_active_tty(send_him_here);
 	already_sniffed = where_was_intruder;
 }

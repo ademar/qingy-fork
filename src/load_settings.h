@@ -43,6 +43,7 @@ int lock_sessions;
 /* NOTE: some of these should become #defines through autoconf... */
 char *program_name;
 char *DATADIR;
+char *SCREENSAVERS_DIR;
 char *SETTINGS;
 char *LAST_USER;
 char *X_SESSIONS_DIRECTORY;
@@ -51,6 +52,7 @@ char *XINIT;
 char *FONT;
 char *BACKGROUND;
 char *THEME_DIR;
+char *THEMES_DIR;
 
 int BUTTON_OPACITY;
 int WINDOW_OPACITY;

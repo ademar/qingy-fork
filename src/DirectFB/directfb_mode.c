@@ -50,7 +50,6 @@
 #include "label.h"
 #include "screen_saver.h"
 
-
 typedef enum
 {
 	STOP,

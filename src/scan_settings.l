@@ -136,6 +136,8 @@ no                      return NO_TOK;
 clear_background        return CLEAR_BACKGROUND_TOK;
 tty                     return TTY_TOK;
 lock_sessions           return LOCK_SESSIONS_TOK;
+screensavers_dir        return SCRSVRS_DIR_TOK;
+themes_dir              return THEMES_DIR_TOK;
 
 "#"[^\n]*"\n" ;			/* skip comments */
 
@@ -170,7 +172,7 @@ int set_theme(char *theme)
   char* file;
   if (!theme) return 0;
   
-  THEME_DIR = StrApp((char**)NULL, DATADIR, "themes/", theme, "/", (char*)NULL);
+  THEME_DIR = StrApp((char**)NULL, THEMES_DIR, "/", theme, "/", (char*)NULL);
   file = StrApp((char**)NULL, THEME_DIR, "theme", (char*)NULL);
   settings_buf=YY_CURRENT_BUFFER;
   yyin = fopen(file, "r");

@@ -1,4 +1,26 @@
+2004-02-16  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* lost_track_of_all_of_them: 
+	begin work on creating shared libraries and linking to them
+	instead of creating a huge binary
+
 2004-02-12  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* media/default/Makefile.am,
+	* configure.in,
+	* src/scan_settings.l,
+	* src/parse_settings.y,
+	* src/DirectFB/objects/screen_saver.c,
+	* src/load_settings.c,
+	* src/load_settings.h,
+	* media/screensavers/matrix/matrix.c,
+	* media/screensavers/matrix/Makefile.am,
+	* media/screensavers/pixel/Makefile.am,
+	* media/screensavers/photos/Makefile.am,
+	* media/screensavers/running_time/Makefile.am:
+	conform to file system hierarchy standards: screen savers
+	go to /usr/lib/qingy/screensavers, themes to
+	/usr/share/qingy/themes
 
 	* src/tty_guardian.c,
 	* src/chvt.h,
@@ -6,7 +28,7 @@
 	* src/misc.h,
 	* src/misc.c:
 	completed session locking: it should work well
-	undel all conditions, now. Again, this is what
+	under all conditions, now. Again, this is what
 	it does (and it really does it, now):
 	if you enable this, when you try to switch to a qingy-controlled tty
 	whose owner is not your current user, you will be asked
