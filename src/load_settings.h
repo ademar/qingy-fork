@@ -78,6 +78,8 @@ typedef enum _kinds
 screensaver_kinds SCREENSAVER;
 
 
+/* init to NULL some stuff */
+void initialize_variables(void);
 
 /* get program settings from config file */
 int load_settings(void);

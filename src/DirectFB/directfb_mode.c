@@ -384,7 +384,7 @@ void begin_shutdown_sequence (int action)
   /* we should never get here unless call to /sbin/shutdown fails */
   fprintf (stderr, "\nfatal error: unable to exec \"/sbin/shutdown\"!\n");
   if (!no_shutdown_screen) close_framebuffer_mode ();
-  my_exit (EXIT_FAILURE);
+  exit (EXIT_FAILURE);
 }
 
 void handle_mouse_event (DFBInputEvent *evt)
@@ -483,10 +483,10 @@ void start_login_sequence(DFBInputEvent *evt)
   else primary->DrawString (primary, "Starting selected session...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
   primary->Flip (primary, NULL, DSFLIP_BLIT);
   sleep(1);
-  user_name = (char *) my_calloc(strlen(temp)+1, sizeof(char));
+  user_name = (char *) calloc(strlen(temp)+1, sizeof(char));
   strcpy(user_name, temp);
   if (free_temp) free(temp);
-  user_session = (char *) my_calloc(strlen(session->selected->name)+1, sizeof(char));
+  user_session = (char *) calloc(strlen(session->selected->name)+1, sizeof(char));
   strcpy(user_session, session->selected->name);
   close_framebuffer_mode();
   start_session(user_name, user_session);
@@ -495,7 +495,7 @@ void start_login_sequence(DFBInputEvent *evt)
   free(user_name); user_name = NULL;
   free(user_session); user_session = NULL;
   fprintf(stderr, "Go tell my creator his brains went pop!\n");
-  my_exit(0);
+  exit(0);
 }
 
 int handle_keyboard_event(DFBInputEvent *evt)

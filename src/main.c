@@ -108,8 +108,8 @@ void start_up(void)
   ClearScreen();
 
   /* Set up some stuff */
-  argv[0]= (char *) my_calloc(6,  sizeof(char));
-  argv[1]= (char *) my_calloc(50, sizeof(char));
+  argv[0]= (char *) calloc(6,  sizeof(char));
+  argv[1]= (char *) calloc(50, sizeof(char));
   strcpy(argv[0], "qingy");
   strcpy(argv[1], "--dfb:no-vt-switch,bg-none");
   if (silent) strcat(argv[1], ",quiet");
@@ -240,6 +240,7 @@ int main(int argc, char *argv[])
   unlock_tty_switching();
 
   /* We set up some default values */
+	initialize_variables();
 	image_paths = NULL;
   black_screen_workaround = 0;
   silent = 1;

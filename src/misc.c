@@ -55,8 +55,14 @@
 #include "misc.h"
 #include "load_settings.h"
 
+
+#ifdef defined_my_calloc
+#undef calloc
+#undef free
+#define redef_calloc 1
+#endif
 void *my_calloc(size_t nmemb, size_t size)
-{
+{	
   void *temp = calloc(nmemb, size);
   if (!temp)
   {
@@ -66,6 +72,35 @@ void *my_calloc(size_t nmemb, size_t size)
 
   return temp;
 }
+void my_free(void *ptr)
+{
+	if (!ptr) return;
+	free(ptr);
+	ptr=NULL;
+}
+void my_exit(int n)
+{
+	/* We reenable VT switching if it is disabled */
+	unlock_tty_switching();
+
+  my_free(DATADIR);
+	my_free(SETTINGS);
+	my_free(LAST_USER);
+	my_free(TEXT_SESSIONS_DIRECTORY);
+	my_free(X_SESSIONS_DIRECTORY);
+	my_free(XINIT);
+	my_free(FONT);
+	my_free(BACKGROUND);
+	my_free(THEME_DIR);
+
+  exit(n);
+}
+#ifdef redef_calloc
+#define calloc my_calloc
+#define free   my_free
+#define exit   my_exit
+#undef redef_calloc
+#endif
 
 int int_log10(int n)
 {
@@ -83,7 +118,7 @@ char *int_to_str(int n)
 
   if (n<0) return NULL;
   lun= int_log10(n);
-  temp= (char *) my_calloc((size_t)(lun+2), sizeof(char));
+  temp= (char *) calloc((size_t)(lun+2), sizeof(char));
   temp[lun+1]= '\0';
   while (lun>=0)
   {
@@ -133,7 +168,7 @@ int get_line(char *tmp, FILE *fp, int max)
 
 char *print_welcome_message(char *preamble, char *postamble)
 {
-  char *text = (char *) my_calloc(MAX, sizeof(char));
+  char *text = (char *) calloc(MAX, sizeof(char));
   int len;
 
   if (preamble) strncpy(text, preamble, MAX-1);
@@ -142,26 +177,6 @@ char *print_welcome_message(char *preamble, char *postamble)
   if (postamble) strncat(text, postamble, MAX-1);
 
   return text;
-}
-
-/* free any number of malloced strings */
-void free_stuff(int n, ...)
-{
-  va_list va;
-  char *pt;
-
-  va_start(va, n);
-  for (; n>0 ; n--)
-  {
-    pt = va_arg(va, char *);
-    if (pt)
-    {
-      memset((char *)pt, 0, strlen(pt)*sizeof(char));
-      free(pt);
-      pt = NULL;
-    }
-  }
-  va_end(va);
 }
 
 /* append any number of strings to dst */
@@ -180,7 +195,7 @@ char *StrApp (char **dst, ...)
     len += strlen(pt);
   }
   va_end (va);
-  temp = (char *) my_calloc((size_t)len, sizeof(char));
+  temp = (char *) calloc((size_t)len, sizeof(char));
   if (dst) if (*dst)
   {
     strcpy(temp, *dst);

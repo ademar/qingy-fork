@@ -115,7 +115,7 @@ Button *Button_Create(const char *normal, const char *mouseover, int relx, int r
 	IDirectFBSurface *surface;
 	DFBWindowDescription window_desc;
 
-	but = (Button *) my_calloc (1, sizeof (Button));
+	but = (Button *) calloc (1, sizeof (Button));
 	but->normal = load_image (normal, primary, dfb);
 	but->normal->GetSize (but->normal, (int *)&(but->width), (int *)&(but->height));
 	but->mouseover = load_image (mouseover, primary, dfb);

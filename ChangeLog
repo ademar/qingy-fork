@@ -1,4 +1,5 @@
 qingy CVS:
+- New memory allocation/deallocation management
 - Unlock vt switching before dying (yes, this was annoying)
 - Solved a bug that made qingy crash when you switched to its
   tty after some time it had been sitting there. Basically

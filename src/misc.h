@@ -28,7 +28,15 @@
 
 #define MAX 255
 
-void *my_calloc(size_t nmemb, size_t size);
+
+/* safe allocation and deallocation */
+#define calloc my_calloc
+#define free   my_free
+#define exit   my_exit
+#define defined_my_calloc 1
+void *my_calloc(size_t  nmemb, size_t size);
+void  my_free  (void   *ptr);
+void  my_exit  (int     n);
 
 /* Converts an unsigned inteter to a string */
 char *int_to_str(int n);
@@ -54,9 +62,6 @@ int get_line(char *tmp, FILE *fp, int max);
 
 /* Prints a welcome message */
 char *print_welcome_message(char *preamble, char *postamble);
-
-/* free any number of malloced strings */
-void free_stuff(int n, ...);
 
 /* checks wether <what> is a directory */
 int is_a_directory(char *what);

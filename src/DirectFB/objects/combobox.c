@@ -98,21 +98,21 @@ void ComboBox_AddItem(ComboBox *thiz, char *object)
   if (!thiz || !object) return;
   if (!thiz->items)
   {
-    thiz->items = (item *) my_calloc(1, sizeof(item));
+    thiz->items = (item *) calloc(1, sizeof(item));
     thiz->items->next = thiz->items;
     thiz->items->prev = thiz->items;
-    thiz->items->name = (char *) my_calloc(strlen(object)+1, sizeof(char));
+    thiz->items->name = (char *) calloc(strlen(object)+1, sizeof(char));
     strcpy(thiz->items->name, object);
     thiz->selected = thiz->items;
     return;
   }
   curr = thiz->items;
   while(curr->next != thiz->items) curr = curr->next;
-  curr->next = (item *) my_calloc(1, sizeof(item));
+  curr->next = (item *) calloc(1, sizeof(item));
   curr->next->next = thiz->items;
   curr->next->prev = curr;
   thiz->items->prev = curr->next;
-  curr->next->name = (char *) my_calloc(strlen(object)+1, sizeof(char));
+  curr->next->name = (char *) calloc(strlen(object)+1, sizeof(char));
   strcpy(curr->next->name, object);
 }
 
@@ -162,7 +162,7 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFB
 {
   ComboBox *newbox = NULL;
 
-  newbox = (ComboBox *) my_calloc(1, sizeof(ComboBox));
+  newbox = (ComboBox *) calloc(1, sizeof(ComboBox));
   newbox->items      = NULL;
   newbox->selected   = NULL;
   newbox->xpos       = (unsigned int) window_desc->posx;

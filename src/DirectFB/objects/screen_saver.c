@@ -169,10 +169,17 @@ int load_images_list(void)
 			{
 				if (n_images == max)
 				{
+					char **temp;
 					max+= 100;
-					images = (char **) realloc(images, max*sizeof(char *));					
+					temp = (char **) realloc(images, max*sizeof(char *));
+					if (!temp)
+					{
+						fprintf(stderr, "screen_saver: memory allocation failure!\n");
+						abort();
+					}
+					images = temp;
 				}
-				char *temp= (char *) my_calloc(strlen(paths->path)+strlen(entry->d_name)+2, sizeof(char));
+				char *temp= (char *) calloc(strlen(paths->path)+strlen(entry->d_name)+2, sizeof(char));
 				strcpy(temp, paths->path);
 				if (*(temp+strlen(temp)-1) != '/') strcat(temp, "/");
 				strcat(temp, entry->d_name);

@@ -75,7 +75,7 @@ void Label_SetText(Label *thiz, char *text, int alignment)
 {
 	if (!thiz || !text) return;
 	if (thiz->text) Label_ClearText(thiz);
-	thiz->text = (char *) my_calloc(strlen(text)+1, sizeof(char));
+	thiz->text = (char *) calloc(strlen(text)+1, sizeof(char));
 	strcpy(thiz->text, text);
 	thiz->alignment = alignment;
 	Plot(thiz);
@@ -122,7 +122,7 @@ Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWindow
 {
 	Label *newlabel = NULL;
 
-	newlabel = (Label *) my_calloc(1, sizeof(Label));
+	newlabel = (Label *) calloc(1, sizeof(Label));
 	newlabel->text     = NULL;
 	newlabel->xpos     = (unsigned int) window_desc->posx;
 	newlabel->ypos     = (unsigned int) window_desc->posy;

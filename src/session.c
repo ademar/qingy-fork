@@ -109,7 +109,7 @@ int PAM_conv (int num_msg, pam_message_type **msg, struct pam_response **resp, v
   struct pam_response *reply;
 
   if (appdata_ptr) {}
-  if (!(reply = my_calloc(num_msg, sizeof(*reply)))) return PAM_CONV_ERR;
+  if (!(reply = calloc(num_msg, sizeof(*reply)))) return PAM_CONV_ERR;
 
   for (count = 0; count < num_msg; count++)
   {
@@ -183,7 +183,7 @@ char *get_sessions(void)
   switch (status)
   {
   case 0:
-    temp = (char *) my_calloc(13, sizeof(char));
+    temp = (char *) calloc(13, sizeof(char));
     strcpy(temp, "Text: Console");
     status = 1;
     return temp;
@@ -205,12 +205,12 @@ char *get_sessions(void)
       if (dirname == X_SESSIONS_DIRECTORY)
       {
 	if (!strcmp(entry->d_name, "Xsession")) continue;
-	temp = (char *) my_calloc(strlen(entry->d_name)+1, sizeof(char));
+	temp = (char *) calloc(strlen(entry->d_name)+1, sizeof(char));
 	strcpy(temp, entry->d_name);
       }
       else
       {
-	temp = (char *) my_calloc(strlen(entry->d_name)+7, sizeof(char));
+	temp = (char *) calloc(strlen(entry->d_name)+7, sizeof(char));
 	strcpy(temp, "Text: ");
 	strcat(temp, entry->d_name);
       }
@@ -298,7 +298,7 @@ int check_password(char *username, char *user_password)
   if (NULL != user_password) password = user_password;
   else
   {
-    password = (char *) my_calloc(1, sizeof(char));
+    password = (char *) calloc(1, sizeof(char));
     password[0] = '\0';
   }
 
@@ -406,7 +406,7 @@ char *shell_base_name(char *name)
     temp++;
   }
 
-  shellname = (char *) my_calloc(strlen(base)+2, sizeof(char));
+  shellname = (char *) calloc(strlen(base)+2, sizeof(char));
   *shellname = '-';
   strcat(shellname, base);
 
@@ -417,7 +417,7 @@ void setEnvironment(struct passwd *pwd)
 {
   char *mail = StrApp((char**)0, _PATH_MAILDIR, "/", pwd->pw_name, (char*)0);
 
-  environ = (char **) my_calloc(2, sizeof(char *));
+  environ = (char **) calloc(2, sizeof(char *));
   environ[0] = 0;
   setenv("TERM", "linux", 0);
   setenv("HOME", pwd->pw_dir, 1);
@@ -447,7 +447,7 @@ void switchUser(struct passwd *pwd)
   if (0 != chown (our_tty_name, pwd->pw_uid, 5))
   {
     LogEvent(pwd, CANNOT_CHANGE_TTY_OWNER);
-    my_exit(0);
+    exit(0);
   }
   if (our_tty_name) free(our_tty_name);
 
@@ -455,7 +455,7 @@ void switchUser(struct passwd *pwd)
   if ((initgroups(pwd->pw_name, pwd->pw_gid) != 0) || (setgid(pwd->pw_gid) != 0) || (setuid(pwd->pw_uid) != 0))
   {
     LogEvent(pwd, CANNOT_SWITCH_USER);
-    my_exit(0);
+    exit(0);
   }
 
   /* Set enviroment variables */
@@ -473,8 +473,8 @@ void dolastlog(struct passwd *pwd, int quiet)
 {
   struct lastlog ll;
   int fd;
-  char *hostname = (char *) my_calloc(UT_HOSTSIZE, sizeof(char));
-  char *tty_name = (char *) my_calloc(UT_LINESIZE, sizeof(char));
+  char *hostname = (char *) calloc(UT_HOSTSIZE, sizeof(char));
+  char *tty_name = (char *) calloc(UT_LINESIZE, sizeof(char));
   char *temp = int_to_str(current_vt);
 
   gethostname(hostname, UT_HOSTSIZE);
@@ -520,7 +520,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
     args[1] = NULL;
   else
   {
-    args[1] = (char *) my_calloc(3, sizeof(char));
+    args[1] = (char *) calloc(3, sizeof(char));
     strcpy(args[1], "-c");
     args[2] = StrApp((char **)0, TEXT_SESSIONS_DIRECTORY, session+6, (char *)0);
     args[3] = NULL;
@@ -530,7 +530,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   if (proc_id == -1)
   {
     fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
-    my_exit(0);
+    exit(0);
   }
   if (!proc_id)
   {
@@ -551,7 +551,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 
     /* execve should never return! */
     fprintf(stderr, "session: fatal error: cannot start your session!\n");
-    my_exit(0);
+    exit(0);
   }
   set_last_user(username);
   set_last_session(username, session);
@@ -575,7 +575,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   if (args[1]) free(args[1]);
   if (args[2]) free(args[2]);
 
-  my_exit(0);
+  exit(0);
 }
 
 /* if somebody else, somewhere else, sometime else
@@ -619,11 +619,11 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	else
 	{
 		fprintf(stderr, "session: fatal error: cannot find an unused vt!\n");
-		my_exit(0);
+		exit(0);
 	}
 
   args[0] = shell_base_name(pw->pw_shell);
-  args[1] = (char *) my_calloc(3, sizeof(char));
+  args[1] = (char *) calloc(3, sizeof(char));
   strcpy(args[1], "-c");
   args[2] = StrApp((char **)0, XINIT, " ", X_SESSIONS_DIRECTORY, session, " -- :", temp1, " vt", temp2, " >& /dev/null", (char*)0);
   if (temp1) free(temp1);
@@ -634,7 +634,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   if (proc_id == -1)
   {
     fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
-    my_exit(0);
+    exit(0);
   }
   if (!proc_id)
   {
@@ -655,7 +655,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 
     /* execve should never return! */
     fprintf(stderr, "session: fatal error: cannot start your session!\n");
-    my_exit(0);
+    exit(0);
   }
   set_last_user(username);
   set_last_session(username, session);
@@ -700,7 +700,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   if (args[0]) free(args[0]);
   if (args[1]) free(args[1]);
   if (args[2]) free(args[2]);
-  my_exit(0);
+  exit(0);
 }
 
 /* Start the session of your choice */
@@ -721,7 +721,7 @@ void start_session(char *username, char *session)
     LogEvent(&pw, UNKNOWN_USER);
     free(username);
     free(session);
-    my_exit(0);
+    exit(0);
   }
 
   ClearScreen();
@@ -736,7 +736,7 @@ void start_session(char *username, char *session)
     printf("You need to update your authorization token...\n");
     printf("After that, log out and in again.\n\n");
     execl("/bin/login", "/bin/login", "--", username, (char *) 0);
-    my_exit(0);
+    exit(0);
   }
 #endif
 
@@ -745,5 +745,5 @@ void start_session(char *username, char *session)
 
   /* we don't get here unless we couldn't start user session */
   fprintf(stderr, "Couldn't login user '%s'!\n", username);
-  my_exit(0);
+  exit(0);
 }
