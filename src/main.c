@@ -48,16 +48,17 @@
 #include "chvt.h"
 #include "misc.h"
 #include "framebuffer_mode.h"
-#include "load_settings.h"
 
 void Error()
 {
   printf("\nqingy version " VERSION "\n");
 	printf("\nusage: ginqy <ttyname> [options]\n");
-	printf("Options:\t--black-screen-workaround\tTry this is DirectFB init fails and you get\n");
-  printf("\t\t\t\t\t\ta black screen instead of the login prompt.\n");
-	//printf("\t\t--broken-ati128-workaround\tTry this if you have got an ati card\n");
-  printf("\t\t\t\t\t\tand you only get a black screen.\n\n");
+	printf("Options:\n");
+	printf("\t--black-screen-workaround\n");
+	printf("\tTry this if you get a black screen instead of a text console.\n");
+  printf("\tNote: switching to another vt and back also solves the problem.\n\n");
+	//printf("\t--broken-ati128-workaround\n");
+	//printf("\tTry this if you have got an ati card and you only get a black screen.\n\n");
 
 	exit(EXIT_FAILURE);
 }
@@ -161,9 +162,6 @@ int main(int argc, char *argv[])
 	  fprintf(stderr, "\nUnable to switch to virtual terminal %s\n", tty);
     return EXIT_FAILURE;
 	}
-
-	/* load settings from file */
-	load_settings();
 
 	/* main loop: we wait until the user switches to the tty we are running in */
 	while (1)

@@ -29,19 +29,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <directfb.h>
 
 #include "load_settings.h"
 #include "misc.h"
-
-#define CHECK(x...) \
-{                   \
-	err = x;          \
-  if(err == EOF)    \
-	{                 \
-		err = 1;        \
-		break;          \
-	}                 \
-}
 
 void set_default_xsession_dir(void)
 {
@@ -62,6 +53,28 @@ void set_default_font(void)
 	strcat(FONT, "decker.ttf");
 }
 
+void set_default_colors(void)
+{
+	BUTTON_OPACITY = 0xFF;
+	WINDOW_OPACITY = 0x80;
+	SELECTED_WINDOW_OPACITY = 0xCF;
+
+	MASK_TEXT_COLOR_R = 0xFF;
+	MASK_TEXT_COLOR_G = 0x00;
+	MASK_TEXT_COLOR_B = 0x00;
+	MASK_TEXT_COLOR_A = 0xFF;
+
+	TEXT_CURSOR_COLOR_R = 0x80;
+	TEXT_CURSOR_COLOR_G = 0x00;
+	TEXT_CURSOR_COLOR_B = 0x00;
+	TEXT_CURSOR_COLOR_A = 0xDD;
+
+	OTHER_TEXT_COLOR_R = 0x40;
+	OTHER_TEXT_COLOR_G = 0x40;
+	OTHER_TEXT_COLOR_B = 0x40;
+	OTHER_TEXT_COLOR_A = 0xFF;
+}
+
 void error(void)
 {
 	fprintf(stderr, "load_settings: parse error in settings file... using defaults\n");
@@ -72,12 +85,14 @@ void error(void)
 	set_default_xsession_dir();
 	set_default_xinit();
 	set_default_font();
+	set_default_colors();
 }
 
 int load_settings(void)
 {
 	FILE *fp = fopen(SETTINGS, "r");
 	char tmp[MAX];
+	int temp[4];
 	int err = 0;
 
 	XSESSIONS_DIRECTORY = XINIT = FONT = NULL;
@@ -88,32 +103,124 @@ int load_settings(void)
 		set_default_xsession_dir();
 		set_default_xinit();
 		set_default_font();
+		set_default_colors();
 		return 0;
 	}
 	while (fscanf(fp, "%s", tmp) != EOF)
 	{
+		int found = 0;
+
 		if (strcmp(tmp, "FONT") == 0)
 		{
-			CHECK (fscanf(fp, "%s", tmp));
+			if (fscanf(fp, "%s", tmp) == EOF)
+			{
+				err = 1;
+				break;
+			}
 			FONT = (char *) calloc(strlen(DATADIR)+strlen(tmp)+1, sizeof(char));
 			strcpy(FONT, DATADIR);
 			strcat(FONT, tmp);
+			found = 1;
 		}
 		if (strcmp(tmp, "XSESSIONS_DIRECTORY") == 0)
 		{
-			CHECK (fscanf(fp, "%s", tmp) == EOF);
+			if (fscanf(fp, "%s", tmp) == EOF)
+			{
+				err = 1;
+				break;
+			}
 			XSESSIONS_DIRECTORY = (char *) calloc(strlen(tmp)+1, sizeof(char));
 			strcpy(XSESSIONS_DIRECTORY, tmp);
+			found = 1;
 		}
 		if (strcmp(tmp, "XINIT") == 0)
 		{
-			CHECK (fscanf(fp, "%s", tmp) == EOF);
+			if (fscanf(fp, "%s", tmp) == EOF)
+			{
+				err = 1;
+				break;
+			}
 			XINIT = (char *) calloc(strlen(tmp)+1, sizeof(char));
 			strcpy(XINIT, tmp);
+			found = 1;
+		}
+		if (strcmp(tmp, "BUTTON_OPACITY") == 0)
+		{
+			if (fscanf(fp, "%d", &(temp[0])) == EOF)
+			{
+				err = 1;
+				break;
+			}
+			BUTTON_OPACITY = temp[0];
+			found = 1;
+		}
+		if (strcmp(tmp, "WINDOW_OPACITY") == 0)
+		{
+			if (fscanf(fp, "%d", &(temp[0])) == EOF)
+			{
+				err = 1;
+				break;
+			}
+			WINDOW_OPACITY = (__u8) temp[0];
+			found = 1;
+		}
+		if (strcmp(tmp, "SELECTED_WINDOW_OPACITY") == 0)
+		{
+			if (fscanf(fp, "%d", &(temp[0])) == EOF)
+			{
+				err = 1;
+				break;
+			}
+			SELECTED_WINDOW_OPACITY = (__u8) temp[0];
+			found = 1;
+		}
+		if (strcmp(tmp, "MASK_TEXT_COLOR") == 0)
+		{
+			if (fscanf(fp, "%d%d%d%d", &(temp[0]), &(temp[1]), &(temp[2]), &(temp[3])) == EOF)
+			{
+				err = 1;
+				break;
+			}
+			MASK_TEXT_COLOR_R = (__u8) temp[0];
+			MASK_TEXT_COLOR_G = (__u8) temp[1];
+			MASK_TEXT_COLOR_B = (__u8) temp[2];
+			MASK_TEXT_COLOR_A = (__u8) temp[3];
+			found = 1;
+		}
+		if (strcmp(tmp, "TEXT_CURSOR_COLOR") == 0)
+		{
+			if (fscanf(fp, "%d%d%d%d", &(temp[0]), &(temp[1]), &(temp[2]), &(temp[3])) == EOF)
+			{
+				err = 1;
+				break;
+			}
+			TEXT_CURSOR_COLOR_R = (__u8) temp[0];
+			TEXT_CURSOR_COLOR_G = (__u8) temp[1];
+			TEXT_CURSOR_COLOR_B = (__u8) temp[2];
+			TEXT_CURSOR_COLOR_A = (__u8) temp[3];
+			found = 1;
+		}
+		if (strcmp(tmp, "OTHER_TEXT_COLOR") == 0)
+		{
+			if (fscanf(fp, "%d%d%d%d", &(temp[0]), &(temp[1]), &(temp[2]), &(temp[3])) == EOF)
+			{
+				err = 1;
+				break;
+			}
+			OTHER_TEXT_COLOR_R = (__u8) temp[0];
+			OTHER_TEXT_COLOR_G = (__u8) temp[1];
+			OTHER_TEXT_COLOR_B = (__u8) temp[2];
+			OTHER_TEXT_COLOR_A = (__u8) temp[3];
+			found = 1;
+		}
+		if (!found)
+		{
+			error();
+			fclose(fp);
+			return 0;
 		}
 	}
 	fclose(fp);
-
 	if (err)
 	{
 		error();
@@ -122,6 +229,7 @@ int load_settings(void)
 	if (XSESSIONS_DIRECTORY == NULL) set_default_xsession_dir();
 	if (XINIT == NULL) set_default_xinit();
 	if (FONT == NULL) set_default_font();
+	//set_default_colors();
 
 	return 1;
 }

@@ -1,4 +1,4 @@
-AC_INIT(qingy, alpha1, noberasco.gnu@disi.unige.it)
+AC_INIT(qingy, 0.1, noberasco.gnu@disi.unige.it)
 AC_PREREQ(2.57)
 AC_CONFIG_SRCDIR(src/main.c)
 AM_INIT_AUTOMAKE()
@@ -110,6 +110,12 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	echo "FONT decker.ttf" >> media/settings
 	echo "XSESSIONS_DIRECTORY /etc/X11/Sessions/" >> media/settings
 	echo "XINIT $XINIT" >> media/settings
+	echo "BUTTON_OPACITY 255" >> media/settings
+	echo "WINDOW_OPACITY 128" >> media/settings
+	echo "SELECTED_WINDOW_OPACITY 207" >> media/settings
+	echo "MASK_TEXT_COLOR   255   0   0 255" >> media/settings
+	echo "TEXT_CURSOR_COLOR 128   0   8 221" >> media/settings
+	echo "OTHER_TEXT_COLOR   64  64  64 255" >> media/settings
 	echo "done"
 # End creation of config file
 

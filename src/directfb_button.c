@@ -32,6 +32,8 @@
 
 #include "framebuffer_mode.h"
 #include "directfb_button.h"
+#include "load_settings.h"
+
 
 Button *Button_Create(const char *normal, const char *mouseover, int relx, int rely, IDirectFBDisplayLayer *layer, IDirectFBSurface *primary, IDirectFB *dfb)
 {

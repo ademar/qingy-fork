@@ -298,7 +298,7 @@ void clear_screen(void)
 	primary->Clear (primary, 0, 0, 0, 0);
 	primary->Flip (primary, NULL, DSFLIP_BLIT);
 	primary->SetFont (primary, font_large);
-	primary->SetColor (primary, OTHER_TEXT_COLOR);
+	primary->SetColor (primary, OTHER_TEXT_COLOR_R, OTHER_TEXT_COLOR_G, OTHER_TEXT_COLOR_B, OTHER_TEXT_COLOR_A);
 }
 
 void begin_shutdown_sequence (int action)
@@ -654,11 +654,14 @@ int framebuffer_mode (int argc, char *argv[], int do_workaround)
 	/* Stop GPM if necessary */
 	we_stopped_gpm= stop_gpm();
 
-	/* we initialize directfb */
+	/* load settings from file */
+	load_settings();
 
+	/* we initialize directfb */
 	stderr_disable();
 	DFBCHECK (DirectFBInit (&argc, &argv));
 	stderr_enable();
+
 	DFBCHECK (DirectFBCreate (&dfb));
 	dfb->EnumInputDevices (dfb, enum_input_device, &devices);
 	DFBCHECK (dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &events));
