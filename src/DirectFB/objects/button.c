@@ -105,7 +105,7 @@ IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, ID
 		if (dfb->CreateSurface (dfb, &dsc, &surface) == DFB_OK)
 		{
 			surface->Clear (surface, 0x00, 0x00, 0x00, 0x00);
-			surface->SetBlittingFlags (surface, DSBLIT_BLEND_ALPHACHANNEL);
+			surface->SetBlittingFlags (surface, DSBLIT_BLEND_ALPHACHANNEL);			
 			surface->Blit (surface, tmp, NULL, 0, 0);
 		}
 		tmp->Release (tmp);
@@ -162,9 +162,9 @@ Button *Button_Create(const char *normal, const char *mouseover, int xpos, int y
 	but->surface = surface;
 	but->window = window;
 
-/*  We need to add REAL transparency in button PNGs!         */
-/* 	surface->SetSrcColorKey(surface, 0x00, 0x00, 0x00);      */
-/* 	surface->SetBlittingFlags(surface, DSBLIT_SRC_COLORKEY); */
+/* We need to add REAL transparency in button PNGs!         */
+/* surface->SetSrcColorKey(surface, 0x00, 0x00, 0x00);      */
+/* surface->SetBlittingFlags(surface, DSBLIT_SRC_COLORKEY); */
 
 	return but;
 }
