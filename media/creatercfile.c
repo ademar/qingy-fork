@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define MAX 128
 
@@ -76,7 +77,15 @@ int main(int argc, char *argv[])
 	file_name = argv[1];
 	program = argv[2];
 	
-	if (!(fp = popen(program, "r"))) return EXIT_FAILURE;
+	if (!(fp = popen(program, "r")))
+	{
+		fprintf(stderr, "Warning: could not execute 'fbset':\n");
+		fprintf(stderr, "Please edit your directfbrc.qingy manually...\n");
+		sleep(5);
+		if (!(fp = fopen(file_name, "w"))) return EXIT_FAILURE;
+		fclose(fp);
+		return EXIT_SUCCESS;
+	}	
 	
 	while (1)
 	{
