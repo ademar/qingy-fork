@@ -2,10 +2,10 @@
 - option for selecting theme based on tty and/or user
 - drop down menu for sessions
 - allow session locking
-- add a clock and/or uptime thingie!
+- add a clock and/or uptime thingie! (DONE: comes with new themes - paolino)
 - start some apps before/after X session
 - multilanguage support
-* extend theme support (for qingy 0.3 series)
+* extend theme support (for qingy 0.3 series) (DONE)
 - ldap support for authentication (with pam?)
 - allow selection of alternate x server layouts / X config files
 - Allow for global and tty specific options in config file
