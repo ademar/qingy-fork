@@ -86,7 +86,7 @@ void activate_screen_saver(void)
   void (*do_screen_saver)(Q_screen_t);
 
   if (!screen_saver_surface) return;
-  if (!screen_saver_events) return;
+  if (!screen_saver_events)  return;
   
   screen_saver_surface->GetSize(screen_saver_surface, &(screenEnv.screen_width), &(screenEnv.screen_height));
   screenEnv.surface             = screen_saver_surface;
@@ -97,9 +97,10 @@ void activate_screen_saver(void)
 	screenEnv.data_dir            = SCREENSAVERS_DIR;
 
   /* get what screensaver we want and load it */
-  ssv_name=StrApp((char **)NULL, SCREENSAVERS_DIR, "/", SCREENSAVER, ".qss", (char*)NULL);
-  handle=dlopen(ssv_name, RTLD_NOW); 
-  if (!handle) { 
+  ssv_name = StrApp((char **)NULL, SCREENSAVERS_DIR, "/", SCREENSAVER, ".qss", (char*)NULL);
+  handle   = dlopen(ssv_name, RTLD_NOW); 
+  if (!handle)
+	{ 
     clear_screen();
     screen_saver_surface->DrawString (screen_saver_surface, 
 																			"Not able to open screensaver.",
@@ -109,8 +110,9 @@ void activate_screen_saver(void)
     return;
   }
   
-  do_screen_saver=dlsym(handle, "screen_saver_entry");
-  if((error = dlerror()) != NULL)  {
+  do_screen_saver = dlsym(handle, "screen_saver_entry");
+  if ((error = dlerror()))
+	{
     clear_screen();
     screen_saver_surface->DrawString (screen_saver_surface, "Not able to launch screensaver.", 
 																			-1, screenEnv.screen_width / 2, screenEnv.screen_height / 2, DSTF_CENTER);
@@ -124,4 +126,3 @@ void activate_screen_saver(void)
     
   dlclose(handle);
 }
-

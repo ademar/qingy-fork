@@ -1,3 +1,29 @@
+2004-02-25  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/libraries/session.c (PAM_conv):
+	some cleanups, remove unnecessary code.
+
+	* src/libraries/load_settings.c (various_functions):
+	general overhaul, remove some unnecessary code.
+
+	* many_files:
+	re-add some libraries into 'qingy' binary, as their stuff
+	is needed almost constantly. Added ./configure option
+	to enable installation of emacs major mode (now disabled
+	by default).
+
+2004-02-24  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* media/qingy-mode.el:
+	updated to reflect new stuff in config and theme files;
+	now highlights correctly:
+	- variables 'screensavers_dir', 'themes_dir', 'clear_background',
+	            'lock_sessions'
+	- constants 'yes', 'no'
+	- builtins  'tty'
+	Paolino: I believe I got it right, but of course
+	         I don't understand a gnat about lisp ;-P
+
 2004-02-19  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* most_files_have_been_changed,

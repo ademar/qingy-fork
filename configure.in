@@ -9,7 +9,6 @@ AC_PROG_INSTALL
 AC_PROG_CC
 AM_PROG_LEX
 AC_PROG_YACC
-AM_PATH_LISPDIR
 
 # Set my own flags for gcc
 	if test "$MY_CFLAGS" = ""; then
@@ -105,22 +104,14 @@ AM_PATH_LISPDIR
 	AC_CHECK_LIB(dl, dlopen, , , )
 # End check functions
 
-# Enable powerkeys if user asks
-	AC_ARG_ENABLE(powerkeys, AS_HELP_STRING(--enable-powerkeys,use extended keybindings (default is no)),, [enable_powerkeys=no])
-	if test "$enable_powerkeys" == "yes"; then
-		CFLAGS="$CFLAGS -DPOWER_KEYS"
-		AC_MSG_NOTICE([powerkeys activated])
-	 fi
-# End of powerkeys stuff
-
-# Wether we should compile statically
-	AC_ARG_ENABLE(static-build, AS_HELP_STRING(--enable-static-build,compile qingy statically (default is no)),, [enable_static_build=no])
-	if test "$enable_static_build" == "yes"; then
-		CFLAGS="$CFLAGS -DWANT_STATIC"		
-		AC_MSG_NOTICE([qingy will be built as a static binary])
-	 fi
-	 AM_CONDITIONAL(WANT_STATIC, test "$enable_static_build" == "yes")
-# End compile statically stuff
+# Wether we should compile qingy mayor mode for emacs
+	AC_ARG_ENABLE(emacs, AS_HELP_STRING(--enable-emacs,enable compilation of emacs major mode (default is no)),, [enable_emacs=no])
+	if test "$enable_emacs" == "yes"; then		
+		AM_PATH_LISPDIR
+		AC_MSG_NOTICE([Also compiling emacs major mode])
+	fi
+	AM_CONDITIONAL(WANT_EMACS_STUFF, test "$enable_emacs" == "yes")
+# End compile emacs stuff
 
 # Check for PAM support
 	PAM=""
@@ -138,6 +129,23 @@ AM_PATH_LISPDIR
 	fi
 	AC_SUBST(PAM,)
 # End check for PAM support
+
+# Enable powerkeys if user asks
+	AC_ARG_ENABLE(powerkeys, AS_HELP_STRING(--enable-powerkeys,use extended keybindings (default is no)),, [enable_powerkeys=no])
+	if test "$enable_powerkeys" == "yes"; then
+		CFLAGS="$CFLAGS -DPOWER_KEYS"
+		AC_MSG_NOTICE([powerkeys activated])
+	 fi
+# End of powerkeys stuff
+
+# Wether we should compile statically
+	AC_ARG_ENABLE(static-build, AS_HELP_STRING(--enable-static-build,compile qingy statically (default is no)),, [enable_static_build=no])
+	if test "$enable_static_build" == "yes"; then
+		CFLAGS="$CFLAGS -DWANT_STATIC"		
+		AC_MSG_NOTICE([qingy will be built as a static binary])
+	fi
+	AM_CONDITIONAL(WANT_STATIC, test "$enable_static_build" == "yes")
+# End compile statically stuff
 
 CFLAGS="$CFLAGS -DLinux"
 

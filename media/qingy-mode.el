@@ -6,6 +6,7 @@
 ;; Filename: qingy-mode.el
 ;; Author: Paolo Gianrossi <paolino.gnu@disi.unige.it>
 ;; Maintainer: Paolo Gianrossi <paolino.gnu@disi.unige.it>
+;; Edited by: Michele Noberasco <noberasco.gnu@disi.unige.it>
 ;; Version: 1.1
 ;; Created: 01/16/03
 ;; Revised: 14/01/04
@@ -42,11 +43,13 @@
 
 (defconst qingy-font-lock-keywords-1
   (list
-   '("\\(s\\(?:creensaver\\|hutdown_policy\\)\\|t\\(?:ext_sessions\\)\\|x\\(?:_sessions\\|init\\)\\)" . font-lock-variable-name-face)
+   '("\\(c\\(?:lear_background\\)\\|l\\(?:ock_sessions\\)\\|s\\(?:creensavers_dir\\|creensaver\\|hutdown_policy\\)\\)" . font-lock-variable-name-face)
+   '("\\(t\\(?:hemes_dir\\|ext_sessions\\)\\|x\\(?:_sessions\\|init\\)\\)" . font-lock-variable-name-face)
    '("\\(content\\|default_\\(?:\\(?:cursor\\|text\\)_color\\)\\|linkto\\|text_orientation\\)" . font-lock-variable-name-face)
    '("\\(b\\(?:ackground\\|utton_opacity\\)\\|cursor_color\\|font\\|text_color\\|other_text_color\\|\\(?:selected_\\)?window_opacity\\)" . font-lock-variable-name-face)
    '("\\(center\\|\\(?:lef\\|righ\\)t\\)" . font-lock-constant-face)
-   '("\\(theme\\|window\\)" . font-lock-builtin-face)
+   '("\\(yes\\|no\\)" . font-lock-constant-face)
+   '("\\(theme\\|window\\|tty\\)" . font-lock-builtin-face)
    '("\\(everyone\\|noone\\|p\\(?:hoto\\|ixel\\)\\|r\\(?:andom\\|oot\\)\\)" . font-lock-constant-face)
    '("\\(large\\|medium\\|small\\)" . font-lock-constant-face)
    '("\\(\\[[ \t]*[0-9a-fA-F]\\{8\\}[ \t]*\\]\\)\\|\\([0-9]+\\)" . font-lock-constant-face)
