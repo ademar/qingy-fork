@@ -35,6 +35,7 @@ typedef struct _Label
 {
 	/* properties */
 	char *text;
+	color_t text_color;
 	unsigned int xpos, ypos;
 	unsigned int width, height;
 	int hasfocus;
@@ -44,6 +45,7 @@ typedef struct _Label
 
 	/* methods */
 	void (*SetFocus)(struct _Label *thiz, int focus);
+	void (*SetColor)(struct _Label *thiz, color_t *text_color);
 	void (*SetText)(struct _Label *thiz, char *text, int alignment);
 	void (*ClearText)(struct _Label *thiz);
 	void (*Hide)(struct _Label *thiz);
@@ -56,5 +58,6 @@ Label *Label_Create
 (
 	IDirectFBDisplayLayer *layer,
 	IDirectFBFont *font,
+	color_t *text_color,
 	DFBWindowDescription *window_desc
 );

@@ -31,9 +31,9 @@
 #include <string.h>
 #include <directfb.h>
 
+#include "load_settings.h"
 #include "label.h"
 #include "directfb_mode.h"
-#include "load_settings.h"
 #include "misc.h"
 
 
@@ -81,6 +81,18 @@ void Label_SetText(Label *thiz, char *text, int alignment)
 	Plot(thiz);
 }
 
+void Label_SetColor(Label *thiz, color_t *text_color)
+{
+	if (!thiz)       return;
+	if (!text_color) return;
+
+	thiz->text_color.R = text_color->R;
+	thiz->text_color.G = text_color->G;
+	thiz->text_color.B = text_color->B;
+	thiz->text_color.A = text_color->A;
+	thiz->surface->SetColor (thiz->surface, text_color->R, text_color->G, text_color->B, text_color->A);	
+}
+
 void Label_SetFocus(Label *thiz, int focus)
 {
 	if (!thiz) return;
@@ -118,26 +130,31 @@ void Label_Destroy(Label *thiz)
 	free(thiz);
 }
 
-Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWindowDescription *window_desc)
+Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, color_t *text_color, DFBWindowDescription *window_desc)
 {
 	Label *newlabel = NULL;
 
 	newlabel = (Label *) calloc(1, sizeof(Label));
-	newlabel->text     = NULL;
-	newlabel->xpos     = (unsigned int) window_desc->posx;
-	newlabel->ypos     = (unsigned int) window_desc->posy;
-	newlabel->width    = window_desc->width;
-	newlabel->height   = window_desc->height;
-	newlabel->hasfocus = 0;
-	newlabel->alignment= LEFT;
-	newlabel->window   = NULL;
-	newlabel->surface  = NULL;
-	newlabel->SetFocus = Label_SetFocus;
-	newlabel->SetText  = Label_SetText;
-	newlabel->ClearText= Label_ClearText;
-	newlabel->Hide     = Label_Hide;
-	newlabel->Show     = Label_Show;
-	newlabel->Destroy  = Label_Destroy;
+	newlabel->text         = NULL;
+	newlabel->xpos         = (unsigned int) window_desc->posx;
+	newlabel->ypos         = (unsigned int) window_desc->posy;
+	newlabel->width        = window_desc->width;
+	newlabel->height       = window_desc->height;
+	newlabel->hasfocus     = 0;
+	newlabel->alignment    = LEFT;
+	newlabel->window       = NULL;
+	newlabel->surface      = NULL;
+	newlabel->text_color.R = text_color->R;
+	newlabel->text_color.G = text_color->G;
+	newlabel->text_color.B = text_color->B;
+	newlabel->text_color.A = text_color->A;
+	newlabel->SetFocus     = Label_SetFocus;
+	newlabel->SetColor     = Label_SetColor;
+	newlabel->SetText      = Label_SetText;
+	newlabel->ClearText    = Label_ClearText;
+	newlabel->Hide         = Label_Hide;
+	newlabel->Show         = Label_Show;
+	newlabel->Destroy      = Label_Destroy;
 
 	if (layer->CreateWindow (layer, window_desc, &(newlabel->window)) != DFB_OK) return NULL;
 	newlabel->window->SetOpacity(newlabel->window, 0x00 );
@@ -145,7 +162,7 @@ Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWindow
 	newlabel->surface->Clear(newlabel->surface, 0x00, 0x00, 0x00, 0x00);
 	newlabel->surface->Flip(newlabel->surface, NULL, 0);
 	newlabel->surface->SetFont (newlabel->surface, font);
-	newlabel->surface->SetColor (newlabel->surface, MASK_TEXT_COLOR.R, MASK_TEXT_COLOR.G, MASK_TEXT_COLOR.B, MASK_TEXT_COLOR.A);
+	newlabel->surface->SetColor (newlabel->surface, newlabel->text_color.R, newlabel->text_color.G, newlabel->text_color.B, newlabel->text_color.A);
 	newlabel->window->RaiseToTop(newlabel->window);
 
 	return newlabel;

@@ -53,6 +53,13 @@
 #define POWEROFF 0
 #define REBOOT   1
 
+typedef struct label_t
+{
+	Label *label;
+	struct label_t *next;
+} Label_list;
+Label_list *Labels = NULL;
+
 /*
  * Global variables... definitely too many!
  */
@@ -77,6 +84,9 @@ TextBox               *username        = NULL, /* text boxes                    
 /*                       *password_label  = NULL, */
 /*                       *session_label   = NULL, */
 Label                      *lock_key_status = NULL;
+
+
+
 ComboBox              *session         = NULL; /* combo boxes                               */
 int                   we_stopped_gpm,          /* wether this program stopped gpm or not    */
                       screen_width,            /* screen resolution                         */
@@ -152,6 +162,16 @@ void set_user_session(char *user)
 
 void close_framebuffer_mode (void)
 {
+	/* destroy all labels */
+	while (Labels)
+	{
+		Label_list *temp = Labels;
+		Labels = Labels->next;
+		temp->label->Destroy(temp->label);
+		temp->next = NULL;
+		free(temp);
+	}
+
 /*   if (power) power->Destroy(power); */
 /*   if (reset) reset->Destroy(reset); */
   if (panel_image) panel_image->Release (panel_image);
@@ -298,7 +318,18 @@ void show_lock_key_status(DFBInputEvent *evt)
 
 void reset_screen(DFBInputEvent *evt)
 {
+	Label_list *labels = Labels;
+
   Draw_Background_Image ();
+
+	/* redraw all labels */
+	while (labels)
+	{
+		labels->label->Show(labels->label);
+		labels = labels->next;
+	}
+
+
 /*   power->Show(power); */
 /*   reset->Show(reset); */
 /*   welcome_label->Show(welcome_label); */
@@ -315,6 +346,16 @@ void reset_screen(DFBInputEvent *evt)
 
 void clear_screen(void)
 {
+	Label_list *labels = Labels;
+
+	/* hide all labels */
+	while (labels)
+	{
+		labels->label->Hide(labels->label);
+		labels = labels->next;
+	}
+
+
 /*   power->Hide(power); */
 /*   reset->Hide(reset); */
 /*   welcome_label->Hide(welcome_label); */
@@ -794,6 +835,25 @@ int create_windows()
 			password = TextBox_Create(layer, font, &(temp->text_color), &(temp->cursor_color), &window_desc);
 			if (!password) return 0;
 			break;
+		case LABEL:
+		{
+			static Label_list *labels = NULL;
+
+			if (!labels)
+			{
+				labels = (Label_list *) calloc(1, sizeof(Label_list));
+				Labels = labels;
+			}
+			else
+			{
+				labels->next = (Label_list *) calloc(1, sizeof(Label_list));
+				labels = labels->next;
+			}
+			labels->label = Label_Create(layer, font, &(temp->text_color), &window_desc);
+			if (!labels->label) return 0;
+			labels->next = NULL;
+			break;
+		}
 		case COMBO:
 			if (temp->type == COMBO && !strcmp(temp->command, "sessions"))
 			{
@@ -801,7 +861,6 @@ int create_windows()
 				if (!session) return 0;
 			}
 			break;
-		default:
 		}		
 
 		temp = temp->next;
@@ -811,7 +870,7 @@ int create_windows()
   window_desc.posy   = screen_height - (font_small_height);
   window_desc.width  = screen_width/5;
   window_desc.height = font_small_height;
-  lock_key_status = Label_Create(layer, font_small, &window_desc);
+  lock_key_status = Label_Create(layer, font_small, &MASK_TEXT_COLOR, &window_desc);
   if (!lock_key_status) return 0;
 
 	return 1;

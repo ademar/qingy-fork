@@ -385,8 +385,8 @@ int add_window_to_list(window_t w)
 {
   static window_t *aux = NULL;
 
-	/* there can be only one login and password window... */
-	if (windowsList && (w.type == LOGIN || w.type == PASSWORD))
+	/* there can be only one login, one password and one session window... */
+	if (windowsList && (w.type == LOGIN || w.type == PASSWORD || (w.type == COMBO && !strcmp(w.command,"sessions"))))
 	{ /* we search for an already-defined one */
 		window_t *temp = windowsList;
 
@@ -394,19 +394,25 @@ int add_window_to_list(window_t w)
 		{
 			if (temp->type == w.type)
 			{ /* we overwrite old settings with new ones */
-				temp->x            = w.x;
-				temp->y            = w.y;
-				temp->width        = w.width;
-				temp->height       = w.height;
-				temp->text_size    = w.text_size;
-				temp->text_color.R = w.text_color.R;
-				temp->text_color.G = w.text_color.G;
-				temp->text_color.B = w.text_color.B;
-				temp->text_color.A = w.text_color.A;
+				temp->x              = w.x;
+				temp->y              = w.y;
+				temp->width          = w.width;
+				temp->height         = w.height;
+				temp->text_size      = w.text_size;
+				temp->text_color.R   = w.text_color.R;
+				temp->text_color.G   = w.text_color.G;
+				temp->text_color.B   = w.text_color.B;
+				temp->text_color.A   = w.text_color.A;
+				temp->cursor_color.R = w.cursor_color.R;
+				temp->cursor_color.G = w.cursor_color.G;
+				temp->cursor_color.B = w.cursor_color.B;
+				temp->cursor_color.A = w.cursor_color.A;
 				/*
 				 * other settings are not used in this kind of window
 				 * so we don't bother copying them...
 				 */
+				free(w.content);
+				free(w.command);
 				return 1;
 			}
 			temp = temp->next;
@@ -425,20 +431,24 @@ int add_window_to_list(window_t w)
 		aux = aux->next;
 	}
 
-  aux->type         = w.type;
-  aux->x            = w.x;
-  aux->y            = w.y;
-  aux->width        = w.width;
-  aux->height       = w.height;
-	aux->polltime     = w.polltime;
-	aux->text_size    = w.text_size;
-	aux->text_color.R = w.text_color.R;
-	aux->text_color.G = w.text_color.G;
-	aux->text_color.B = w.text_color.B;
-	aux->text_color.A = w.text_color.A;
-  aux->command      = strdup(w.command);   
-  aux->content      = strdup(w.content);
-  aux->next         = NULL;
+  aux->type           = w.type;
+  aux->x              = w.x;
+  aux->y              = w.y;
+  aux->width          = w.width;
+  aux->height         = w.height;
+	aux->polltime       = w.polltime;
+	aux->text_size      = w.text_size;
+	aux->text_color.R   = w.text_color.R;
+	aux->text_color.G   = w.text_color.G;
+	aux->text_color.B   = w.text_color.B;
+	aux->text_color.A   = w.text_color.A;
+	aux->cursor_color.R = w.cursor_color.R;
+	aux->cursor_color.G = w.cursor_color.G;
+	aux->cursor_color.B = w.cursor_color.B;
+	aux->cursor_color.A = w.cursor_color.A;	
+  aux->command        = strdup(w.command);   
+  aux->content        = strdup(w.content);
+  aux->next           = NULL;
   
   free(w.content);
 	free(w.command);
@@ -469,9 +479,25 @@ int check_windows_sanity()
  
 	while(temp)
 	{
-		if (temp->type == LOGIN)    got_login  = 1;
-		if (temp->type == PASSWORD) got_passwd = 1;
-		if (temp->type == COMBO && !strcmp(temp->command,"sessions")) got_session = 1;
+		switch (temp->type)
+		{
+		case LOGIN:
+			got_login  = 1;
+			break;
+		case PASSWORD:
+			got_passwd = 1;
+			break;
+		case COMBO:
+			if (!strcmp(temp->command, "sessions")) got_session = 1;
+			else
+			{
+				fprintf(stderr, "Invalid combo window: forbidden command '%s'.\n", temp->command);
+				return 0;
+			}
+			break;
+		case UNKNOWN: case LABEL: case BUTTON:
+			break;
+		}
 		temp = temp->next;
 	}
 	if (!got_login || !got_passwd || !got_session) return 0;
@@ -538,7 +564,7 @@ int load_settings(void)
 	if (!check_windows_sanity())
 	{
 		fprintf(stderr, "Error in windows configuration:\n");
-		fprintf(stderr, "make sure you set up at least login and password windows!\n");
+		fprintf(stderr, "make sure you set up at least login password and session windows!\n");
 		return 0;
 	}
 
