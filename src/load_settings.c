@@ -346,8 +346,8 @@ char *get_welcome_msg(char *username)
 			user = strtok(line, " \t");
 			if(!strcmp(user, username))
 			{
-				welcome_msg = strdup(strtok(NULL, "\n"));
-				break;
+			     welcome_msg = strdup(strtok(NULL, "\n"));
+			     break;
 			}
 		}
 		fclose(fp);
@@ -378,17 +378,17 @@ char *get_action(char *action)
   /* should we print something? */
   temp = strstr(action, "echo");
   if (temp)
-    {
-      size_t  length;
-      char   *begin;
-      temp = strchr(temp+4, '"');
-      if (!temp) return NULL;
-      begin = temp + 1;
-      temp = strchr(begin, '"');
-      if (!temp) return NULL;
-      length = temp - begin;
-      return strndup(begin, length);		
-    }
+  {
+       size_t  length;
+       char   *begin;
+       temp = strchr(temp+4, '"');
+       if (!temp) return NULL;
+       begin = temp + 1;
+       temp = strchr(begin, '"');
+       if (!temp) return NULL;
+       length = temp - begin;
+       return strndup(begin, length);		
+  }
   
   return NULL;
 }

@@ -1,5 +1,5 @@
 /***************************************************************************
-                           chvt.c  -  description
+                           chvt.c  -  Terminal switching functions
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
