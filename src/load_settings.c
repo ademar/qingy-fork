@@ -467,3 +467,20 @@ int add_window_to_list(window_t w)
 
   return 1;
 }
+
+int 
+get_win_type(const char* name)
+{
+  static char* types[]=
+    {
+     "(none)", "text", "label", "button", "login", "password", "combo", (char*) NULL
+    };
+  
+  register int i;
+  for(i=0; types[i]; ++i){
+    if(!strcmp(name, types[i]))
+      return i;
+  }
+  return 0;
+}
+

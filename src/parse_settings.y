@@ -71,13 +71,14 @@ shutdown:  SHUTDOWN_TOK '=' EVERYONE_TOK { if(in_theme){ yyerror("Setting 'shutd
 	| SHUTDOWN_TOK '=' NO_ONE_TOK { if(in_theme){ yyerror("Setting 'shutdown_policy' is not allowed in theme file.");}  SHUTDOWN_POLICY=NOONE; }
 	;
 
-/* window: WINDOW_TOK '{' windefns '}' ; */
+window: WINDOW_TOK '{' windefns '}' ; 
 
-/* windefns: windefn | windefns windefn ; */
+windefns: windefn | windefns windefn ; 
 
-/* windefn: 'x' '=' LONGNUM_T { wind.x=$3; } */
-/* |	 'y' '=' LONGNUM_T { wind.y=$3; } */
-/* |  WTYPE_TOK =  */
+windefn: 'x' '=' LONGNUM_T { wind.x=$3; } 
+ |	 'y' '=' LONGNUM_T { wind.y=$3; } 
+ | WTYPE_TOK '=' QUOTSTR_T { wind.type=get_win_type($3);}
+ |     
 
 colorprop: MASK_TXT_COL_TOK '=' COLOR_T { MASK_TEXT_COLOR_R=$3[3]; MASK_TEXT_COLOR_G=$3[2]; 
 					  MASK_TEXT_COLOR_B=$3[1]; MASK_TEXT_COLOR_A=$3[0];}

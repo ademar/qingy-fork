@@ -106,31 +106,33 @@ screensaver_kinds SCREENSAVER;
  */
 typedef enum 
 {
-	UNKOWN=0,
-	TEXT,
-	LABEL,
-	BUTTON,
-	LOGIN,
-	PASSWORD, 
-	COMBO
-} window_types;
+  UNKOWN,
+  TEXT,
+  LABEL,
+  BUTTON,
+  LOGIN,
+  PASSWORD, 
+  COMBO
+} window_types_t;
 
 /* a window structure */
 typedef struct _window
 {  
   int x;
   int y;
-	int width;
-	int height;
-  int type;
+  int width;
+  int height;
+  window_types_t type;
   char *command;
   char *content;
-	struct _window *next;
+  struct _window *next;
 } window_t;
 
 window_t* windowsList;
 
 int add_window_to_list(window_t w);
+
+int get_win_type(const char* name);
 
 /* initialize some stuff */
 
