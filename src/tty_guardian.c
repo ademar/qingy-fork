@@ -91,8 +91,6 @@ void ttyWatchDog(pid_t child, char *dog_master, int fence1, int fence2)
 		if (where_is_intruder == fence2) WatchDog_Sniff(dog_master, where_was_intruder, fence2);
 		nanosleep(&delay, NULL); /* wait a little before checking again */
 	}
-
-	return;
 }
 
 void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intruder)
@@ -127,5 +125,6 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 int WatchDog_Bark (char *dog_master, char *intruder, int where_was_intruder, int where_is_intruder)
 {
 	fprintf(stderr, "authenticate yourself, %s\n", intruder);
+	sleep(2);
 	return 0;
 }
