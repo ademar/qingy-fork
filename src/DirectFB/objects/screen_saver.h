@@ -4,7 +4,7 @@
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
     e-mail               : noberasco.gnu@educ.disi.unige.it
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -28,25 +28,25 @@
 
 typedef enum _kinds
 {
-	PIXEL_SCREENSAVER,
-	PHOTO_SCREENSAVER
+  PIXEL_SCREENSAVER,
+  PHOTO_SCREENSAVER
 } kinds;
 
 typedef struct _screen_saver
 {
-	/* which screen saver do you want to run? */
-	kinds kind;
+  /* which screen saver do you want to run? */
+  kinds kind;
 
-	/* update rate of screen saver */
-	unsigned int seconds;
-	unsigned int milli_seconds;
+  /* update rate of screen saver */
+  unsigned int seconds;
+  unsigned int milli_seconds;
 
-	/* surface to run the screen saver into */
-	IDirectFBSurface *surface;
+  /* surface to run the screen saver into */
+  IDirectFBSurface *surface;
 
-	/* screensaver stops when there is an input event
-	   and it returns it here...                      */
-	IDirectFBEventBuffer *events;
+  /* screensaver stops when there is an input event
+     and it returns it here...                      */
+  IDirectFBEventBuffer *events;
 
 } ScreenSaver;
 

@@ -4,7 +4,7 @@
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
     e-mail               : noberasco.gnu@educ.disi.unige.it
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -40,31 +40,31 @@
 
 typedef struct _TextBox
 {
-	/* properties */
-	char *text;
-	unsigned int xpos, ypos;
-	unsigned int width, height;
-	int hasfocus;
-	int mask_text;
-	int hide_text;
-	int position;
-	IDirectFBWindow	*window;
-	IDirectFBSurface *surface;
+  /* properties */
+  char *text;
+  unsigned int xpos, ypos;
+  unsigned int width, height;
+  int hasfocus;
+  int mask_text;
+  int hide_text;
+  int position;
+  IDirectFBWindow	*window;
+  IDirectFBSurface *surface;
 
-	/* methods */
-	void (*KeyEvent)(struct _TextBox *thiz, int ascii_code, int draw_cursor);
-	void (*SetFocus)(struct _TextBox *thiz, int focus);
-	void (*SetText)(struct _TextBox *thiz, char *text);
-	void (*ClearText)(struct _TextBox *thiz);
-	void (*Hide)(struct _TextBox *thiz);
-	void (*Show)(struct _TextBox *thiz);
-	void (*Destroy)(struct _TextBox *thiz);
+  /* methods */
+  void (*KeyEvent)(struct _TextBox *thiz, int ascii_code, int draw_cursor);
+  void (*SetFocus)(struct _TextBox *thiz, int focus);
+  void (*SetText)(struct _TextBox *thiz, char *text);
+  void (*ClearText)(struct _TextBox *thiz);
+  void (*Hide)(struct _TextBox *thiz);
+  void (*Show)(struct _TextBox *thiz);
+  void (*Destroy)(struct _TextBox *thiz);
 
 } TextBox;
 
 TextBox *TextBox_Create
 (
-	IDirectFBDisplayLayer *layer,
-	IDirectFBFont *font,
-	DFBWindowDescription *window_desc
-);
+  IDirectFBDisplayLayer *layer,
+  IDirectFBFont *font,
+  DFBWindowDescription *window_desc
+  );

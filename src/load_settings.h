@@ -34,11 +34,13 @@ int hide_last_user;
 int no_shutdown_screen;
 int use_screensaver;
 int screensaver_timeout;
+int max_tty_number;
 
 char *DATADIR;
 char *SETTINGS;
 char *LAST_USER;
-char *XSESSIONS_DIRECTORY;
+char *X_SESSIONS_DIRECTORY;
+char *TEXT_SESSIONS_DIRECTORY;
 char *XINIT;
 char *FONT;
 char *BACKGROUND;

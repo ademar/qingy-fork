@@ -4,7 +4,7 @@
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
     e-mail               : noberasco.gnu@educ.disi.unige.it
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -41,7 +41,7 @@ static int is_a_console(int fd)
   char arg;
   arg = 0;
 
-	return (ioctl(fd, KDGKBTYPE, &arg) == 0 && ((arg == KB_101) || (arg == KB_84)));
+  return (ioctl(fd, KDGKBTYPE, &arg) == 0 && ((arg == KB_101) || (arg == KB_84)));
 }
 
 static int open_a_console(char *fnam)
@@ -51,12 +51,12 @@ static int open_a_console(char *fnam)
   fd = open(fnam, O_RDWR);
   if (fd < 0) return -1;
   if (!is_a_console(fd))
-	{
+  {
     close(fd);
     return -1;
   }
 
-	return fd;
+  return fd;
 }
 
 int getfd()
@@ -74,38 +74,38 @@ int getfd()
 
   for (fd = 0; fd < 3; fd++)
     if (is_a_console(fd))
-	    return fd;
+      return fd;
 
   fprintf(stderr, "Couldnt get a file descriptor referring to the console\n");
 
-	return -1;	/* total failure */
+  return -1;	/* total failure */
 }
 
 int switch_to_tty(int tty)
 {
-	char *ttyname = create_tty_name(tty);
+  char *ttyname = create_tty_name(tty);
 
-	if (!ttyname) return 0;
+  if (!ttyname) return 0;
   /* we set stdin, stdout and stderr to the new tty */
-	stdin  = freopen(ttyname, "r", stdin);
-	stdout = freopen(ttyname, "w", stdout);
+  stdin  = freopen(ttyname, "r", stdin);
+  stdout = freopen(ttyname, "w", stdout);
   stderr = freopen(ttyname, "w", stderr);
   if ( (stdin == NULL) || (stdout == NULL) || (stderr == NULL) ) return 0;
 
-	return 1;
+  return 1;
 }
 
 /* get the currently active tty */
 int get_active_tty(void)
 {
-	int tty_file_descriptor;
-	struct vt_stat terminal_status;
+  int tty_file_descriptor;
+  struct vt_stat terminal_status;
 
-	tty_file_descriptor = getfd();
-	if (tty_file_descriptor == -1) return -1;
-	if (ioctl (tty_file_descriptor, VT_GETSTATE, &terminal_status) == -1) return -1;
+  tty_file_descriptor = getfd();
+  if (tty_file_descriptor == -1) return -1;
+  if (ioctl (tty_file_descriptor, VT_GETSTATE, &terminal_status) == -1) return -1;
 
-	return terminal_status.v_active;
+  return terminal_status.v_active;
 }
 
 /* disallocate tty */
@@ -114,11 +114,11 @@ int disallocate_tty(int tty)
   int fd;
 
   /* we switch to /dev/tty<tty> */
-	if ( (fd = getfd()) == -1) return 0;
-	if (ioctl (fd, VT_DISALLOCATE, tty) == -1) return 0;
+  if ( (fd = getfd()) == -1) return 0;
+  if (ioctl (fd, VT_DISALLOCATE, tty) == -1) return 0;
   if (close(fd) != 0) return 0;
 
-	return 1;
+  return 1;
 }
 
 /* jump to another tty */
@@ -127,12 +127,12 @@ int set_active_tty(int tty)
   int fd;
 
   /* we switch to /dev/tty<tty> */
-	if ( (fd = getfd()) == -1) return 0;
-	if (ioctl (fd, VT_ACTIVATE, tty) == -1) return 0;
+  if ( (fd = getfd()) == -1) return 0;
+  if (ioctl (fd, VT_ACTIVATE, tty) == -1) return 0;
   if (ioctl (fd, VT_WAITACTIVE, tty) == -1) return 0;
   if (close(fd) != 0) return 0;
 
-	return 1;
+  return 1;
 }
 
 /* block tty switching */
@@ -140,11 +140,11 @@ int lock_tty_switching(void)
 {
   int fd;
 
-	if ( (fd = getfd()) == -1) return 0;
-	if (ioctl (fd, VT_LOCKSWITCH, 513) == -1) return 0;
+  if ( (fd = getfd()) == -1) return 0;
+  if (ioctl (fd, VT_LOCKSWITCH, 513) == -1) return 0;
   if (close(fd) != 0) return 0;
 
-	return 1;
+  return 1;
 }
 
 /* allow tty switching */
@@ -152,22 +152,22 @@ int unlock_tty_switching(void)
 {
   int fd;
 
-	if ( (fd = getfd()) == -1) return 0;
-	if (ioctl (fd, VT_UNLOCKSWITCH, 513) == -1) return 0;
+  if ( (fd = getfd()) == -1) return 0;
+  if (ioctl (fd, VT_UNLOCKSWITCH, 513) == -1) return 0;
   if (close(fd) != 0) return 0;
 
-	return 1;
+  return 1;
 }
 
 void stderr_disable(void)
 {
-	stderr = freopen("/dev/null", "w", stderr);
+  stderr = freopen("/dev/null", "w", stderr);
 }
 
 void stderr_enable(void)
 {
-	char *ttyname = create_tty_name(get_active_tty());
+  char *ttyname = create_tty_name(get_active_tty());
 
-	if (!ttyname) return;
-	stderr = freopen(ttyname, "w", stderr);
+  if (!ttyname) return;
+  stderr = freopen(ttyname, "w", stderr);
 }
