@@ -30,6 +30,7 @@
 #include "memmgmt.h"
 #include "load_settings.h"
 #include "misc.h"
+#include "keybindings.h"
   
 #define YYERROR_VERBOSE
 #define TTY_CHECK_COND    if (!intended_tty || intended_tty == current_tty)
@@ -42,6 +43,9 @@ static int clear_background_is_set = 0;
 static int intended_tty            = 0;
 static int ssaver_is_set           = 0;
 static int set_theme_result;
+
+/* key bindings vars */
+static actions   action;
 
 static window_t wind =
   {
@@ -115,6 +119,11 @@ static window_t wind =
 /* sleep tokens */
 %token SLEEP_TOK
 
+/* keybindings tokens */
+%token NEXT_TTY_TOK PREV_TTY_TOK POWEROFF_TOK REBOOT_TOK KILL_TOK
+%token MENU_KEY_TOK WIN_KEY_TOK ALT_KEY_TOK CTRL_KEY_TOK KEYBINDINGS_TOK
+
+
 /* typed tokens: */
 %token <ival>  ANUM_T 		/* int */
 %token <str>   QUOTSTR_T	/* char* */
@@ -141,6 +150,7 @@ config: /* nothing */
 | config theme { TTY_CHECK_COND GOT_THEME=set_theme_result; }
 | config shutdown
 | config window
+| config keybindings
 | config CLEAR_BACKGROUND_TOK '=' YES_TOK { if (!clear_background_is_set) clear_background = 1; }
 | config CLEAR_BACKGROUND_TOK '=' NO_TOK  { if (!clear_background_is_set) clear_background = 0; }
 ;
@@ -171,7 +181,8 @@ config_tty: /* nothing */
 | config_tty autologin { TTY_CHECK_COND DO_AUTOLOGIN=1;  }
 ;
 
-autologin: AUTOLOGIN_TOK '{' config_autologin '}'
+autologin: AUTOLOGIN_TOK '{' config_autologin '}';
+
 config_autologin: username
 | config_autologin password
 | config_autologin session
@@ -397,6 +408,30 @@ strprop: BG_TOK '=' QUOTSTR_T { TTY_CHECK_COND BACKGROUND = StrApp((char**)NULL,
 anumprop: BUTTON_OPAC_TOK '=' ANUM_T { TTY_CHECK_COND BUTTON_OPACITY          = $3; }
 | WIN_OP_TOK              '=' ANUM_T { TTY_CHECK_COND WINDOW_OPACITY          = $3; }
 | SEL_WIN_OP_TOK          '=' ANUM_T { TTY_CHECK_COND SELECTED_WINDOW_OPACITY = $3; }
+;
+
+/* key bindings */
+keybindings: KEYBINDINGS_TOK '{' keybindingsdefns '}'
+	{
+	  if(in_theme) yyerror("Setting 'key_bindings' is not allowed in theme file.");
+	}
+;
+
+keybindingsdefns: /* nothing */
+| keybindingsdefns actiondefns '=' QUOTSTR_T
+	{
+		if (!add_to_keybindings(action, $4))
+			yyerror("An error occurred while parsing your keybingings configuration.");
+	}
+;
+
+actiondefns: SLEEP_TOK { action = sleep_kb;       }
+| NEXT_TTY_TOK         { action = next_tty_kb;    }
+| PREV_TTY_TOK         { action = prev_tty_kb;    }
+| POWEROFF_TOK         { action = poweroff_kb;    }
+| REBOOT_TOK           { action = reboot_kb;      }
+| SCREENSAVER_TOK      { action = screensaver_kb; }
+| KILL_TOK             { action = kill_kb;        }
 ;
 
 /* a window in the theme */

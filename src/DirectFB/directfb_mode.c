@@ -44,6 +44,7 @@
 #include "misc.h"
 #include "session.h"
 #include "load_settings.h"
+#include "keybindings.h"
 
 /* my custom DirectFB stuff */
 #include "directfb_mode.h"

@@ -61,6 +61,7 @@
 #include "load_settings.h"
 #include "misc.h"
 #include "vt.h"
+#include "keybindings.h"
 
 
 extern FILE* yyin;
@@ -643,6 +644,13 @@ int check_windows_sanity()
 
 int load_settings(void)
 {
+	static int first_time = 1;
+
+	if (!first_time)
+		destroy_keybindings_list();
+
+	first_time = 0;
+
   DATADIR   = strdup(SETTINGS_DIR "/");
   SETTINGS  = StrApp((char**)NULL, DATADIR, "settings", (char*)NULL);
   LAST_USER = StrApp((char**)NULL, TMP_FILE_DIR, "/qingy-lastuser", (char*)NULL);  

@@ -2,8 +2,8 @@
                            misc.h  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2004 by Noberasco Michele
-    e-mail               : noberasco.gnu@disi.unige.it
+    copyright            : (C) 2003-2005 by Noberasco Michele
+    e-mail               : s4t4n@gentoo.org
 ***************************************************************************/
 
 /***************************************************************************
@@ -29,6 +29,7 @@
 #include <config.h>
 #endif
 
+#include <ctype.h>
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,6 +87,19 @@ char *int_to_str(int n)
   }
   
   return temp;
+}
+
+
+void to_lower(char *string)
+{
+	int i;
+	int len;
+
+	if (!string) return;
+
+	len = strlen(string);
+	for (i=0; i<len; i++)
+		string[i] = tolower(string[i]);
 }
 
 

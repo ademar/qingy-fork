@@ -17,6 +17,7 @@ endif
 libqingy_la_SOURCES =                 \
     scan_settings.l  parse_settings.y \
     load_settings.c  load_settings.h  \
+    keybindings.c    keybindings.h    \
     session.c        session.h        \
     tty_guardian.c   tty_guardian.h   \
     memmgmt.c        memmgmt.h        \

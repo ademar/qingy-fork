@@ -1,3 +1,20 @@
+2005-03-03  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/load_settings.c,
+	* src/DirectFB/directfb_mode.c,
+	* src/libraries/Makefile.am,
+	* src/libraries/misc.c,
+	* src/libraries/misc.h, 
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l,
+	* configure.in,
+	* src/libraries/keybindings.c,
+	* src/libraries/keybindings.h:
+	Adding support for customizable key bindings...
+	now they are correctly parsed, still have to write
+	the code that actually makes qingy take these
+	actions...
+
 2005-02-04  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/main.c (start_up):

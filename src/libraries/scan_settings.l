@@ -2,9 +2,11 @@
 %{
 /**-*-c-*-****************************************************************/
 /* scan_settings.l - config file scanner for qingy                       */
-/*  v. 1.0                                                               */
-/*  Copyright (C) 2003 Paolo Gianrossi - All rights reserved             */
-/*  by Paolo Gianrossi <paolino.gnu@disi.unige.it>                       */
+/*                                                                       */
+/*  Copyright (C) 2003      Paolo Gianrossi   - All rights reserved      */
+/*            (C) 2004-2005 Michele Noberasco                            */
+/*  by Paolo Gianrossi   <paolino.gnu@disi.unige.it>                     */
+/*  by Michele Noberasco <s4t4n@gentoo.org>                              */
 /*                                                                       */
 /* This program is free software; you can redistribute it and/or         */
 /* modify  under the terms of the GNU General Public License as          */
@@ -155,6 +157,15 @@ relogin                 return RELOGIN_TOK;
 lastsession             return LAST_SESSION_TOK;
 temp_files_dir          return TEMP_FILES_DIR_TOK;
 sleep                   return SLEEP_TOK;
+next_tty                return NEXT_TTY_TOK;
+prev_tty                return PREV_TTY_TOK;
+poweroff                return POWEROFF_TOK;
+reboot                  return REBOOT_TOK;
+kill                    return KILL_TOK;
+menu                    return MENU_KEY_TOK;
+win                     return WIN_KEY_TOK;
+keybindings            return KEYBINDINGS_TOK;
+
 
 "#"[^\n]*"\n" ;			/* skip comments */
 
