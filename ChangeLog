@@ -1,3 +1,17 @@
+2004-01-22  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
+
+	* doc/qingy.texi (Rolling your own screensavers): updated with
+	make, install and distribution instructions. Spell-checked the
+	whole file.
+
+	* media/screensavers/*/Makefile: rewrote Makefiles in a general
+	way.
+
+	* src/load_settings.c (get_welcome_msg): added option to have file
+	.qingy_welcome in user home and display first line of it as
+	welcome message. Retained global welcomes file option as well as
+	default.
+
 2004-01-22  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* src/parse_settings.y: Fixed a bug where a pointer got displayed
