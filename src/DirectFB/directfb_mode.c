@@ -53,25 +53,37 @@
 #define POWEROFF 0
 #define REBOOT   1
 
-DeviceInfo *devices = NULL;   /* the list of all input devices             */
-IDirectFBEventBuffer *events; /* all input events will be stored here      */
-IDirectFB *dfb;               /* the super interface                       */
-IDirectFBSurface *primary;    /* surface of the primary layer              */
-IDirectFBDisplayLayer *layer; /* the primary layer                         */
-Button *power, *reset;        /* buttons                                   */
-int we_stopped_gpm;           /* wether this program stopped gpm or not    */
-IDirectFBSurface *panel_image=NULL; /* background image                    */
-int screen_width, screen_height; /* screen resolution                      */
-IDirectFBFont *font_small, *font_normal, *font_large; /* fonts             */
-int font_small_height, font_normal_height, font_large_height;/* font sizes */
-Label *welcome_label = NULL, *username_label = NULL; /* text labels        */
-Label *password_label = NULL, *session_label = NULL; /* more text labels   */
-Label *lock_key_status = NULL;/* yet more text labels                      */
-TextBox *username = NULL, *password = NULL; /* text boxes                  */
-ComboBox *session = NULL;     /* combo boxes                               */
-int username_area_mouse = 0;  /* sensible area for mouse cursor to be in   */
-int password_area_mouse = 0;  /* sensible area for mouse cursor to be in   */
-int session_area_mouse = 0;   /* sensible area for mouse cursor to be in   */
+/*
+ * Global variables... dfinitely too many of them!
+ */
+IDirectFB             *dfb;                    /* the super interface                       */
+IDirectFBDisplayLayer *layer;                  /* the primary layer                         */
+IDirectFBSurface      *primary,                /* surface of the primary layer              */
+                      *panel_image     = NULL; /* background image                          */
+IDirectFBEventBuffer  *events;                 /* all input events will be stored here      */
+DeviceInfo            *devices         = NULL; /* the list of all input devices             */
+IDirectFBFont         *font_small,
+                      *font_normal,            /* fonts                                     */
+                      *font_large;  
+Button                *power,                  /* buttons                                   */
+                      *reset;
+TextBox               *username        = NULL, /* text boxes                                */
+                      *password        = NULL;
+Label                 *welcome_label   = NULL, /* text labels                               */
+                      *username_label  = NULL,
+                      *password_label  = NULL,
+                      *session_label   = NULL,
+                      *lock_key_status = NULL;
+ComboBox              *session         = NULL; /* combo boxes                               */
+int                   we_stopped_gpm,          /* wether this program stopped gpm or not    */
+                      screen_width,            /* screen resolution                         */
+                      screen_height,
+                      font_small_height,       /* font sizes                                */
+                      font_normal_height,
+                      font_large_height,
+                      username_area_mouse = 0, /* sensible area for mouse cursor to be in   */
+                      password_area_mouse = 0, /* sensible area for mouse cursor to be in   */
+                      session_area_mouse  = 0; /* sensible area for mouse cursor to be in   */
 
 void Draw_Background_Image()
 {
