@@ -176,4 +176,4 @@ PREFIX=""
 AC_PREFIX_DEFAULT ($PREFIX)
 AC_SUBST(infodir,"[/usr/share/info]")
 
-AC_OUTPUT([Makefile src/Makefile src/DirectFB/Makefile media/Makefile media/default/Makefile media/sessions/Makefile media/pam/Makefile doc/Makefile])
+AC_OUTPUT([Makefile src/Makefile src/DirectFB/Makefile media/Makefile media/default/Makefile media/sessions/Makefile media/pam/Makefile media/screensavers/Makefile doc/Makefile])
