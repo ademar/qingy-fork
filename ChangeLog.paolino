@@ -1,3 +1,8 @@
+2004-01-10  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
+
+	* media/themer: added. Perl script to translate old themes to new
+	ones.
+
 2004-01-07  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
 
 	* src/DirectFB/directfb_mode.c (start_login_sequence): added

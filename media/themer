@@ -1,0 +1,155 @@
+#!/usr/bin/perl -w
+
+# themer - translate Qingy 0.2 themes to Qingy 0.3 themes. 
+# v. 0.1 
+# Copyright (C) 2004 Paolo Gianrossi - All rights reserved 
+# by Paolo Gianrossi <paolino.gnu@disi.unige.it>
+
+# This program is free software; you can redistribute it and/or 
+# modify  under the terms of the GNU General Public License as 
+# published by the Free Software Foundation; either version 2, or (at 
+# your option) any later version.
+
+# This program is distributed in the hope that it will be useful, but 
+# WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+# General Public License for more details.
+
+# You should have received a copy of the GNU General Public License 
+# along with GNU Emacs; see the file COPYING.  If not, write to the 
+# Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+print<<END_O_HEAD;
+
+# Theme translated by $0. Please review and enhance manually!
+# $0 can be found @ http://yersinia.org/homes/paolino/projects/
+
+theme
+{
+    background = "background.png"
+END_O_HEAD
+
+while(<>){
+    s/FONT\s+(\S+)/font\="$1"/ 						or
+    s/BUTTON_OPACITY\s+(\d+)/button_opacity\=$1/			or
+    s/SELECTED_WINDOW_OPACITY\s+(\d+)/selected_window_opacity\=$1/	or
+    s/WINDOW_OPACITY\s+(\d+)/window_opacity\=$1/			or
+    s/MASK_TEXT_COLOR\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/default_text_color\=$1,\ $2,\ $3,\ $4/ or
+    s/TEXT_CURSOR_COLOR\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/default_cursor_color\=$1,\ $2,\ $3,\ $4/   or
+    s/OTHER_TEXT_COLOR\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/other_text_color\=$1,\ $2,\ $3,\ $4/  ;
+    
+    print;
+}
+
+print<<END_O_FOOT
+
+}
+
+window
+{
+        x      = 0
+	y      = 75
+	width  = 800
+	height = 50
+
+	text_size        = large
+	
+	text_orientation = center
+
+	type    = "label"
+	content = "Welcome to <INS_CMD_HERE>"
+	# The <INS_CMD_HERE> above is substituted with the output of 'command'
+	command = "hostname"
+}
+
+window
+{
+	x                = 100
+	y                = 220
+	width            = 120
+	height           = 50
+	text_orientation = right
+	type             = "label"
+	content          = "login:"
+	linkto           = "login"
+}
+
+window
+{
+	x            = 240
+	y            = 220
+	width        = 560
+	height       = 50
+	text_color   = 200, 200, 40, 255
+	cursor_color =  90,  90, 20, 221
+	type         = "login"
+}
+
+window
+{
+	x                = 100
+	y                = 295
+	width            = 120
+	height           = 50
+	text_orientation = right
+	type             = "label"
+	content          = "passwd:"
+	linkto           = "password"
+}
+
+window
+{
+	x            = 240
+	y            = 295
+	width        = 560
+	height       = 50
+	text_color   = 180, 40, 40, 255
+	cursor_color =  90, 20, 20, 221
+	type         = "password"
+}
+
+window
+{
+	x                = 100
+	y                = 370
+	width            = 120
+	height           = 50
+	text_orientation = right
+	type             = "label"
+	content          = "session:"
+	linkto           = "session"
+}
+
+window
+{
+	x          = 240
+	y          = 370
+	width      = 560
+	height     = 50
+	text_color = 200, 200, 40, 255
+	type       = "combo"
+	command = "sessions"
+}
+
+window
+{
+	# window geometry
+	x    = 755
+	y    = 562
+	type = "button"
+	command = "halt"
+	content = "power"
+}
+
+window
+{
+	x       = 700
+	y       = 562
+	type    = "button"
+	command = "reboot"
+	content = "reset"
+}
+
+END_O_FOOT
+
+__END__
