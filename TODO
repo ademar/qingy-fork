@@ -92,6 +92,8 @@
 
 - support also the /dev/vc* in spite of /dev/tty*
 
+- why does it suck so much ram?
+
 --
 Items marked as * are those we are currently working on.
 For stuff already done, see NEWS file...

@@ -1,4 +1,4 @@
-qingy CVS:
+qingy 0.4.1:
 - Added proper support for transparent pixmaps, now qingy
   will honour the transparency instead of faking it by
   making the black pixels transparent...
