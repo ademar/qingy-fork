@@ -1,0 +1,92 @@
+                              QINGY
+												Qingy Is Not GettY
+
+
+/----------------\
+| What is qingy? |
+\----------------/
+qingy is a replacement of getty.
+Written in C, it uses DirectFB to provide a fast, nice GUI
+without the overhead of the X Windows System.
+It allows the user to log in and start the session of his choice
+(text console, gnome, kde, wmaker, ...).
+
+
+/----------------\
+|    Features    |
+\----------------/
+- It works ;-)
+- It remembers last user who logged in, with focus on password
+- It also rememebers last session each user chose
+- Customizable font, text colors, background and button images
+- You can start more that one X session at once
+- You can even start X inside a console when X sessions
+  are already running
+
+
+/----------------\
+|     Usage      |
+\----------------/
+- Use <TAB> to jump to the next section
+- Use <SHIFT-TAB> to jump to the previous section
+- You can also use your mouse and click a section
+- Type as you always did in previous life ;-) (*)
+- Use <UP> and <DOWN> arrows to browse sessions
+- Click on <POWER> and <RESET> buttons and you will,
+  respectively, poweroff and reboot
+- The above can also be obtained via <ALT-P> and <ALT-R>
+- Press <ENTER> to log in
+- Press <ESC> two times to deactivate DirectFB and get a text login
+- Press <ALT-Fn> (or <CTRL-ALT-Fn>) to switch to the nth tty(**)
+- If you log into, say, WindowMaker, and then change VT,
+  WM will wait for you to switch back to the previous VT
+
+(*) you can use all the usual <LEFT>, <RIGHT>, <HOME>,
+    <END>, <DEL>, <BACKSPACE> keys to edit your text
+(**) there is no need to enable VT switching in DirectFDB
+
+
+/----------------\
+|Program Options |
+\----------------/
+Output of 'qingy -h':
+
+qingy version 0.1
+
+Usage: qingy <ttyname> [options]
+Options:
+   -black-screen-workaround
+    Try this if you get a black screen instead of a text console.
+    Note: switching to another vt and back also solves the problem.
+
+
+/----------------\
+| Configuration  |
+\----------------/
+qingy puts all its configuration files in /etc/qingy.
+There you will find the background image (background.png),
+images of button surfaces, as well as a configuration file
+(settings), that you can tweak as you need/like:
+
+FONT decker.ttf                         (1)
+XSESSIONS_DIRECTORY /etc/X11/Sessions/  (2)
+XINIT /usr/X11R6/bin/xinit              (3)
+BUTTON_OPACITY  255                     (4)
+WINDOW_OPACITY  128                     (5)
+SELECTED_WINDOW_OPACITY  207            (6)
+MASK_TEXT_COLOR    255    0    0  255   (7)
+TEXT_CURSOR_COLOR  128    0    8  221   (8)
+OTHER_TEXT_COLOR    64   64   64  255   (9)
+
+(1) Font file to use
+(2) Path to the scripts that start available X sessions
+(3) Full path to the 'xinit' executable
+(4) Opacity of buttons: (*)
+(5) Default opacity of sections (*)
+(6) Opacity of selected session (*)
+(7) Text color in main window (**)
+(8) Color of the cursor (**)
+(9) Text color in messages like "Logging in" (**)
+
+(*)  from 0 (invisible) to 255 (opaque)
+(**) RGBA format, each value from 0 to 255
