@@ -8,6 +8,7 @@ qingy 0.2.1 ():
 - Now ENTER in username field pass control to password
 - Now qingy reverts back to text mode login if something
   goes wrong with DirectFB
+- Message "Login failed" now appears for 2 seconds
 - Various fixes and clean ups (memory leaks, allocation failures...)
 
 qingy 0.2 (18 July 2003):

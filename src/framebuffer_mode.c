@@ -464,13 +464,13 @@ void start_login_sequence(DFBInputEvent *evt)
 		temp = get_last_user();
 		free_temp = 1;
 	}
-	else temp = username->text; 	
+	else temp = username->text;
 	if (!check_password(temp, password->text))
 	{
 		primary->Clear (primary, 0, 0, 0, 0);
 		primary->DrawString (primary, "Login failed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 		primary->Flip (primary, NULL, DSFLIP_BLIT);
-		sleep(1);
+		sleep(2);
 		password->ClearText(password);
 		reset_screen(evt);
 		if (free_temp) free(temp);
@@ -728,13 +728,7 @@ int framebuffer_mode (int argc, char *argv[])
 		DirectFB_Error();
 		return TEXT_MODE;
 	}
-	/*if (!width && !height)*/
-		primary->GetSize(primary, &screen_width, &screen_height);
-	/*else
-	{
-		screen_width  = width;
-		screen_height	= height;
-	}*/
+	primary->GetSize(primary, &screen_width, &screen_height);
 
 	if (!set_font_sizes ())
 	{

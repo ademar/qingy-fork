@@ -67,9 +67,6 @@ void Error()
 	printf("\nqingy version " VERSION "\n");
 	printf("\nusage: ginqy <ttyname> [options]\n");
 	printf("Options:\n");
-	/*printf("\t--resolution:<resolution>\n");
-	printf("\tSpecify current screen resolution.\n");
-	printf("\tUse XRESxYRES form.\n\n");*/
 	printf("\t--hide-password\n");
 	printf("\tDo not show password asterisks.\n\n");
 	printf("\t--hide-lastuser\n");
@@ -153,31 +150,6 @@ void start_up(void)
 	exit(EXIT_FAILURE);
 }
 
-/*int get_resolution(char *resolution)
-{
-	char *temp;
-	int *value = &width;
-
-	if (!resolution) return 0;
-	for(temp = resolution; (int)*temp; temp++)
-		switch (*temp)
-		{
-			case 'x': case 'X':
-				if (!width) return 0;
-				if (value == &height) return 0;
-				value = &height;
-				break;
-			default:
-				if ((*temp) > '9' || (*temp) < '0') return 0;
-				(*value) *= 10;
-				(*value) += (int)(*temp) - (int)'0';
-		}
-	if (!width)  return 0;
-	if (!height) return 0;
-
-	return 1;
-}*/
-
 int ParseCMDLine(int argc, char *argv[])
 {
 	int i;
@@ -195,11 +167,6 @@ int ParseCMDLine(int argc, char *argv[])
 	{
 		int error = 1;
 
-		/*if (strncmp(argv[i], "--resolution:", 13) == 0)
-		{
-			if (!get_resolution((argv[i]+13))) Error();
-			error = 0;
-		}*/
 		if (strcmp(argv[i], "--silent") == 0)
 		{
 			silent = 1;
@@ -243,8 +210,6 @@ int main(int argc, char *argv[])
 	delay.tv_nsec= 500000000;
 
 	/* We set up some default values */
-	/*width=0;
-	height=0;*/
 	black_screen_workaround = -1;
 	silent = 0;
 	hide_password = 0;
