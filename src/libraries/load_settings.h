@@ -42,6 +42,7 @@ int screensaver_timeout;
 int clear_background;
 int current_tty;
 int lock_sessions;
+int retries;
 
 /* NOTE: some of these should become #defines through autoconf... */
 char *program_name;

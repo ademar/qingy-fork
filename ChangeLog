@@ -1,3 +1,33 @@
+2004-09-10  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/directfb_mode.c,
+	* src/main.c (start_up),
+	* src/qingy_constants.h (QINGY_FAILURE): 
+	Fix obscure bug: EXIT_FAILURE = 1
+	but 1 is also a tty we may want to switch to...
+	Thus I introduced QINGY_FAILURE, with value -1
+	qingy interface now returns this value
+	in case of failure...
+
+	* media/Makefile.am (settings): 
+	Add an example of 'retries' to settings file.
+
+2004-09-09  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* media/pam/Makefile.am (EXTRA_DIST):
+	Fix debian pam file location...
+
+	* src/main.c (start_up),
+	* src/DirectFB/directfb_mode.c (main),
+	* src/libraries/load_settings.h,
+	* src/libraries/load_settings.c (initialize_variables),
+	* src/libraries/scan_settings.l,
+	* src/libraries/parse_settings.y: 
+	Added support for 'retries' setting in config file
+	which allows user to specify how many times qingy
+	should try to bring its gui up before reverting
+	to text mode...
+
 2004-08-20  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* media/pam/debian/qingy,

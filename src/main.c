@@ -61,7 +61,7 @@
 void start_up(int argc, char *argv[], int our_tty_number)
 {
 	FILE *fp;
-  int i, returnstatus;
+  int i, returnstatus = QINGY_FAILURE;
 	char *interface  = NULL;
 	char *username   = NULL;
 	char *password   = NULL;
@@ -90,17 +90,25 @@ void start_up(int argc, char *argv[], int our_tty_number)
 	if (fb_device)  free(fb_device);
 
 	/* let's go! */
-	fp = popen(interface, "r");
-	free(interface);
-	if (getline(&username, &len, fp) == -1) username = NULL; len = 0;
-	if (getline(&password, &len, fp) == -1) password = NULL; len = 0;
-	if (getline(&session,  &len, fp) == -1) session  = NULL; len = 0;
+	for (i=0; i<=retries; i++)
+	{
+		fp = popen(interface, "r");
+		if (getline(&username, &len, fp) == -1) username = NULL; len = 0;
+		if (getline(&password, &len, fp) == -1) password = NULL; len = 0;
+		if (getline(&session,  &len, fp) == -1) session  = NULL; len = 0;
 
-	returnstatus = pclose(fp);
-	if (WIFEXITED(returnstatus))
-		returnstatus = WEXITSTATUS(returnstatus);
-	else
-		returnstatus = TEXT_MODE;
+		returnstatus = pclose(fp);
+		if (WIFEXITED(returnstatus))
+			returnstatus = WEXITSTATUS(returnstatus);
+		else
+			returnstatus = QINGY_FAILURE;
+
+		if (returnstatus != QINGY_FAILURE) break;
+		if (username && password && session) break;
+
+		if (i == retries) returnstatus = TEXT_MODE;
+	}
+	free(interface);
 
 	/* remove trailing newlines from these values */
 	if (username) username[strlen(username) - 1] = '\0';

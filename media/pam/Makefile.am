@@ -10,4 +10,4 @@ endif
 
 EXTRA_DIST =          \
     default/qingy     \
-    gentoo/qingy
+    debian/qingy

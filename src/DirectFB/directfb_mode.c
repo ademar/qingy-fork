@@ -500,7 +500,7 @@ void begin_shutdown_sequence (shutdown_t action)
   /* we should never get here unless call to /sbin/shutdown fails */
   fprintf (stderr, "\nfatal error: unable to exec \"/sbin/shutdown\"!\n");
   if (!no_shutdown_screen) close_framebuffer_mode ();
-  exit (EXIT_FAILURE);
+  exit (QINGY_FAILURE);
 }
 
 void do_ctrl_alt_del(DFBInputEvent *evt)
@@ -1055,7 +1055,7 @@ int main (int argc, char *argv[])
   /* load settings from file */
 	initialize_variables();
 	current_tty = ParseCMDLine(argc, argv, 0);
-	if (!load_settings()) return TEXT_MODE;
+	if (!load_settings()) return QINGY_FAILURE;
   if (!disable_last_user) lastuser = get_last_user();
 
 #ifdef USE_GPM_LOCK
@@ -1077,7 +1077,7 @@ int main (int argc, char *argv[])
 	if (result != DFB_OK)
 	{
 		DirectFB_Error();
-		return TEXT_MODE;
+		return QINGY_FAILURE;
 	}
 
   /* more initialization */
@@ -1088,21 +1088,21 @@ int main (int argc, char *argv[])
   if (dfb->CreateSurface( dfb, &sdsc, &primary ) != DFB_OK)
 	{
 		DirectFB_Error();
-		return TEXT_MODE;
+		return QINGY_FAILURE;
 	}
   primary->GetSize(primary, &screen_width, &screen_height);
 
   if (!set_font_sizes ())
 	{
 		DirectFB_Error();
-		return TEXT_MODE;
+		return QINGY_FAILURE;
 	}
   Draw_Background_Image(1);
 
   if (!create_windows())
 	{
 		DirectFB_Error();
-		return TEXT_MODE;
+		return QINGY_FAILURE;
 	}
   if (!hide_password) password->mask_text = 1;
   else password->hide_text = 1;

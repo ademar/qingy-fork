@@ -6,6 +6,6 @@
 #define QINGY_CONST_H
 
 #define MAX 255
+#define QINGY_FAILURE -1
 
 #endif 
-

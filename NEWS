@@ -1,3 +1,10 @@
+qingy 0.5.3:
+- Added support for 'retries' setting in config file
+  which allows user to specify how many times qingy
+  should try to bring its gui up before reverting
+  to text mode...
+
+
 qingy 0.5.2 (19 Aug 2004):
 - Brown paper bag release: fix horrible bug I just introduced not allowing
   to run qingy any more due to incorrect cmd line arguments handling...

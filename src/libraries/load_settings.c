@@ -100,6 +100,7 @@ void initialize_variables(void)
   THEME_HEIGHT            = 600;
 	GOT_THEME               = 0;
 	lock_sessions           = 0;
+	retries                 = 0;
 #ifdef USE_SCREEN_SAVERS
 	screensaver_timeout     = 5;
 	use_screensaver         = 1;
