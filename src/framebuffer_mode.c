@@ -1,5 +1,5 @@
 /***************************************************************************
-                     framebuffer_mode.h  -  description
+                     framebuffer_mode.c  -  description
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
@@ -59,8 +59,8 @@ IDirectFBSurface *window_surface;	/* surface of the above												*/
 DFBWindowDescription window_desc;	/* description of the window above						*/
 unsigned int screen_width, screen_height;	/* screen resolution									*/
 IDirectFBFont *font_small, *font_normal, *font_large;	/* fonts 									*/
-char **sessions;
-int n_sessions;
+char **sessions;							/* names of available sessions										*/
+int n_sessions;								/* number of available sessions										*/
 
 void DrawBase ()
 {
@@ -146,6 +146,94 @@ void close_framebuffer_mode (void)
 	dfb->Release (dfb);
 }
 
+void handle_mouse_movement (void)
+{
+	static DFBRegion *buttons_area = NULL;
+
+	/* Why redraw all the screen if we need to modify only the buttons area? */
+	if (!buttons_area)
+	{
+		buttons_area = (DFBRegion *) calloc(1, sizeof(DFBRegion));
+		buttons_area->x1 = reset->xpos;
+		buttons_area->y1 = reset->ypos;
+		buttons_area->x2 = screen_width;
+		buttons_area->y2 = screen_height;
+	}
+
+	/* mouse over power button */
+	if ((mouse_x >= power->xpos) && (mouse_x <= (power->xpos + (int) power->width)))
+		if ((mouse_y >= power->ypos) && (mouse_y <= (power->ypos + (int) power->height)))
+		{
+			if (!power->mouse)
+			{
+				power->mouse = 1;
+				primary->Blit (primary, power->mouseover, NULL, power->xpos, power->ypos);
+				primary->Blit (primary, reset->normal, NULL, reset->xpos, reset->ypos);
+				primary->Flip (primary, buttons_area, DSFLIP_BLIT);
+				return;
+			}
+			else return;		/* we already plotted this event */
+		}
+
+	/* mouse over reset button */
+	if ((mouse_x >= reset->xpos) && (mouse_x <= (reset->xpos + (int) reset->width)))
+		if ((mouse_y >= reset->ypos) && (mouse_y <= (reset->ypos + (int) reset->height)))
+		{
+			if (!reset->mouse)
+			{
+				reset->mouse = 1;
+				primary->Blit (primary, power->normal, NULL, power->xpos, power->ypos);
+				primary->Blit (primary, reset->mouseover, NULL, reset->xpos, reset->ypos);
+				primary->Flip (primary, buttons_area, DSFLIP_BLIT);
+				return;
+			}
+			else return;		/* we already plotted this event */
+		}
+
+	/* mouse not over any power button */
+	if ((power->mouse) || (reset->mouse))
+	{
+		power->mouse = 0;
+		reset->mouse = 0;
+		primary->Blit (primary, power->normal, NULL, power->xpos, power->ypos);
+		primary->Blit (primary, reset->normal, NULL, reset->xpos, reset->ypos);
+		primary->Flip (primary, buttons_area, DSFLIP_BLIT);
+	}
+}
+
+void show_lock_key_status(DFBInputEvent *evt, int force_draw)
+{
+	static int caps_lock_warning = 0;
+	static DFBRegion *warning_area = NULL;
+
+	if (!warning_area)
+	{
+		warning_area = (DFBRegion *) calloc(1, sizeof(DFBRegion));
+		warning_area->x1 = 0;
+		warning_area->y1 = reset->ypos;
+		warning_area->x2 = reset->xpos - 1;
+		warning_area->y2 = screen_height - 1;
+	}
+
+	if (lock_is_pressed(evt) == 3)
+		if (!caps_lock_warning || force_draw)
+		{
+			primary->SetColor (primary, 0xff, 0x00, 0x00, 0x88);
+			primary->SetFont (primary, font_small);
+			primary->DrawString (primary, "CAPS LOCK is pressed", -1, 0, screen_height, DSTF_BOTTOM );
+			primary->Flip (primary, warning_area, DSFLIP_BLIT);
+			caps_lock_warning = 1;
+		}
+	if (lock_is_pressed(evt) != 3)
+		if (caps_lock_warning || force_draw)
+		{
+			primary->SetColor (primary, 0x00, 0x00, 0x00, 0xff);
+			primary->FillRectangle(primary, 0, reset->ypos, reset->xpos - 1, reset->height);
+			primary->Flip (primary, warning_area, DSFLIP_BLIT);
+			caps_lock_warning = 0;
+		}
+}
+
 void begin_shutdown_sequence (int action)
 {
 	DFBInputEvent evt;
@@ -168,8 +256,13 @@ void begin_shutdown_sequence (int action)
 				layer->EnableCursor (layer, 0);
 				layer->EnableCursor (layer, 1);
 				if (evt.key_symbol == DIKS_ESCAPE)
-				{
+				{ /* user aborted sequence */
 					DrawBase ();
+					power->mouse = 0;
+					reset->mouse = 0;
+					layer->GetCursorPosition (layer, &mouse_x, &mouse_y);
+					handle_mouse_movement();
+					show_lock_key_status(&evt, 1);
 					window->SetOpacity( window, WINDOW_OPACITY );
 					return;
 				}
@@ -208,8 +301,7 @@ void begin_shutdown_sequence (int action)
 	}
 	if (action == REBOOT)
 	{
-		primary->DrawString (primary, "rebooting system...", -1,
-		screen_width / 2, screen_height / 2, DSTF_CENTER);
+		primary->DrawString (primary, "rebooting system...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 		primary->Flip (primary, NULL, 0);
 		execl ("/sbin/shutdown", "/sbin/shutdown", "-r", "now", (char *) 0);
 	}
@@ -218,49 +310,6 @@ void begin_shutdown_sequence (int action)
 	fprintf (stderr, "\nfatal error: unable to exec \"/sbin/shutdown\"!\n");
 	close_framebuffer_mode ();
 	exit (EXIT_FAILURE);
-}
-
-void handle_mouse_movement (void)
-{
-	/* mouse over power button */
-	if ((mouse_x >= power->xpos) && (mouse_x <= (power->xpos + (int) power->width)))
-		if ((mouse_y >= power->ypos) && (mouse_y <= (power->ypos + (int) power->height)))
-		{
-			if (!power->mouse)
-			{
-				power->mouse = 1;
-				primary->Blit (primary, power->mouseover, NULL, power->xpos, power->ypos);
-				primary->Blit (primary, reset->normal, NULL, reset->xpos, reset->ypos);
-				primary->Flip (primary, NULL, DSFLIP_BLIT);
-				return;
-			}
-			else return;		/* we already plotted this event */
-		}
-
-	/* mouse over reset button */
-	if ((mouse_x >= reset->xpos) && (mouse_x <= (reset->xpos + (int) reset->width)))
-		if ((mouse_y >= reset->ypos) && (mouse_y <= (reset->ypos + (int) reset->height)))
-		{
-			if (!reset->mouse)
-			{
-				reset->mouse = 1;
-				primary->Blit (primary, power->normal, NULL, power->xpos, power->ypos);
-				primary->Blit (primary, reset->mouseover, NULL, reset->xpos, reset->ypos);
-				primary->Flip (primary, NULL, DSFLIP_BLIT);
-				return;
-			}
-			else return;		/* we already plotted this event */
-		}
-
-	/* mouse not over any power button */
-	if ((power->mouse) || (reset->mouse))
-	{
-		power->mouse = 0;
-		reset->mouse = 0;
-		primary->Blit (primary, power->normal, NULL, power->xpos, power->ypos);
-		primary->Blit (primary, reset->normal, NULL, reset->xpos, reset->ypos);
-		primary->Flip (primary, NULL, DSFLIP_BLIT);
-	}
 }
 
 void handle_mouse_event (DFBInputEvent *evt)
@@ -299,6 +348,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 	struct DFBKeyIdentifierName *id_name;
 	int returnstatus = -1;
 
+	show_lock_key_status(evt, 0);
 	/* If user presses ESC two times, we bo back to text mode */
 	if (last_symbol == DIKS_ESCAPE && evt->key_symbol == DIKS_ESCAPE) return TEXT_MODE;
 	/* We store the previous keystroke */
@@ -329,9 +379,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 			if ((test == 'R')||(test == 'r')) begin_shutdown_sequence (REBOOT);
 		}
 	}
-	/* Sometimes mouse cursor disappears after a keystroke,
-	   we make it visible again                             */
-	layer->EnableCursor (layer, 0);
+	/* Sometimes mouse cursor disappears after a keystroke, we make it visible again */
 	layer->EnableCursor (layer, 1);
 
 	return returnstatus;
@@ -358,14 +406,12 @@ int framebuffer_mode (int argc, char *argv[])
 	DFBResult err;							/* used by that bloody macro to check for errors				*/
 	DFBSurfaceDescription sdsc;	/* this will be the description for the primary surface	*/
 	DFBInputEvent evt;					/* generic input events will be stored here							*/
-	int i;
 
+	/* Stop GPM if necessary */
 	we_stopped_gpm= stop_gpm();
-
-	n_sessions=how_many_sessions();
-	sessions = get_sessions(n_sessions);
-	for(i=0;i<n_sessions;i++)
-	  fprintf(stderr, "%s\n", sessions[i]);
+	/* Get info about available sessions */
+	n_sessions = how_many_sessions();
+	sessions   = get_sessions(n_sessions);
 
 	/* we initialize directfb */
 	DFBCHECK (DirectFBInit (&argc, &argv));
