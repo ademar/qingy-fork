@@ -28,3 +28,5 @@ libqingy_la_LIBADD = @PASSWDLIB@
 libqingy_la_LDFLAGS = -release @VERSION@
 
 libqingy_static_la_SOURCES = $(libqingy_la_SOURCES)
+libqingy_static_la_LIBADD = @PASSWDLIB@
+libqingy_static_la_LDFLAGS = -release @VERSION@

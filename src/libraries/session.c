@@ -591,7 +591,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   if (!session || strcmp(session+6, "Console"))
 	{
 		args[1] = strdup("-c");
-		args[2] = StrApp((char **)NULL, TEXT_SESSIONS_DIRECTORY, session+6, (char *)NULL);
+		args[2] = StrApp((char **)NULL, TEXT_SESSIONS_DIRECTORY, "\"", session+6, "\"", (char *)NULL);
 	}
   
   proc_id = fork();
@@ -708,7 +708,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   if (!strcmp(session, "Your .xsession"))
     args[2] = StrApp(&(args[2]), "$HOME/.xsession -- ", (char*)NULL);
   else
-    args[2] = StrApp(&(args[2]), X_SESSIONS_DIRECTORY, session, " -- ", (char*)NULL);
+    args[2] = StrApp(&(args[2]), X_SESSIONS_DIRECTORY, "\"", session, "\" -- ", (char*)NULL);
 	if (X_SERVER)
 		args[2] = StrApp(&(args[2]), X_SERVER, " :", x_server, " vt", vt, " >& /dev/null", (char*)NULL);
 	else

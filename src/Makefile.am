@@ -13,6 +13,6 @@ if !WANT_STATIC
 qingy_LDADD   = libraries/libqingy.la
 qingy_LDFLAGS = -rdynamic
 else
-qingy_LDADD   = libraries/libqingy_static.la @PASSWDLIB@
+qingy_LDADD   = libraries/libqingy_static.la
 qingy_LDFLAGS = -static
 endif
