@@ -158,6 +158,7 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	echo "        \"/mnt/documenti/Immagini/foto screen saver\"" >> media/settings
 	echo "" >> media/settings
 	echo "# What theme do you want (you can also specify 'random')" >> media/settings
+	echo "# theme = random" >> media/settings
 	echo "# theme = \"default\"" >> media/settings
 	echo "" >> media/settings
 	echo "# Who is allowed to shut down the system?" >> media/settings

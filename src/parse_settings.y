@@ -93,7 +93,7 @@ xinit: XINIT_TOK '=' QUOTSTR_T
          XINIT = strdup($3);
        };
  
-theme: THEME_TOK RAND_TOK { set_theme(get_random_theme()); }
+theme: THEME_TOK '=' RAND_TOK  { char *temp = get_random_theme(); set_theme(temp); free(temp); }
      | THEME_TOK '=' QUOTSTR_T { set_theme($3); }
      | THEME_TOK '{' themedefn '}' 
      ;

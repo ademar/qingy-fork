@@ -149,7 +149,7 @@ void add_to_paths(char *path)
 char *get_random_theme()
 {
   DIR *dir;
-  char *themes_dir = StrApp((char**)0, DATADIR, "themes/", (char*)0);
+  char *themes_dir = StrApp((char**)NULL, DATADIR, "themes/", (char*)NULL);
 	char *result;
   struct dirent *entry;
   int n_themes = 0;
@@ -158,8 +158,7 @@ char *get_random_theme()
   struct tm curr_time;
   int i;
 
-  dir= opendir(themes_dir);
-	free(themes_dir);
+  dir= opendir(themes_dir);	
   if (!dir) return strdup("default");
 
   while ((entry= readdir(dir)))
@@ -168,7 +167,7 @@ char *get_random_theme()
     if (!strcmp(entry->d_name, "." )) continue;
     if (!strcmp(entry->d_name, "..")) continue;    
 
-    temp = StrApp((char**)NULL, themes_dir, entry->d_name);
+    temp = StrApp((char**)NULL, themes_dir, entry->d_name, (char*)NULL);
     if (is_a_directory(temp))
     {
       themes[n_themes] = strdup(entry->d_name);
@@ -177,6 +176,9 @@ char *get_random_theme()
 		free(temp);
   }
   closedir(dir);
+	free(themes_dir);
+
+	if (!n_themes) return strdup("default");
 
   /* let's create a random number between 0 and n_themes-1 */
   epoch = time(NULL);
