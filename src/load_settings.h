@@ -49,6 +49,10 @@ int BUTTON_OPACITY;
 int WINDOW_OPACITY;
 int SELECTED_WINDOW_OPACITY;
 
+/* this is the virtual theme resolution */
+int THEME_WIDTH;
+int THEME_HEIGHT;
+
 /* colors */
 typedef struct
 {
@@ -127,6 +131,7 @@ typedef struct _window
   int polltime;
 	text_size_t text_size;
 	color_t text_color;
+	color_t cursor_color;
   window_types_t type;
   char *command;
   char *content;

@@ -113,6 +113,7 @@ content                 return WCONTENT_TOK;
 window                  return WINDOW_TOK;
 time                    return WPOLL_TIME_TOK;
 text_color              return WTEXT_COLOR_TOK;
+cursor_color            return WCURSOR_COLOR_TOK;
 text_size               return WTEXT_SIZE_TOK;
 small                   return WTEXT_SMALL_TOK;
 medium                  return WTEXT_MEDIUM_TOK;

@@ -1,5 +1,5 @@
 theme
-{
+{	
 	background = "background.png"
 	font = "decker.ttf"
 
@@ -16,4 +16,65 @@ theme
 	mask_text_color   = 40, 180, 40, 255
 	cursor_text_color = 20, 90,  20, 221
 	other_text_color  = 64, 64,  64, 255
+}
+
+#login window
+window
+{
+	# window geometry
+	x       = 50
+	y       = 100
+	width   = 1000
+	height  = 50
+
+	text_size = medium
+	text_color  = 40, 180, 40, 255
+
+	# update time, 0 means do not update
+	time    = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type    = "login"
+}
+
+window
+{
+	# window geometry
+	x       = 50
+	y       = 200
+	width   = 1000
+	height  = 50
+
+	text_size = medium
+	text_color  = 40, 180, 40, 255
+
+	# update time, 0 means do not update
+	time    = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type    = "password"
+}
+
+window
+{
+	# window geometry
+	x       = 50
+	y       = 300
+	width   = 1000
+	height  = 50
+
+	text_size = small
+	text_color  = 40, 180, 40, 255
+
+	# update time, 0 means do not update
+	time    = 0
+
+	# window type, allowed values are:
+	# "label", "button", "login", "password", "combo"
+	type    = "label"
+
+	# In this case: what text do you want to display?
+	content = "pippo"
 }

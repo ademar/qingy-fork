@@ -27,7 +27,7 @@ static window_t wind;
 %token BG_TOK FONT_TOK BUTTON_OPAC_TOK WIN_OP_TOK SEL_WIN_OP_TOK 			     
 %token SHUTDOWN_TOK EVERYONE_TOK ONLY_ROOT_TOK NO_ONE_TOK
 
-%token WINDOW_TOK WPOLL_TIME_TOK WTEXT_COLOR_TOK
+%token WINDOW_TOK WPOLL_TIME_TOK WTEXT_COLOR_TOK WCURSOR_COLOR_TOK
 %token WTYPE_TOK WWIDTH_TOK WHEIGHT_TOK WCOMMAND_TOK WCONTENT_TOK
 %token WTEXT_SIZE_TOK WTEXT_SMALL_TOK WTEXT_MEDIUM_TOK WTEXT_LARGE_TOK
 
@@ -132,6 +132,16 @@ wincolorprop: WTEXT_COLOR_TOK '=' COLOR_T
               {
                 wind.text_color.R = $3; wind.text_color.G = $5;
                 wind.text_color.B = $7; wind.text_color.A = $9;
+              }
+            | WCURSOR_COLOR_TOK '=' COLOR_T
+              {
+                wind.cursor_color.R=$3[3]; wind.cursor_color.G=$3[2]; 
+                wind.cursor_color.B=$3[1]; wind.cursor_color.A=$3[0];
+              }
+            | WCURSOR_COLOR_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T
+              {
+                wind.cursor_color.R = $3; wind.cursor_color.G = $5;
+                wind.cursor_color.B = $7; wind.cursor_color.A = $9;
               }
             ;
 

@@ -83,6 +83,8 @@ void initialize_variables(void)
   hide_password           = 0;
   silent                  = 1;
 	SHUTDOWN_POLICY         = EVERYONE;
+	THEME_WIDTH             = 800;
+	THEME_HEIGHT            = 600;
 }
 
 void set_default_session_dirs(void)
@@ -460,17 +462,19 @@ int get_win_type(const char* name)
 
 int check_windows_sanity()
 {
-	window_t* temp = windowsList;
-	int got_login  = 0;
-	int got_passwd = 0;
+	window_t* temp  = windowsList;
+	int got_login   = 0;
+	int got_passwd  = 0;
+	int got_session = 0;
  
 	while(temp)
 	{
 		if (temp->type == LOGIN)    got_login  = 1;
 		if (temp->type == PASSWORD) got_passwd = 1;
+		if (temp->type == COMBO && !strcmp(temp->command,"sessions")) got_session = 1;
 		temp = temp->next;
 	}
-	if (!got_login || !got_passwd) return 0;
+	if (!got_login || !got_passwd || !got_session) return 0;
 
 	return 1;
 }
@@ -573,6 +577,7 @@ void show_windows_list(void)
 		fprintf(stderr, "\twindow type is '%s'.\n", print_window_type(temp->type));
 		fprintf(stderr, "\twindow text size is '%s'.\n", (temp->text_size==SMALL)? "small": ((temp->text_size==MEDIUM)? "medium":"large"));
 		fprintf(stderr, "\twindow text color is: %d, %d, %d, %d.\n", temp->text_color.R, temp->text_color.G, temp->text_color.B, temp->text_color.A);
+		fprintf(stderr, "\twindow cursor color is: %d, %d, %d, %d.\n", temp->cursor_color.R, temp->cursor_color.G, temp->cursor_color.B, temp->cursor_color.A);
 		temp = temp->next;
 	}
 }
