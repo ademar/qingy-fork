@@ -26,13 +26,26 @@
  ***************************************************************************/
 
 #define XSESSIONS_DIRECTORY "/etc/X11/Sessions/"
+#include "misc.h"
 
-/* Return number of available sessions */
-int how_many_sessions(void);
+struct session
+{
+	char *name;
+	int id;
+	struct session *next;
+	struct session *prev;
+};
 
-/* Return session names                */
-char **get_sessions(int max);
+struct session sessions;
+char username[MAX];
+char password[MAX];
+
+/* get info about available sessions */
+int get_sessions(void);
+
+/* Password autentication */
+int check_password(void);
 
 /* Start the session of your choice.
-   Returns 0 if starting failed        */
-int start_session(int session);
+   Returns 0 if starting failed      */
+int start_session(int session_id, int workaround);

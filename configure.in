@@ -1,0 +1,79 @@
+AC_INIT(src/main.c)
+AM_INIT_AUTOMAKE(qingy,alpha1)
+
+AC_PROG_CC
+#AC_PROG_INSTALL
+#AC_PROG_MAKE_SET
+
+# Set my own flags for gcc
+if test "x$GCC" = "xyes"; then
+	CPULAGS=""
+	CFLAGS="-O3 -fomit-frame-pointer -pipe -fforce-addr -W -Wall -pedantic"
+	echo -n "Checking for gcc version >= 3: found "
+	GCCVERSION="`$CC -dumpversion`"
+	echo $GCCVERSION
+	if test "`$CC -dumpversion | grep 3.`" != ""; then
+		#Good! let see if we can see the system arch
+		PROCESSOR=`cat /proc/cpuinfo`
+		#Is our CPU a Celeron?
+	  if test "`echo $PROCESSOR | grep \"Celeron\"`" != ""; then
+		  CPUFLAGS="-march=pentium2"
+		fi
+		if test "`echo $PROCESSOR | grep \"Celeron (Coppermine)\"`" != ""; then
+	 		CPUFLAGS="-march=pentium3"
+		fi
+		#Is our CPU a Pentium?
+		if test "`echo $PROCESSOR | grep \"Pentium\"`" != ""; then
+			CPUFLAGS="-march=pentium"
+		fi
+		#Is our CPU a Pentium II?
+		if test "`echo $PROCESSOR | grep \"Pentium II\"`" != ""; then
+			CPUFLAGS="-march=pentium2"
+		fi
+		#Is our CPU a Pentium III?
+		if test "`echo $PROCESSOR | grep \"Pentium III\"`" != ""; then
+			CPUFLAGS="-march=pentium3"
+		fi
+		#Is our CPU a Pentium 4?
+		if test "`echo $PROCESSOR | grep \"Intel(R) Pentium(R) 4\"`" != ""; then
+			CPUFLAGS="-march=pentium4"
+		fi
+		#Athlon processors
+		if test "`echo $PROCESSOR | grep \"AMD Athlon(tm)\"`" != ""; then
+		  CPUFLAGS="-march=athlon"
+		fi
+		if test "`echo $PROCESSOR | grep \"AMD Athlon(tm) MP\"`" != ""; then
+		  CPUFLAGS="-march=athlon-mp"
+		fi
+		if test "`echo $PROCESSOR | grep \"AMD Athlon(tm) XP\"`" != ""; then
+		  CPUFLAGS="-march=athlon-xp"
+		fi
+		#Is our CPU an Ultra Sparc?
+		if test "`echo $PROCESSOR | grep \"UltraSparc\"`" != ""; then
+			CPUFLAGS="-mcpu=ultrasparc"
+		fi
+	else
+		#Alas, we can set only generic arch optimizations
+		PROCESSOR=`uname -m | grep 86`
+		if test "$PROCESSOR" != ""; then
+			CPUFLAGS="-march=$PROCESSOR"
+		fi
+	fi
+	if test "$CPUFLAGS" != ""; then
+		echo "Applying architecture optimizations: "$CPUFLAGS
+	fi
+	CFLAGS="$CPUFLAGS $CFLAGS"
+fi
+CFLAGS="$CFLAGS -DLinux -D_GNU_SOURCE -DSHADOW_PASSWD -I/usr/local/include"
+LDFLAGS=" -L/usr/local/lib"
+
+DFB_VERSION=0.9.17
+PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
+	AC_MSG_ERROR([$DIRECTFB_PKG_ERRORS
+*** DirectFB $VERSION or newer is required. The latest version
+*** of DirectFB is available from http://www.directfb.org/.]))
+
+
+AC_OUTPUT(Makefile src/Makefile media/Makefile)
+
+

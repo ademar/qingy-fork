@@ -94,7 +94,7 @@ void start_up(int workaround, int ati_workaround)
   argv[2]= NULL;
 
 	/* Now we try to initialize the framebuffer */
-  returnstatus = framebuffer_mode(argc, argv);
+  returnstatus = framebuffer_mode(argc, argv, workaround);
 	free(argv[1]); free(argv[0]); argv[1]= argv[0]= NULL;
 	/* We should never get here unless directfb init failed
 	   or user wants to change tty                          */

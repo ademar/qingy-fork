@@ -136,17 +136,36 @@ IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, ID
 	return surface;
 }
 
-struct button *load_button (const char *normal, const char *mouseover, int relx, int rely, IDirectFBSurface *primary, IDirectFB *dfb)
+struct button *load_button (const char *normal, const char *mouseover, int relx, int rely, IDirectFBDisplayLayer *layer, IDirectFBSurface *primary, IDirectFB *dfb, __u8 opacity)
 {
 	struct button *but;
+	IDirectFBWindow *window;
+	IDirectFBSurface *surface;
+	DFBWindowDescription window_desc;
+	DFBResult err;
 
 	but = (struct button *) calloc (1, sizeof (struct button));
 	but->normal = load_image (normal, primary, dfb);
-	but->mouseover = load_image (mouseover, primary, dfb);
 	but->normal->GetSize (but->normal, &(but->width), &(but->height));
+	but->mouseover = load_image (mouseover, primary, dfb);
 	but->xpos = relx - but->width;
 	but->ypos = rely - but->height;
+
+	window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
+	window_desc.posx   = but->xpos;
+	window_desc.posy   = but->ypos;
+	window_desc.width  = but->width;
+	window_desc.height = but->height;
+	window_desc.caps   = DWCAPS_ALPHACHANNEL;
+
+	DFBCHECK(layer->CreateWindow (layer, &window_desc, &window));
+	window->SetOpacity( window, 0x00 );
+	window->RaiseToTop( window );
+	window->GetSurface( window, &surface );
+	window->SetOpacity( window, opacity );
 	but->mouse = 0;
+	but->surface = surface;
+	but->window = window;
 
 	return but;
 }
@@ -156,6 +175,9 @@ void destroy_button (struct button *button)
 	if (!button) return;
 	if (button->normal) button->normal->Release (button->normal);
 	if (button->mouseover) button->mouseover->Release (button->mouseover);
+	if (button->surface) button->surface->Release (button->surface);
+	if (button->window) button->window->Release (button->window);
+
 	free (button);
 	button = NULL;
 }

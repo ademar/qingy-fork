@@ -62,15 +62,18 @@ IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, ID
 /* two functions to create and destroy buttons */
 struct button
 {
-	IDirectFBSurface *normal;			/* normal button appearance                */
-	IDirectFBSurface *mouseover;	/* button appearance when mouse is over it */
-	int xpos;											/* x position of the button                */
-	int ypos;											/* y position of the button                */
-	unsigned int width;						/* width of the button                     */
-	unsigned int height;					/* height of the button                    */
-	int mouse;										/* 1 if mouse is over button, 0 otherwise  */
+	IDirectFBWindow  *window;    /* window that will contain the button 				*/
+	IDirectFBSurface *surface;   /* surface of the above                        */
+	IDirectFBSurface *normal;    /* normal button appearance                    */
+	IDirectFBSurface *mouseover; /* button appearance when mouse is over it     */
+	int xpos;										 /* x position of the button                    */
+	int ypos;										 /* y position of the button                    */
+	unsigned int width;					 /* width of the button                         */
+	unsigned int height;				 /* height of the button                        */
+	int mouse;									 /* 1 if mouse is over button, 0 otherwise      */
 };
-struct button *load_button (const char *normal, const char *mouseover, int relx, int rely, IDirectFBSurface *primary, IDirectFB *dfb);
+
+struct button *load_button (const char *normal, const char *mouseover, int relx, int rely, IDirectFBDisplayLayer *layer, IDirectFBSurface *primary, IDirectFB *dfb, __u8 opacity);
 void destroy_button (struct button *button);
 
 /* other stuff */

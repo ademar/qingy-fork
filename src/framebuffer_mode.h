@@ -27,9 +27,13 @@
 
 
 /* constants that we make use of */
-#define DATADIR "/root/Documenti/programmazione/qingy/media/"
+#define DATADIR "/etc/qingy/"
 #define FONT DATADIR "decker.ttf"
+#define WINDOW_OPACITY 0x80
+#define MASK_TEXT_COLOR  0xDD, 0x20, 0x20, 0xFF
+#define HIGHLIGHT_TEXT_COLOR  0xFF, 0x20, 0x20, 0xFF
+#define OTHER_TEXT_COLOR 0x40, 0x40, 0x40, 0xFF
 #define TEXT_MODE -2
 
 /* Init framebuffer mode */
-int framebuffer_mode(int argc, char *argv[]);
+int framebuffer_mode(int argc, char *argv[], int workaround);
