@@ -107,20 +107,20 @@ void set_default_colors(void)
   WINDOW_OPACITY = 0x80;
   SELECTED_WINDOW_OPACITY = 0xCF;
 
-  MASK_TEXT_COLOR_R = 0xFF;
-  MASK_TEXT_COLOR_G = 0x00;
-  MASK_TEXT_COLOR_B = 0x00;
-  MASK_TEXT_COLOR_A = 0xFF;
+  MASK_TEXT_COLOR.R = 0xFF;
+  MASK_TEXT_COLOR.G = 0x00;
+  MASK_TEXT_COLOR.B = 0x00;
+  MASK_TEXT_COLOR.A = 0xFF;
 
-  TEXT_CURSOR_COLOR_R = 0x80;
-  TEXT_CURSOR_COLOR_G = 0x00;
-  TEXT_CURSOR_COLOR_B = 0x00;
-  TEXT_CURSOR_COLOR_A = 0xDD;
+  TEXT_CURSOR_COLOR.R = 0x80;
+  TEXT_CURSOR_COLOR.G = 0x00;
+  TEXT_CURSOR_COLOR.B = 0x00;
+  TEXT_CURSOR_COLOR.A = 0xDD;
 
-  OTHER_TEXT_COLOR_R = 0x40;
-  OTHER_TEXT_COLOR_G = 0x40;
-  OTHER_TEXT_COLOR_B = 0x40;
-  OTHER_TEXT_COLOR_A = 0xFF;
+  OTHER_TEXT_COLOR.R = 0x40;
+  OTHER_TEXT_COLOR.G = 0x40;
+  OTHER_TEXT_COLOR.B = 0x40;
+  OTHER_TEXT_COLOR.A = 0xFF;
 }
 
 void add_to_paths(char *path)
@@ -392,10 +392,15 @@ int add_window_to_list(window_t w)
 		{
 			if (temp->type == w.type)
 			{ /* we overwrite old settings with new ones */
-				temp->x      = w.x;
-				temp->y      = w.y;
-				temp->width  = w.width;
-				temp->height = w.height;
+				temp->x            = w.x;
+				temp->y            = w.y;
+				temp->width        = w.width;
+				temp->height       = w.height;
+				temp->text_size    = w.text_size;
+				temp->text_color.R = w.text_color.R;
+				temp->text_color.G = w.text_color.G;
+				temp->text_color.B = w.text_color.B;
+				temp->text_color.A = w.text_color.A;
 				/*
 				 * other settings are not used in this kind of window
 				 * so we don't bother copying them...
@@ -418,15 +423,20 @@ int add_window_to_list(window_t w)
 		aux = aux->next;
 	}
 
-  aux->type     = w.type;
-  aux->x        = w.x;
-  aux->y        = w.y;
-  aux->width    = w.width;
-  aux->height   = w.height;
-	aux->polltime = w.polltime;
-  aux->command  = strdup(w.command);   
-  aux->content  = strdup(w.content);
-  aux->next     = NULL;
+  aux->type         = w.type;
+  aux->x            = w.x;
+  aux->y            = w.y;
+  aux->width        = w.width;
+  aux->height       = w.height;
+	aux->polltime     = w.polltime;
+	aux->text_size    = w.text_size;
+	aux->text_color.R = w.text_color.R;
+	aux->text_color.G = w.text_color.G;
+	aux->text_color.B = w.text_color.B;
+	aux->text_color.A = w.text_color.A;
+  aux->command      = strdup(w.command);   
+  aux->content      = strdup(w.content);
+  aux->next         = NULL;
   
   free(w.content);
 	free(w.command);
@@ -514,9 +524,9 @@ int load_settings(void)
 	fprintf(stderr, "WINDOW_OPACITY is %d\n", WINDOW_OPACITY);
 	fprintf(stderr, "SELECTED_WINDOW_OPACITY is %d\n", SELECTED_WINDOW_OPACITY);
 	
-	fprintf(stderr, "MASK_TEXT_COLOR is %d, %d, %d, %d\n", MASK_TEXT_COLOR_R, MASK_TEXT_COLOR_G, MASK_TEXT_COLOR_B, MASK_TEXT_COLOR_A);
-	fprintf(stderr, "TEXT_CURSOR_COLOR is %d, %d, %d, %d\n", TEXT_CURSOR_COLOR_R, TEXT_CURSOR_COLOR_G, TEXT_CURSOR_COLOR_B, TEXT_CURSOR_COLOR_A);
-	fprintf(stderr, "OTHER_TEXT_COLOR is %d, %d, %d, %d\n", OTHER_TEXT_COLOR_R, OTHER_TEXT_COLOR_G, OTHER_TEXT_COLOR_B, OTHER_TEXT_COLOR_A);
+	fprintf(stderr, "MASK_TEXT_COLOR is %d, %d, %d, %d\n", MASK_TEXT_COLOR.R, MASK_TEXT_COLOR.G, MASK_TEXT_COLOR.B, MASK_TEXT_COLOR.A);
+	fprintf(stderr, "TEXT_CURSOR_COLOR is %d, %d, %d, %d\n", TEXT_CURSOR_COLOR.R, TEXT_CURSOR_COLOR.G, TEXT_CURSOR_COLOR.B, TEXT_CURSOR_COLOR.A);
+	fprintf(stderr, "OTHER_TEXT_COLOR is %d, %d, %d, %d\n", OTHER_TEXT_COLOR.R, OTHER_TEXT_COLOR.G, OTHER_TEXT_COLOR.B, OTHER_TEXT_COLOR.A);
 
 	fprintf(stderr, "Allowed to shutdown: %s\n", (SHUTDOWN_POLICY==EVERYONE) ? "everyone" : (SHUTDOWN_POLICY==ROOT) ? "root only" : "no one");
 #endif
@@ -561,7 +571,9 @@ void show_windows_list(void)
 		fprintf(stderr, "\tcommand is '%s'.\n", temp->command);
 		fprintf(stderr, "\tcontent is '%s'.\n", temp->content);
 		fprintf(stderr, "\twindow type is '%s'.\n", print_window_type(temp->type));
+		fprintf(stderr, "\twindow text size is '%s'.\n", (temp->text_size==SMALL)? "small": ((temp->text_size==MEDIUM)? "medium":"large"));
+		fprintf(stderr, "\twindow text color is: %d, %d, %d, %d.\n", temp->text_color.R, temp->text_color.G, temp->text_color.B, temp->text_color.A);
 		temp = temp->next;
-	}	
+	}
 }
 #endif

@@ -187,7 +187,7 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFB
   newbox->surface->Clear(newbox->surface, 0x00, 0x00, 0x00, 0x00);
   newbox->surface->Flip(newbox->surface, NULL, 0);
   newbox->surface->SetFont (newbox->surface, font);
-  newbox->surface->SetColor (newbox->surface, MASK_TEXT_COLOR_R, MASK_TEXT_COLOR_G, MASK_TEXT_COLOR_B, MASK_TEXT_COLOR_A);
+  newbox->surface->SetColor (newbox->surface, MASK_TEXT_COLOR.R, MASK_TEXT_COLOR.G, MASK_TEXT_COLOR.B, MASK_TEXT_COLOR.A);
   newbox->window->RaiseToTop(newbox->window);
 
   return newbox;

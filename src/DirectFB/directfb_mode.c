@@ -327,7 +327,7 @@ void clear_screen(void)
 	Draw_Background_Image();
   primary->Flip (primary, NULL, DSFLIP_BLIT);
   primary->SetFont (primary, font_large);
-  primary->SetColor (primary, OTHER_TEXT_COLOR_R, OTHER_TEXT_COLOR_G, OTHER_TEXT_COLOR_B, OTHER_TEXT_COLOR_A);
+  primary->SetColor (primary, OTHER_TEXT_COLOR.R, OTHER_TEXT_COLOR.G, OTHER_TEXT_COLOR.B, OTHER_TEXT_COLOR.A);
 }
 
 void begin_shutdown_sequence (int action)
@@ -903,7 +903,7 @@ int directfb_mode (int argc, char *argv[])
     else
 		{
 			primary->SetFont (primary, font_large);
-			primary->SetColor (primary, OTHER_TEXT_COLOR_R, OTHER_TEXT_COLOR_G, OTHER_TEXT_COLOR_B, OTHER_TEXT_COLOR_A);
+			primary->SetColor (primary, OTHER_TEXT_COLOR.R, OTHER_TEXT_COLOR.G, OTHER_TEXT_COLOR.B, OTHER_TEXT_COLOR.A);
 			activate_screen_saver(&screen_saver);
 		}
 

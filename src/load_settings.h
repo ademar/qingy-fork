@@ -49,20 +49,18 @@ int BUTTON_OPACITY;
 int WINDOW_OPACITY;
 int SELECTED_WINDOW_OPACITY;
 
-unsigned int MASK_TEXT_COLOR_R;
-unsigned int MASK_TEXT_COLOR_G;
-unsigned int MASK_TEXT_COLOR_B;
-unsigned int MASK_TEXT_COLOR_A;
-
-unsigned int TEXT_CURSOR_COLOR_R;
-unsigned int TEXT_CURSOR_COLOR_G;
-unsigned int TEXT_CURSOR_COLOR_B;
-unsigned int TEXT_CURSOR_COLOR_A;
-
-unsigned int OTHER_TEXT_COLOR_R;
-unsigned int OTHER_TEXT_COLOR_G;
-unsigned int OTHER_TEXT_COLOR_B;
-unsigned int OTHER_TEXT_COLOR_A;
+/* colors */
+typedef struct
+{
+	unsigned int R;
+	unsigned int G;
+	unsigned int B;
+	unsigned int A;
+}
+color_t;
+color_t MASK_TEXT_COLOR;
+color_t TEXT_CURSOR_COLOR;
+color_t OTHER_TEXT_COLOR;
 
 /* Shutdown permissions policy... */
 typedef enum 
@@ -112,6 +110,13 @@ typedef enum
   COMBO
 } window_types_t;
 
+typedef enum
+{
+	SMALL,
+	MEDIUM,
+	LARGE
+} text_size_t;
+
 /* a window structure */
 typedef struct _window
 {  
@@ -120,6 +125,8 @@ typedef struct _window
   int width;
   int height;
   int polltime;
+	text_size_t text_size;
+	color_t text_color;
   window_types_t type;
   char *command;
   char *content;

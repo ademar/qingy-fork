@@ -127,7 +127,7 @@ void DrawCursor(TextBox *thiz)
 	dest.w = dest2.w - dest1.w;
 	dest.h = dest1.h;
 	thiz->surface->GetSubSurface(thiz->surface, &dest, &where);
-	where->SetColor (where, TEXT_CURSOR_COLOR_R, TEXT_CURSOR_COLOR_G, TEXT_CURSOR_COLOR_B, TEXT_CURSOR_COLOR_A);
+	where->SetColor (where, TEXT_CURSOR_COLOR.R, TEXT_CURSOR_COLOR.G, TEXT_CURSOR_COLOR.B, TEXT_CURSOR_COLOR.A);
 	where->FillRectangle (where, 0, 0, dest.w, dest.h);
 	if (free_text) free(text);
 }
@@ -255,7 +255,7 @@ TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWi
 	newbox->surface->Clear(newbox->surface, 0x00, 0x00, 0x00, 0x00);
 	newbox->surface->Flip(newbox->surface, NULL, 0);
 	newbox->surface->SetFont (newbox->surface, font);
-	newbox->surface->SetColor (newbox->surface, MASK_TEXT_COLOR_R, MASK_TEXT_COLOR_G, MASK_TEXT_COLOR_B, MASK_TEXT_COLOR_A);
+	newbox->surface->SetColor (newbox->surface, MASK_TEXT_COLOR.R, MASK_TEXT_COLOR.G, MASK_TEXT_COLOR.B, MASK_TEXT_COLOR.A);
 	newbox->window->RaiseToTop(newbox->window);
 
 	return newbox;

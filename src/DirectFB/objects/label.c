@@ -145,7 +145,7 @@ Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWindow
 	newlabel->surface->Clear(newlabel->surface, 0x00, 0x00, 0x00, 0x00);
 	newlabel->surface->Flip(newlabel->surface, NULL, 0);
 	newlabel->surface->SetFont (newlabel->surface, font);
-	newlabel->surface->SetColor (newlabel->surface, MASK_TEXT_COLOR_R, MASK_TEXT_COLOR_G, MASK_TEXT_COLOR_B, MASK_TEXT_COLOR_A);
+	newlabel->surface->SetColor (newlabel->surface, MASK_TEXT_COLOR.R, MASK_TEXT_COLOR.G, MASK_TEXT_COLOR.B, MASK_TEXT_COLOR.A);
 	newlabel->window->RaiseToTop(newlabel->window);
 
 	return newlabel;

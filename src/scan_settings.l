@@ -112,6 +112,11 @@ command                 return WCOMMAND_TOK;
 content                 return WCONTENT_TOK;
 window                  return WINDOW_TOK;
 time                    return WPOLL_TIME_TOK;
+text_color              return WTEXT_COLOR_TOK;
+text_size               return WTEXT_SIZE_TOK;
+small                   return WTEXT_SMALL_TOK;
+medium                  return WTEXT_MEDIUM_TOK;
+large                   return WTEXT_LARGE_TOK;
 
 "#"[^\n]*"\n" ;			/* skip comments */
 
