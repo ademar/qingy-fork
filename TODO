@@ -12,3 +12,4 @@
 - Add an option to pass parameters to X server
 - Rewrite load_settings completely (it craps!)
 - Add option to give root password to be allowed to shutdown
+- Make key bindings customizable
