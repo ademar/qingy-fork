@@ -59,6 +59,8 @@
 #ifdef defined_my_calloc
 #undef calloc
 #undef free
+#undef exit
+#undef strdup
 #define redef_calloc 1
 #endif
 void *my_calloc(size_t nmemb, size_t size)
@@ -95,10 +97,21 @@ void my_exit(int n)
 
   exit(n);
 }
+char *my_strdup(const char *s)
+{
+	char *temp;
+
+	if (!s) return NULL;
+	temp = strdup(s);
+	if (!temp) abort();
+
+	return temp;
+}
 #ifdef redef_calloc
 #define calloc my_calloc
 #define free   my_free
 #define exit   my_exit
+#define strdup my_strdup
 #undef redef_calloc
 #endif
 

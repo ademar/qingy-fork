@@ -112,26 +112,24 @@ void set_default_colors(void)
 void yyerror(char *where)
 {
   if (!silent) fprintf(stderr, "qingy: parse error in %s file... reverting to text mode.\n", where);
-  if (X_SESSIONS_DIRECTORY) free(X_SESSIONS_DIRECTORY);
-  if (TEXT_SESSIONS_DIRECTORY) free(TEXT_SESSIONS_DIRECTORY);
-  if (XINIT) free(XINIT);
-  if (FONT) free(FONT);
-  if (THEME_DIR) free(THEME_DIR);
-  TEXT_SESSIONS_DIRECTORY = X_SESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;
+  free(X_SESSIONS_DIRECTORY);
+  free(TEXT_SESSIONS_DIRECTORY);
+  free(XINIT);
+  free(FONT);
+  free(THEME_DIR);
   set_default_session_dirs();
   set_default_xinit();
   set_default_font();
   set_default_colors();
-  THEME_DIR = (char *) calloc(strlen(DEFAULT_THEME)+1, sizeof(char));
-  strcpy(THEME_DIR, DEFAULT_THEME);
+  THEME_DIR = strdup(DEFAULT_THEME);
 }
 
 char *get_random_theme()
 {
   DIR *dir;
   char *themes_dir = StrApp((char**)0, DATADIR, "themes/", (char*)0);
+	char *result;
   struct dirent *entry;
-  char *temp = NULL;
   int n_themes = 0;
   char *themes[128];
   time_t epoch;
@@ -139,27 +137,22 @@ char *get_random_theme()
   int i;
 
   dir= opendir(themes_dir);
-  if (!dir)
-  {
-    temp = (char *) calloc(8, sizeof(char));
-    strcpy(temp, "default");
-    return temp;
-  }
+	free(themes_dir);
+  if (!dir) return strdup("default");
 
   while ((entry= readdir(dir)))
   {
+		char *temp;
     if (!strcmp(entry->d_name, "." )) continue;
     if (!strcmp(entry->d_name, "..")) continue;    
 
-    temp = (char *) calloc(strlen(themes_dir)+strlen(entry->d_name)+1, sizeof(char));
-    strcpy(temp, themes_dir);
-    strcat(temp, entry->d_name);
+    temp = StrApp((char**)NULL, themes_dir, entry->d_name);
     if (is_a_directory(temp))
     {
-      themes[n_themes] = (char *) calloc(strlen(entry->d_name)+1, sizeof(char));
-      strcpy(themes[n_themes], entry->d_name);
+      themes[n_themes] = strdup(entry->d_name);
       n_themes++;
     }
+		free(temp);
   }
   closedir(dir);
 
@@ -169,14 +162,21 @@ char *get_random_theme()
   srand(curr_time.tm_sec);
   i = rand() % n_themes;
 
-  return themes[i];
+	result = strdup(themes[i]);
+	for (i=0; i<n_themes; i++) free(themes[i]);
+
+  return result;
 }
 
 int load_settings(void)
 {
 	char *theme = NULL;
 
-  TEXT_SESSIONS_DIRECTORY = X_SESSIONS_DIRECTORY = XINIT = FONT = THEME_DIR = NULL;
+  TEXT_SESSIONS_DIRECTORY = NULL;
+	X_SESSIONS_DIRECTORY    = NULL;
+	THEME_DIR               = NULL;
+	XINIT                   = NULL;
+	FONT                    = NULL;
 
   DATADIR       = strdup("/etc/qingy/");
 	SETTINGS      = StrApp((char**)NULL, DATADIR, "settings",        (char*)NULL);
@@ -325,8 +325,7 @@ int load_settings(void)
 char *get_last_user(void)
 {
   FILE *fp = fopen(LAST_USER, "r");
-  char tmp[MAX];
-  char *user;
+  char tmp[MAX];  
 
   if (!fp) return NULL;
   if (fscanf(fp, "%s", tmp) != 1)
@@ -335,10 +334,8 @@ char *get_last_user(void)
     return NULL;
   }
   fclose(fp);
-  user = (char *) calloc(strlen(tmp)+1, sizeof(char));
-  strcpy(user, tmp);
 
-  return user;
+  return strdup(tmp);
 }
 
 int set_last_user(char *user)
@@ -355,20 +352,21 @@ int set_last_user(char *user)
 
 char *get_last_session(char *user)
 {
-  char *homedir;
+  char *homedir = get_home_dir(user);
   char *filename;
-  char *session;
   char tmp[MAX];
   FILE *fp;
 
-  if (!user) return NULL;
-  homedir = get_home_dir(user);
+  if (!user)    return NULL;  
   if (!homedir) return NULL;
+
   filename = (char *) calloc(strlen(homedir)+8, sizeof(char));
   strcpy(filename, homedir);
+	free(homedir);
   if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
   strcat(filename, ".qingy");
   fp = fopen(filename, "r");
+	free(filename);
   if (!fp) return NULL;
   if (get_line(tmp, fp, MAX) == 0)
   {
@@ -376,26 +374,28 @@ char *get_last_session(char *user)
     return NULL;
   }
   fclose(fp);
-  session = (char *) calloc(strlen(tmp)+1, sizeof(char));
-  strcpy(session, tmp);
 
-  return session;
+  return strdup(tmp);
 }
 
 int set_last_session(char *user, char *session)
 {
-  char *homedir;
+  char *homedir = get_home_dir(user);
   char *filename;
   FILE *fp;
 
-  if (!user || !session) return 0;
-  homedir = get_home_dir(user);
+  if (!user)    return 0;
+	if (!session) return 0;
   if (!homedir) return 0;
+
   filename = (char *) calloc(strlen(homedir)+8, sizeof(char));
   strcpy(filename, homedir);
+	free(homedir);
   if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
   strcat(filename, ".qingy");
   fp = fopen(filename, "w");
+	free(filename):
+
   if (!fp) return 0;
   fprintf(fp, "%s", session);
   fclose(fp);
