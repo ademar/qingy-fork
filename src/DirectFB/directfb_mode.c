@@ -1052,11 +1052,9 @@ int main (int argc, char *argv[])
   DFBResult result;             /* we store eventual errors here            */
   char *lastuser=NULL;          /* latest user who logged in                */
 
-	/* which tty should we run in? */
-	current_tty = atoi(argv[1]);
-
   /* load settings from file */
 	initialize_variables();
+	current_tty = ParseCMDLine(argc, argv);
 	if (!load_settings()) return TEXT_MODE;
   if (!disable_last_user) lastuser = get_last_user();
 

@@ -173,8 +173,9 @@ void destroy_windows_list(window_t *w);
 /* initialize some stuff */
 void initialize_variables(void);
 
-/* get program settings from config file */
+/* get program settings from config file and command line */
 int load_settings(void);
+int ParseCMDLine(int argc, char *argv[]);
 
 /* parse /etc/inittab to detect behaviour when user presses ctrl-alt-del */
 char *parse_inittab_file(void);

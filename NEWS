@@ -1,6 +1,8 @@
 qingy CVS
-- Fixed a bug that prevented tty specific options in config file
-  to work.
+- Fixed a bug that prevented qingy from honouring
+  tty specific options in config file.
+- Fixed a bug that prevented qingy from honouring some
+  command line arguments...
 
 
 qingy 0.5.0 (17 Aug 2004):

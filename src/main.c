@@ -43,7 +43,8 @@
 #include <config.h>
 #endif
 
-#include <getopt.h>
+#define PARANOIA 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -67,9 +68,8 @@
 	}
 
 
-char *fb_device  = NULL;
-char *resolution = NULL;
-
+char *fb_device         = NULL;
+char *resolution        = NULL;
 
 
 void PrintUsage()
@@ -132,12 +132,11 @@ void Error(int fatal)
   exit(EXIT_FAILURE);
 }
 
-void start_up(int our_tty_number)
+void start_up(int argc, char *argv[], int our_tty_number)
 {
 	FILE *fp;
-  int returnstatus;
+  int i, returnstatus;
 	char *interface  = NULL;
-	char *temp       = NULL;
 	char *username   = NULL;
 	char *password   = NULL;
 	char *session    = NULL;
@@ -153,10 +152,11 @@ void start_up(int our_tty_number)
 	if (!resolution) resolution = get_fb_resolution( (fb_device) ? fb_device : "/dev/fb0" );
 	if (!silent && resolution) fprintf(stderr, "framebuffer resolution is '%s'.\n", resolution);
 
-	/* Set up some stuff */
-	temp = int_to_str(our_tty_number);
-	interface = StrApp((char**)NULL, DFB_INTERFACE, " ", temp, " --dfb:vt-switch,bg-none", (char*)NULL);
-	free(temp);
+	/* Set up command line for our interface */
+	interface = StrApp((char**)NULL, DFB_INTERFACE, (char*)NULL);
+	for (i=1; i<argc; i++)
+		StrApp(&interface, " ", argv[i], (char*)NULL);
+	StrApp(&interface, " --dfb:vt-switch,bg-none", (char*)NULL);
 	if (silent)     StrApp(&interface, ",quiet", (char*)NULL);
 	if (fb_device)  StrApp(&interface, ",fbdev=", fb_device,  (char*)NULL);
 	if (resolution) StrApp(&interface, ",mode=",  resolution, (char*)NULL);
@@ -169,7 +169,12 @@ void start_up(int our_tty_number)
 	if (getline(&username, &len, fp) == -1) username = NULL; len = 0;
 	if (getline(&password, &len, fp) == -1) password = NULL; len = 0;
 	if (getline(&session,  &len, fp) == -1) session  = NULL; len = 0;
-	returnstatus = WEXITSTATUS(pclose(fp));
+
+	returnstatus = pclose(fp);
+	if (WIFEXITED(returnstatus))
+		returnstatus = WEXITSTATUS(returnstatus);
+	else
+		returnstatus = TEXT_MODE;
 
 	/* remove trailing newlines from these values */
 	if (username) username[strlen(username) - 1] = '\0';
@@ -246,91 +251,6 @@ char *get_resolution(char *resolution)
 	return result;
 }
 
-int ParseCMDLine(int argc, char *argv[])
-{
-	extern char *optarg;
-	extern int optind, opterr, optopt;
-	const char optstring[] = "f:pldvns:r";
-	const struct option longopts[] =
-	{
-		{"fb-device",               required_argument, NULL, 'f'},
-		{"hide-password",           no_argument,       NULL, 'p'},
-		{"hide-lastuser",           no_argument,       NULL, 'l'},
-		{"disable-lastuser",        no_argument,       NULL, 'd'},
-		{"verbose",                 no_argument,       NULL, 'v'},
-		{"no-shutdown-screen",      no_argument,       NULL, 'n'},
-		{"screensaver",             required_argument, NULL, 's'},
-		{"resolution",              required_argument, NULL, 'r'},
-		{0, 0, 0, 0}
-	};
-  char *tty;
-  int our_tty_number;
-	
-  if (argc < 2) Error(1);
-  tty= argv[1];
-  if (strncmp(tty, "tty", 3)) Error(1);
-  our_tty_number= atoi(tty+3);
-  if (our_tty_number < 1)  Error(1);
-	if (our_tty_number > 63) Error(1);
-  
-	while (1)
-	{
-		int retval = getopt_long(argc, argv, optstring, longopts, NULL);
-
-		if (retval == -1) break;
-		switch (retval)
-		{
-			case 'f': /* use this framebuffer device */
-				fb_device = strdup(optarg);
-				break;
-			case 'p': /* hide password */
-				hide_password = 1;
-				break;
-			case 'l': /* hide lastuser */
-				hide_last_user = 1;
-				break;
-			case 'd': /* disable lastuder */
-				disable_last_user = 1;
-				break;
-			case 'v': /* verbose */
-				silent = 0;
-				break;
-			case 'n': /* no shutdown screen */
-				no_shutdown_screen = 1;
-				break;
-			case 's': /* screen_saver */
-			{
-				int temp = atoi(optarg);
-				if (temp < 0)
-				{
-					Switch_TTY;
-					ClearScreen();
-					fprintf(stderr, "%s: invalid screen saver timeout: fall back to text mode.\n", program_name);
-					Error(0);
-				}
-				if (!temp)
-				{
-					use_screensaver = 0;
-					break;
-				}
-				use_screensaver = 1;
-				screensaver_timeout = temp;
-				break;
-			}
-			case 'r': /* use this framebuffer resolution */
-				resolution = get_resolution(optarg);
-				break;
-			default:
-				Switch_TTY;
-				ClearScreen();
-				fprintf(stderr, "%s: error in command line options: fall back to text mode.\n", program_name);
-				Error(0);
-		}
-	}
-  
-  return our_tty_number;
-}
-
 int main(int argc, char *argv[])
 {
   int user_tty_number;
@@ -368,7 +288,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "\nfatal error: cannot get active tty number!\n");
 			return EXIT_FAILURE;
 		}
-		if (user_tty_number == our_tty_number) start_up(our_tty_number);
+		if (user_tty_number == our_tty_number) start_up(argc, argv, our_tty_number);
 		nanosleep(&delay, NULL); /* wait a little before checking again */
 	}
   

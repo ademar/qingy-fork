@@ -1,3 +1,16 @@
+2004-08-18  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/main.c,
+	* src/libraries/load_settings.c,
+	* src/libraries/load_settings.h,
+	* src/DirectFB/directfb_mode.c:
+	Move ParseCMDLine() from main.c to load_settings.c so that
+	it can be called from both main.c and directfb_mode.c
+	Differentiate the function a little when it gets called
+	from one or the other source file.
+	This fixes a bug that prevented command line arguments
+	to be honoured by qingy-interface...
+
 2004-08-17  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/DirectFB/directfb_mode.c (main):
