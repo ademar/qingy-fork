@@ -50,8 +50,13 @@ Free Documentation License".
 * Introduction::                
 * Fetching qingy::              
 * Configuration ::              
+* The settings file::
+* Qingy Themes::
+* The welcomes feature::        
 * Using Qingy::                 
 * Copying Qingy::               
+* Copying::
+* GNU Free Documentation License::
 * Index::                       
 
 @detailmenu
@@ -192,7 +197,7 @@ At this point you're ready to launch Qingy. From a shell prompt type
 use). Logout and find Qingy running as the login manager now on the
 terminals you've set for it.
 
-@node  Configuration , , Fetching qingy, Top
+@node  Configuration , The welcomes feature, Fetching qingy, Top
 @comment  node-name,  next,  previous,  up
 @chapter Configuration 
 Qingy is very customizable, making it possible to have almost exactly
@@ -216,7 +221,7 @@ options, through the @file{/etc/qingy/settings} file and through themes.
 When Qingy is called by init, it is passed some options. These options
 change some of Qingy behaviour in different ways. Here is a list of all possible options.
 
-@table 
+@table @code
 @item --fb-device <device>
 	Use <device> as framebuffer device.
 
@@ -246,11 +251,33 @@ change some of Qingy behaviour in different ways. Here is a list of all possible
 
 @end table
 
-@c @include Settings.texi
+@include Settings.texi
 
 @include Themes.texi
 
-@node  Using Qingy, Copying Qingy, Configuration , Top
+@node  The welcomes feature, Using Qingy, Configuration , Top
+@comment  node-name,  next,  previous,  up
+@chapter The welcomes feature
+
+The welcomes feature in Qingy is just the natural evolution of the
+``Greetings master!'' feature for root: basically it lets you define
+for each user the welcome message to display. To do this, create file
+@file{/etc/qingy/welcomes} and insert, one on each line, the username,
+a space and just whatever you want to display. For example:
+
+@example
+paolino The answer is 42!
+michele Ah! What a lovely day, my Author...
+root    It's not funny...Why do you wanna log like that!?
+@end example
+
+will display @samp{The answer is 42} when I (paolino) log in, and so on (you got the point).
+
+@emph{Note: this is still a quick hack... It will be most probably
+changed (in better, hopefully) in next releases... :)}
+
+
+@node  Using Qingy, Copying Qingy, The welcomes feature, Top
 @comment  node-name,  next,  previous,  up
 @chapter Using Qingy
 

@@ -1,4 +1,4 @@
-@node Copying, GNU Free Documentation License, Top, Top
+@node Copying, GNU Free Documentation License, Qingy Themes, Top
 @unnumbered GNU GENERAL PUBLIC LICENSE
 @center Version 2, June 1991
 
