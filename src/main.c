@@ -108,6 +108,7 @@ void start_up(void)
 {
   int returnstatus;
   int argc = 2;
+	char *resolution;
   char *argv[3];
   
   /* First of all, we lock vt switching */
@@ -115,12 +116,18 @@ void start_up(void)
   
   /* We clear the screen */
   ClearScreen();
+
+	/* get resolution of console framebuffer */
+	if (!fb_device) resolution = get_fb_resolution("/dev/fb0");
+	else            resolution = get_fb_resolution(fb_device);
+	if (!silent && resolution) fprintf(stderr, "framebuffer resolution is '%s'.\n", resolution);
   
   /* Set up some stuff */
   argv[0]= strdup("qingy");	/**-** NOTE: get it maybe dynamic (grep strings) **-**/
   argv[1]= strdup("--dfb:no-vt-switch,bg-none");
-  if (silent)    StrApp(&(argv[1]), ",quiet", (char*)NULL);
-  if (fb_device) StrApp(&(argv[1]), ",fbdev=", fb_device, (char*)NULL);
+  if (silent)     StrApp(&(argv[1]), ",quiet", (char*)NULL);
+  if (fb_device)  StrApp(&(argv[1]), ",fbdev=", fb_device, (char*)NULL);
+	if (resolution) StrApp(&(argv[1]), ",mode=", resolution, (char*)NULL);
   argv[2]= NULL;
   
   /* Now we try to initialize the framebuffer */
@@ -134,14 +141,14 @@ void start_up(void)
   
   /* if user wants to switch to another tty ... */
   if (returnstatus != TEXT_MODE)
-    {
-      if (!set_active_tty(returnstatus))
 	{
-	  fprintf(stderr, "\nfatal error: unable to change active tty!\n");
-	  exit(EXIT_FAILURE);
+		if (!set_active_tty(returnstatus))
+		{
+			fprintf(stderr, "\nfatal error: unable to change active tty!\n");
+			exit(EXIT_FAILURE);
+		}
+		exit(EXIT_SUCCESS); /* init will restart us in listen mode */    
 	}
-      exit(EXIT_SUCCESS); /* init will restart us in listen mode */    
-    }
   
   /*
    * framebuffer init failed or user pressed ESC twice...
@@ -173,64 +180,64 @@ int ParseCMDLine(int argc, char *argv[])
   if (our_tty_number < 1) Error(1);
   
   for (i=2; i<argc; i++)
-    {
-      if (!strcmp(argv[i], "--fb-device"))
 	{
-	  if (i == argc) Error(0);
-	  fb_device = argv[++i];
-	  continue;
-	}
+		if (!strcmp(argv[i], "--fb-device"))
+		{
+			if (i == argc) Error(0);
+			fb_device = argv[++i];
+			continue;
+		}
       
-      if (!strcmp(argv[i], "--screensaver"))
-	{
-	  int temp;
+		if (!strcmp(argv[i], "--screensaver"))
+		{
+			int temp;
 	  
-	  if (i == argc) Error(0);
-	  temp = atoi(argv[++i]);
-	  if (temp < 0) Error(0);
-	  if (!temp)
+			if (i == argc) Error(0);
+			temp = atoi(argv[++i]);
+			if (temp < 0) Error(0);
+			if (!temp)
 	    {
 	      use_screensaver = 0;
 	      continue;
 	    }
-	  use_screensaver = 1;
-	  screensaver_timeout = temp;
-	  continue;
-	}
+			use_screensaver = 1;
+			screensaver_timeout = temp;
+			continue;
+		}
       
-      if (!strcmp(argv[i], "--verbose"))
-	{
-	  silent = 0;
-	  continue;
-	}
-      if (!strcmp(argv[i], "--black-screen-workaround"))
-	{
-	  black_screen_workaround = 1;
-	  continue;
-	}
-      if (!strcmp(argv[i], "--hide-password"))
-	{
-	  hide_password = 1;
-	  continue;
-	}
-      if (!strcmp(argv[i], "--hide-lastuser"))
-	{
-	  hide_last_user = 1;
-	  continue;
-	}
-      if (!strcmp(argv[i], "--disable-lastuser"))
-	{
-	  disable_last_user = 1;
-	  continue;
-	}
-      if (!strcmp(argv[i], "--no-shutdown-screen"))
-	{
-	  no_shutdown_screen = 1;
-	  continue;
-	}
+		if (!strcmp(argv[i], "--verbose"))
+		{
+			silent = 0;
+			continue;
+		}
+		if (!strcmp(argv[i], "--black-screen-workaround"))
+		{
+			black_screen_workaround = 1;
+			continue;
+		}
+		if (!strcmp(argv[i], "--hide-password"))
+		{
+			hide_password = 1;
+			continue;
+		}
+		if (!strcmp(argv[i], "--hide-lastuser"))
+		{
+			hide_last_user = 1;
+			continue;
+		}
+		if (!strcmp(argv[i], "--disable-lastuser"))
+		{
+			disable_last_user = 1;
+			continue;
+		}
+		if (!strcmp(argv[i], "--no-shutdown-screen"))
+		{
+			no_shutdown_screen = 1;
+			continue;
+		}
       
-      Error(0);
-    }
+		Error(0);
+	}
   
   return our_tty_number;
 }
@@ -256,23 +263,23 @@ int main(int argc, char *argv[])
   
   /* We switch to tty <tty> */
   if (!switch_to_tty(our_tty_number))
-    {
-      fprintf(stderr, "\nUnable to switch to virtual terminal %s\n", argv[1]);
-      return EXIT_FAILURE;
-    }
+	{
+		fprintf(stderr, "\nUnable to switch to virtual terminal %s\n", argv[1]);
+		return EXIT_FAILURE;
+	}
   
   /* Main loop: we wait until the user switches to the tty we are running in */
   while (1)
-    {
-      user_tty_number = get_active_tty();
-      if (user_tty_number == -1)
 	{
-	  fprintf(stderr, "\nfatal error: cannot get active tty number!\n");
-	  return EXIT_FAILURE;
+		user_tty_number = get_active_tty();
+		if (user_tty_number == -1)
+		{
+			fprintf(stderr, "\nfatal error: cannot get active tty number!\n");
+			return EXIT_FAILURE;
+		}
+		if (user_tty_number == our_tty_number) start_up();
+		nanosleep(&delay, NULL); /* wait a little before checking again */
 	}
-      if (user_tty_number == our_tty_number) start_up();
-      nanosleep(&delay, NULL); /* wait a little before checking again */
-    }
   
   /* We should never get here */
   fprintf(stderr, "\nGo tell my creator not to smoke that stuff, next time...\n");

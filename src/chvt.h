@@ -57,5 +57,7 @@ int disallocate_tty(int tty);
 void stderr_disable(void);
 void stderr_enable(void);
 
+/* get console framebuffer resolution */
+char *get_fb_resolution(char *fb_device);
 
 #endif /* !CHVT_H */

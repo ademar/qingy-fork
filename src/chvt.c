@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <linux/fb.h>
 #include <linux/kd.h>
 #include <linux/vt.h>
 #include <sys/ioctl.h>
@@ -52,10 +53,10 @@ static int open_a_console(char *fnam)
   if (fd < 0) 
     return -1; 
   if (!is_a_console(fd))
-    { 
-      close(fd); 
-      return -1; 
-    } 
+	{ 
+		close(fd); 
+		return -1; 
+	} 
 
   return fd; 
 } 
@@ -104,10 +105,10 @@ int get_active_tty(void)
   
   if (fd == -1) return -1;
   if (ioctl (fd, VT_GETSTATE, &term_status) == -1)
-    {
-      close(fd);
-      return -1;
-    }
+	{
+		close(fd);
+		return -1;
+	}
   return term_status.v_active;
 }
 
@@ -205,4 +206,34 @@ void stderr_enable(void)
   if (!ttyname) return;
   stderr = freopen(ttyname, "w", stderr);
   free(ttyname);
+}
+
+char *get_fb_resolution(char *fb_device)
+{	
+	char *result, *temp1, *temp2;
+	struct fb_var_screeninfo fb_var;
+	int fb;	
+
+	if (!fb_device) return NULL;
+
+	fb = open(fb_device, O_RDWR);
+	if (fb == -1)
+	{
+		fprintf(stderr, "Warning: cannot get console framebuffer resolution!\n");
+		return NULL;
+	}
+	if (ioctl(fb, FBIOGET_VSCREENINFO, &fb_var) == -1)
+	{
+		close(fb);
+		fprintf(stderr, "Warning: cannot get console framebuffer resolution!\n");
+		return NULL;
+	}
+	close(fb);
+
+	temp1 = int_to_str(fb_var.xres);
+	temp2 = int_to_str(fb_var.yres);
+	result = StrApp((char**)NULL, temp1, "x", temp2, (char*)NULL);
+	free(temp1); free(temp2);
+
+	return result;
 }
