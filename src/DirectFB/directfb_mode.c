@@ -60,6 +60,13 @@ typedef struct label_t
 } Label_list;
 Label_list *Labels = NULL;
 
+typedef struct button_t
+{
+	Button *button;
+	struct button_t *next;
+} Button_list;
+Button_list *Buttons = NULL;
+
 /*
  * Global variables... definitely too many!
  */
@@ -318,7 +325,8 @@ void show_lock_key_status(DFBInputEvent *evt)
 
 void reset_screen(DFBInputEvent *evt)
 {
-	Label_list *labels = Labels;
+	Label_list  *labels  = Labels;
+	Button_list *buttons = Buttons;
 
   Draw_Background_Image ();
 
@@ -327,6 +335,12 @@ void reset_screen(DFBInputEvent *evt)
 	{
 		labels->label->Show(labels->label);
 		labels = labels->next;
+	}
+	/* redraw all buttons */
+	while (buttons)
+	{
+		buttons->button->Show(buttons->button);
+		buttons = buttons->next;
 	}
 
 
@@ -346,13 +360,20 @@ void reset_screen(DFBInputEvent *evt)
 
 void clear_screen(void)
 {
-	Label_list *labels = Labels;
+	Label_list  *labels  = Labels;
+	Button_list *buttons = Buttons;
 
 	/* hide all labels */
 	while (labels)
 	{
 		labels->label->Hide(labels->label);
 		labels = labels->next;
+	}
+	/* hide all buttons */
+	while (buttons)
+	{
+		buttons->button->Hide(buttons->button);
+		buttons = buttons->next;
 	}
 
 
@@ -854,14 +875,42 @@ int create_windows()
 			labels->next = NULL;
 			break;
 		}
+		case BUTTON:
+		{
+			static Button_list *buttons = NULL;
+			char *image1, *image2;
+
+			if (!buttons)
+			{
+				buttons = (Button_list *) calloc(1, sizeof(Button_list));
+				Buttons = buttons;
+			}
+			else
+			{
+				buttons->next = (Button_list *) calloc(1, sizeof(Button_list));
+				buttons = buttons->next;
+			}
+			if (!strcmp(temp->command, "halt"       )) buttons->button->command = HALT;
+			if (!strcmp(temp->command, "reboot"     )) buttons->button->command = REBOOT;
+			if (!strcmp(temp->command, "sleep"      )) buttons->button->command = SLEEP;
+			if (!strcmp(temp->command, "screensaver")) buttons->button->command = SCREEN_SAVER;
+			image1 = StrApp((char **)NULL, THEME_DIR, temp->content, "_normal.png",    (char *)NULL);
+			image2 = StrApp((char **)NULL, THEME_DIR, temp->content, "_mouseover.png", (char *)NULL);
+			buttons->button = Button_Create(image1, image2, screen_width, screen_height, layer, primary, dfb);
+			free(image1); free(image2);
+			buttons->next = NULL;
+			break;
+		}
 		case COMBO:
 			if (temp->type == COMBO && !strcmp(temp->command, "sessions"))
 			{
-				session = ComboBox_Create(layer, font, &window_desc);
+				session = ComboBox_Create(layer, font, &(temp->text_color), &window_desc);
 				if (!session) return 0;
 			}
 			break;
-		}		
+		default:
+			return 0;
+		}
 
 		temp = temp->next;
 	}

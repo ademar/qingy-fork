@@ -45,7 +45,7 @@ typedef struct _Label
 
 	/* methods */
 	void (*SetFocus)(struct _Label *thiz, int focus);
-	void (*SetColor)(struct _Label *thiz, color_t *text_color);
+	void (*SetTextColor)(struct _Label *thiz, color_t *text_color);
 	void (*SetText)(struct _Label *thiz, char *text, int alignment);
 	void (*ClearText)(struct _Label *thiz);
 	void (*Hide)(struct _Label *thiz);

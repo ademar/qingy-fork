@@ -184,6 +184,29 @@ void TextBox_ClearText(TextBox *thiz)
 	else TextBox_KeyEvent(thiz, REDRAW, 0);
 }
 
+void TextBox_SetTextColor(TextBox *thiz, color_t *text_color)
+{
+	if (!thiz)       return;
+	if (!text_color) return;
+
+	thiz->text_color.R = text_color->R;
+	thiz->text_color.G = text_color->G;
+	thiz->text_color.B = text_color->B;
+	thiz->text_color.A = text_color->A;
+	thiz->surface->SetColor (thiz->surface, text_color->R, text_color->G, text_color->B, text_color->A);	
+}
+
+void TextBox_SetCursorColor(TextBox *thiz, color_t *cursor_color)
+{
+	if (!thiz)       return;
+	if (!cursor_color) return;
+
+	thiz->cursor_color.R = cursor_color->R;
+	thiz->cursor_color.G = cursor_color->G;
+	thiz->cursor_color.B = cursor_color->B;
+	thiz->cursor_color.A = cursor_color->A;
+}
+
 void TextBox_SetFocus(TextBox *thiz, int focus)
 {
 	if (!thiz) return;

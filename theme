@@ -29,6 +29,7 @@ window
 
 	text_size = medium
 	text_color  = 40, 180, 40, 255
+	cursor_color = 20, 90,  20, 221
 
 	# update time, 0 means do not update
 	time    = 0
@@ -48,6 +49,7 @@ window
 
 	text_size = medium
 	text_color  = 40, 180, 40, 255
+	cursor_color = 20, 90,  20, 221
 
 	# update time, 0 means do not update
 	time    = 0
@@ -67,14 +69,15 @@ window
 
 	text_size = small
 	text_color  = 40, 180, 40, 255
+	cursor_color = 20, 90,  20, 221
 
 	# update time, 0 means do not update
 	time    = 0
 
 	# window type, allowed values are:
 	# "label", "button", "login", "password", "combo"
-	type    = "label"
+	type    = "combo"
 
 	# In this case: what text do you want to display?
-	content = "pippo"
+	command = "sessions"
 }

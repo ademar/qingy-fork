@@ -94,9 +94,9 @@ screensaver_kinds SCREENSAVER;
    - LABEL: display static text. if command is empty, not executable
    or error returning, display content. Otherwise, command output.
    - BUTTON: execute command when mouse pressed (key 1). content has
-   path to button img file stem. That is, /path/to/button where in path/to
-   files button-mouseover.png and button-normal.png are found.
-   button commands may be "halt" "reboot" "sleep" "screensave"
+	 button file name prefix, i.e. "reset" if button image names are
+	 "reset_normal.png" and "reset_mouseover.png".   
+   button commands may be "halt" "reboot" "sleep" "screensaver"
    - LOGIN: standard login. command and content aren't used.
    - PASSWORD: standard password. command and content aren't used.
    - COMBO: a combo as in sessions, holding different values. command holds

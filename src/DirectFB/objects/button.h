@@ -26,7 +26,16 @@
  ***************************************************************************/
 
 
-/* two functions to create and destroy buttons */
+/* available commands */
+typedef enum
+{
+	HALT,
+	REBOOT,
+	SLEEP,
+	SCREEN_SAVER
+} Commands;
+
+/* button structure */
 typedef struct _Button
 {
 	/* properties */
@@ -34,6 +43,7 @@ typedef struct _Button
 	IDirectFBSurface *surface;   /* surface of the above                        */
 	IDirectFBSurface *normal;    /* normal button appearance                    */
 	IDirectFBSurface *mouseover; /* button appearance when mouse is over it     */
+	Commands command;            /* what should this button do?                 */
 	int xpos;										 /* x position of the button                    */
 	int ypos;										 /* y position of the button                    */
 	unsigned int width;					 /* width of the button                         */

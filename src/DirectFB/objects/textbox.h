@@ -52,7 +52,6 @@ typedef struct _TextBox
   int position;
   IDirectFBWindow	*window;
   IDirectFBSurface *surface;
-	
 
   /* methods */
   void (*KeyEvent)(struct _TextBox *thiz, int ascii_code, int draw_cursor);

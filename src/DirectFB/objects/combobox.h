@@ -41,6 +41,7 @@ typedef struct _ComboBox
 	/* properties */
 	item *items;
 	item *selected;
+	color_t text_color;
 	unsigned int xpos, ypos;
 	unsigned int width, height;
 	int hasfocus;
@@ -51,6 +52,7 @@ typedef struct _ComboBox
 	/* methods */
 	void (*KeyEvent)(struct _ComboBox *thiz, int direction);
 	void (*SetFocus)(struct _ComboBox *thiz, int focus);
+	void (*SetTextColor)(struct _ComboBox *thiz, color_t *text_color);
 	void (*AddItem)(struct _ComboBox *thiz, char *item);
 	void (*ClearItems)(struct _ComboBox *thiz);
 	void (*Hide)(struct _ComboBox *thiz);
@@ -63,5 +65,6 @@ ComboBox *ComboBox_Create
 (
 	IDirectFBDisplayLayer *layer,
 	IDirectFBFont *font,
+	color_t *text_color,
 	DFBWindowDescription *window_desc
 );

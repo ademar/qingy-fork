@@ -81,7 +81,7 @@ void Label_SetText(Label *thiz, char *text, int alignment)
 	Plot(thiz);
 }
 
-void Label_SetColor(Label *thiz, color_t *text_color)
+void Label_SetTextColor(Label *thiz, color_t *text_color)
 {
 	if (!thiz)       return;
 	if (!text_color) return;
@@ -149,7 +149,7 @@ Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, color_t *
 	newlabel->text_color.B = text_color->B;
 	newlabel->text_color.A = text_color->A;
 	newlabel->SetFocus     = Label_SetFocus;
-	newlabel->SetColor     = Label_SetColor;
+	newlabel->SetTextColor = Label_SetTextColor;
 	newlabel->SetText      = Label_SetText;
 	newlabel->ClearText    = Label_ClearText;
 	newlabel->Hide         = Label_Hide;

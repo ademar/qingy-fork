@@ -31,9 +31,9 @@
 #include <string.h>
 #include <directfb.h>
 
+#include "load_settings.h"
 #include "combobox.h"
 #include "directfb_mode.h"
-#include "load_settings.h"
 #include "misc.h"
 
 
@@ -70,6 +70,18 @@ void ComboBox_KeyEvent(ComboBox *thiz, int direction)
     PlotEvent(thiz);
     break;
   }
+}
+
+void ComboBox_SetTextColor(ComboBox *thiz, color_t *text_color)
+{
+	if (!thiz)       return;
+	if (!text_color) return;
+
+	thiz->text_color.R = text_color->R;
+	thiz->text_color.G = text_color->G;
+	thiz->text_color.B = text_color->B;
+	thiz->text_color.A = text_color->A;
+	thiz->surface->SetColor (thiz->surface, text_color->R, text_color->G, text_color->B, text_color->A);	
 }
 
 void ComboBox_SetFocus(ComboBox *thiz, int focus)
@@ -158,28 +170,29 @@ void ComboBox_Destroy(ComboBox *thiz)
   free(thiz);
 }
 
-ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFBWindowDescription *window_desc)
+ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, color_t *text_color, DFBWindowDescription *window_desc)
 {
   ComboBox *newbox = NULL;
 
   newbox = (ComboBox *) calloc(1, sizeof(ComboBox));
-  newbox->items      = NULL;
-  newbox->selected   = NULL;
-  newbox->xpos       = (unsigned int) window_desc->posx;
-  newbox->ypos       = (unsigned int) window_desc->posy;
-  newbox->width      = window_desc->width;
-  newbox->height     = window_desc->height;
-  newbox->hasfocus   = 0;
-  newbox->position   = 0;
-  newbox->window     = NULL;
-  newbox->surface    = NULL;
-  newbox->KeyEvent   = ComboBox_KeyEvent;
-  newbox->SetFocus   = ComboBox_SetFocus;
-  newbox->AddItem    = ComboBox_AddItem;
-  newbox->ClearItems = ComboBox_ClearItems;
-  newbox->Hide       = ComboBox_Hide;
-  newbox->Show       = ComboBox_Show;
-  newbox->Destroy    = ComboBox_Destroy;
+  newbox->items        = NULL;
+  newbox->selected     = NULL;
+  newbox->xpos         = (unsigned int) window_desc->posx;
+  newbox->ypos         = (unsigned int) window_desc->posy;
+  newbox->width        = window_desc->width;
+  newbox->height       = window_desc->height;
+  newbox->hasfocus     = 0;
+  newbox->position     = 0;
+  newbox->window       = NULL;
+  newbox->surface      = NULL;
+	newbox->SetTextColor = ComboBox_SetTextColor;
+  newbox->KeyEvent     = ComboBox_KeyEvent;
+  newbox->SetFocus     = ComboBox_SetFocus;
+  newbox->AddItem      = ComboBox_AddItem;
+  newbox->ClearItems   = ComboBox_ClearItems;
+  newbox->Hide         = ComboBox_Hide;
+  newbox->Show         = ComboBox_Show;
+  newbox->Destroy      = ComboBox_Destroy;
 
   if (layer->CreateWindow (layer, window_desc, &(newbox->window)) != DFB_OK) return NULL;
   newbox->window->SetOpacity(newbox->window, 0x00 );
@@ -187,7 +200,7 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, DFB
   newbox->surface->Clear(newbox->surface, 0x00, 0x00, 0x00, 0x00);
   newbox->surface->Flip(newbox->surface, NULL, 0);
   newbox->surface->SetFont (newbox->surface, font);
-  newbox->surface->SetColor (newbox->surface, MASK_TEXT_COLOR.R, MASK_TEXT_COLOR.G, MASK_TEXT_COLOR.B, MASK_TEXT_COLOR.A);
+  newbox->surface->SetColor (newbox->surface, newbox->text_color.R, newbox->text_color.G, newbox->text_color.B, newbox->text_color.A);
   newbox->window->RaiseToTop(newbox->window);
 
   return newbox;

@@ -495,8 +495,16 @@ int check_windows_sanity()
 				return 0;
 			}
 			break;
-		case UNKNOWN: case LABEL: case BUTTON:
+		case BUTTON:
+			if (!strcmp(temp->command, "halt"       )) break;
+			if (!strcmp(temp->command, "reboot"     )) break;
+			if (!strcmp(temp->command, "sleep"      )) break;
+			if (!strcmp(temp->command, "screensaver")) break;
+			return 0;
+		case LABEL:
 			break;
+		default:
+			return 0;
 		}
 		temp = temp->next;
 	}
