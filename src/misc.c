@@ -304,6 +304,37 @@ int start_gpm(void)
   return 0;
 }
 
+char *assemble_message(char *content, char *command)
+{
+	char   *where;
+	char   *prev;
+	char   *message = NULL;
+	char   *result  = NULL;			
+	size_t  len     = 0;
+	FILE   *fp;
+
+	if (!content) return NULL;
+	if (!command) return content;
+	
+	where = strstr(content, "<INS_CMD_HERE>");
+	if (!where) return content;
+
+	fp = popen(command, "r");
+	getline(&result, &len, fp);
+	pclose(fp);
+
+	if (!result) return content;
+
+	prev = strndup(content, where - content);
+	len = strlen(result);
+	if (result[len-1] == '\n') result[len-1] = '\0';
+	message = StrApp((char**)NULL, prev, result, where+14, (char*)NULL);
+	free(prev);
+	free(result);
+
+	return message;
+}
+
 #ifdef USE_PAM
 int StrDup (char **dst, const char *src)
 {

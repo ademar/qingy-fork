@@ -75,3 +75,6 @@ int is_a_directory(char *what);
 /* duplicate src */
 int StrDup (char **dst, const char *src);
 #endif
+
+/* other stuff */
+char *assemble_message(char *content, char *command);

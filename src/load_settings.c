@@ -468,6 +468,22 @@ int add_window_to_list(window_t *w)
   return 1;
 }
 
+void destroy_windows_list(window_t *w)
+{	
+	while (w)
+	{
+		window_t *temp = w;
+		w = w->next;
+		
+		free(temp->command);
+		free(temp->content);
+		free(temp->linkto);
+		if (temp->text_color   != &DEFAULT_TEXT_COLOR)   free(temp->text_color);
+		if (temp->cursor_color != &DEFAULT_CURSOR_COLOR) free(temp->cursor_color);
+		free(temp);
+	}
+}
+
 int get_win_type(const char* name)
 {
 	register int i;

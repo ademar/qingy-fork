@@ -172,6 +172,8 @@ void close_framebuffer_mode (void)
 		Labels = Labels->next;
 		temp->label->Destroy(temp->label);
 		temp->next = NULL;
+		free(temp->content);
+		free(temp->command);
 		free(temp);
 	}
 	/* destroy all buttons */
@@ -781,60 +783,29 @@ void load_sessions(ComboBox *session)
   }
 }
 
-char *assemble_message(char *content, char *command)
-{
-	char *where;
-	char *message = NULL;
-	char *result  = NULL;	
-	char *prev    = NULL;	
-	size_t len     = 0;
-	FILE *fp;
-
-
-	if (!content) return NULL;
-	if (!command) return content;
-	
-	where = strstr(content, "<INS_CMD_HERE>");
-	if (!where) return content;
-
-	fp = popen(command, "r");
-	getline(&result, &len, fp);
-	pclose(fp);
-
-	if (!result) return content;
-
-	prev = strndup(content, where - content);
-	len = strlen(result);
-	if (result[len-1] == '\n') result[len-1] = '\0';
-	message = StrApp((char**)NULL, prev, result, where+14, (char*)NULL);
-	free(prev);
-	free(result);
-
-	return message;
-}
-
 void update_labels()
 {
+	char *message;
 	Label_list *labels = Labels;
 
-	while (labels)
+	for (; labels; labels = labels->next)
 	{
-		if (labels->polltime)
+		if (!labels->polltime) continue;
+		if (labels->countdown)
 		{
-			if (!labels->countdown)
-			{
-				if (!labels->command || !labels->content) labels->polltime = 0;
-				else
-				{
-					char *message = assemble_message(labels->content, labels->command);
-					labels->label->SetText(labels->label, message, labels->text_orientation);
-					free(message);
-				}			 
-				labels->countdown = labels->polltime;
-			}
-			else labels->countdown--;
+			labels->countdown--;
+			continue;
 		}
-		labels = labels->next;
+		if (!labels->command || !labels->content)
+		{
+			labels->polltime = 0;
+			continue;
+		}
+		
+		message = assemble_message(labels->content, labels->command);
+		labels->label->SetText(labels->label, message, labels->text_orientation);
+		free(message);
+		labels->countdown = labels->polltime;
 	}
 }
 
@@ -844,8 +815,8 @@ int create_windows()
 	IDirectFBFont *font;
 	window_t *window = windowsList;
 
-	window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
-	window_desc.caps   = DWCAPS_ALPHACHANNEL;
+	window_desc.flags = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
+	window_desc.caps  = DWCAPS_ALPHACHANNEL;
 	while (window)
 	{
 		window_desc.posx   = window->x      * screen_width  / THEME_WIDTH;
@@ -892,19 +863,19 @@ int create_windows()
 			}
 			labels->label = Label_Create(layer, font, window->text_color, &window_desc);
 			if (!labels->label) return 0;			
-			labels->content          = window->content;
-			labels->command          = window->command;
+			labels->content          = strdup(window->content);
+			labels->command          = strdup(window->command);
 			labels->polltime         = window->polltime * 2;
 			labels->text_orientation = window->text_orientation;
 			labels->countdown        = 0;
 			labels->next             = NULL;
-			if (!labels->polltime && window->command)
+			if (window->command)
 			{
 				char *message = assemble_message(labels->content, labels->command);
 				labels->label->SetText(labels->label, message, labels->text_orientation);
 				free(message);
 			}
-			else labels->label->SetText(labels->label, window->content, window->text_orientation);
+			else labels->label->SetText(labels->label, labels->content, window->text_orientation);
 			labels->label->SetFocus(labels->label, 0);
 			if (window->linkto)
 			{
@@ -955,6 +926,7 @@ int create_windows()
 
 		window = window->next;
 	}
+	destroy_windows_list(windowsList);
 
   window_desc.posx   = 0;
   window_desc.posy   = screen_height - (font_small_height);

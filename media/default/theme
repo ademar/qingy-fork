@@ -13,9 +13,9 @@ theme
 #	mask_text_color   = [ 28b428ff ]
 #	cursor_text_color = [ 145a14dd ]
 #	other_text_color  = [ 404040ff ]
-	default_text_color   = 40, 180, 40, 255
-	default_cursor_color = 20,  90, 20, 221
-	other_text_color     =  0, 255,  0, 255
+	default_text_color   =  40, 180, 40, 255
+	default_cursor_color =  20,  90, 20, 221
+	other_text_color     = 255, 255,  0, 255
 }
 
 window
@@ -45,13 +45,13 @@ window
 	type    = "label"
 	content = "Welcome to <INS_CMD_HERE>"
 	# The <INS_CMD_HERE> above is substituted with the output of the following
-	command = "cat /etc/hostname"
+	command = "hostname"
 }
 
 window
 {
 	x      = 0
-	y      = 585
+	y      = 583
 	width  = 800
 	height = 25
 

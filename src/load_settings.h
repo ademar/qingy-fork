@@ -155,6 +155,7 @@ window_t* windowsList;
 
 int add_window_to_list(window_t *w);
 int get_win_type(const char* name);
+void destroy_windows_list(window_t *w);
 
 
 /* initialize some stuff */
