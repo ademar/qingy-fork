@@ -59,6 +59,10 @@ char *THEME_DIR;
 char *THEMES_DIR;
 char *DFB_INTERFACE;
 
+/* other stuff */
+char *fb_device;
+char *resolution;
+
 int BUTTON_OPACITY;
 int WINDOW_OPACITY;
 int SELECTED_WINDOW_OPACITY;
@@ -175,7 +179,7 @@ void initialize_variables(void);
 
 /* get program settings from config file and command line */
 int load_settings(void);
-int ParseCMDLine(int argc, char *argv[]);
+int ParseCMDLine(int argc, char *argv[], int paranoia);
 
 /* parse /etc/inittab to detect behaviour when user presses ctrl-alt-del */
 char *parse_inittab_file(void);

@@ -1054,7 +1054,7 @@ int main (int argc, char *argv[])
 
   /* load settings from file */
 	initialize_variables();
-	current_tty = ParseCMDLine(argc, argv);
+	current_tty = ParseCMDLine(argc, argv, 0);
 	if (!load_settings()) return TEXT_MODE;
   if (!disable_last_user) lastuser = get_last_user();
 

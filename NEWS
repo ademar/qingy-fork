@@ -1,8 +1,10 @@
-qingy CVS
+qingy 0.5.1 (18 Aug 2004):
 - Fixed a bug that prevented qingy from honouring
   tty specific options in config file.
 - Fixed a bug that prevented qingy from honouring some
   command line arguments...
+- Fix X11 sessions search path for Gentoo linux.
+- Code clean ups.
 
 
 qingy 0.5.0 (17 Aug 2004):

@@ -59,6 +59,7 @@
 #include "misc.h"
 #include "memmgmt.h"
 #include "load_settings.h"
+#include "vt.h"
 
 
 int int_log10(int n)
@@ -67,6 +68,7 @@ int int_log10(int n)
   while ( (n/=10) >= 1) temp++;
   return temp;
 }
+
 
 char *int_to_str(int n)
 {
@@ -86,10 +88,12 @@ char *int_to_str(int n)
   return temp;
 }
 
+
 void ClearScreen(void)
 {
   system("/usr/bin/clear 2>/dev/null");
 }
+
 
 char *get_home_dir(char *user)
 {
@@ -101,6 +105,7 @@ char *get_home_dir(char *user)
   
   return strdup(pwd->pw_dir);
 }
+
 
 int get_line(char *tmp, FILE *fp, int max)
 {
@@ -119,6 +124,7 @@ int get_line(char *tmp, FILE *fp, int max)
   return result;
 }
 
+
 char *print_welcome_message(char *preamble, char *postamble)
 {
   char *text = (char *) calloc(MAX, sizeof(char));
@@ -131,6 +137,7 @@ char *print_welcome_message(char *preamble, char *postamble)
   
   return text;
 }
+
 
 /* append any number of strings to dst */
 char *StrApp (char **dst, ...)
@@ -167,11 +174,13 @@ char *StrApp (char **dst, ...)
   return temp;
 }
 
+
 void xstrncpy(char *dest, const char *src, size_t n)
 {
   strncpy(dest, src, n-1);
   dest[n-1] = 0;
 }
+
 
 int is_a_directory(char *what)
 {
@@ -184,6 +193,7 @@ int is_a_directory(char *what)
   
   return 1;
 }
+
 
 #ifdef USE_GPM_LOCK
 int stop_gpm(void)
@@ -218,6 +228,7 @@ int stop_gpm(void)
   return 0;
 }
 
+
 int start_gpm(void)
 {
   int retval;
@@ -247,6 +258,7 @@ int start_gpm(void)
 }
 #endif
 
+
 char *get_file_owner(char *file)
 {
 	struct stat desc;
@@ -260,6 +272,7 @@ char *get_file_owner(char *file)
 
 	return strdup(pwd->pw_name);
 }
+
 
 char *assemble_message(char *content, char *command)
 {
@@ -290,4 +303,101 @@ char *assemble_message(char *content, char *command)
   free(result);
   
   return message;
+}
+
+
+void PrintUsage()
+{
+  printf("\nqingy version %s\n", PACKAGE_VERSION);
+  printf("\nusage: ginqy <ttyname> [options]\n");
+  printf("Options:\n");
+  printf("\t-f <device>, --fb-device <device>\n");
+  printf("\tUse <device> as framebuffer device.\n\n");
+  printf("\t-p, --hide-password\n");
+  printf("\tDo not show password asterisks.\n\n");
+  printf("\t-l, --hide-lastuser\n");
+  printf("\tDo not display last user name.\n\n");
+  printf("\t-d, --disable-lastuser\n");
+  printf("\tDo not remember last user name.\n\n");
+  printf("\t-v, --verbose\n");
+  printf("\tDisplay some diagnostic messages on stderr.\n\n");
+  printf("\t-n, --no-shutdown-screen\n");
+  printf("\tClose DirectFB mode before shutting down.\n");
+  printf("\tThis way you will see system shutdown messages.\n\n");
+  printf("\t-s <timeout>, --screensaver <timeout>\n");
+  printf("\tActivate screensaver after <timeout> minutes (default is 5).\n");
+  printf("\tA value of 0 disables screensaver completely.\n\n");
+	printf("\t-r <xres>x<yres>, --resolution <xres>x<yres>\n");
+	printf("\tDo not detect framebuffer resolution, use this one instead.\n\n");
+}
+
+
+void text_mode()
+{
+  execl("/bin/login", "/bin/login", NULL);
+
+  /* We should never get here... */
+  fprintf(stderr, "\nCannot exec \"/bin/login\"...\n");
+  exit(EXIT_FAILURE);
+}
+
+
+void Error(int fatal)
+{
+	/* seconds before we die: let's be kind to init! */
+	int countdown = 16;
+
+  /* We reenable VT switching if it is disabled */
+  unlock_tty_switching();   
+  
+  PrintUsage();
+  if (!fatal) text_mode();
+  
+  /*
+   * we give the user some time to read the message
+   * and change VT before dying
+	 * ED (paolino): was sleep(5), too fast to read errors
+	 * ED (michele): all right, but we should let them know what's happening!
+   */
+	while (--countdown)
+	{
+		fprintf(stderr, "%s will be restarted automatically in %d seconds\r", program_name, countdown);
+		fflush(stderr);
+		sleep(1);
+	}
+  exit(EXIT_FAILURE);
+}
+
+char *get_resolution(char *resolution)
+{
+	char *result;
+	char *temp;
+	char *temp2;
+	int   width  = 0;
+	int   height = 0;
+	int  *value  = &width;
+
+	if (!resolution) return NULL;
+	for(temp = resolution; (int)*temp; temp++)
+		switch (*temp)
+		{
+			case 'x': case 'X':
+				if (!width) return NULL;
+				if (value == &height) return NULL;
+				value = &height;
+				break;
+			default:
+				if ((*temp) > '9' || (*temp) < '0') return NULL;
+				(*value) *= 10;
+				(*value) += (int)(*temp) - (int)'0';
+		}
+	if (!width)  return NULL;
+	if (!height) return NULL;
+
+	temp   = int_to_str(width);
+	temp2  = int_to_str(height);
+	result = StrApp((char**)NULL, temp, "x", temp2, (char*)NULL);
+	free(temp); free(temp2);
+
+	return result;
 }

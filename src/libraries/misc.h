@@ -69,3 +69,6 @@ char *get_file_owner(char *file);
 
 /* other stuff */
 char *assemble_message(char *content, char *command);
+void text_mode();
+void Error(int fatal);
+char *get_resolution(char *resolution);

@@ -1,5 +1,14 @@
 2004-08-18  Noberasco Michele  <s4t4n@gentoo.org>
 
+	* lotsa_files_have_been_changed:
+	Change way of handling of ParseCMDLine() dualism as previous
+	way was seriously borked. Move most functions away from main.c
+	as they are now needed by ParseCMDLine()...
+	Version number now 0.5.1.
+
+	* configure.in:
+	Fix X11 sessions search path for Gentoo linux...
+
 	* src/main.c,
 	* src/libraries/load_settings.c,
 	* src/libraries/load_settings.h,

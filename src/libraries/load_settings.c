@@ -62,6 +62,7 @@
 #include "misc.h"
 #include "vt.h"
 
+
 extern FILE* yyin;
 extern int yyparse(void);
 
@@ -86,6 +87,8 @@ void initialize_variables(void)
   FONT                    = NULL;
   screensaver_options     = NULL;
   windowsList             = NULL;
+	fb_device               = NULL;
+	resolution              = NULL;
   no_shutdown_screen      = 0;
   disable_last_user       = 0;
   hide_last_user          = 0;
@@ -673,7 +676,7 @@ int load_settings(void)
   return 1;
 }
 
-int ParseCMDLine(int argc, char *argv[])
+int ParseCMDLine(int argc, char *argv[], int paranoia)
 {
 	extern char *optarg;
 	extern int optind, opterr, optopt;
@@ -693,22 +696,21 @@ int ParseCMDLine(int argc, char *argv[])
   char *tty;
   int our_tty_number;
 
-#ifndef PARANOIA
-	opterr = 0;
-#endif
-#ifdef PARANOIA
-  if (argc < 2) Error(1);
-#endif
+	if (!paranoia)
+		opterr = 0;
+  else
+		if (argc < 2) Error(1);
+
   tty= argv[1];
-#ifdef PARANOIA
-  if (strncmp(tty, "tty", 3)) Error(1);
-#endif
+	if (paranoia && strncmp(tty, "tty", 3)) Error(1);
   our_tty_number= atoi(tty+3);
-#ifdef PARANOIA
-  if (our_tty_number < 1)  Error(1);
-	if (our_tty_number > 63) Error(1);
-#endif
-  
+	if (paranoia)
+		if ( (our_tty_number < 1) || (our_tty_number > 63) )
+		{
+			fprintf(stderr, "tty number must be > 0 and < 64\n");
+			Error(1);
+		}
+
 	while (1)
 	{
 		int retval = getopt_long(argc, argv, optstring, longopts, NULL);
@@ -716,11 +718,9 @@ int ParseCMDLine(int argc, char *argv[])
 		if (retval == -1) break;
 		switch (retval)
 		{
-#ifdef PARANOIA
 			case 'f': /* use this framebuffer device */
-				fb_device = strdup(optarg);
+				if (paranoia) fb_device = strdup(optarg);
 				break;
-#endif
 			case 'p': /* hide password */
 				hide_password = 1;
 				break;
@@ -739,15 +739,13 @@ int ParseCMDLine(int argc, char *argv[])
 			case 's': /* screen_saver */
 			{
 				int temp = atoi(optarg);
-#ifdef PARANOIA
-				if (temp < 0)
+				if (paranoia && temp < 0)
 				{
 					Switch_TTY;
 					ClearScreen();
 					fprintf(stderr, "%s: invalid screen saver timeout: fall back to text mode.\n", program_name);
 					Error(0);
 				}
-#endif
 				if (!temp)
 				{
 					use_screensaver = 0;
@@ -757,16 +755,17 @@ int ParseCMDLine(int argc, char *argv[])
 				screensaver_timeout = temp;
 				break;
 			}
-#ifdef PARANOIA
 			case 'r': /* use this framebuffer resolution */
-				resolution = get_resolution(optarg);
+				if (paranoia) resolution = get_resolution(optarg);
 				break;
 			default:
-				Switch_TTY;
-				ClearScreen();
-				fprintf(stderr, "%s: error in command line options: fall back to text mode.\n", program_name);
-				Error(0);
-#endif
+				if (paranoia)
+				{
+					Switch_TTY;
+					ClearScreen();
+					fprintf(stderr, "%s: error in command line options: fall back to text mode.\n", program_name);
+					Error(0);
+				}
 		}
 	}
   

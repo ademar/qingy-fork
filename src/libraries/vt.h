@@ -32,6 +32,13 @@
 #ifndef CHVT_H
 #define CHVT_H
 
+#define Switch_TTY                                                                          \
+	if (!switch_to_tty(our_tty_number))                                                       \
+	{                                                                                         \
+		fprintf(stderr, "\nUnable to switch to virtual terminal /dev/tty%d\n", our_tty_number); \
+		exit(EXIT_FAILURE);                                                                     \
+	}
+
 /* NOTE: should be an inline func, and StrApp should be probably fixed */
 #define create_tty_name(tty) StrApp((char**)NULL, "/dev/tty", int_to_str(tty), (char*)NULL)
  

@@ -43,8 +43,6 @@
 #include <config.h>
 #endif
 
-#define PARANOIA 1
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -59,78 +57,6 @@
 #include "load_settings.h"
 #include "session.h"
 
-
-#define Switch_TTY                                                                          \
-	if (!switch_to_tty(our_tty_number))                                                       \
-	{                                                                                         \
-		fprintf(stderr, "\nUnable to switch to virtual terminal /dev/tty%d\n", our_tty_number); \
-		exit(EXIT_FAILURE);                                                                     \
-	}
-
-
-char *fb_device         = NULL;
-char *resolution        = NULL;
-
-
-void PrintUsage()
-{
-  printf("\nqingy version %s\n", PACKAGE_VERSION);
-  printf("\nusage: ginqy <ttyname> [options]\n");
-  printf("Options:\n");
-  printf("\t-f <device>, --fb-device <device>\n");
-  printf("\tUse <device> as framebuffer device.\n\n");
-  printf("\t-p, --hide-password\n");
-  printf("\tDo not show password asterisks.\n\n");
-  printf("\t-l, --hide-lastuser\n");
-  printf("\tDo not display last user name.\n\n");
-  printf("\t-d, --disable-lastuser\n");
-  printf("\tDo not remember last user name.\n\n");
-  printf("\t-v, --verbose\n");
-  printf("\tDisplay some diagnostic messages on stderr.\n\n");
-  printf("\t-n, --no-shutdown-screen\n");
-  printf("\tClose DirectFB mode before shutting down.\n");
-  printf("\tThis way you will see system shutdown messages.\n\n");
-  printf("\t-s <timeout>, --screensaver <timeout>\n");
-  printf("\tActivate screensaver after <timeout> minutes (default is 5).\n");
-  printf("\tA value of 0 disables screensaver completely.\n\n");
-	printf("\t-r <xres>x<yres>, --resolution <xres>x<yres>\n");
-	printf("\tDo not detect framebuffer resolution, use this one instead.\n\n");
-}
-
-void text_mode()
-{
-  execl("/bin/login", "/bin/login", NULL);
-
-  /* We should never get here... */
-  fprintf(stderr, "\nCannot exec \"/bin/login\"...\n");
-  exit(EXIT_FAILURE);
-}
-
-void Error(int fatal)
-{
-	/* seconds before we die: let's be kind to init! */
-	int countdown = 16;
-
-  /* We reenable VT switching if it is disabled */
-  unlock_tty_switching();   
-  
-  PrintUsage();
-  if (!fatal) text_mode();
-  
-  /*
-   * we give the user some time to read the message
-   * and change VT before dying
-	 * ED (paolino): was sleep(5), too fast to read errors
-	 * ED (michele): all right, but we should let them know what's happening!
-   */
-	while (--countdown)
-	{
-		fprintf(stderr, "%s will be restarted automatically in %d seconds\r", program_name, countdown);
-		fflush(stderr);
-		sleep(1);
-	}
-  exit(EXIT_FAILURE);
-}
 
 void start_up(int argc, char *argv[], int our_tty_number)
 {
@@ -217,40 +143,6 @@ void start_up(int argc, char *argv[], int our_tty_number)
   exit(EXIT_FAILURE);
 }
 
-char *get_resolution(char *resolution)
-{
-	char *result;
-	char *temp;
-	char *temp2;
-	int   width  = 0;
-	int   height = 0;
-	int  *value  = &width;
-
-	if (!resolution) return NULL;
-	for(temp = resolution; (int)*temp; temp++)
-		switch (*temp)
-		{
-			case 'x': case 'X':
-				if (!width) return NULL;
-				if (value == &height) return NULL;
-				value = &height;
-				break;
-			default:
-				if ((*temp) > '9' || (*temp) < '0') return NULL;
-				(*value) *= 10;
-				(*value) += (int)(*temp) - (int)'0';
-		}
-	if (!width)  return NULL;
-	if (!height) return NULL;
-
-	temp   = int_to_str(width);
-	temp2  = int_to_str(height);
-	result = StrApp((char**)NULL, temp, "x", temp2, (char*)NULL);
-	free(temp); free(temp2);
-
-	return result;
-}
-
 int main(int argc, char *argv[])
 {
   int user_tty_number;
@@ -273,7 +165,7 @@ int main(int argc, char *argv[])
 	program_name   = argv[0];
 	if ((ptr = strrchr(argv[0], '/')))
 		program_name = ++ptr;
-  our_tty_number = ParseCMDLine(argc, argv);
+  our_tty_number = ParseCMDLine(argc, argv, 1);
 	current_tty    = our_tty_number;
   
   /* We switch to tty <tty> */
