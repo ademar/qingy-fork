@@ -6,3 +6,5 @@
 - multilanguage support
 - extend theme support (for qingy 0.3 series)
 - remove limit of 12 ttys
+- implement a screen saver
+- add support for shells other than bash
