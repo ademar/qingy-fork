@@ -1,6 +1,11 @@
-qingy 0.2.2 ?!?
+qingy CVS
 - added option to select which framebuffer device to use
 - updated text mode login for increased security
+- no longer necessary to create a /etc/directfbrc file:
+  now qingy creates automatically file /etc/directfbrc.qingy
+  (thus other DirectFB apps are unaffected) with
+  hopefully the proper resolution already detected.
+  Note: you need the 'fbset' program for this.
 
 qingy 0.2.1 (01 September 2003):
 - correctly changes tty ownership

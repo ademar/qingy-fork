@@ -6,5 +6,8 @@
 - multilanguage support
 - extend theme support (for qingy 0.3 series)
 - remove limit of 12 ttys
+  (find a way to find out next free tty
+	 or let the X server choose its own)
 - implement a screen saver
 - add support for shells other than bash
+- ldap support for authentication (with pam?)

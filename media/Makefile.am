@@ -3,8 +3,14 @@
 SUBDIRS = default @PAM@
 
 settingsdatadir = $(prefix)/etc/qingy
+settingsdata_DATA = settings
 
-settingsdata_DATA = \
-	settings
+directfbrcdir = $(prefix)/etc
+directfbrc_DATA = directfbrc.qingy
 
-EXTRA_DIST =  $(settingsdata_DATA)
+BUILT_SOURCES = directfbrc.qingy
+directfbrc.qingy: creatercfile
+	./creatercfile directfbrc.qingy /usr/bin/fbset
+
+noinst_PROGRAMS = creatercfile
+creatercfile_SOURCES = creatercfile.c

@@ -572,7 +572,8 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	args[0] = shell_base_name(pw->pw_shell);
 	args[1] = (char *) my_calloc(3, sizeof(char));
 	strcpy(args[1], "-c");
-	args[2] = StrApp((char **)0, XINIT, " ", XSESSIONS_DIRECTORY, session, " -- :", temp1, " vt", temp2, " >/dev/null 2>/dev/null", (char*)0);
+	//args[2] = StrApp((char **)0, XINIT, " ", XSESSIONS_DIRECTORY, session, " -- :", temp1, " vt", temp2, " >/dev/null 2>/dev/null", (char*)0);
+	args[2] = StrApp((char **)0, XINIT, " ", XSESSIONS_DIRECTORY, session, " -- :", temp1, " >/dev/null 2>/dev/null", (char*)0);
 	if (temp1) free(temp1);
 	if (temp2) free(temp2);
 	args[3] = NULL;
