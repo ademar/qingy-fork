@@ -8,7 +8,7 @@
 
 - Add an option to pass parameters to X server 
 
-* Make key bindings customizable, add more actions available to keyboard
+- Make key bindings customizable, add more actions available to keyboard
   shortcuts, like switch to the right workspace, or to the left, ot
   to the previous one...
 
@@ -87,6 +87,8 @@
 - support also the /dev/vc* in spite of /dev/tty*
 
 - graphical configuration tool...
+
+- Add support for a Win XP style login box...
 
 --
 Items marked as * are those we are currently working on.

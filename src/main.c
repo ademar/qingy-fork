@@ -143,7 +143,6 @@ void start_up(int our_tty_number)
 	char *session    = NULL;
 	size_t len = 0;
 
-	
 	/* parse settings file */
 	load_settings();
 

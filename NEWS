@@ -1,4 +1,12 @@
-qingy 0.5.0:
+qingy 0.5.0 (17 Aug 2004):
+- This new major version finally is able to work-around all issues
+  between DirectFB and 2.6 kernels. But make sure to use a kernel 
+  >= 2.6.8 and never, ever attempt a 2.6.7 one as it is likely to
+	lock up your machine completely. You have been warned ;-)
+- High memory usage issues are now solved, now qingy should use
+  ~2.5 MB of RAM when user is logged in (instead of ~40MB!)...
+- Remove support for the '--black-screen-workaround'
+	cmd line arg, as it is no longer needed.
 
 
 qingy 0.4.1 (28 Jul 2004):
