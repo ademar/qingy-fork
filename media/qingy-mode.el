@@ -45,10 +45,11 @@
   (list
    '("\\(c\\(?:lear_background\\)\\|l\\(?:ock_sessions\\)\\|s\\(?:creensavers_dir\\|creensaver\\|hutdown_policy\\)\\)" . font-lock-variable-name-face)
    '("\\(t\\(?:hemes_dir\\|ext_sessions\\)\\|x\\(?:_sessions\\|init\\|_server\\)\\)" . font-lock-variable-name-face)
+	 '("\\(q\\(?:ingy_DirectFB\\)\\)" . font-lock-variable-name-face)
    '("\\(content\\|default_\\(?:\\(?:cursor\\|text\\)_color\\)\\|linkto\\|text_orientation\\)" . font-lock-variable-name-face)
    '("\\(b\\(?:ackground\\|utton_opacity\\)\\|cursor_color\\|font\\|text_color\\|other_text_color\\|\\(?:selected_\\)?window_opacity\\)" . font-lock-variable-name-face)
    '("\\(center\\|\\(?:lef\\|righ\\)t\\)" . font-lock-constant-face)
-   '("\\(yes\\|no\\)" . font-lock-constant-face)
+   '("\\(yes\\|no\\|NULL\\)" . font-lock-constant-face)
    '("\\(theme\\|window\\|tty\\)" . font-lock-builtin-face)
    '("\\(everyone\\|noone\\|p\\(?:hoto\\|ixel\\)\\|r\\(?:andom\\|oot\\)\\)" . font-lock-constant-face)
    '("\\(large\\|medium\\|small\\)" . font-lock-constant-face)

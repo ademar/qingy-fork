@@ -1,5 +1,8 @@
 2004-08-16  Noberasco Michele  <s4t4n@gentoo.org>
 
+	* media/qingy-mode.el:
+	Update qingy emacs major mode with the newest items...
+
 	* most_files_have_been_changed:
 	Tonight I got really pissed for the 'DirectFB crash on shutdown issue',
 	so I thought that if I cannot prevent it, maybe I can circumvent it,
