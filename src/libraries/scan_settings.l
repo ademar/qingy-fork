@@ -34,7 +34,6 @@ char *string_buf_ptr;
 YY_BUFFER_STATE settings_buf=NULL;
 
 extern int in_theme;
- int GOT_THEME=0;
 extern int yyparse();
 
 %}
@@ -154,8 +153,10 @@ themes_dir              return THEMES_DIR_TOK;
 %%
 
  /* do nothing at EOF */
-int yywrap(){
-  if(settings_buf){
+int yywrap()
+{
+  if(settings_buf)
+	{
     yy_delete_buffer( YY_CURRENT_BUFFER );
     yy_switch_to_buffer(settings_buf);
     settings_buf=NULL;
@@ -169,18 +170,22 @@ int yywrap(){
 
 int set_theme(char *theme)
 {
-  char* file;
+	FILE *fp;
+  char *file;
+
   if (!theme) return 0;
   
   THEME_DIR = StrApp((char**)NULL, THEMES_DIR, "/", theme, "/", (char*)NULL);
   file = StrApp((char**)NULL, THEME_DIR, "theme", (char*)NULL);
-  settings_buf=YY_CURRENT_BUFFER;
-  yyin = fopen(file, "r");
-  if (!yyin)
-    {
-      if (!silent) fprintf(stderr, "load_settings: theme '%s' does not exist.\n", theme);		
-      return 0;
-    }
+  fp = fopen(file, "r");
+	free(file);
+  if (!fp)
+	{
+		if (!silent) fprintf(stderr, "load_settings: theme '%s' does not exist.\n", theme);		
+		return 0;
+	}
+	settings_buf=YY_CURRENT_BUFFER;
+	yyin = fp;
   yy_switch_to_buffer(yy_create_buffer( yyin, YY_BUF_SIZE ) );
   in_theme = 1;
   return 1;

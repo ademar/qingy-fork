@@ -133,9 +133,6 @@ void start_up(void)
 	char *resolution;
   char *argv[3];
 
-  /* First of all, we lock vt switching */
-  lock_tty_switching();
-  
   /* We clear the screen */
   ClearScreen();
 

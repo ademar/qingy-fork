@@ -1,3 +1,29 @@
+2004-03-24  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* configure.in:
+	Changed version to 0.4.1
+
+	* src/libraries/scan_settings.l,
+	* src/libraries/parse_settings.y,
+	* src/libraries/load_settings.h,
+	* src/libraries/load_settings.c:
+	Fixed theme loading code, now it won't crash any more...
+	Also, I removed some code, now if theme loading
+	fails qingy will go directly to text mode instead of
+	trying to load default theme: this way users will be
+	more encouraged to fix settings file ;-P
+
+	* src/libraries/session.c (get_sessions):
+	Some fixes...
+
+2004-03-23  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/main.c (start_up),
+	* src/DirectFB/directfb_mode.c (directfb_mode):
+	Made sure that if qingy dies horribly during initialization,
+	it does it with tty switching enabled so that user is not
+	stuck in front of a 'respawning too fast' message...
+
 2004-03-18  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
 	* doc/qingy.texi (Installing from the tarball):

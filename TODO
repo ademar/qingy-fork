@@ -48,6 +48,8 @@
 
 - $$$ (huge but interesting blurb)
 
+- Add support for asking for a password after a given idle timeout.
+
 --
 Items marked as * are those we are currently working on.
 For stuff already done, see NEWS file...

@@ -35,11 +35,10 @@
 extern FILE* yyin;
 extern int yylex();
 extern int in_theme;
-extern int current_tty;
 static int clear_background_is_set = 0;
 static int intended_tty            = 0;
-static int theme_is_set            = 0;
 static int ssaver_is_set           = 0;
+static int set_theme_result;
 
 static window_t wind =
   {
@@ -120,7 +119,7 @@ config: /* nothing */
 | config xsessdir
 | config txtsessdir
 | config xinit
-| config theme { TTY_CHECK_COND theme_is_set = 1; }
+| config theme { TTY_CHECK_COND GOT_THEME=set_theme_result; }
 | config shutdown
 | config window
 | config CLEAR_BACKGROUND_TOK '=' YES_TOK { if (!clear_background_is_set) clear_background = 1; }
@@ -139,7 +138,7 @@ config_tty: /* nothing */
 | config_tty xsessdir
 | config_tty txtsessdir
 | config_tty xinit
-| config_tty theme { TTY_CHECK_COND theme_is_set = 1; }
+| config_tty theme { TTY_CHECK_COND GOT_THEME=set_theme_result; }
 | config_tty shutdown
 | config_tty window
 | config_tty CLEAR_BACKGROUND_TOK '=' YES_TOK { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 1;} }
@@ -209,8 +208,8 @@ shutdown: SHUTDOWN_TOK '=' EVERYONE_TOK
 
  
 /* theme: either random, ="themeName" or { definition }  */
-theme: THEME_TOK '=' RAND_TOK { TTY_CHECK_COND {char *temp = get_random_theme(); set_theme(temp); free(temp);} }
-| THEME_TOK '=' QUOTSTR_T { TTY_CHECK_COND set_theme($3); }
+theme: THEME_TOK '=' RAND_TOK { TTY_CHECK_COND {char *temp = get_random_theme(); set_theme_result=set_theme(temp); free(temp);} }
+| THEME_TOK '=' QUOTSTR_T { TTY_CHECK_COND set_theme_result=set_theme($3); }
 | THEME_TOK '{' themedefn '}'
 ;
 
@@ -291,11 +290,11 @@ window: WINDOW_TOK '{' windefns '}'
 	{
 		TTY_CHECK_COND
 		{
-			if (theme_is_set)
+			if (GOT_THEME)
 			{
 				destroy_windows_list(windowsList); 
-				windowsList  = NULL;
-				theme_is_set = 0;
+				windowsList = NULL;
+				GOT_THEME   = 0;
 			}
 			add_window_to_list(&wind);
 		}
@@ -368,4 +367,3 @@ wincolorprop: WTEXT_COLOR_TOK '=' COLOR_T
 ;
 
 %%
-

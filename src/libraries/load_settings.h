@@ -186,7 +186,7 @@ int set_last_session(char *user, char *session);
 char *get_welcome_msg(char *user);
 
 /* theme stuff */
-extern int GOT_THEME;
+int GOT_THEME;
 extern int set_theme(char *theme);
 char *get_random_theme();
 
@@ -194,10 +194,5 @@ char *get_random_theme();
 void yyerror(char *where);
 void add_to_options(char *option);
 void erase_options(void);
-
-#ifdef DEBUG
-void show_windows_list(void);
-#endif
-
 
 #endif /* !LOAD_SETTINGS_H */

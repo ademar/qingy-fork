@@ -1074,6 +1074,12 @@ int directfb_mode (int argc, char *argv[])
 	if (!load_settings()) return TEXT_MODE;
   if (!disable_last_user) lastuser = get_last_user();
 
+  /* user changed vt while we were doing our stuff */
+	if (get_active_tty() != current_tty) exit(EXIT_SUCCESS);
+
+  /* lock vt switching */
+  lock_tty_switching();
+
   /* Stop GPM if necessary */
   we_stopped_gpm = stop_gpm();
 

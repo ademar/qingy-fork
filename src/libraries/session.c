@@ -151,10 +151,10 @@ struct pam_conv PAM_conversation =
 
 char *get_sessions(void)
 {
-  static DIR *dir;
+  static DIR    *dir;
   struct dirent *entry;
-  static int status = 0;
-  static char *dirname = NULL;
+  static char   *dirname = NULL;
+  static int     status  = 0;
   
   if (!dirname) dirname = X_SESSIONS_DIRECTORY;
   
@@ -169,9 +169,14 @@ char *get_sessions(void)
     case 2:
       dir= opendir(dirname);
       if (!dir)
-			{
-				status = 0;
+			{				
 				fprintf(stderr, "session: unable to open directory \"%s\"\n", dirname);
+				if (dirname == X_SESSIONS_DIRECTORY)
+				{
+					dirname = TEXT_SESSIONS_DIRECTORY;
+					return get_sessions();
+				}
+				status = 0;
 				return NULL;
 			}
       status = 3;

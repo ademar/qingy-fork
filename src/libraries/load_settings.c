@@ -89,6 +89,7 @@ void initialize_variables(void)
   SHUTDOWN_POLICY         = EVERYONE;
   THEME_WIDTH             = 800;
   THEME_HEIGHT            = 600;
+	GOT_THEME               = 0;
 	lock_sessions           = 0;
 #ifdef USE_SCREEN_SAVERS
 	screensaver_timeout     = 5;
@@ -99,50 +100,17 @@ void initialize_variables(void)
 #endif
 }
 
-void set_default_session_dirs(void)
+void set_default_paths(void)
 {
   TEXT_SESSIONS_DIRECTORY = strdup("/etc/qingy/sessions");
 	X_SESSIONS_DIRECTORY    = strdup("/etc/X11/Sessions/"); 
+  XINIT                   = strdup("/usr/X11R6/bin/xinit");
+	SCREENSAVERS_DIR        = strdup("/usr/lib/qingy/screensavers");
+	THEMES_DIR              = strdup("/usr/share/qingy/themes");
 	/*
 	 * (michele): no need to check strdup return values,
 	 *            it is done automatically in memmgmt.c!
 	 */  
-}
-
-void set_default_xinit(void)
-{
-  XINIT = strdup("/usr/X11R6/bin/xinit");
-	/*
-	 * (michele): no need to check strdup return values,
-	 *            it is done automatically in memmgmt.c!
-	 */  
-}
-
-void set_default_font(void)
-{
-  FONT = StrApp((char**)NULL, THEME_DIR, "decker.ttf",(char *)NULL);
-}
-
-void set_default_colors(void)
-{
-  BUTTON_OPACITY = 0xFF;
-  WINDOW_OPACITY = 0x80;
-  SELECTED_WINDOW_OPACITY = 0xCF;
-
-  DEFAULT_TEXT_COLOR.R = 0xFF;
-  DEFAULT_TEXT_COLOR.G = 0x00;
-  DEFAULT_TEXT_COLOR.B = 0x00;
-  DEFAULT_TEXT_COLOR.A = 0xFF;
-
-  DEFAULT_CURSOR_COLOR.R = 0x80;
-  DEFAULT_CURSOR_COLOR.G = 0x00;
-  DEFAULT_CURSOR_COLOR.B = 0x00;
-  DEFAULT_CURSOR_COLOR.A = 0xDD;
-  
-  OTHER_TEXT_COLOR.R = 0x40;
-  OTHER_TEXT_COLOR.G = 0x40;
-  OTHER_TEXT_COLOR.B = 0x40;
-  OTHER_TEXT_COLOR.A = 0xFF;
 }
 
 void erase_options(void)
@@ -260,11 +228,10 @@ void yyerror(char *error)
   free(XINIT);
   free(FONT);
   free(THEME_DIR);
+	free(SCREENSAVERS_DIR);
+	free(THEMES_DIR);
+	set_default_paths();
   THEME_DIR = StrApp((char**)NULL, THEMES_DIR, "/default/", (char*)NULL);
-  set_default_session_dirs();
-  set_default_xinit();
-  set_default_font();
-  set_default_colors();
 }
 
 char *get_last_user(void)
@@ -654,12 +621,6 @@ int check_windows_sanity()
 
 int load_settings(void)
 {
-  TEXT_SESSIONS_DIRECTORY = NULL;
-  X_SESSIONS_DIRECTORY    = NULL;
-  THEME_DIR               = NULL;
-  XINIT                   = NULL;
-  FONT                    = NULL;
-  
   DATADIR   = strdup("/etc/qingy/");
   SETTINGS  = StrApp((char**)NULL, DATADIR, "settings", (char*)NULL);
   LAST_USER = StrApp((char**)NULL, DATADIR, "lastuser", (char*)NULL);  
@@ -667,29 +628,31 @@ int load_settings(void)
   yyin = fopen(SETTINGS, "r");
   if (!yyin)
 	{
-		if (!silent) fprintf(stderr, "load_settings: settings file not found...\nusing internal defaults\n");
-		set_default_session_dirs();
-		set_default_xinit();
-		set_default_font();
-		set_default_colors();
-		return 1;
+		fprintf(stderr, "load_settings: settings file not found: reverting to text mode\n");
+		return 0;
 	}
+
   file_error = SETTINGS;
   yyparse();
   fclose(yyin);
   file_error = NULL;
   
-  if (!X_SESSIONS_DIRECTORY) set_default_session_dirs();
-  if (!XINIT) set_default_xinit();
+  if (!TEXT_SESSIONS_DIRECTORY ||
+			!X_SESSIONS_DIRECTORY    ||
+			!XINIT                   ||
+			!SCREENSAVERS_DIR        ||
+			!THEMES_DIR)
+	{
+		fprintf(stderr, "load_settings: warning: you left some variables undefined\n");
+		fprintf(stderr, "in settings file, anomalies may occur!\n");
+	}
+
   if (!GOT_THEME)
 	{
-		char *theme = strdup("default");
-		set_theme(theme);
-		free(theme);
+		fprintf(stderr, "load_settings: cannot proceed without a theme!\n");
+		return 0;
 	}
-  
-  if (!FONT) set_default_font();
-  
+
   if (!check_windows_sanity())
 	{
 		fprintf(stderr, "Error in windows configuration:\n");
