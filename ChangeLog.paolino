@@ -1,0 +1,5 @@
+2003-12-06  Paolo Gianrossi  <paolino.gnu@disi.unige.it>
+
+	* src/load_settings.h: added window structure and enum of types-
+	hope to parse it all in very small time :) 
+	
