@@ -162,9 +162,10 @@ prev_tty                return PREV_TTY_TOK;
 poweroff                return POWEROFF_TOK;
 reboot                  return REBOOT_TOK;
 kill                    return KILL_TOK;
+text_mode               return TEXT_MODE_TOK;
 menu                    return MENU_KEY_TOK;
 win                     return WIN_KEY_TOK;
-keybindings            return KEYBINDINGS_TOK;
+keybindings             return KEYBINDINGS_TOK;
 
 
 "#"[^\n]*"\n" ;			/* skip comments */

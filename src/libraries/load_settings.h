@@ -79,10 +79,6 @@ int BUTTON_OPACITY;
 int WINDOW_OPACITY;
 int SELECTED_WINDOW_OPACITY;
 
-/* this is the virtual theme resolution */
-int THEME_WIDTH;
-int THEME_HEIGHT;
-
 /*
  * this is the native resolution of the theme, i.e. the resolution
  * the theme was designed for, and we should scale only if our
@@ -123,7 +119,7 @@ struct _screensaver_options
 struct _screensaver_options *screensaver_options;
 
 /* screensaver name */
-char* SCREENSAVER;
+char* SCREENSAVER_NAME;
 
 /* Custom windows can be of the following- they mean:
    - UNKNOWN: default value, treat as error.

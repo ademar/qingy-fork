@@ -72,7 +72,7 @@ int   in_theme   = 0;
 
 void initialize_variables(void)
 {
-  SCREENSAVER             = NULL;
+  SCREENSAVER_NAME        = NULL;
 	AUTOLOGIN_FILE_BASENAME = strdup("qingy-autologin-");
   TEXT_SESSIONS_DIRECTORY = NULL;
   X_SESSIONS_DIRECTORY    = NULL;
@@ -106,8 +106,6 @@ void initialize_variables(void)
   silent                  = 1;
 	clear_background        = 0;
   SHUTDOWN_POLICY         = EVERYONE;
-  THEME_WIDTH             = 800;
-  THEME_HEIGHT            = 600;
 	GOT_THEME               = 0;
 	lock_sessions           = 0;
 	retries                 = 0;

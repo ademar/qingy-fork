@@ -122,7 +122,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 				break;
 			}
 
-			if (i == retries) returnstatus = TEXT_MODE;
+			if (i == retries) returnstatus = EXIT_TEXT_MODE;
 			else sleep(1);
 		}
 		free(interface);
@@ -157,16 +157,16 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 				start_session(username, session);
 			fprintf(stderr, "\nLogin failed, reverting to text mode!\n");
 			/* Fall trough */
-		case TEXT_MODE:
+		case EXIT_TEXT_MODE:
 			text_mode();
 			break;
-		case SHUTDOWN_R:
+		case EXIT_SHUTDOWN_R:
 			execl ("/sbin/shutdown", "/sbin/shutdown", "-r", "now", (char*)NULL);
 			break;
-		case SHUTDOWN_H:
+		case EXIT_SHUTDOWN_H:
 			execl ("/sbin/shutdown", "/sbin/shutdown", "-h", "now", (char*)NULL);
 			break;
-		case DO_SLEEP:
+		case EXIT_SLEEP:
 			if (SLEEP_CMD) execl (SLEEP_CMD, SLEEP_CMD, (char*)NULL);
 			fprintf(stderr, "\nfatal error: could not execute sleep command!\n");
 			exit(EXIT_FAILURE);

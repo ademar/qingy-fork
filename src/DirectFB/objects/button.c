@@ -129,8 +129,28 @@ IDirectFBSurface *load_image_int(const char *filename, IDirectFBSurface *primary
 	return surface;
 }
 
-IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb)
+IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb, float x_ratio, float y_ratio)
 {
+	if (x_ratio != 1 || y_ratio != 1)
+	{ /* we resize the image according to the correction ratios we received */
+		DFBSurfaceDescription  desc;
+		IDirectFBSurface      *orig = load_image_int(filename, primary, dfb, 0, 0, 0);
+		IDirectFBSurface      *dest = NULL;
+		unsigned int           image_width;
+		unsigned int           image_height;
+
+		orig->GetSize (orig, &image_width, &image_height);
+		desc.flags  = ( DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_CAPS );
+		desc.width  = image_width  * x_ratio;
+		desc.height = image_height * y_ratio;
+		desc.caps   = DWCAPS_ALPHACHANNEL;
+
+		dfb->CreateSurface(dfb, &desc, &dest);
+		dest->StretchBlit(dest, orig, NULL, NULL);
+
+		return dest;
+	}
+
 	return load_image_int(filename, primary, dfb, 0, 0, 0);
 }
 

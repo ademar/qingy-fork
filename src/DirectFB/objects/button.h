@@ -29,15 +29,7 @@
 #include <config.h>
 #endif
 
-/* available commands */
-typedef enum
-{
-	NO_ACTION,
-	HALT,
-	REBOOT,
-	SLEEP,
-	SCREEN_SAVER
-} Commands;
+#include <keybindings.h>
 
 /* button structure */
 typedef struct _Button
@@ -47,7 +39,7 @@ typedef struct _Button
 	IDirectFBSurface *surface;   /* surface of the above                        */
 	IDirectFBSurface *normal;    /* normal button appearance                    */
 	IDirectFBSurface *mouseover; /* button appearance when mouse is over it     */
-	Commands command;            /* what should this button do?                 */
+	actions action;              /* what should this button do?                 */
 	int xpos;										 /* x position of the button                    */
 	int ypos;										 /* y position of the button                    */
 	unsigned int width;					 /* width of the button                         */
@@ -73,4 +65,4 @@ Button *Button_Create
 );
 
 /* return a surface with an image loaded from disk */
-IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb);
+IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb, float x_ratio, float y_ratio);

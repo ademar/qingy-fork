@@ -40,7 +40,7 @@ typedef struct _keybinding
 {
 	actions             action;
 	modifiers           modifier;
-	unsigned char       key;
+	int                 key;
 	struct _keybinding *next;
 	
 } keybinding;
@@ -52,11 +52,11 @@ char *print_modifier(modifiers modifier)
 {
 	switch (modifier)
 	{
-		case ctrl:
+		case CONTROL:
 			return "CTRL-";
-		case alt:
+		case ALT:
 			return "ALT-";
-		case ctrlalt:
+		case CTRLALT:
 			return "CTRL-ALT-";
 		default: /* nothing */
 			break;
@@ -69,20 +69,22 @@ char *print_action(actions action)
 {
 	switch (action)
 	{
-		case sleep_kb:
+		case DO_SLEEP:
 			return "put machine to sleep";
-		case poweroff_kb:
+		case DO_POWEROFF:
 			return "poweroff machine";
-		case reboot_kb:
+		case DO_REBOOT:
 			return "reboot machine";
-		case prev_tty_kb:
+		case DO_PREV_TTY:
 			return "switch to left tty";
-		case next_tty_kb:
+		case DO_NEXT_TTY:
 			return "switch to right tty";
-		case kill_kb:
+		case DO_KILL:
 			return "kill qingy";
-		case screensaver_kb:
+		case DO_SCREEN_SAVER:
 			return "activate screen saver";
+		case DO_TEXT_MODE:
+			return "revert to text mode";
 		default: /* nothing */
 			break;
 	}
@@ -90,10 +92,11 @@ char *print_action(actions action)
 	return "";
 }
 
-char *print_key(unsigned char key)
+char *print_key(int key)
 {
-	if (key == menu) return "menu";
-	if (key == win ) return "win";
+	if (key == MENU  ) return "menu";
+	if (key == WIN   ) return "win";
+	if (key == ESCAPE) return "ESC";
 
 	ret[0] = key;
 
@@ -104,28 +107,29 @@ modifiers get_modifier(char *source)
 {
 	char *delim = strchr(source, '-');
 
-	if (!delim) return none;
+	if (!delim) return NONE;
 	
-	if (!strncmp(source, "alt",  3)) return alt;
-	if (!strncmp(source, "ctrl", 4)) return ctrl;
+	if (!strncmp(source, "alt",  3)) return ALT;
+	if (!strncmp(source, "ctrl", 4)) return CONTROL;
 
-	return none;
+	return NONE;
 }
 
-unsigned char get_key(char *source)
+int get_key(char *source)
 {
 	char *delim = strchr(source, '-');
 
 	if (!delim) delim = source;
 	else        delim++;
 
-	if (!strcmp(delim, "menu")) return menu;
-	if (!strcmp(delim, "win" )) return win;
+	if (!strcmp(delim, "menu")) return MENU;
+	if (!strcmp(delim, "win" )) return WIN;
+	if (!strcmp(delim, "esc" )) return ESCAPE;
 	
 	return delim[0];
 }
 
-int check_dupe_keybinding(actions action, modifiers modifier, unsigned char key)
+int check_dupe_keybinding(actions action, modifiers modifier, int key)
 {
 	keybinding *my_keybinding = keybindings;
 
@@ -149,9 +153,9 @@ int check_dupe_keybinding(actions action, modifiers modifier, unsigned char key)
 
 int add_to_keybindings(actions action, char *string)
 {
-	keybinding    *new_keybinding;
-	unsigned char  key;
-	modifiers      modifier;
+	keybinding *new_keybinding;
+	int         key;
+	modifiers   modifier;
 
 	if (!string) return 0;
 	to_lower(string); /* let's sanitize out input... */
@@ -194,4 +198,18 @@ void destroy_keybindings_list()
 		free(my_keybinding);
 		my_keybinding = NULL;
 	}
+}
+
+actions search_keybindings(modifiers modifier, int key)
+{
+	keybinding *my_keybinding = keybindings;
+
+	for (; my_keybinding != NULL; my_keybinding = my_keybinding->next)
+	{
+		if (my_keybinding->modifier == modifier &&
+				my_keybinding->key      == key        )
+			return my_keybinding->action;
+	}
+
+	return DO_NOTHING;
 }

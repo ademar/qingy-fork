@@ -29,23 +29,16 @@
 #include <config.h>
 #endif
 
+#include <keybindings.h>
+
 /* checks wether user has any of these locks active */
 #define SCROLLLOCK	1
 #define NUMLOCK			2
 #define CAPSLOCK		3
 int lock_is_pressed(DFBInputEvent *evt);
 
-/* checks wether user is currently holding down any of these modifiers */
-#define NONE    0
-#define SHIFT		1
-#define CONTROL	2
-#define ALT			3
-#define ALTGR		4
-#define META		5
-#define SUPER		6
-#define HYPER		7
-#define CTRLALT 8
-int modifier_is_pressed(DFBInputEvent *evt);
+/* checks wether user is currently holding down any key modifiers */
+modifiers modifier_is_pressed(DFBInputEvent *evt);
 
 /* checks wether left mouse button is down */
 int left_mouse_button_down(DFBInputEvent *evt);

@@ -27,11 +27,11 @@
 
 
 /* constants that we make use of */
-#define DO_SLEEP    252
-#define SHUTDOWN_R  253
-#define SHUTDOWN_H  254
-#define TEXT_MODE   255
-#define REDRAW    55555
+#define EXIT_SLEEP        252
+#define EXIT_SHUTDOWN_R   253
+#define EXIT_SHUTDOWN_H   254
+#define EXIT_TEXT_MODE    255
+#define REDRAW          55555
 
 /* Init framebuffer mode */
 int directfb_mode(int argc, char *argv[]);

@@ -1,4 +1,4 @@
-AC_INIT([qingy],[0.5.3],[s4t4n@gentoo.org])
+AC_INIT([qingy],[0.5.4],[s4t4n@gentoo.org])
 AC_PREREQ(2.57)
 AC_CONFIG_SRCDIR(src/main.c)
 AM_INIT_AUTOMAKE([1.6 check-news dist-bzip2])
@@ -140,15 +140,6 @@ AM_PATH_LISPDIR
 	AM_CONDITIONAL(USE_PAM, test "$USE_PAM" == "yes")
 # End check for PAM support
 
-# Enable powerkeys if user asks
-	AC_ARG_ENABLE(powerkeys, AC_HELP_STRING([--enable-powerkeys],
-	[use extended keybindings (default is no)]),, [enable_powerkeys=no])
-	if test "$enable_powerkeys" == "yes"; then
-		AC_DEFINE(POWER_KEYS, 1, [Define if powerkeys is enabled])
-		AC_MSG_NOTICE([powerkeys activated])
-	 fi
-# End of powerkeys stuff
-
 # Wether we should compile statically
 	AC_ARG_ENABLE(static-build, AC_HELP_STRING([--enable-static-build],
 	[compile qingy statically (default is no)]),, [enable_static_build=no])
@@ -287,7 +278,6 @@ Configuration:
   Compiler flags:             ${CFLAGS}
   
   Password library:           ${DISP_PASSWORD_LIBRARY}
-  Use extended keybindings:   ${enable_powerkeys}
   Screen savers support:      ${enable_screen_savers}
   gpm locking support:        ${enable_gpm_lock}
 "

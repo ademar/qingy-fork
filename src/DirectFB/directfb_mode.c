@@ -2,8 +2,8 @@
                       directfb_mode.c  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2004 by Noberasco Michele
-    e-mail               : noberasco.gnu@disi.unige.it
+    copyright            : (C) 2003-2005 by Noberasco Michele
+    e-mail               : s4t4n@gentoo.org
 ***************************************************************************/
 
 /***************************************************************************
@@ -57,14 +57,6 @@
 #ifdef USE_SCREEN_SAVERS
 #include "screen_saver.h"
 #endif
-
-typedef enum
-{
-	STOP,
-	RESTART,
-	GO_SLEEP
-} shutdown_t;
-
 
 /* some super-structures */
 typedef struct label_t
@@ -125,6 +117,8 @@ int                   session_area_mouse    = 0;
 int                   screensaver_active    = 0;  /* screensaver stuff                         */
 int                   screensaver_countdown = 0;
 #endif
+float                 x_ratio               = 1;  /* theme res. should be corrected by x_ratio */
+float                 y_ratio               = 1;  /* and y_ratio to match the actual res.      */
 
 void Draw_Background_Image(int do_the_drawing)
 {
@@ -134,7 +128,7 @@ void Draw_Background_Image(int do_the_drawing)
   primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
   if (!panel_image)
 	{ /* we design the surface */
-		if (BACKGROUND)  panel_image = load_image (BACKGROUND, primary, dfb);
+		if (BACKGROUND)  panel_image = load_image (BACKGROUND, primary, dfb, x_ratio, y_ratio);
 		if (panel_image) panel_image->GetSize (panel_image, &panel_width, &panel_height);
 	}
   /*	
@@ -205,6 +199,7 @@ void close_framebuffer_mode (void)
 		free(temp->command);
 		free(temp);
 	}
+
   /* destroy all buttons */
   while (Buttons)
 	{
@@ -214,21 +209,30 @@ void close_framebuffer_mode (void)
 		temp->next = NULL;
 		free(temp);
 	}
-  
+
+	/* background image */
   if (panel_image) panel_image->Release (panel_image);
+
+	/* the silly messages that appear when you have your CAPS LOCK down */
   if (lock_key_statusA) lock_key_statusA->Destroy(lock_key_statusA);
   if (lock_key_statusB) lock_key_statusB->Destroy(lock_key_statusB);
   if (lock_key_statusC) lock_key_statusC->Destroy(lock_key_statusC);
   if (lock_key_statusD) lock_key_statusD->Destroy(lock_key_statusD);
+
+	/* data input */
   if (username) username->Destroy(username); /* nice: suicide */
   if (password) password->Destroy(password);
-  if (session) session->Destroy(session);
-  if (font_small) font_small->Release (font_small);
+  if (session)  session->Destroy (session);
+
+	/* fonts */
+  if (font_small)  font_small->Release  (font_small);
   if (font_normal) font_normal->Release (font_normal);
-  if (font_large) font_large->Release (font_large);
+  if (font_large)  font_large->Release  (font_large);
+
+	/* core DirectFB stuff */
   if (primary) primary->Release (primary);
-  if (events) events->Release (events);
-  if (layer) layer->Release (layer);
+  if (events)  events->Release  (events);
+  if (layer)   layer->Release   (layer);
   while (devices)
 	{
 		DeviceInfo *next = devices->next;
@@ -388,7 +392,8 @@ void reset_screen(DFBInputEvent *evt)
 		labels->label->Show(labels->label);
 		labels = labels->next;
 	}
-  /* redraw all buttons */
+ 
+	/* redraw all buttons */
   while (buttons)
 	{
 		buttons->button->Show(buttons->button);
@@ -415,6 +420,7 @@ void clear_screen(void)
 		labels->label->Hide(labels->label);
 		labels = labels->next;
 	}
+
   /* hide all buttons */
   while (buttons)
 	{
@@ -437,7 +443,7 @@ void clear_screen(void)
   primary->SetColor (primary, OTHER_TEXT_COLOR.R, OTHER_TEXT_COLOR.G, OTHER_TEXT_COLOR.B, OTHER_TEXT_COLOR.A);
 }
 
-void begin_shutdown_sequence (shutdown_t action)
+void begin_shutdown_sequence (actions action)
 {
   DFBInputEvent evt;
   char message[35];
@@ -450,7 +456,7 @@ void begin_shutdown_sequence (shutdown_t action)
   switch (SHUTDOWN_POLICY)
 	{
     case NOONE: /* no one is allowed to shut down the system */
-			if (action == GO_SLEEP)
+			if (action == DO_SLEEP)
 				primary->DrawString (primary, "Putting this machine in sleep mode is not allowed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 			else
 				primary->DrawString (primary, "Shutting down this machine is not allowed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
@@ -462,7 +468,7 @@ void begin_shutdown_sequence (shutdown_t action)
     case ROOT: /* only root can shutdown the system */
       if (!check_password("root", password->text))
 			{
-				if (action == GO_SLEEP)
+				if (action == DO_SLEEP)
 					primary->DrawString (primary, "You must enter root password to put this machine to sleep!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 				else
 					primary->DrawString (primary, "You must enter root password to shut down this machine!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
@@ -491,14 +497,16 @@ void begin_shutdown_sequence (shutdown_t action)
 		strcpy (message, "system ");
 		switch (action)
 		{
-			case STOP:
+			case DO_POWEROFF:
 				strcat (message, "shutdown");
 				break;
-			case RESTART:
+			case DO_REBOOT:
 				strcat (message, "restart");
 				break;
-			case GO_SLEEP:
+			case DO_SLEEP:
 				strcat (message, "will fall asleep");
+				break;
+			default: /* other actions do not concern us */
 				break;
 		}
 		primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
@@ -514,19 +522,19 @@ void begin_shutdown_sequence (shutdown_t action)
 		sleep (1);
 		countdown--;
 	}
-  if (no_shutdown_screen || (action == GO_SLEEP))
+  if (no_shutdown_screen || (action == DO_SLEEP))
 	{
 		close_framebuffer_mode ();
-		if (action == STOP)     exit(SHUTDOWN_H);
-		if (action == RESTART)  exit(SHUTDOWN_R);
-		if (action == GO_SLEEP) exit(DO_SLEEP);
+		if (action == DO_POWEROFF) exit(EXIT_SHUTDOWN_H);
+		if (action == DO_REBOOT)   exit(EXIT_SHUTDOWN_R);
+		if (action == DO_SLEEP)    exit(EXIT_SLEEP);
 	}
   else
 	{
 		primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
 		Draw_Background_Image(0);
 	}
-  if (action == STOP)
+  if (action == DO_POWEROFF)
 	{
 		if (!no_shutdown_screen)
 		{
@@ -535,7 +543,7 @@ void begin_shutdown_sequence (shutdown_t action)
 		}
 		execl ("/sbin/shutdown", "/sbin/shutdown", "-h", "now", (char*)NULL);
 	}
-  if (action == RESTART)
+  if (action == DO_REBOOT)
 	{
 		if (!no_shutdown_screen)
 		{
@@ -556,8 +564,8 @@ void do_ctrl_alt_del(DFBInputEvent *evt)
   char *action = parse_inittab_file();
   
   if (!action) return;	
-  if (!strcmp(action, "poweroff")) {free(action); begin_shutdown_sequence (STOP);    return;}
-  if (!strcmp(action, "reboot"))   {free(action); begin_shutdown_sequence (RESTART); return;}
+  if (!strcmp(action, "poweroff")) {free(action); begin_shutdown_sequence (DO_POWEROFF); return;}
+  if (!strcmp(action, "reboot"))   {free(action); begin_shutdown_sequence (DO_REBOOT  ); return;}
   
   /* we display a message */
   clear_screen();
@@ -604,15 +612,13 @@ void handle_mouse_event (DFBInputEvent *evt)
 			 */
 			if (button)
 				if (button->mouse)
-					switch (button->command)
+					switch (button->action)
 					{
-						case HALT:
-							begin_shutdown_sequence (STOP);
+						case DO_POWEROFF:
+						case DO_REBOOT:
+							begin_shutdown_sequence (button->action);
 							break;
-						case REBOOT:
-							begin_shutdown_sequence (RESTART);
-							break;
-						case SCREEN_SAVER:
+						case DO_SCREEN_SAVER:
 #ifdef USE_SCREEN_SAVERS
 							screensaver_countdown = 0;
 							screensaver_active    = 1;
@@ -621,12 +627,11 @@ void handle_mouse_event (DFBInputEvent *evt)
 							primary->Flip  (primary, NULL, DSFLIP_BLIT);
 #endif
 							break;
-						case SLEEP:
-						{
-							DFBInputEvent evt;
-
+						case DO_SLEEP:
 							if (!SLEEP_CMD)
 							{
+								DFBInputEvent evt;
+
 								clear_screen();
 								primary->DrawString (primary, "You must define sleep command in settings file!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 								primary->Flip (primary, NULL, 0);
@@ -636,9 +641,8 @@ void handle_mouse_event (DFBInputEvent *evt)
 								break;
 							}
 
-							begin_shutdown_sequence (GO_SLEEP);
+							begin_shutdown_sequence (DO_SLEEP);
 							break;
-						}
 						default: /* no action */
 							break;
 					}
@@ -733,41 +737,37 @@ int handle_keyboard_event(DFBInputEvent *evt)
   int temp;	/* yuk! we have got a temp variable! */
   /* we store here the symbol name of the last key the user pressed ...	*/
   struct DFBKeySymbolName *symbol_name;
-  /* ... and here the previous one */
-  static int last_symbol;
-  int returnstatus = -1;
-  int allow_tabbing = 1;
-  int modifier = 0;
-  int ascii_code = (int) evt->key_symbol;
+	actions    action;
+  int        returnstatus   =       -1;
+  int        allow_tabbing  =        1;
+  modifiers  modifier       =        NONE;
+  int        ascii_code     = (int)  evt->key_symbol;
 
   show_lock_key_status(evt);
-  /* If user presses ESC two times, we go back to text mode */
-  if ((last_symbol == ESCAPE) && (ascii_code == ESCAPE)) return TEXT_MODE;
-  /* We store the previous keystroke */
-
-  last_symbol = ascii_code;
   symbol_name = bsearch (&(evt->key_symbol), keynames, 
 												 sizeof (keynames) / sizeof (keynames[0]) - 1,
 												 sizeof (keynames[0]), compare_symbol);
 
-  modifier = modifier_is_pressed(evt);
-  if (modifier)
+	modifier = modifier_is_pressed(evt);
+
+	/* Let's check wether our user pressed some of our allowed key bindings... */
+	action = search_keybindings(modifier, ascii_code);
+	if (action != DO_NOTHING)
 	{
-		if (modifier == ALT)
-		{	/* we check if user press ALT-p or ALT-r to start shutdown/reboot sequence */
-			if ((ascii_code == 'P')||(ascii_code == 'p')) 
-				begin_shutdown_sequence (STOP);
-			if ((ascii_code == 'R')||(ascii_code == 'r')) 
-				begin_shutdown_sequence (RESTART);
-		}
-#ifdef POWER_KEYS
-		if (modifier == CONTROL)
+		if (!silent)
+			fprintf(stderr, "You pressed '%s%s' and I will now %s...\n", print_modifier(modifier), print_key(ascii_code), print_action(action));
+		
+		switch (action)
 		{
-			if(ascii_code == 'c')
-				kill(getpid(), SIGINT);
-#ifdef USE_SCREEN_SAVERS
-			if(ascii_code == 'z')
-			{	    
+			case DO_POWEROFF:
+			case DO_REBOOT:
+				begin_shutdown_sequence (action);
+				break;
+			case DO_KILL: /* we kill out parent - the true qingy - then commit suicide */
+				kill(getppid(), SIGINT);
+				kill(getpid(),  SIGINT);
+				break;
+			case DO_SCREEN_SAVER:
 				ascii_code            = 0;
 				modifier              = 0;
 				screensaver_countdown = 0;
@@ -776,31 +776,56 @@ int handle_keyboard_event(DFBInputEvent *evt)
 				primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
 				primary->Flip  (primary, NULL, DSFLIP_BLIT);
 				sleep(1);
-			}
-#endif /* screen saver stuff */
-		}
-#endif /* powerkeys stuff */
-		if (modifier == ALT || modifier == CTRLALT)
-		{ 
-			if (symbol_name)
-	    {
-	      /* we check if the user is pressing ctrl-alt-del... */
-	      if (!strcmp(symbol_name->name, "DELETE") && modifier == CTRLALT)
-					do_ctrl_alt_del(evt);
-	      /*
-	       * ... or [CTRL-]ALT-number with 1 <= number <= 12
-	       * in this case we close directfb mode and send him to that tty
-	       */
-	      if (!strncmp(symbol_name->name, "F", 1) && strlen (symbol_name->name) <= 3)
+				break;
+			case DO_SLEEP:
+				if (!SLEEP_CMD)
 				{
-					temp = atoi (symbol_name->name + 1);
-					if ((temp > 0) && (temp < 13))
-						if (current_tty != temp)
-							return temp;
+					DFBInputEvent evt;
+
+					clear_screen();
+					primary->DrawString (primary, "You must define sleep command in settings file!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+					primary->Flip (primary, NULL, 0);
+					sleep(2);
+					events->GetEvent (events, DFB_EVENT (&evt));
+					reset_screen(&evt);
+					break;
 				}
-	    }
-			return returnstatus;
+				begin_shutdown_sequence (DO_SLEEP);
+				break;
+			case DO_NEXT_TTY:
+				return (current_tty + 1);
+				break;
+			case DO_PREV_TTY:
+				return (current_tty - 1);
+				break;
+			case DO_TEXT_MODE:
+				return EXIT_TEXT_MODE;
+				break;
+			case DO_NOTHING: /* Guess what, we do nothing here! */
+				break;
 		}
+	}
+
+	if (modifier == ALT || modifier == CTRLALT)
+	{ 
+		if (symbol_name)
+		{
+			/* we check if the user is pressing ctrl-alt-del... */
+			if (!strcmp(symbol_name->name, "DELETE") && modifier == CTRLALT)
+				do_ctrl_alt_del(evt);
+			/*
+			 * ... or [CTRL-]ALT-number with 1 <= number <= 12
+			 * in this case we close directfb mode and send him to that tty
+			 */
+			if (!strncmp(symbol_name->name, "F", 1) && strlen (symbol_name->name) <= 3)
+			{
+				temp = atoi (symbol_name->name + 1);
+				if ((temp > 0) && (temp < 13))
+					if (current_tty != temp)
+						return temp;
+			}
+		}
+		return returnstatus;
 	}
 
   if (symbol_name)
@@ -933,10 +958,10 @@ int create_windows()
   window_desc.caps  = DWCAPS_ALPHACHANNEL;
   while (window)
 	{
-		window_desc.posx   = window->x      * screen_width  / THEME_WIDTH;
-		window_desc.posy   = window->y      * screen_height / THEME_HEIGHT;
-		window_desc.width  = window->width  * screen_width  / THEME_WIDTH;
-		window_desc.height = window->height * screen_height / THEME_HEIGHT;	
+		window_desc.posx   = window->x      * screen_width  / THEME_XRES;
+		window_desc.posy   = window->y      * screen_height / THEME_YRES;
+		window_desc.width  = window->width  * screen_width  / THEME_XRES;
+		window_desc.height = window->height * screen_height / THEME_YRES;	
 		switch(window->text_size)
 		{
 			case SMALL:
@@ -1022,13 +1047,13 @@ int create_windows()
 				buttons->button->MouseOver(buttons->button, 0);
 				free(image1); free(image2);
 				if (!window->command)
-					buttons->button->command = NO_ACTION;
+					buttons->button->action = DO_NOTHING;
 				else
 				{
-					if (!strcmp(window->command, "halt"       )) buttons->button->command = HALT;
-					if (!strcmp(window->command, "reboot"     )) buttons->button->command = REBOOT;
-					if (!strcmp(window->command, "sleep"      )) buttons->button->command = SLEEP;
-					if (!strcmp(window->command, "screensaver")) buttons->button->command = SCREEN_SAVER;
+					if (!strcmp(window->command, "halt"       )) buttons->button->action = DO_POWEROFF;
+					if (!strcmp(window->command, "reboot"     )) buttons->button->action = DO_REBOOT;
+					if (!strcmp(window->command, "sleep"      )) buttons->button->action = DO_SLEEP;
+					if (!strcmp(window->command, "screensaver")) buttons->button->action = DO_SCREEN_SAVER;
 				}
 				break;
 			}
@@ -1086,13 +1111,13 @@ int set_font_sizes ()
   const char *fontfile = FONT;
 
   fdsc.flags = DFDESC_HEIGHT;
-  fdsc.height = screen_width / 30;
+  fdsc.height = screen_width / 30 * y_ratio;
   if (dfb->CreateFont (dfb, fontfile, &fdsc, &font_large) != DFB_OK) return 0;
   font_large_height = fdsc.height;
-  fdsc.height = screen_width / 40;
+  fdsc.height = screen_width / 40 * y_ratio;
   if (dfb->CreateFont (dfb, fontfile, &fdsc, &font_normal) != DFB_OK) return 0;
   font_normal_height = fdsc.height;
-  fdsc.height = screen_width / 50;
+  fdsc.height = screen_width / 50 * y_ratio;
   if (dfb->CreateFont (dfb, fontfile, &fdsc, &font_small) != DFB_OK) return 0;
   font_small_height = fdsc.height;
 
@@ -1147,6 +1172,12 @@ int main (int argc, char *argv[])
 	}
   primary->GetSize(primary, &screen_width, &screen_height);
 
+	fprintf(stderr, "screen: %dx%d\n", screen_width, screen_height);
+	fprintf(stderr, "theme : %dx%d\n", THEME_XRES,   THEME_YRES   );
+
+	if (screen_width  != THEME_XRES) x_ratio = (float)screen_width/(float)THEME_XRES;
+	if (screen_height != THEME_YRES) y_ratio = (float)screen_height/(float)THEME_YRES;
+
   if (!set_font_sizes ())
 	{
 		DirectFB_Error();
@@ -1187,7 +1218,7 @@ int main (int argc, char *argv[])
 
 #ifdef USE_SCREEN_SAVERS
   /* initialize screen saver stuff */
-  screen_saver_kind    = SCREENSAVER;
+  screen_saver_kind    = SCREENSAVER_NAME;
   screen_saver_surface = primary;
   screen_saver_dfb     = dfb;
   screen_saver_events  = events;

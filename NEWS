@@ -1,3 +1,9 @@
+qingy CVS-0.5.4-CVS:
+- Added customizable keybindings support
+- Because of the above, removed old powerkeys support
+- Fixed a rather obscure bug in which login could fail
+  even if username and password were correct
+
 qingy 0.5.3 (11 January 2005):
 - Finally the code behind the 'sleep' button has been implemented:
   just set up the 'sleep' variable in config file to the

@@ -1,3 +1,54 @@
+2005-03-08  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/objects/button.c (Button_Create),
+	* src/DirectFB/directfb_mode.c:
+	Began work on scaling all graphic elements so that
+	they appear the same on all screen resolutions...
+	Right now, background image and font sizes have
+	been corrected. The correct ratio will be calculated
+	by comparing the current screen resolution and
+	the one the theme was designed for...
+
+2005-03-07  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/directfb_mode.c,
+	* media/Makefile.am (settings):
+	Added keybindings configuration to default
+	settings file.
+
+	* src/DirectFB/objects/button.h,
+	* src/DirectFB/directfb_mode.c:
+	Clean up stuff so that even buttons use
+	actions defined in keybindings.h instead
+	of defining their own data structures...
+
+2005-03-05  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* configure.in,
+	* src/DirectFB/directfb_mode.c:
+	Removed old powerkeys support, as it has been
+	replaced by our new customizable keybindings
+	support.
+
+	* src/DirectFB/directfb_mode.c:
+	Completed keybindings support.
+
+2005-03-04  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/objects/utils.c (modifier_is_pressed),
+	* src/DirectFB/objects/utils.h,
+	* src/DirectFB/directfb_mode.c,
+	* src/libraries/keybindings.h:
+	Started work on assigning actual actions
+	to these key bindings.
+
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l,
+	* media/qingy-mode.el,
+	* src/libraries/keybindings.c,
+	* src/libraries/keybindings.h:
+	Added new keybinding action: revert to text mode...
+
 2005-03-03  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/libraries/load_settings.c,

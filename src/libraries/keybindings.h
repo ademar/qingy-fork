@@ -31,29 +31,53 @@
 
 #include "qingy_constants.h"
 
+#ifndef HAVE_KEYBINGINGS_H
+#define HAVE_KEYBINGINGS_H 1
 
-#define menu 254
-#define win  255
+#define ESCAPE    27 /* ASCII code of ESCAPE key                         */
+#define MENU   61984 /* ASCII code of MENU   key, at least on my machine */
+#define WIN    61968 /* ASCII code of WIN    key, at least on my machine */
 
 typedef enum 
 {
-  none=0,
-  ctrl,
-  alt,
-	ctrlalt
+	NONE=0,
+	SHIFT,
+	CONTROL,
+	ALT,
+	ALTGR,
+/*META,   I need these as keys, */
+/*SUPER,  not as modifiers      */
+/*HYPER,                        */
+	CTRLALT
+
 } modifiers;
 
 typedef enum 
 {
-  sleep_kb=0,
-  poweroff_kb,
-  reboot_kb,
-	next_tty_kb,
-	prev_tty_kb,
-	kill_kb,
-	screensaver_kb
+	DO_NOTHING=0,
+	DO_SLEEP,
+  DO_POWEROFF,
+  DO_REBOOT,
+	DO_NEXT_TTY,
+	DO_PREV_TTY,
+	DO_KILL,
+	DO_SCREEN_SAVER,
+	DO_TEXT_MODE
+
 } actions;
 
-
+/* add a new keybinding */
 int add_to_keybindings(actions action, char *key);
+
+/* wipe out all keybindings */
 void destroy_keybindings_list();
+
+/* check wether a particular key combo has an action associated to it */
+actions search_keybindings(modifiers modifier, int key);
+
+/* print name of these elements */
+char *print_action  (actions   action  );
+char *print_modifier(modifiers modifier);
+char *print_key     (int       key     );
+
+#endif /* HAVE_KEYBINGINGS_H */

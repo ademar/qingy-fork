@@ -59,7 +59,7 @@ int lock_is_pressed(DFBInputEvent *evt)
 	return 0;
 }
 
-int modifier_is_pressed(DFBInputEvent *evt)
+modifiers modifier_is_pressed(DFBInputEvent *evt)
 {
 	int result = NONE;
 	struct
@@ -72,10 +72,10 @@ int modifier_is_pressed(DFBInputEvent *evt)
 			{ DIMM_SHIFT,   "Shift", 0 },
 			{ DIMM_CONTROL, "Ctrl",  0 },
 			{ DIMM_ALT,     "Alt",   0 },
-			{ DIMM_ALTGR,   "AltGr", 0 },
-			{ DIMM_META,    "Meta",  0 },
-			{ DIMM_SUPER,   "Super", 0 },
-			{ DIMM_HYPER,   "Hyper", 0 }
+			{ DIMM_ALTGR,   "AltGr", 0 }
+/*		{ DIMM_META,    "Meta",  0 }, I need these as keys, */
+/*		{ DIMM_SUPER,   "Super", 0 }, not as modifiers      */
+/*		{ DIMM_HYPER,   "Hyper", 0 }                        */
 		};
 	int n_modifiers = sizeof (modifiers) / sizeof (modifiers[0]);
 	int i;

@@ -101,7 +101,7 @@ void activate_screen_saver(void)
 	screenEnv.data_dir            = SCREENSAVERS_DIR;
 
   /* get what screensaver we want and load it */
-  ssv_name = StrApp((char **)NULL, SCREENSAVERS_DIR, "/", SCREENSAVER, ".qss", (char*)NULL);
+  ssv_name = StrApp((char **)NULL, SCREENSAVERS_DIR, "/", SCREENSAVER_NAME, ".qss", (char*)NULL);
   handle   = dlopen(ssv_name, RTLD_NOW); 
   if (!handle)
 	{ 

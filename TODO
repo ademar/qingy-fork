@@ -35,10 +35,6 @@
 - Make it possible to use e.g. mng files for animated images, for example for
   background and the like.
 
-- Make key bindings customizable, add more actions available to keyboard
-  shortcuts, like switch to the right workspace, or to the left, ot
-  to the previous one...
-
 - make images scale according to virtualized / real resolution
   instead of always rendering them their actual size...
 

@@ -120,7 +120,7 @@ static window_t wind =
 %token SLEEP_TOK
 
 /* keybindings tokens */
-%token NEXT_TTY_TOK PREV_TTY_TOK POWEROFF_TOK REBOOT_TOK KILL_TOK
+%token NEXT_TTY_TOK PREV_TTY_TOK POWEROFF_TOK REBOOT_TOK KILL_TOK TEXT_MODE_TOK
 %token MENU_KEY_TOK WIN_KEY_TOK ALT_KEY_TOK CTRL_KEY_TOK KEYBINDINGS_TOK
 
 
@@ -243,8 +243,8 @@ temp_dir: TEMP_FILES_DIR_TOK '=' QUOTSTR_T
 	}
 
 /* Screensaver: "name" or "name" = "option", "option"  */
-ssav:	SCREENSAVER_TOK QUOTSTR_T { TTY_CHECK_COND {SSAVER_CHECK_COND SCREENSAVER = $2;} }
-| SCREENSAVER_TOK QUOTSTR_T '=' scrsvr_with_options { TTY_CHECK_COND SCREENSAVER = $2;}
+ssav:	SCREENSAVER_TOK QUOTSTR_T { TTY_CHECK_COND {SSAVER_CHECK_COND SCREENSAVER_NAME = $2;} }
+| SCREENSAVER_TOK QUOTSTR_T '=' scrsvr_with_options { TTY_CHECK_COND SCREENSAVER_NAME = $2;}
 ;
 
 scrsvr_with_options: QUOTSTR_T      { TTY_CHECK_COND {SSAVER_CHECK_COND add_to_options($1);} }
@@ -425,13 +425,14 @@ keybindingsdefns: /* nothing */
 	}
 ;
 
-actiondefns: SLEEP_TOK { action = sleep_kb;       }
-| NEXT_TTY_TOK         { action = next_tty_kb;    }
-| PREV_TTY_TOK         { action = prev_tty_kb;    }
-| POWEROFF_TOK         { action = poweroff_kb;    }
-| REBOOT_TOK           { action = reboot_kb;      }
-| SCREENSAVER_TOK      { action = screensaver_kb; }
-| KILL_TOK             { action = kill_kb;        }
+actiondefns: SLEEP_TOK { action = DO_SLEEP;        }
+| NEXT_TTY_TOK         { action = DO_NEXT_TTY;     }
+| PREV_TTY_TOK         { action = DO_PREV_TTY;     }
+| POWEROFF_TOK         { action = DO_POWEROFF;     }
+| REBOOT_TOK           { action = DO_REBOOT;       }
+| SCREENSAVER_TOK      { action = DO_SCREEN_SAVER; }
+| KILL_TOK             { action = DO_KILL;         }
+| TEXT_MODE_TOK        { action = DO_TEXT_MODE;    }
 ;
 
 /* a window in the theme */

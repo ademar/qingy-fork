@@ -92,4 +92,16 @@ endif
 	@echo "#		relogin  = no" >> settings
 	@echo "#	}" >> settings
 	@echo "#}" >> settings
+	@echo "" >> settings
+	@echo "keybindings" >> settings
+	@echo "{" >> settings
+	@echo "	prev_tty    = \"win\"      # switch to left tty" >> settings
+	@echo "	next_tty    = \"menu\"     # switch to right tty" >> settings
+	@echo "	poweroff    = \"ALT-p\"    # shutdown your system" >> settings
+	@echo "	reboot      = \"ALT-r\"    # restart your system" >> settings
+	@echo "	screensaver = \"ALT-s\"    # activate screen saver" >> settings
+	@echo "	sleep       = \"ALT-z\"    # put machine to sleep" >> settings
+	@echo "#	kill        = \"CTRL-c\"   # kill qingy" >> settings
+	@echo "	text_mode   = \"CTRL-ESC\" # Revert to text mode" >> settings
+	@echo "}" >> settings
 	@echo "done"
