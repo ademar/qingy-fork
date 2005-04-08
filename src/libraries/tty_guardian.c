@@ -273,6 +273,7 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 	{ /* this is our master, not an intruder */
 		free(previous_intruder);
 		previous_intruder = intruder;
+		set_active_tty(send_him_here);
 		return;
 	}
 
@@ -311,6 +312,7 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 				{ /* now we are sure about user identity */
 					free(previous_intruder);
 					previous_intruder = intruder;
+					set_active_tty(send_him_here);
 					return;
 				}
 			}
@@ -328,6 +330,7 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 				{ /* this tty is controlled by root: we grant access */
 					free(previous_intruder);
 					previous_intruder = intruder;
+					set_active_tty(send_him_here);
 					return;					
 				}
 			}
@@ -343,7 +346,10 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 	if (previous_intruder)
 		if (strcmp(previous_intruder, "root"))
 				if (!strcmp(previous_intruder,intruder))
-					return; /* it's a hard life being sure of someone... */
+				{ /* it's a hard life being sure of someone... */
+					set_active_tty(send_him_here);
+					return;
+				}
 
 	/* tell user to authenticate himself */
 	retval = WatchDog_Bark(dog_master, intruder, where_is_intruder);	
@@ -356,9 +362,9 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 	}
 
 	/* user has authenticated correctly */
-	set_active_tty(send_him_here);
 	free(previous_intruder);
 	previous_intruder = intruder;
+	set_active_tty(send_him_here);
 }
 
 /*
@@ -371,8 +377,8 @@ void ttyWatchDog(pid_t child, char *dog_master, int fence1, int fence2)
 	int where_is_intruder  = 0;
 	int where_was_intruder = 0;
 
-	if (!child)    return;
-	if (!dog_master) WAIT_N_RETURN;
+	if (!child)             return;
+	if (!dog_master)        WAIT_N_RETURN;
 	if (!fence1 && !fence2) WAIT_N_RETURN;
 
 	/* We set up a delay of 0.1 seconds */

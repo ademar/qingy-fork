@@ -211,6 +211,20 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 					break;
 			}
 
+			free(comm_file_name);
+
+			if (WIFEXITED(returnstatus))
+				returnstatus = WEXITSTATUS(returnstatus);
+			else
+				returnstatus = QINGY_FAILURE;
+
+			/* break the cycle if we are sure we don't have to read authentication data... */
+			if (returnstatus != QINGY_FAILURE && returnstatus != EXIT_SUCCESS)
+			{
+				fclose(fp);
+				break;
+			}
+
 #ifdef WANT_CRYPTO
 			username = decrypt_item(fp);
 			password = decrypt_item(fp);
@@ -222,17 +236,10 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 #endif
 
 			fclose(fp);
-			free(comm_file_name);
 
-			if (WIFEXITED(returnstatus))
-				returnstatus = WEXITSTATUS(returnstatus);
-			else
-				returnstatus = QINGY_FAILURE;
-
-			if (returnstatus != QINGY_FAILURE) break;
-
+			/* if we have authentication data we can break the cycle */
 			if (username && password && session)
-			{ /* we failed, yet we suceeded, weird eh? */
+			{
 				returnstatus = EXIT_SUCCESS;
 				break;
 			}
@@ -273,25 +280,38 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 	{
 		case EXIT_SUCCESS:
 			if (check_password(username, password))
+			{
+				if (password) memset(password, '\0', sizeof(password));
 				start_session(username, session);
+			}
 			/* We won't get here unless there was a failure starting user session */
 			fprintf(stderr, "\nLogin failed, reverting to text mode!\n");			
 			/* Fall trough */
 		case EXIT_TEXT_MODE:
+			if (username) memset(username, '\0', sizeof(username));
+      if (password) memset(password, '\0', sizeof(password));
 			text_mode();
 			break;
 		case EXIT_SHUTDOWN_R:
+			if (username) memset(username, '\0', sizeof(username));
+      if (password) memset(password, '\0', sizeof(password));
 			execl ("/sbin/shutdown", "/sbin/shutdown", "-r", "now", (char*)NULL);
 			break;
 		case EXIT_SHUTDOWN_H:
+			if (username) memset(username, '\0', sizeof(username));
+      if (password) memset(password, '\0', sizeof(password));
 			execl ("/sbin/shutdown", "/sbin/shutdown", "-h", "now", (char*)NULL);
 			break;
 		case EXIT_SLEEP:
+			if (username) memset(username, '\0', sizeof(username));
+      if (password) memset(password, '\0', sizeof(password));
 			if (SLEEP_CMD) execl (SLEEP_CMD, SLEEP_CMD, (char*)NULL);
 			fprintf(stderr, "\nfatal error: could not execute sleep command!\n");
 			exit(EXIT_FAILURE);
 			break;
 		default: /* user wants to switch to another tty ... */
+			if (username) memset(username, '\0', sizeof(username));
+      if (password) memset(password, '\0', sizeof(password));
 			if (!set_active_tty(returnstatus))
 			{
 				fprintf(stderr, "\nfatal error: unable to change active tty!\n");

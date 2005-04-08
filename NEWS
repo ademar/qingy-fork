@@ -2,6 +2,8 @@ qingy CVS-0.6.0-CVS:
 - SECURITY ENHANCEMENT: added support for encrypting communications
   between qingy and its user interface, triggered by new ./configure
   option: --enable-crypto, enabled by default.
+- SECURITY ENHANCEMENT: Overwrite memory areas containing sensitive
+  user info before quitting...
 - SECURITY FIX: now authentication data is passed between
   qingy and its GUI trough a securely created temp file.
 - Added customizable keybindings support

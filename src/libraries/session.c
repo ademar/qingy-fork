@@ -282,7 +282,7 @@ int check_password(char *username, char *user_password)
 #endif /* End of USE_PAM */
   
   if (!username) return 0;
-  if (!user_password) password = "\0";
+  if (!user_password) password = strdup("\0");
   else password = user_password;
   
   pw = getpwnam(username);
@@ -632,7 +632,8 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   if (!lock_sessions) wait(NULL);
 	else
 		ttyWatchDog(proc_id, username, current_vt, 0);
-	
+
+  memset(username, '\0', sizeof(username));	
 	free(username); free(session);
 	
 #ifdef USE_PAM
@@ -788,6 +789,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	else
 		ttyWatchDog(proc_id, username, current_vt, dest_vt);
 
+  memset(username, '\0', sizeof(username));	
 	free(username); free(session);
 		
 #ifdef USE_PAM

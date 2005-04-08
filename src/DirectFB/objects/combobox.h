@@ -36,6 +36,7 @@
 typedef struct _item
 {
 	char         *name;
+	int          *n_items;
 	struct _item *next;
 	struct _item *prev;
 } item;
@@ -53,6 +54,7 @@ typedef struct _ComboBox
 	unsigned int      width;
 	unsigned int      height;
 	int               hasfocus;
+	int               isclicked;
 	int               position;
 	IDirectFBWindow	 *window;
 	IDirectFBSurface *surface;
@@ -65,6 +67,7 @@ typedef struct _ComboBox
 	void (*SetFocus)    (struct _ComboBox *thiz, int      focus     );
 	void (*AddItem)     (struct _ComboBox *thiz, char    *item      );
 	void (*SelectItem)  (struct _ComboBox *thiz, item    *selection );
+	void (*SortItems)   (struct _ComboBox *thiz);
 	void (*ClearItems)  (struct _ComboBox *thiz);
 	void (*Click)       (struct _ComboBox *thiz);
 	void (*Hide)        (struct _ComboBox *thiz);

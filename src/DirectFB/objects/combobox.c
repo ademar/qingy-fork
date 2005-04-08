@@ -41,6 +41,18 @@
 #include "misc.h"
 
 
+void ComboBox_SortItems(ComboBox *thiz)
+{
+	item *browse = thiz->items;
+	item *swap;
+
+	if (!thiz)        return;
+	if (!thiz->items) return;
+
+	/* we sort X sessions... */
+	fprintf(stderr, "n. items: %d\n", *(thiz->items->n_items));
+}
+
 void ComboBox_PlotEvent(ComboBox *thiz, int flip)
 {
   if (!thiz) return;
@@ -56,33 +68,37 @@ void ComboBox_MouseOver(ComboBox *thiz, int status)
 
 	thiz->mouse = status;
 
-	ComboBox_PlotEvent(thiz, 0);
-	if (status)
+	if (!thiz->isclicked)
 	{
-		IDirectFBSurface *where;
-		DFBRectangle dest1, dest2, dest;
-		IDirectFBFont *font;
-		char *text = thiz->selected->name;
+		ComboBox_PlotEvent(thiz, 0);
 
-		thiz->surface->GetFont(thiz->surface,&font);		
-		font->GetStringExtents(font, text, 0, &dest1, NULL);
-		font->GetStringExtents(font, text, strlen(text), &dest2, NULL);
-		font->GetStringWidth (font, text, 0, &(dest.x));
-		dest.y = 0;
-		dest.h = dest1.h;
-		dest.w = dest2.w - dest1.w + 4 + dest.h;
-		thiz->surface->GetSubSurface(thiz->surface, &dest, &where);
-		where->SetColor (where, thiz->text_color.R, thiz->text_color.G, thiz->text_color.B, thiz->text_color.A);
-		where->DrawRectangle (where, 0, 0, dest.w, dest.h);
-		where->FillTriangle (where, dest.w - dest.h + dest.h/3, dest.h/3, dest.w - dest.h/3, dest.h/3, dest.w - (dest.h/2), dest.h - dest.h/3);
+		if (status)
+		{
+			IDirectFBSurface *where;
+			DFBRectangle dest1, dest2, dest;
+			IDirectFBFont *font;
+			char *text = thiz->selected->name;
+
+			thiz->surface->GetFont(thiz->surface,&font);		
+			font->GetStringExtents(font, text, 0, &dest1, NULL);
+			font->GetStringExtents(font, text, strlen(text), &dest2, NULL);
+			font->GetStringWidth (font, text, 0, &(dest.x));
+			dest.y = 0;
+			dest.h = dest1.h;
+			dest.w = dest2.w - dest1.w + 4 + dest.h;
+			thiz->surface->GetSubSurface(thiz->surface, &dest, &where);
+			where->SetColor (where, thiz->text_color.R, thiz->text_color.G, thiz->text_color.B, thiz->text_color.A);
+			where->DrawRectangle (where, 0, 0, dest.w, dest.h);
+			where->FillTriangle (where, dest.w - dest.h + dest.h/3, dest.h/3, dest.w - dest.h/3, dest.h/3, dest.w - (dest.h/2), dest.h - dest.h/3);
+		}
+
+		thiz->surface->Flip(thiz->surface, NULL, 0);
 	}
-
-	thiz->surface->Flip(thiz->surface, NULL, 0);
 }
 
 void ComboBox_resize(ComboBox *thiz, item *selection)
 {
-	/* now we set the combobox width */
+	/* we set the combobox width */
 	DFBRectangle rect1, rect2, rect3;
 	IDirectFBFont *font;
 	char *text = selection->name;
@@ -96,17 +112,9 @@ void ComboBox_resize(ComboBox *thiz, item *selection)
 	rect3.w = rect2.w - rect1.w + 4 + rect3.h;
 
 	thiz->width = rect3.w;
+
+	thiz->window->Resize(thiz->window, thiz->width, thiz->height);
 }
-
-/* void ComboBox_setHeightNYpos(ComboBox *thiz, int n_items) */
-/* { */
-/* 		IDirectFBFont *font; */
-/* 		DFBRectangle   rect; */
-
-/* 		thiz->surface->GetFont(thiz->surface,&font); */
-/* 		font->GetStringExtents(font, ".", 0, &rect, NULL); */
-/* 		thiz->height = rect.h * n_items; */
-/* } */
 
 void ComboBox_SelectItem(ComboBox *thiz, item *selection)
 {
@@ -117,44 +125,6 @@ void ComboBox_SelectItem(ComboBox *thiz, item *selection)
 	ComboBox_resize(thiz, selection);
 	ComboBox_PlotEvent(thiz, 0);
 	thiz->MouseOver(thiz, thiz->mouse);
-}
-
-void ComboBox_Click(ComboBox *thiz)
-{
-	char *text = "Not implemented, yet...";
-	char *old_text;
-
-  if (!thiz) return;
-
-	old_text = thiz->selected->name;
-	thiz->selected->name = text;
- 
-	ComboBox_resize(thiz, thiz->selected);
-  thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
-  thiz->surface->DrawString (thiz->surface, text, -1, 4, 0, DSTF_LEFT|DSTF_TOP);
-  thiz->surface->Flip(thiz->surface, NULL, 0);
-	sleep(1);
-
-	thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
-	thiz->selected->name = old_text;
-	thiz->SelectItem(thiz, thiz->selected);
-
-/* 	/\* how many items do we have in this combobox? *\/ */
-/* 	int   n_items = 1; */
-/* 	item *largest = thiz->items; */
-/* 	old_text = thiz->items->name; */
-/* 	while (strcmp(thiz->items->next->name, old_text)); */
-/* 	{ */
-/* 		n_items++; */
-/* 		thiz->items = thiz->items->next; */
-/* 		/\* we also get the largest string *\/ */
-/* 		if (strlen(thiz->items->name) > strlen(largest->name)) */
-/* 			largest = thiz->items; */
-/* 	} */
-
-/* 	/\* resize the surface to hold all these items... *\/ */
-/* 	ComboBox_resize(thiz, largest); // width */
-/* 	ComboBox_setHeightNYpos(thiz, n_items); // height */
 }
 
 void ComboBox_KeyEvent(ComboBox *thiz, int direction)
@@ -189,6 +159,18 @@ void ComboBox_SetTextColor(ComboBox *thiz, color_t *text_color)
 	thiz->surface->SetColor (thiz->surface, text_color->R, text_color->G, text_color->B, text_color->A);
 }
 
+void ComboBox_setHeightNYpos(ComboBox *thiz, int n_items)
+{
+	IDirectFBFont *font;
+	DFBRectangle   rect;
+
+	thiz->surface->GetFont(thiz->surface,&font);
+	font->GetStringExtents(font, ".", 0, &rect, NULL);
+	thiz->height = rect.h * n_items;
+	
+	thiz->window->Resize(thiz->window, thiz->width, thiz->height);
+}
+
 void ComboBox_SetFocus(ComboBox *thiz, int focus)
 {
   if (!thiz) return;
@@ -202,10 +184,73 @@ void ComboBox_SetFocus(ComboBox *thiz, int focus)
     return;
   }
 
+	if (thiz->isclicked)
+	{
+		ComboBox_resize(thiz, thiz->selected);
+		ComboBox_setHeightNYpos(thiz, 1);
+		thiz->isclicked = 0;
+	}
+
   thiz->hasfocus = 0;
   thiz->window->SetOpacity(thiz->window, WINDOW_OPACITY);
 	thiz->MouseOver(thiz, thiz->mouse);
   return;
+}
+
+void ComboBox_Click(ComboBox *thiz)
+{
+  if (!thiz) return;
+
+	if (thiz->isclicked)
+	{
+		ComboBox_setHeightNYpos(thiz, 1); // height
+		thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
+		thiz->SelectItem(thiz, thiz->selected);
+
+		thiz->isclicked = 0;
+		return;
+	}
+
+	thiz->window->RaiseToTop(thiz->window);
+  thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
+  
+	/* how many items do we have in this combobox? */
+	int   n_items  = 1;
+	item *largest  = thiz->items;
+  item *run      = thiz->items;
+
+	while (strcmp(run->next->name, thiz->items->name))
+	{
+		n_items++;
+		run = run->next;
+		/* we also get the largest string */
+		if (strlen(run->name) > strlen(largest->name))
+			largest = run;
+	}
+	ComboBox_resize(thiz, largest); // width
+
+	/* resize the surface to hold all these items... */
+	ComboBox_setHeightNYpos(thiz, n_items); // height
+
+	/* draw items on screen */
+	int i=0;
+	int y = 0;
+	run = thiz->selected;
+	for (; i<n_items; i++)
+	{
+		thiz->surface->DrawString (thiz->surface, run->name, -1, 4, y, DSTF_LEFT|DSTF_TOP);
+		y = y + (thiz->height / n_items);
+		run = run->next;
+	}
+	thiz->surface->Flip(thiz->surface, NULL, 0);
+
+	//sleep(1);
+
+	//ComboBox_setHeightNYpos(thiz, 1); // height
+	//thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
+	//thiz->SelectItem(thiz, thiz->selected);
+
+	thiz->isclicked = 1;
 }
 
 void ComboBox_AddItem(ComboBox *thiz, char *object)
@@ -216,6 +261,8 @@ void ComboBox_AddItem(ComboBox *thiz, char *object)
   if (!thiz->items)
   {
     thiz->items = (item *) calloc(1, sizeof(item));
+		thiz->items->n_items = (int *) calloc(1, sizeof(int));
+		*thiz->items->n_items = 1;
     thiz->items->next = thiz->items;
     thiz->items->prev = thiz->items;
     thiz->items->name = (char *) calloc(strlen(object)+1, sizeof(char));
@@ -232,6 +279,7 @@ void ComboBox_AddItem(ComboBox *thiz, char *object)
 	thiz->items->prev = curr->next;
 	curr->next->name = (char *) calloc(strlen(object)+1, sizeof(char));
 	strcpy(curr->next->name, object);
+	(*thiz->items->n_items)++;
 }
 
 void ComboBox_ClearItems(ComboBox *thiz)
@@ -244,8 +292,9 @@ void ComboBox_ClearItems(ComboBox *thiz)
   while (curr != thiz->items)
   {
     free(curr->name); curr->name = NULL;
-    curr->next = NULL;
-    curr = curr->prev;
+    curr->next       = NULL;
+		curr->n_items    = NULL;
+    curr             = curr->prev;
     curr->next->prev = NULL;
     free(curr->next);
   }
@@ -253,7 +302,8 @@ void ComboBox_ClearItems(ComboBox *thiz)
   curr->prev = NULL;
   free(curr->name); curr->name = NULL;
   curr = NULL;
-  free(thiz->items); thiz->items = NULL;
+	free(thiz->items->n_items); thiz->items->n_items = NULL;
+  free(thiz->items);          thiz->items          = NULL;
 }
 
 void ComboBox_Hide(ComboBox *thiz)
@@ -288,6 +338,7 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, col
   newbox->width        = window_desc->width;
   newbox->height       = window_desc->height;
   newbox->hasfocus     = 0;
+  newbox->isclicked    = 0;
   newbox->position     = 0;
 	newbox->mouse        = 0;
   newbox->window       = NULL;
@@ -302,6 +353,7 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, col
 	newbox->Click        = ComboBox_Click;
   newbox->SetFocus     = ComboBox_SetFocus;
   newbox->AddItem      = ComboBox_AddItem;
+	newbox->SortItems    = ComboBox_SortItems;
   newbox->ClearItems   = ComboBox_ClearItems;
 	newbox->SelectItem   = ComboBox_SelectItem;
   newbox->Hide         = ComboBox_Hide;

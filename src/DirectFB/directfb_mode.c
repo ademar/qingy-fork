@@ -56,7 +56,6 @@
 #include "utils.h"
 #include "textbox.h"
 #include "combobox.h"
-#include "listbox.h"
 #include "label.h"
 
 #ifdef USE_SCREEN_SAVERS
@@ -80,6 +79,8 @@ typedef struct button_t
   struct button_t *next;
 } Button_list;
 
+#undef  exit
+#define exit safe_exit
 
 
 /*
@@ -128,6 +129,22 @@ int                   screensaver_countdown = 0;
 #endif
 float                 x_ratio               = 1;  /* theme res. should be corrected by x_ratio */
 float                 y_ratio               = 1;  /* and y_ratio to match the actual res.      */
+
+void safe_exit(int exitstatus)
+{
+#undef exit
+
+  /* we overwrite memory areas containing sensitive information */
+	if (username) if (username->text)
+		memset(username->text, '\0', sizeof(username->text));
+	if (password) if (password->text)
+		memset(password->text, '\0', sizeof(password->text));
+
+  unlock_tty_switching();
+  exit(exitstatus);
+
+#define exit safe_exit
+}
 
 void Draw_Background_Image(int do_the_drawing)
 {
@@ -196,60 +213,70 @@ void set_user_session(char *user)
 
 void close_framebuffer_mode (void)
 {
+	/*
+	 * Once, all DirectFB interfaces were shut
+	 * down gracefully here. Now no longer:
+	 * DirectFB has not been nice to us recently,
+	 * so we are not being nice to it any more!
+	 *
+	 * DIE, you BASTARD, DIE!
+	 * And do it the HARD WAY!
+	 */
+
   /* destroy all labels */
-  while (Labels)
-	{
-		Label_list *temp = Labels;
-		Labels = Labels->next;
-		if (temp->label) temp->label->Destroy(temp->label);
-		temp->next = NULL;
-		free(temp->content);
-		free(temp->command);
-		free(temp);
-	}
+/*   while (Labels) */
+/* 	{ */
+/* 		Label_list *temp = Labels; */
+/* 		Labels = Labels->next; */
+/* 		if (temp->label) temp->label->Destroy(temp->label); */
+/* 		temp->next = NULL; */
+/* 		free(temp->content); */
+/* 		free(temp->command); */
+/* 		free(temp); */
+/* 	} */
 
-  /* destroy all buttons */
-  while (Buttons)
-	{
-		Button_list *temp = Buttons;
-		Buttons = Buttons->next;
-		if (temp->button) temp->button->Destroy(temp->button);
-		temp->next = NULL;
-		free(temp);
-	}
+/*   /\* destroy all buttons *\/ */
+/*   while (Buttons) */
+/* 	{ */
+/* 		Button_list *temp = Buttons; */
+/* 		Buttons = Buttons->next; */
+/* 		if (temp->button) temp->button->Destroy(temp->button); */
+/* 		temp->next = NULL; */
+/* 		free(temp); */
+/* 	} */
 
-	/* background image */
-  if (panel_image) panel_image->Release (panel_image);
+/* 	/\* background image *\/ */
+/*   if (panel_image) panel_image->Release (panel_image); */
 
-	/* the silly messages that appear when you have your CAPS LOCK down */
-  if (lock_key_statusA) lock_key_statusA->Destroy(lock_key_statusA);
-  if (lock_key_statusB) lock_key_statusB->Destroy(lock_key_statusB);
-  if (lock_key_statusC) lock_key_statusC->Destroy(lock_key_statusC);
-  if (lock_key_statusD) lock_key_statusD->Destroy(lock_key_statusD);
+/* 	/\* the silly messages that appear when you have your CAPS LOCK down *\/ */
+/*   if (lock_key_statusA) lock_key_statusA->Destroy(lock_key_statusA); */
+/*   if (lock_key_statusB) lock_key_statusB->Destroy(lock_key_statusB); */
+/*   if (lock_key_statusC) lock_key_statusC->Destroy(lock_key_statusC); */
+/*   if (lock_key_statusD) lock_key_statusD->Destroy(lock_key_statusD); */
 
-	/* data input */
-  if (username) username->Destroy(username); /* nice: suicide */
-  if (password) password->Destroy(password);
-  if (session)  session->Destroy (session);
+/* 	/\* data input *\/ */
+/*   if (username) username->Destroy(username); /\* nice: suicide *\/ */
+/*   if (password) password->Destroy(password); */
+/*   if (session)  session->Destroy (session); */
 
-	/* fonts */
-  if (font_tiny)    font_tiny->Release    (font_tiny);
-  if (font_smaller) font_smaller->Release (font_smaller);
-  if (font_small)   font_small->Release   (font_small);
-  if (font_normal)  font_normal->Release  (font_normal);
-  if (font_large)   font_large->Release   (font_large);
+/* 	/\* fonts *\/ */
+/*   if (font_tiny)    font_tiny->Release    (font_tiny); */
+/*   if (font_smaller) font_smaller->Release (font_smaller); */
+/*   if (font_small)   font_small->Release   (font_small); */
+/*   if (font_normal)  font_normal->Release  (font_normal); */
+/*   if (font_large)   font_large->Release   (font_large); */
 
-	/* core DirectFB stuff */
-  if (primary) primary->Release (primary);
-  if (events)  events->Release  (events);
-  if (layer)   layer->Release   (layer);
-  while (devices)
-	{
-		DeviceInfo *next = devices->next;
-		free (devices);
-		devices = next;
-	}
-	if (dfb) dfb->Release (dfb);
+/* 	/\* core DirectFB stuff *\/ */
+/*   if (primary) primary->Release (primary); */
+/*   if (events)  events->Release  (events); */
+/*   if (layer)   layer->Release   (layer); */
+/*   while (devices) */
+/* 	{ */
+/* 		DeviceInfo *next = devices->next; */
+/* 		free (devices); */
+/* 		devices = next; */
+/* 	} */
+/* 	if (dfb) dfb->Release (dfb); */
 
 #ifdef USE_GPM_LOCK
   if (we_stopped_gpm) start_gpm();
@@ -323,7 +350,8 @@ void handle_text_combo_boxes(int *mouse_x, int *mouse_y)
 			if ( (*mouse_y >= (int) session->ypos) && (*mouse_y <= (int) session->ypos + (int) session->height) )
 			{
 				session_area_mouse = 1;
-				if (!session->mouse) session->MouseOver(session, 1);
+				//if (!session->mouse) session->MouseOver(session, 1);
+				session->MouseOver(session, 1);
 				return;
 			}		
 
@@ -624,7 +652,15 @@ void handle_mouse_event (DFBInputEvent *evt)
 	    }
 
 			if (session->mouse)
+			{
+	      username->SetFocus(username, 0);
+	      if (username_label) username_label->SetFocus(username_label, 0);
+	      password->SetFocus(password, 0);
+	      if (password_label) password_label->SetFocus(password_label, 0);
+	      session->SetFocus(session, 1);
+	      if (session_label) session_label->SetFocus(session_label, 1);
 				session->Click(session);
+			}
 		}
 		else
 		{	/* 
@@ -692,7 +728,12 @@ void handle_mouse_event (DFBInputEvent *evt)
 	      if (username_label) username_label->SetFocus(username_label, 0);
 	      password->SetFocus(password, 0);
 	      if (password_label) password_label->SetFocus(password_label, 0);
-	      session->SetFocus(session, 1);
+
+				if (!session->isclicked)
+				{
+					session->SetFocus(session, 1);
+				}
+
 	      if (session_label) session_label->SetFocus(session_label, 1);
 	    }
 			status = 0;		/* we reset click status because button went up */
@@ -756,6 +797,11 @@ void start_login_sequence(DFBInputEvent *evt)
 	fprintf(stdout, "%s\n%s\n%s\n", user_name, password->text, user_session);
 #endif
 
+  /* we overwrite memory areas containing sensitive information */
+  memset(user_name,      '\0', sizeof(user_name     ));
+  memset(password->text, '\0', sizeof(password->text));
+  memset(user_session,   '\0', sizeof(user_session  ));
+
   free(user_name); free(user_session);
 
 	close_framebuffer_mode();
@@ -764,9 +810,7 @@ void start_login_sequence(DFBInputEvent *evt)
 
 int handle_keyboard_event(DFBInputEvent *evt)
 {
-  int temp;	/* yuk! we have got a temp variable! */
-  /* we store here the symbol name of the last key the user pressed ...	*/
-  struct DFBKeySymbolName *symbol_name;
+  struct DFBKeySymbolName *symbol_name; /* we store here the symbol name of the last key the user pressed */
 	actions    action;
   int        returnstatus   =       -1;
   int        allow_tabbing  =        1;
@@ -848,7 +892,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 			 */
 			if (!strncmp(symbol_name->name, "F", 1) && strlen (symbol_name->name) <= 3)
 			{
-				temp = atoi (symbol_name->name + 1);
+				int temp = atoi (symbol_name->name + 1);
 				if ((temp > 0) && (temp < 13))
 					if (current_tty != temp)
 						return temp;
@@ -949,11 +993,15 @@ void load_sessions(ComboBox *session)
 {
   char *temp;
 
+	/* we get all available sessions... */
   while ((temp = get_sessions()) != NULL)
 	{
 		session->AddItem(session, temp);
 		free(temp);
 	}
+
+	/* ...and order them */
+	session->SortItems(session);
 }
 
 void update_labels()
@@ -1347,5 +1395,8 @@ int main (int argc, char *argv[])
 	}
 
   close_framebuffer_mode ();
-  return returnstatus;
+  exit(returnstatus);
+
+	/* just to make gcc happy */
+	return returnstatus;
 }

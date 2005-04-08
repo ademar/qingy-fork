@@ -1,3 +1,51 @@
+2005-04-08  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/directfb_mode.c,
+	* src/DirectFB/objects/combobox.c,
+	* src/DirectFB/Makefile.am (qingy_DirectFB_SOURCES):
+	Removed listbox.c and listbox.h as they are not
+	necessary, after all...
+
+2005-04-07  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/objects/combobox.c,
+	* src/DirectFB/directfb_mode.c (handle_mouse_event):
+	Continuing work on drop-down menu...
+
+2005-04-01  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/directfb_mode.c (close_framebuffer_mode):
+	Stop shutting down DirectFB gracefully *again*, it is
+	faster this way, and it also feels more stable...
+
+2005-03-31  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/session.c (Graph_Login, Text_Login):
+	Overwrite memory areas containing sensitive user info
+	before quitting...
+
+2005-03-30  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/main.c (start_up):
+	Overwrite memory areas containing sensitive user info
+	before quitting...
+
+	* src/libraries/session.c (check_password):
+	Small code clean up...
+
+	* src/DirectFB/directfb_mode.c:
+	Overwrite memory areas containing sensitive user info
+	before quitting...
+
+	* src/DirectFB/directfb_mode.c (handle_keyboard_event):
+	Small code optimization...
+
+	* src/main.c (start_up):
+	Made GUI exit status detection a little smarter.
+
+	* src/libraries/tty_guardian.c (ttyWatchDog):
+	Indentation clean ups.
+
 2005-03-19  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/libraries/tty_guardian.c:
