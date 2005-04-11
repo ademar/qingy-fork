@@ -58,7 +58,8 @@ typedef struct _ComboBox
 	int               position;
 	IDirectFBWindow	 *window;
 	IDirectFBSurface *surface;
-	int               mouse;    /* 1 if mouse is over combobox, 0 otherwise */
+	int               mouse;     /* 1 if mouse is over combobox, 0 otherwise */
+	void             *extraData; /* internal use only                        */
 
 	/* methods */
 	void (*SetTextColor)(struct _ComboBox *thiz, color_t *text_color);

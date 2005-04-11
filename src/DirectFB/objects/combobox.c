@@ -41,16 +41,36 @@
 #include "misc.h"
 
 
+
+typedef struct _DropDown
+{
+	int   n_items;    /* n. of items displayed in the drop-down menu */
+	item *first_item; /* first item displayed                        */
+  item *selected;   /* selected item                               */
+
+} DropDown;
+
+
 void ComboBox_SortItems(ComboBox *thiz)
 {
-	item *browse = thiz->items;
-	item *swap;
+	/*item *browse = thiz->items;
+	int   i      = 0;
 
 	if (!thiz)        return;
-	if (!thiz->items) return;
+	if (!thiz->items) return;*/
 
 	/* we sort X sessions... */
-	fprintf(stderr, "n. items: %d\n", *(thiz->items->n_items));
+	
+	// TO BE IMPLEMENTED
+
+	/* display stuff */
+
+	// NOT REALLY
+	/*for (i=0; i<(*(thiz->items->n_items)); i++)
+	{
+		fprintf(stderr, "%s\n", browse->name);
+		browse = browse->next;
+		}*/
 }
 
 void ComboBox_PlotEvent(ComboBox *thiz, int flip)
@@ -94,9 +114,33 @@ void ComboBox_MouseOver(ComboBox *thiz, int status)
 
 		thiz->surface->Flip(thiz->surface, NULL, 0);
 	}
+	else
+	{ /* drop-down menu is visible, we draw a square around it... */
+		DropDown *dropDown = (DropDown *) thiz->extraData;
+
+		/* draw items on screen */
+		item *run = dropDown->selected;
+		int   y   = 0;
+		int   i;
+
+		for (i=0; i<(*(run->n_items)); i++)
+		{
+			/* if mouse is over a particular item, we highlight it */
+			/*if (1 == 2)
+			{
+			}
+			else*/
+				thiz->surface->DrawString (thiz->surface, run->name, -1, 4, y, DSTF_LEFT|DSTF_TOP);
+			y = y + (thiz->height / (*(run->n_items)));
+			run = run->next;
+		}
+
+		thiz->surface->SetColor (thiz->surface, thiz->text_color.R, thiz->text_color.G, thiz->text_color.B, thiz->text_color.A);
+		thiz->surface->DrawRectangle (thiz->surface, 0, 0, thiz->width, thiz->height);
+	}
 }
 
-void ComboBox_resize(ComboBox *thiz, item *selection)
+void ComboBox_setWidth(ComboBox *thiz, item *selection)
 {
 	/* we set the combobox width */
 	DFBRectangle rect1, rect2, rect3;
@@ -116,13 +160,25 @@ void ComboBox_resize(ComboBox *thiz, item *selection)
 	thiz->window->Resize(thiz->window, thiz->width, thiz->height);
 }
 
+void ComboBox_setHeightNYpos(ComboBox *thiz, int n_items)
+{
+	IDirectFBFont *font;
+	DFBRectangle   rect;
+
+	thiz->surface->GetFont(thiz->surface,&font);
+	font->GetStringExtents(font, ".", 0, &rect, NULL);
+	thiz->height = rect.h * n_items;
+	
+	thiz->window->Resize(thiz->window, thiz->width, thiz->height);
+}
+
 void ComboBox_SelectItem(ComboBox *thiz, item *selection)
 {
 	if (!thiz)      return;
 	if (!selection) return;
 
 	thiz->selected = selection;
-	ComboBox_resize(thiz, selection);
+	ComboBox_setWidth(thiz, selection);
 	ComboBox_PlotEvent(thiz, 0);
 	thiz->MouseOver(thiz, thiz->mouse);
 }
@@ -159,18 +215,6 @@ void ComboBox_SetTextColor(ComboBox *thiz, color_t *text_color)
 	thiz->surface->SetColor (thiz->surface, text_color->R, text_color->G, text_color->B, text_color->A);
 }
 
-void ComboBox_setHeightNYpos(ComboBox *thiz, int n_items)
-{
-	IDirectFBFont *font;
-	DFBRectangle   rect;
-
-	thiz->surface->GetFont(thiz->surface,&font);
-	font->GetStringExtents(font, ".", 0, &rect, NULL);
-	thiz->height = rect.h * n_items;
-	
-	thiz->window->Resize(thiz->window, thiz->width, thiz->height);
-}
-
 void ComboBox_SetFocus(ComboBox *thiz, int focus)
 {
   if (!thiz) return;
@@ -186,7 +230,7 @@ void ComboBox_SetFocus(ComboBox *thiz, int focus)
 
 	if (thiz->isclicked)
 	{
-		ComboBox_resize(thiz, thiz->selected);
+		ComboBox_setWidth(thiz, thiz->selected);
 		ComboBox_setHeightNYpos(thiz, 1);
 		thiz->isclicked = 0;
 	}
@@ -213,44 +257,36 @@ void ComboBox_Click(ComboBox *thiz)
 
 	thiz->window->RaiseToTop(thiz->window);
   thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
-  
-	/* how many items do we have in this combobox? */
-	int   n_items  = 1;
+
+	/* we get the largest item of this combobox */
 	item *largest  = thiz->items;
   item *run      = thiz->items;
+	int   i        = 0;
 
-	while (strcmp(run->next->name, thiz->items->name))
+	for (; i<(*(thiz->items->n_items)); i++)
 	{
-		n_items++;
 		run = run->next;
 		/* we also get the largest string */
 		if (strlen(run->name) > strlen(largest->name))
 			largest = run;
 	}
-	ComboBox_resize(thiz, largest); // width
+	ComboBox_setWidth(thiz, largest); // width
 
 	/* resize the surface to hold all these items... */
-	ComboBox_setHeightNYpos(thiz, n_items); // height
+	ComboBox_setHeightNYpos(thiz, *(thiz->items->n_items)); // height
 
-	/* draw items on screen */
-	int i=0;
-	int y = 0;
-	run = thiz->selected;
-	for (; i<n_items; i++)
-	{
-		thiz->surface->DrawString (thiz->surface, run->name, -1, 4, y, DSTF_LEFT|DSTF_TOP);
-		y = y + (thiz->height / n_items);
-		run = run->next;
-	}
+	/* prepare drop-down menu data */
+	DropDown *dropDown = (DropDown *) calloc(1, sizeof(DropDown));
+	thiz->extraData = dropDown;
+	dropDown->first_item =  thiz->selected;
+	dropDown->selected   =  thiz->selected;
+	dropDown->n_items    = *thiz->items->n_items;
+	thiz->isclicked      =  1;
+
+	/* draw items on screen and put a nice box around them */
+	thiz->MouseOver(thiz, thiz->mouse);
+
 	thiz->surface->Flip(thiz->surface, NULL, 0);
-
-	//sleep(1);
-
-	//ComboBox_setHeightNYpos(thiz, 1); // height
-	//thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
-	//thiz->SelectItem(thiz, thiz->selected);
-
-	thiz->isclicked = 1;
 }
 
 void ComboBox_AddItem(ComboBox *thiz, char *object)
@@ -262,7 +298,7 @@ void ComboBox_AddItem(ComboBox *thiz, char *object)
   {
     thiz->items = (item *) calloc(1, sizeof(item));
 		thiz->items->n_items = (int *) calloc(1, sizeof(int));
-		*thiz->items->n_items = 1;
+		*(thiz->items->n_items) = 1;
     thiz->items->next = thiz->items;
     thiz->items->prev = thiz->items;
     thiz->items->name = (char *) calloc(strlen(object)+1, sizeof(char));
@@ -276,10 +312,11 @@ void ComboBox_AddItem(ComboBox *thiz, char *object)
 	curr->next = (item *) calloc(1, sizeof(item));
 	curr->next->next = thiz->items;
 	curr->next->prev = curr;
+	curr->next->n_items = thiz->items->n_items;
 	thiz->items->prev = curr->next;
 	curr->next->name = (char *) calloc(strlen(object)+1, sizeof(char));
 	strcpy(curr->next->name, object);
-	(*thiz->items->n_items)++;
+	(*(thiz->items->n_items))++;
 }
 
 void ComboBox_ClearItems(ComboBox *thiz)
@@ -323,6 +360,7 @@ void ComboBox_Destroy(ComboBox *thiz)
   ComboBox_ClearItems(thiz);
   if (thiz->surface) thiz->surface->Release (thiz->surface);
   if (thiz->window) thiz->window->Release (thiz->window);
+	if (thiz->extraData) free(thiz->extraData);
   free(thiz);
 }
 
@@ -341,6 +379,7 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, col
   newbox->isclicked    = 0;
   newbox->position     = 0;
 	newbox->mouse        = 0;
+	newbox->extraData    = NULL;
   newbox->window       = NULL;
   newbox->surface      = NULL;
 	newbox->text_color.R = text_color->R;
