@@ -41,36 +41,73 @@
 #include "misc.h"
 
 
+#define UPWARD   0
+#define DOWNWARD 1
+
 
 typedef struct _DropDown
 {
-	int   n_items;    /* n. of items displayed in the drop-down menu */
-	item *first_item; /* first item displayed                        */
-  item *selected;   /* selected item                               */
+	IDirectFBDisplayLayer *layer;         /* don't tell our constructor we remember this  */
+	int                    n_items;       /* n. of items displayed in the drop-down menu  */
+	int                    first_item;    /* index of first item that should be displayed */
+  char                  *selected;      /* selected item                                */
+	int                    screen_width;  /* screen X resolution                          */
+	int                    screen_height; /* screen Y resolution                          */
+	int                    orig_y;        /* y position of the combobox before unfolding  */
+	int                    direction;     /* y position of the combobox before unfolding  */
+	int                    scrollbar;
 
 } DropDown;
 
 
 void ComboBox_SortItems(ComboBox *thiz)
 {
-	/*item *browse = thiz->items;
-	int   i      = 0;
+	int i          = 0;
+	int x_sessions = 0;
 
-	if (!thiz)        return;
-	if (!thiz->items) return;*/
-
-	/* we sort X sessions... */
-	
-	// TO BE IMPLEMENTED
-
-	/* display stuff */
-
-	// NOT REALLY
-	/*for (i=0; i<(*(thiz->items->n_items)); i++)
+	// We divide X and text sessions ...
+	for (; i<(thiz->n_items-1); i++)
 	{
-		fprintf(stderr, "%s\n", browse->name);
-		browse = browse->next;
-		}*/
+		int j = i + 1;
+		for (; j<thiz->n_items; j++)
+			if (!strncmp(thiz->items[i], "Text: ", 6))
+				if (strncmp(thiz->items[j], "Text: ", 6))
+				{
+					char *swap = thiz->items[i];
+					thiz->items[i] = thiz->items[j];
+					thiz->items[j] = swap;
+					break;
+				}
+
+		if (strncmp(thiz->items[i], "Text: ", 6))
+			x_sessions++;
+	}
+
+	// ... we sort X sessions ...
+	for (i=0; i<(x_sessions-1); i++)
+	{
+		int j = i + 1;
+		for (; j<x_sessions; j++)
+			if (strcasecmp(thiz->items[i], thiz->items[j]) > 0)
+			{
+				char *swap = thiz->items[i];
+				thiz->items[i] = thiz->items[j];
+				thiz->items[j] = swap;
+			}
+	}
+
+	// ... and text ones
+	for (i=x_sessions; i<(thiz->n_items-1); i++)
+	{
+		int j = i + 1;
+		for (; j<thiz->n_items; j++)
+			if (strcasecmp(thiz->items[i], thiz->items[j]) > 0)
+			{
+				char *swap = thiz->items[i];
+				thiz->items[i] = thiz->items[j];
+				thiz->items[j] = swap;
+			}
+	}
 }
 
 void ComboBox_PlotEvent(ComboBox *thiz, int flip)
@@ -78,8 +115,49 @@ void ComboBox_PlotEvent(ComboBox *thiz, int flip)
   if (!thiz) return;
 
   thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
-  thiz->surface->DrawString (thiz->surface, thiz->selected->name, -1, 4, 0, DSTF_LEFT|DSTF_TOP);
+  thiz->surface->DrawString (thiz->surface, thiz->selected, -1, 4, 0, DSTF_LEFT|DSTF_TOP);
   if (flip) thiz->surface->Flip(thiz->surface, NULL, 0);
+}
+
+void DrawScrollBar(ComboBox *thiz)
+{
+	DropDown      *dropDown;
+	IDirectFBFont *font;
+	int            unit;
+	int            x1, y1, x2, y2, x3, y3;
+
+	dropDown = (DropDown *) thiz->extraData;
+
+	thiz->surface->GetFont(thiz->surface, &font);
+	font->GetHeight(font, &unit);
+	unit /= (float)1.5;
+
+	/* we draw the main, upper and lower rectangles */
+	thiz->surface->DrawRectangle(thiz->surface, thiz->width - unit, 0, unit, thiz->height);
+	thiz->surface->DrawRectangle(thiz->surface, thiz->width - unit, 0, unit, unit);
+	thiz->surface->DrawRectangle(thiz->surface, thiz->width - unit, thiz->height - unit, unit, unit);
+
+	/* we draw the upper triangle... */
+	x1 = thiz->width - unit + 4;
+	y1 = unit - 4;
+	x2 = thiz->width - 4;
+	y2 = y1;
+	x3 = ((float)x1 + (float)x2) / (float)2;
+	y3 = 4;
+	thiz->surface->FillTriangle (thiz->surface, x1, y1, x2, y2, x3, y3);
+
+	/* ...and the lower one */
+	y1 = thiz->height - unit + 4;
+	y2 = y1;
+	y3 = thiz->height - 4;
+	thiz->surface->FillTriangle (thiz->surface, x1, y1, x2, y2, x3, y3);
+
+	/* we draw the relative position rectangle */
+	y1 = (float)(dropDown->first_item) * (float)(thiz->height - (2*unit)) / (float)thiz->n_items;
+	y2 = (float)(thiz->height - (2*unit)) * (float)dropDown->n_items / (float)thiz->n_items;
+	thiz->surface->FillRectangle(thiz->surface, thiz->width - unit + 4, unit + y1 + 4, unit - 8, y2 - 8);
+
+	dropDown->scrollbar = unit;
 }
 
 void ComboBox_MouseOver(ComboBox *thiz, int status)
@@ -89,15 +167,15 @@ void ComboBox_MouseOver(ComboBox *thiz, int status)
 	thiz->mouse = status;
 
 	if (!thiz->isclicked)
-	{
+	{ /* drop-down menu is not visible atm */
 		ComboBox_PlotEvent(thiz, 0);
 
 		if (status)
-		{
+		{ /* mouse is over combobox, draw a nice box around it */
 			IDirectFBSurface *where;
 			DFBRectangle dest1, dest2, dest;
 			IDirectFBFont *font;
-			char *text = thiz->selected->name;
+			char *text = thiz->selected;
 
 			thiz->surface->GetFont(thiz->surface,&font);		
 			font->GetStringExtents(font, text, 0, &dest1, NULL);
@@ -115,92 +193,250 @@ void ComboBox_MouseOver(ComboBox *thiz, int status)
 		thiz->surface->Flip(thiz->surface, NULL, 0);
 	}
 	else
-	{ /* drop-down menu is visible, we draw a square around it... */
+	{ /* drop-down menu is visible, we draw it... */
 		DropDown *dropDown = (DropDown *) thiz->extraData;
+		int       y_step   = thiz->height / dropDown->n_items;
+		int       index    = dropDown->first_item;
+		int       i        = 0;
+		int       y        = 0;
+		int       margin   = 0;
+		int       mouse_x;
+		int       mouse_y;
 
-		/* draw items on screen */
-		item *run = dropDown->selected;
-		int   y   = 0;
-		int   i;
+		thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x77);
+		dropDown->layer->GetCursorPosition(dropDown->layer, &mouse_x, &mouse_y);
 
-		for (i=0; i<(*(run->n_items)); i++)
+		/* draw lateral scrollbar if needed */
+		dropDown->scrollbar = 0;
+		if (thiz->n_items > dropDown->n_items)
 		{
-			/* if mouse is over a particular item, we highlight it */
-			/*if (1 == 2)
-			{
-			}
-			else*/
-				thiz->surface->DrawString (thiz->surface, run->name, -1, 4, y, DSTF_LEFT|DSTF_TOP);
-			y = y + (thiz->height / (*(run->n_items)));
-			run = run->next;
+			DrawScrollBar(thiz);
+			margin = dropDown->scrollbar;
 		}
 
+		/* draw items on screen */
+		for (; i<dropDown->n_items; i++)
+		{
+			int startXpos = thiz->xpos;
+			int endXpos   = thiz->xpos + thiz->width;
+			int startYpos = thiz->ypos + y;
+			int endYpos   = thiz->ypos + y + y_step;
+
+			/* if mouse is over a particular item, we highlight it */
+			if ( (mouse_x >= (int) startXpos) && (mouse_x < (int) (endXpos - margin)) &&
+					 (mouse_y >= (int) startYpos) && (mouse_y < (int)       endYpos     )    )
+			{
+				thiz->surface->FillRectangle (thiz->surface, 0, y + 1, thiz->width - margin, y_step + 1);
+				thiz->surface->SetColor (thiz->surface, 0, 0, 0, thiz->text_color.A);
+				thiz->surface->DrawString (thiz->surface, thiz->items[index], -1, 4, y, DSTF_LEFT|DSTF_TOP);
+				thiz->surface->SetColor (thiz->surface, thiz->text_color.R, thiz->text_color.G, thiz->text_color.B, thiz->text_color.A);
+				dropDown->selected = thiz->items[index];
+			}
+			else
+				thiz->surface->DrawString (thiz->surface, thiz->items[index], -1, 4, y, DSTF_LEFT|DSTF_TOP);
+
+			index++;
+			y += y_step;
+		}
+
+		/* draw a nice rectangle around combobox items */
 		thiz->surface->SetColor (thiz->surface, thiz->text_color.R, thiz->text_color.G, thiz->text_color.B, thiz->text_color.A);
 		thiz->surface->DrawRectangle (thiz->surface, 0, 0, thiz->width, thiz->height);
 	}
+
+	thiz->surface->Flip(thiz->surface, NULL, 0);
 }
 
-void ComboBox_setWidth(ComboBox *thiz, item *selection)
+void ComboBox_setWidth(ComboBox *thiz, char *selection)
 {
 	/* we set the combobox width */
 	DFBRectangle rect1, rect2, rect3;
 	IDirectFBFont *font;
-	char *text = selection->name;
 
 	thiz->surface->GetFont(thiz->surface,&font);
-	font->GetStringExtents(font, text, 0, &rect1, NULL);
-	font->GetStringExtents(font, text, strlen(text), &rect2, NULL);
-	font->GetStringWidth (font, text, 0, &(rect3.x));
+	font->GetStringExtents(font, selection, 0, &rect1, NULL);
+	font->GetStringExtents(font, selection, strlen(selection), &rect2, NULL);
+	font->GetStringWidth (font, selection, 0, &(rect3.x));
 	rect3.y = 0;
 	rect3.h = rect1.h;
 	rect3.w = rect2.w - rect1.w + 4 + rect3.h;
-
 	thiz->width = rect3.w;
 
 	thiz->window->Resize(thiz->window, thiz->width, thiz->height);
 }
 
 void ComboBox_setHeightNYpos(ComboBox *thiz, int n_items)
-{
+{//FIXME!!!!!!!!!!!!!
+	int            min_items      = 3; /* minimum number of elements we would like on screen */
+	int            fitting_down;
+	int            fitting_up;
 	IDirectFBFont *font;
 	DFBRectangle   rect;
+	DropDown      *dropDown       = (DropDown *) thiz->extraData;
+
+	if (n_items < min_items) min_items = n_items;
 
 	thiz->surface->GetFont(thiz->surface,&font);
 	font->GetStringExtents(font, ".", 0, &rect, NULL);
-	thiz->height = rect.h * n_items;
-	
+
+	/* don't do useless calculations if we only have to display one item */
+	if (min_items == 1)
+	{
+		thiz->height = rect.h * min_items;
+		thiz->window->Resize(thiz->window, thiz->width, thiz->height);
+		dropDown->n_items = min_items;
+
+		if ((int)thiz->ypos != dropDown->orig_y)
+		{
+			thiz->ypos = dropDown->orig_y;
+			thiz->window->MoveTo(thiz->window, thiz->xpos, thiz->ypos);
+		}
+
+		return;
+	}
+
+	/* how many items fit on screen? */
+	for (fitting_down=thiz->n_items; ((int)thiz->ypos + (fitting_down * rect.h)) > dropDown->screen_height; fitting_down--); /* downward */
+	for (fitting_up=thiz->n_items; ((int)thiz->ypos - (fitting_up * rect.h)) < 0; fitting_up--); /* upward */
+
+	/* if there is not enough space to fit min_items, we adjust it */
+	if (fitting_down < min_items && fitting_up < min_items)
+	{
+		if (fitting_down >= fitting_up)
+			min_items = fitting_down;
+		else
+			min_items = fitting_up;
+	}
+
+	dropDown->n_items      = min_items;
+	dropDown->orig_y       = thiz->ypos;
+
+	if (fitting_down >= min_items)
+		dropDown->direction  = DOWNWARD;
+	else
+	{
+		dropDown->direction  = UPWARD;
+		thiz->ypos          -= rect.h * (min_items - 1);
+		thiz->window->MoveTo(thiz->window, thiz->xpos, thiz->ypos);
+	}
+
+	thiz->height = rect.h * min_items;	
 	thiz->window->Resize(thiz->window, thiz->width, thiz->height);
 }
 
-void ComboBox_SelectItem(ComboBox *thiz, item *selection)
+void ComboBox_SelectItem(ComboBox *thiz, char *selection)
 {
 	if (!thiz)      return;
 	if (!selection) return;
 
 	thiz->selected = selection;
-	ComboBox_setWidth(thiz, selection);
 	ComboBox_PlotEvent(thiz, 0);
+	ComboBox_setWidth(thiz, selection);
 	thiz->MouseOver(thiz, thiz->mouse);
 }
 
 void ComboBox_KeyEvent(ComboBox *thiz, int direction)
 {
+	DropDown *dropDown;
+	int i = 0;
+
   if (!thiz || !thiz->selected) return;
+	
+	dropDown = (DropDown *) thiz->extraData;
+
+	if (!thiz->isclicked)
+		dropDown->selected = thiz->selected;
 
   switch (direction)
   {
 		case UP:
-			if (thiz->selected != thiz->selected->prev)
-				thiz->SelectItem(thiz, thiz->selected->prev);
+			for (; i<thiz->n_items; i++)
+				if (thiz->items[i] == dropDown->selected)
+				{
+					if (i > 0)
+					{
+						dropDown->selected = thiz->items[i - 1];
+						if (!thiz->isclicked)
+							thiz->SelectItem(thiz, thiz->items[i - 1]);
+					}
+					else
+					{
+						dropDown->selected = thiz->items[thiz->n_items - 1];
+						if (!thiz->isclicked)
+							thiz->SelectItem(thiz, thiz->items[thiz->n_items - 1]);
+					}
+					break;
+				}
 			break;
 		case DOWN:
-			if (thiz->selected != thiz->selected->next)
-				thiz->SelectItem(thiz, thiz->selected->next);
+			for (; i<thiz->n_items; i++)
+				if (thiz->items[i] == dropDown->selected)
+				{
+					if (i < (thiz->n_items - 1))
+					{
+						dropDown->selected = thiz->items[i + 1];
+						if (!thiz->isclicked)
+							thiz->SelectItem(thiz, thiz->items[i + 1]);
+					}
+					else
+					{
+						dropDown->selected = thiz->items[0];
+						if (!thiz->isclicked)
+							thiz->SelectItem(thiz, thiz->items[0]);
+					}
+					break;
+				}
+			break;
+		case SELECT:
+			if (thiz->isclicked)
+			{
+				thiz->selected = dropDown->selected;
+				thiz->Click(thiz);
+			}
 			break;
 		case REDRAW:
 			ComboBox_PlotEvent(thiz, 1);
 			break;
   }
+
+	if (thiz->isclicked)
+	{
+		DropDown *dropDown = (DropDown *) thiz->extraData;
+		int       y_step   = thiz->height / dropDown->n_items;
+		int       index    = dropDown->first_item;
+		int       i        = 0;
+		int       y        = 0;
+
+		thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x77);
+
+		/* draw items on screen */
+		for (; i<dropDown->n_items; i++)
+		{
+			if (thiz->items[index]==dropDown->selected)
+			{
+				thiz->surface->FillRectangle (thiz->surface, 0, y + 1, thiz->width, y_step + 1);
+				thiz->surface->SetColor (thiz->surface, 0, 0, 0, thiz->text_color.A);
+				thiz->surface->DrawString (thiz->surface, thiz->items[index], -1, 4, y, DSTF_LEFT|DSTF_TOP);
+				thiz->surface->SetColor (thiz->surface, thiz->text_color.R, thiz->text_color.G, thiz->text_color.B, thiz->text_color.A);
+				dropDown->selected = thiz->items[index];
+			}
+			else
+				thiz->surface->DrawString (thiz->surface, thiz->items[index], -1, 4, y, DSTF_LEFT|DSTF_TOP);
+
+			index++;
+			y += y_step;
+		}
+
+		/* draw a nice rectangle around combobox items */
+		thiz->surface->SetColor (thiz->surface, thiz->text_color.R, thiz->text_color.G, thiz->text_color.B, thiz->text_color.A);
+		thiz->surface->DrawRectangle (thiz->surface, 0, 0, thiz->width, thiz->height);
+
+		/* draw lateral scrollbar if needed */
+		if (thiz->n_items > dropDown->n_items)
+			DrawScrollBar(thiz);
+
+		thiz->surface->Flip(thiz->surface, NULL, 0);
+	}
 }
 
 void ComboBox_SetTextColor(ComboBox *thiz, color_t *text_color)
@@ -223,7 +459,7 @@ void ComboBox_SetFocus(ComboBox *thiz, int focus)
   {
     thiz->window->RequestFocus(thiz->window);
     thiz->hasfocus=1;
-    thiz->window->SetOpacity(thiz->window, SELECTED_WINDOW_OPACITY);    
+    thiz->window->SetOpacity(thiz->window, SELECTED_WINDOW_OPACITY);
 		thiz->MouseOver(thiz, thiz->mouse);
     return;
   }
@@ -241,106 +477,157 @@ void ComboBox_SetFocus(ComboBox *thiz, int focus)
   return;
 }
 
+void ComboBox_ScrollBarClick (ComboBox *thiz, int mouse_y)
+{
+	DropDown *dropDown = (DropDown *) thiz->extraData;
+
+	/* let's see if upper triangle was clicked... */
+	if (mouse_y <= (int)(thiz->ypos+dropDown->scrollbar))
+		if (dropDown->first_item > 0)
+		{
+			dropDown->first_item--;
+			thiz->MouseOver(thiz, 1);
+			return;
+		}
+
+	/* ...or the lower one */
+	if (mouse_y >= (int)(thiz->ypos+thiz->height-dropDown->scrollbar))
+		if ((dropDown->first_item + dropDown->n_items) < thiz->n_items)
+		{
+			dropDown->first_item++;
+			thiz->MouseOver(thiz, 1);
+			return;
+		}
+
+	/* we check wether the upper half of the scrollbar was clicked... */
+	if (mouse_y <= (int)((float)thiz->ypos+(float)((float)thiz->height/(float)2)))
+		if (dropDown->first_item > 0)
+		{
+			dropDown->first_item -= dropDown->n_items;
+			if (dropDown->first_item < 0) dropDown->first_item = 0;
+			thiz->MouseOver(thiz, 1);
+			return;
+		}
+
+	/* ...or the lower half */
+	if (mouse_y >= (int)((float)thiz->ypos+(float)((float)thiz->height/(float)2)))
+		if ((dropDown->first_item + dropDown->n_items) < thiz->n_items)
+		{
+			dropDown->first_item += dropDown->n_items;
+			if ((dropDown->first_item + dropDown->n_items) >= thiz->n_items)
+				dropDown->first_item = thiz->n_items - dropDown->n_items;
+			thiz->MouseOver(thiz, 1);
+			return;
+		}
+}
+
 void ComboBox_Click(ComboBox *thiz)
 {
+	DropDown *dropDown;
+	char     *largest;
+	int       i;
+
   if (!thiz) return;
 
-	if (thiz->isclicked)
+	dropDown = (DropDown *) thiz->extraData;
+	largest  = thiz->items[0];
+
+	/* is this combobox folded or unfolded? */
+
+	if (thiz->isclicked) /* unfolded, let's see what we should do about it... */
 	{
-		ComboBox_setHeightNYpos(thiz, 1); // height
+		int       mouse_x;
+		int       mouse_y;
+
+		if (!dropDown) return;
+		dropDown->layer->GetCursorPosition(dropDown->layer, &mouse_x, &mouse_y);
+
+		/* let's see wether this is a scrollbar click */
+		if ( thiz->n_items > dropDown->n_items                                &&
+				 mouse_x <= (int)(thiz->xpos + thiz->width)                       &&
+				 mouse_x >= (int)(thiz->xpos + thiz->width - dropDown->scrollbar) &&
+				 mouse_y >= (int) thiz->ypos                                      &&
+				 mouse_y <= (int)(thiz->ypos + thiz->height)
+			 )
+		{
+			ComboBox_ScrollBarClick(thiz, mouse_y);
+			return;
+		}
+
+		/* we fold the combobox */
+
+		ComboBox_setHeightNYpos(thiz, 1);
 		thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
-		thiz->SelectItem(thiz, thiz->selected);
+
+		if (dropDown && thiz->mouse) thiz->selected = dropDown->selected;
 
 		thiz->isclicked = 0;
+ 		ComboBox_SelectItem(thiz, thiz->selected);
+
+		/* let's check wether mouse is still over this item */
+		if (mouse_x < (int)thiz->xpos || mouse_x > (int)(thiz->xpos + thiz->width ) ||
+				mouse_y < (int)thiz->ypos || mouse_y > (int)(thiz->ypos + thiz->height)   )
+			thiz->MouseOver(thiz, 0);
+
 		return;
 	}
 
+	/* we unfold the combobox */
+
 	thiz->window->RaiseToTop(thiz->window);
-  thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
 
 	/* we get the largest item of this combobox */
-	item *largest  = thiz->items;
-  item *run      = thiz->items;
-	int   i        = 0;
-
-	for (; i<(*(thiz->items->n_items)); i++)
+	for (i=1; i<thiz->n_items; i++)
 	{
-		run = run->next;
-		/* we also get the largest string */
-		if (strlen(run->name) > strlen(largest->name))
-			largest = run;
+		if (strlen(thiz->items[i]) > strlen(largest))
+			largest = thiz->items[i];
 	}
-	ComboBox_setWidth(thiz, largest); // width
 
-	/* resize the surface to hold all these items... */
-	ComboBox_setHeightNYpos(thiz, *(thiz->items->n_items)); // height
+	/* we set the combobox width to that of its largest item */
+	ComboBox_setWidth(thiz, largest);
 
-	/* prepare drop-down menu data */
-	DropDown *dropDown = (DropDown *) calloc(1, sizeof(DropDown));
-	thiz->extraData = dropDown;
-	dropDown->first_item =  thiz->selected;
-	dropDown->selected   =  thiz->selected;
-	dropDown->n_items    = *thiz->items->n_items;
-	thiz->isclicked      =  1;
+	/* set combobox height and Y position... */
+	ComboBox_setHeightNYpos(thiz, thiz->n_items);
+
+	/* prepare drop-down menu data */	
+	dropDown->selected   = thiz->selected;
+	dropDown->first_item = 0;
+	thiz->isclicked      = 1;
 
 	/* draw items on screen and put a nice box around them */
 	thiz->MouseOver(thiz, thiz->mouse);
-
-	thiz->surface->Flip(thiz->surface, NULL, 0);
 }
 
 void ComboBox_AddItem(ComboBox *thiz, char *object)
 {
-  item *curr;
-
   if (!thiz || !object) return;
   if (!thiz->items)
   {
-    thiz->items = (item *) calloc(1, sizeof(item));
-		thiz->items->n_items = (int *) calloc(1, sizeof(int));
-		*(thiz->items->n_items) = 1;
-    thiz->items->next = thiz->items;
-    thiz->items->prev = thiz->items;
-    thiz->items->name = (char *) calloc(strlen(object)+1, sizeof(char));
-    strcpy(thiz->items->name, object);
-    thiz->SelectItem(thiz, thiz->items);
+		thiz->items    = (char **) calloc(1, sizeof(char *));
+		thiz->items[0] = strdup(object);
+		thiz->n_items  = 1;
+		thiz->SelectItem(thiz, thiz->items[0]);
+
 		return;
   }
 
-	curr = thiz->items;
-	while(curr->next != thiz->items) curr = curr->next;
-	curr->next = (item *) calloc(1, sizeof(item));
-	curr->next->next = thiz->items;
-	curr->next->prev = curr;
-	curr->next->n_items = thiz->items->n_items;
-	thiz->items->prev = curr->next;
-	curr->next->name = (char *) calloc(strlen(object)+1, sizeof(char));
-	strcpy(curr->next->name, object);
-	(*(thiz->items->n_items))++;
+	thiz->items = (char **) realloc(thiz->items, (thiz->n_items + 1) * sizeof(char *));
+	thiz->items[thiz->n_items] = strdup(object);
+	thiz->n_items++;
 }
 
 void ComboBox_ClearItems(ComboBox *thiz)
 {
-  item *curr;
+	int i = 0;
 
   if (!thiz || !thiz->items) return;
   thiz->selected = NULL;
-  curr = thiz->items->prev;
-  while (curr != thiz->items)
-  {
-    free(curr->name); curr->name = NULL;
-    curr->next       = NULL;
-		curr->n_items    = NULL;
-    curr             = curr->prev;
-    curr->next->prev = NULL;
-    free(curr->next);
-  }
-  curr->next = NULL;
-  curr->prev = NULL;
-  free(curr->name); curr->name = NULL;
-  curr = NULL;
-	free(thiz->items->n_items); thiz->items->n_items = NULL;
-  free(thiz->items);          thiz->items          = NULL;
+
+	for (; i<thiz->n_items; i++)
+		free(thiz->items[i]);
+
+	free(thiz->items);
+	thiz->n_items = 0;
 }
 
 void ComboBox_Hide(ComboBox *thiz)
@@ -359,16 +646,17 @@ void ComboBox_Destroy(ComboBox *thiz)
   if (!thiz) return;
   ComboBox_ClearItems(thiz);
   if (thiz->surface) thiz->surface->Release (thiz->surface);
-  if (thiz->window) thiz->window->Release (thiz->window);
+  if (thiz->window)  thiz->window->Release (thiz->window);
 	if (thiz->extraData) free(thiz->extraData);
   free(thiz);
 }
 
-ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, color_t *text_color, DFBWindowDescription *window_desc)
+ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, color_t *text_color, DFBWindowDescription *window_desc, int screen_width, int screen_height)
 {
   ComboBox *newbox = NULL;
 
   newbox = (ComboBox *) calloc(1, sizeof(ComboBox));
+	newbox->n_items      = 0;
   newbox->items        = NULL;
   newbox->selected     = NULL;
   newbox->xpos         = (unsigned int) window_desc->posx;
@@ -379,7 +667,6 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, col
   newbox->isclicked    = 0;
   newbox->position     = 0;
 	newbox->mouse        = 0;
-	newbox->extraData    = NULL;
   newbox->window       = NULL;
   newbox->surface      = NULL;
 	newbox->text_color.R = text_color->R;
@@ -398,6 +685,12 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, col
   newbox->Hide         = ComboBox_Hide;
   newbox->Show         = ComboBox_Show;
   newbox->Destroy      = ComboBox_Destroy;
+
+	DropDown *dropDown      = (DropDown *) calloc(1, sizeof(DropDown));
+	dropDown->layer         = layer;
+	dropDown->screen_width  = screen_width;
+	dropDown->screen_height = screen_height;
+	newbox->extraData       = dropDown;
 
   if (layer->CreateWindow (layer, window_desc, &(newbox->window)) != DFB_OK) return NULL;
   newbox->window->SetOpacity(newbox->window, 0x00 );

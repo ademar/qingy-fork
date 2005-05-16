@@ -1,7 +1,72 @@
-2005-04-11  Noberasco Michele  <s4t4n@gentoo.org>
+2005-05-16  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* media/Makefile.am (settings):
+	Corrected small glitch in commented-out section in
+	default settings file...
+
+	* src/DirectFB/objects/combobox.c (ComboBox_Click):
+	Implemented clicking on non-upper-lower-triangle areas
+	of the scrollbar. I should also implement dragging, but
+	do not intend to, at least right now. What I should
+	implement is mouse wheel actions on the scrollbar...
+
+2005-05-12  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/DirectFB/objects/combobox.c:
-	More drop-down menu work...
+	Now we correctly plot the lateral scrollbar, still
+	have to handle its input events...
+	...now clicking on the top and bottom triangles work...
+
+2005-04-19  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/objects/combobox.c:
+	Paving the ground for lateral scrollbar...
+
+2005-04-15  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/directfb_mode.c,
+	* src/DirectFB/objects/combobox.c:
+	Added support for changing (and select) highlighted item
+	in combo boxes using arrow keys, even when the combo box
+	is unfolded.
+
+	Now all I need to implement is a side scrolling bar, then
+	my combo box will be complete.
+
+2005-04-14  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/objects/combobox.c,
+	* src/DirectFB/objects/combobox.h,
+	* src/DirectFB/directfb_mode.c:
+	Changed structure of combobox items from
+	a double-linked list to an array of pointers:
+	Faster, uses less memory, and simpler to
+	manage...
+	Order session list alphabetically, and divide
+	Text from X sessions...
+	Made qingy check mouse-over condition on
+	comboboxes first, because they might overlap
+	with other graphic elements, otherwise they
+	took the precedence, making mouseover effect on
+	an unfolded combobox look jerky...
+
+2005-04-12  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/objects/combobox.c:
+	Code clean ups, both in form and functionality...
+	Made drop-down menu appear downwards or upwards according
+	to screen position.
+
+2005-04-11  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* directfb_mode.c (handle_buttons):
+	Made buttons un-mouseover-able and unclickable
+	when a combobox is unfolded...
+
+	* src/DirectFB/objects/combobox.c:
+	I have difficulties believing this myself, but
+	we do have a working drop down menu!
+	It is still rather crude, but it works :-)
 
 	* src/libraries/tty_guardian.c:
 	Reverted latest changes as they introduced quirks, will

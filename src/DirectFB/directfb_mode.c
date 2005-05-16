@@ -178,8 +178,8 @@ void Draw_Background_Image(int do_the_drawing)
  */
 void set_user_session(char *user)
 {
-  item *temp;
   char *user_session = get_last_session(user);
+	int   i            = 0;
   
   if (!session || !session->items)
 	{
@@ -187,28 +187,24 @@ void set_user_session(char *user)
 		return;
 	}
   
-  if (!user_session)
+  if (user_session)
 	{
-		temp = session->selected;
-		while (strcmp(session->selected->name, "Text: Console"))
-			session->selected = session->selected->next;
-		if (session->selected != temp) session->SelectItem(session, session->selected);
-		return;
+		for (; i<session->n_items; i++)
+			if (!strcmp(session->items[i], user_session))
+				if (session->items[i] != session->selected)
+				{
+					session->SelectItem(session, session->items[i]);
+					free(user_session);
+					return;
+				}
+
+		free(user_session);
 	}
-  
-  temp = session->items;
-  while (1)
-	{
-		if (!strcmp(user_session, temp->name))
-		{
-			session->SelectItem(session, temp);
-			free(user_session);
-			return;
-		}
-		temp = temp->next;
-		if (temp == session->items) break;
-	}
-  free(user_session);
+		
+	for (i=0; i<session->n_items; i++)
+		if (!strcmp(session->items[i], "Text: Console"))
+			if (session->items[i] != session->selected)
+				session->SelectItem(session, session->items[i]);
 }
 
 void close_framebuffer_mode (void)
@@ -296,25 +292,26 @@ void handle_buttons(int *mouse_x, int *mouse_y)
   Button_list *other_buttons = Buttons;
   
   /* let's check wether mouse is over a button... */
-  while (buttons)
-	{
-		if ((*mouse_x >= buttons->button->xpos) && (*mouse_x <= (buttons->button->xpos + (int) buttons->button->width)))
-			if ((*mouse_y >= buttons->button->ypos) && (*mouse_y <= (buttons->button->ypos + (int) buttons->button->height)))
-			{
-				if (!buttons->button->mouse)
-	      {
-					buttons->button->MouseOver(buttons->button, 1);
-					while (other_buttons)
+	if (!session->isclicked)
+		while (buttons)
+		{
+			if ((*mouse_x >= buttons->button->xpos) && (*mouse_x <= (buttons->button->xpos + (int) buttons->button->width)))
+				if ((*mouse_y >= buttons->button->ypos) && (*mouse_y <= (buttons->button->ypos + (int) buttons->button->height)))
+				{
+					if (!buttons->button->mouse)
 					{
-						if (other_buttons->button->mouse && other_buttons->button != buttons->button) other_buttons->button->MouseOver(other_buttons->button, 0);
-						other_buttons = other_buttons->next;
+						buttons->button->MouseOver(buttons->button, 1);
+						while (other_buttons)
+						{
+							if (other_buttons->button->mouse && other_buttons->button != buttons->button) other_buttons->button->MouseOver(other_buttons->button, 0);
+							other_buttons = other_buttons->next;
+						}
+						return;
 					}
-					return;
-	      }
-				else return; /* we already plotted this event */
-			}
-		buttons = buttons->next;
-	}
+					else return; /* we already plotted this event */
+				}
+			buttons = buttons->next;
+		}
   
   /* mouse not over any button */
   while (other_buttons)
@@ -329,6 +326,15 @@ void handle_text_combo_boxes(int *mouse_x, int *mouse_y)
 {
 	while (1)
 	{
+		/* mouse over session area */
+		if ( (*mouse_x >= (int) session->xpos) && (*mouse_x <= (int) session->xpos + (int) session->width) )
+			if ( (*mouse_y >= (int) session->ypos) && (*mouse_y <= (int) session->ypos + (int) session->height) )
+			{
+				session_area_mouse = 1;
+				session->MouseOver(session, 1);
+				return;
+			}		
+
 		/* mouse over username area */
 		if ( (*mouse_x >= (int) username->xpos) && (*mouse_x <= (int) username->xpos + (int) username->width) )
 			if ( (*mouse_y >= (int) username->ypos) && (*mouse_y <= (int) username->ypos + (int) username->height) )
@@ -345,16 +351,6 @@ void handle_text_combo_boxes(int *mouse_x, int *mouse_y)
 				break;
 			}
   
-		/* mouse over session area */
-		if ( (*mouse_x >= (int) session->xpos) && (*mouse_x <= (int) session->xpos + (int) session->width) )
-			if ( (*mouse_y >= (int) session->ypos) && (*mouse_y <= (int) session->ypos + (int) session->height) )
-			{
-				session_area_mouse = 1;
-				//if (!session->mouse) session->MouseOver(session, 1);
-				session->MouseOver(session, 1);
-				return;
-			}		
-
 		break;
 	}
 
@@ -364,6 +360,8 @@ void handle_text_combo_boxes(int *mouse_x, int *mouse_y)
 /* mouse movement in labels area */
 void handle_labels(int *mouse_x, int *mouse_y)
 {
+	if (session->isclicked) return;
+
   /* mouse over username area */
   if (username_label)
     if ( (*mouse_x >= (int) username_label->xpos) && (*mouse_x <= (int) username_label->xpos + (int) username_label->width) )
@@ -401,8 +399,8 @@ void handle_mouse_movement (void)
   session_area_mouse  = 0;
 
   layer->GetCursorPosition (layer, &mouse_x, &mouse_y);
-  handle_buttons(&mouse_x, &mouse_y);
   handle_text_combo_boxes(&mouse_x, &mouse_y);
+  handle_buttons(&mouse_x, &mouse_y);
   handle_labels(&mouse_x, &mouse_y);
 }
 
@@ -661,6 +659,11 @@ void handle_mouse_event (DFBInputEvent *evt)
 	      if (session_label) session_label->SetFocus(session_label, 1);
 				session->Click(session);
 			}
+			else if (session->isclicked)
+			{
+				session->Click(session);
+				handle_mouse_movement();
+			}
 		}
 		else
 		{	/* 
@@ -785,7 +788,7 @@ void start_login_sequence(DFBInputEvent *evt)
   free(welcome_msg);
   sleep(1);
   user_name = strdup(temp);  
-  user_session = strdup(session->selected->name);
+  user_session = strdup(session->selected);
   if (free_temp) free(temp);
 
 #ifdef WANT_CRYPTO
@@ -907,7 +910,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 		if (modifier == CONTROL && ascii_code == 'j') ascii_code = RETURN;
 
 		/* Rock'n Roll! */
-		if (!username->hasfocus && ascii_code == RETURN) start_login_sequence(evt);
+		if (!username->hasfocus && !session->isclicked && ascii_code == RETURN) start_login_sequence(evt);
 
 		/* user name events */
 		if (username->hasfocus && allow_tabbing)
@@ -960,6 +963,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 		/* session events */
 		if (session->hasfocus && allow_tabbing)
 		{
+			if (ascii_code == RETURN)     session->KeyEvent(session, SELECT);
 			if (ascii_code == ARROW_UP)   session->KeyEvent(session, UP);
 			if (ascii_code == ARROW_DOWN) session->KeyEvent(session, DOWN);
 			if (ascii_code == TAB)
@@ -983,7 +987,8 @@ int handle_keyboard_event(DFBInputEvent *evt)
 		/* just in case we resized a combobox and
 		 * the mouse cursor is no longer on top of it
 		 */
-		handle_mouse_movement();
+		if (!session->isclicked)
+			handle_mouse_movement();
 	}
 
   return returnstatus;
@@ -1148,7 +1153,7 @@ int create_windows()
 			case COMBO:
 				if (window->type == COMBO && !strcmp(window->command, "sessions"))
 				{
-					session = ComboBox_Create(layer, font, window->text_color, &window_desc);
+					session = ComboBox_Create(layer, font, window->text_color, &window_desc, screen_width, screen_height);
 					if (!session) return 0;
 				}
 				break;

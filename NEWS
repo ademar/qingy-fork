@@ -6,6 +6,7 @@ qingy CVS-0.6.0-CVS:
   user info before quitting...
 - SECURITY FIX: now authentication data is passed between
   qingy and its GUI trough a securely created temp file.
+- A drop-down mouse menu for sessions has been implemented.
 - Added customizable keybindings support
 - Because of the above, removed old powerkeys support
 - Fixed a rather obscure bug in which login could fail

@@ -31,43 +31,34 @@
 
 #define UP       2
 #define DOWN    -2
-
-#ifndef HAVE_STRUCT_ITEM
-typedef struct _item
-{
-	char         *name;
-	int          *n_items;
-	struct _item *next;
-	struct _item *prev;
-} item;
-#define HAVE_STRUCT_ITEM 1
-#endif
+#define SELECT  -4
 
 typedef struct _ComboBox
 {
 	/* properties */
-	item             *items;
-	item             *selected;
-	color_t           text_color;
-	unsigned int      xpos;
-	unsigned int      ypos;
-	unsigned int      width;
-	unsigned int      height;
-	int               hasfocus;
-	int               isclicked;
-	int               position;
-	IDirectFBWindow	 *window;
-	IDirectFBSurface *surface;
-	int               mouse;     /* 1 if mouse is over combobox, 0 otherwise */
-	void             *extraData; /* internal use only                        */
+	int                n_items;
+	char             **items;
+	char              *selected;
+	color_t            text_color;
+	unsigned int       xpos;
+	unsigned int       ypos;
+	unsigned int       width;
+	unsigned int       height;
+	int                hasfocus;
+	int                isclicked;
+	int                position;
+	IDirectFBWindow	  *window;
+	IDirectFBSurface  *surface;
+	int                mouse;     /* 1 if mouse is over combobox, 0 otherwise */
+	void              *extraData; /* internal use only                        */
 
 	/* methods */
+	void (*MouseOver)   (struct _ComboBox *thiz, int      status    );
 	void (*SetTextColor)(struct _ComboBox *thiz, color_t *text_color);
 	void (*KeyEvent)    (struct _ComboBox *thiz, int      direction );
-	void (*MouseOver)   (struct _ComboBox *thiz, int      status    );
 	void (*SetFocus)    (struct _ComboBox *thiz, int      focus     );
 	void (*AddItem)     (struct _ComboBox *thiz, char    *item      );
-	void (*SelectItem)  (struct _ComboBox *thiz, item    *selection );
+	void (*SelectItem)  (struct _ComboBox *thiz, char    *selection );
 	void (*SortItems)   (struct _ComboBox *thiz);
 	void (*ClearItems)  (struct _ComboBox *thiz);
 	void (*Click)       (struct _ComboBox *thiz);
@@ -82,5 +73,7 @@ ComboBox *ComboBox_Create
 	IDirectFBDisplayLayer *layer,
 	IDirectFBFont *font,
 	color_t *text_color,
-	DFBWindowDescription *window_desc
+	DFBWindowDescription *window_desc,
+	int screen_width,
+	int screen_height
 );

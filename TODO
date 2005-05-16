@@ -24,7 +24,7 @@
 
 [GUI]
 
-- drop down menu for sessions 
+* drop down menu for sessions 
 
 - Make applets possible... A mix of shared modules and window managing :P
   Maybe we could even port wmaker dockapps... just a dream of mine ;-)
@@ -91,7 +91,7 @@
 
 - Add support for setting the LANG enviroment variable...
 
-- Add an option to force user to select on a given list of allowed users on gived ttys...
+- Add an option to force user to select on a given list of allowed users on given ttys...
   NOTE: this should way until we implement the mouse drop down list for comboboxes...
 
 - Make qingy really start on one tty and fake its presence on the others...

@@ -118,7 +118,7 @@ int compare_symbol (const void *a, const void *b)
 
 int compare_id (const void *a, const void *b)
 {
-	DFBInputDeviceKeyIdentifier *id = (DFBInputDeviceKeyIdentifier *) a;
+	DFBInputDeviceKeyIdentifier *id     = (DFBInputDeviceKeyIdentifier *) a;
 	struct DFBKeyIdentifierName *idname = (struct DFBKeyIdentifierName *) b;
 
 	return *id - idname->identifier;

@@ -70,7 +70,7 @@ endif
 	@echo "#retries = 1" >> settings
 	@echo "" >> settings
 	@echo "# these options are valid only if qingy is started from tty3" >> settings
-	@echo "#tty = 1" >> settings
+	@echo "#tty = 3" >> settings
 	@echo "#{" >> settings
 	@echo "#	theme = \"fireplace\"" >> settings
 if WANT_SCREEN_SAVERS
