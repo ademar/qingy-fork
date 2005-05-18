@@ -1,4 +1,13 @@
+2005-05-18  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/tty_guardian.c (ttyWatchDog):
+	Fixed small bug in session locking where user password
+	is asked when you exit an X session...
+
 2005-05-16  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/directfb_mode.c (handle_mouse_event):
+	Implemented mouse wheel actions for combo boxes...
 
 	* media/Makefile.am (settings):
 	Corrected small glitch in commented-out section in
@@ -8,7 +17,7 @@
 	Implemented clicking on non-upper-lower-triangle areas
 	of the scrollbar. I should also implement dragging, but
 	do not intend to, at least right now. What I should
-	implement is mouse wheel actions on the scrollbar...
+	implement is mouse wheel actions...
 
 2005-05-12  Noberasco Michele  <s4t4n@gentoo.org>
 

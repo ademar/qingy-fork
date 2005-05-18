@@ -31,6 +31,9 @@
 
 #include <keybindings.h>
 
+#define MOUSE_WHEEL_UP   -1
+#define MOUSE_WHEEL_DOWN  1
+
 /* checks wether user has any of these locks active */
 #define SCROLLLOCK	1
 #define NUMLOCK			2

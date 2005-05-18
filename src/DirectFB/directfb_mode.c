@@ -626,7 +626,25 @@ void handle_mouse_event (DFBInputEvent *evt)
   static int status = 0;
 
   if (evt->type == DIET_AXISMOTION)
-    handle_mouse_movement ();
+	{ /* we check wether there is movement on Z axis, aka mouse wheel */
+		if (evt->axis == DIAI_Z)
+		{
+			int mouse_x, mouse_y;
+
+			layer->GetCursorPosition (layer, &mouse_x, &mouse_y);
+
+			if ( (mouse_x >= (int) session->xpos) && (mouse_x <= (int) session->xpos + (int) session->width) )
+				if ( (mouse_y >= (int) session->ypos) && (mouse_y <= (int) session->ypos + (int) session->height) )
+				{
+					if (evt->axisrel == MOUSE_WHEEL_UP)
+						session->KeyEvent(session, UP);
+			
+					if (evt->axisrel == MOUSE_WHEEL_DOWN)
+						session->KeyEvent(session, DOWN);
+				}
+		}
+		else handle_mouse_movement();
+	}
   else
 	{	/* mouse button press or release */
 		if (left_mouse_button_down (evt))

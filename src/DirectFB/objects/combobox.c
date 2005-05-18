@@ -267,7 +267,7 @@ void ComboBox_setWidth(ComboBox *thiz, char *selection)
 
 void ComboBox_setHeightNYpos(ComboBox *thiz, int n_items)
 {//FIXME!!!!!!!!!!!!!
-	int            min_items      = 3; /* minimum number of elements we would like on screen */
+	int            min_items      = 5; /* minimum number of elements we would like on screen */
 	int            fitting_down;
 	int            fitting_up;
 	IDirectFBFont *font;
@@ -338,9 +338,10 @@ void ComboBox_SelectItem(ComboBox *thiz, char *selection)
 void ComboBox_KeyEvent(ComboBox *thiz, int direction)
 {
 	DropDown *dropDown;
-	int i = 0;
+	int       i = 0;
 
-  if (!thiz || !thiz->selected) return;
+  if (!thiz          ) return;
+	if (!thiz->selected) return;
 	
 	dropDown = (DropDown *) thiz->extraData;
 
@@ -401,20 +402,19 @@ void ComboBox_KeyEvent(ComboBox *thiz, int direction)
 
 	if (thiz->isclicked)
 	{
-		DropDown *dropDown = (DropDown *) thiz->extraData;
-		int       y_step   = thiz->height / dropDown->n_items;
-		int       index    = dropDown->first_item;
-		int       i        = 0;
-		int       y        = 0;
+		int y_step = thiz->height / dropDown->n_items;
+		int index  = dropDown->first_item;
+		int y      = 0;
+		int margin = dropDown->scrollbar;
 
 		thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x77);
 
 		/* draw items on screen */
-		for (; i<dropDown->n_items; i++)
+		for (i=0; i<dropDown->n_items; i++)
 		{
 			if (thiz->items[index]==dropDown->selected)
 			{
-				thiz->surface->FillRectangle (thiz->surface, 0, y + 1, thiz->width, y_step + 1);
+				thiz->surface->FillRectangle (thiz->surface, 0, y + 1, thiz->width - margin, y_step + 1);
 				thiz->surface->SetColor (thiz->surface, 0, 0, 0, thiz->text_color.A);
 				thiz->surface->DrawString (thiz->surface, thiz->items[index], -1, 4, y, DSTF_LEFT|DSTF_TOP);
 				thiz->surface->SetColor (thiz->surface, thiz->text_color.R, thiz->text_color.G, thiz->text_color.B, thiz->text_color.A);

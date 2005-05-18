@@ -392,7 +392,7 @@ void ttyWatchDog(pid_t child, char *dog_master, int fence1, int fence2)
 			abort();
 		}
 		if (where_is_intruder != where_was_intruder)
-			if (where_is_intruder == fence1 || where_is_intruder == fence2)
+			if ((where_is_intruder == fence1 && where_was_intruder != fence2) || where_is_intruder == fence2)
 			{ /* if an X session is active user must be sent to X tty, after passing auth */
 				if (fence2)
 					WatchDog_Sniff(dog_master, where_was_intruder, where_is_intruder, fence2);
