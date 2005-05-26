@@ -13,9 +13,6 @@
 
 - extend the --verbose option to virtually report all that can be reported ;-)
 
-* someone reported that user gets increased when logging in, but not
-  decreased when logging out! Update: I was never, ever, able to replicate this...
-
 * Some people reported a supposed memory leak inside qingy, but I was not
   able to reproduce the issue...
 
@@ -23,8 +20,6 @@
 
 
 [GUI]
-
-* drop down menu for sessions 
 
 - Make applets possible... A mix of shared modules and window managing :P
   Maybe we could even port wmaker dockapps... just a dream of mine ;-)

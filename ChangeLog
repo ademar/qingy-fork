@@ -1,3 +1,16 @@
+2005-05-26  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/tty_guardian.c (has_controlling_process)
+	(is_getty):
+	Made tty_guardian recognize qingy-spawned shells.
+
+2005-05-19  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/tty_guardian.c:
+	Fixed some issues in session locking regarding
+	moving user to the appropriate tty when an X
+	session is active.
+
 2005-05-18  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/libraries/tty_guardian.c (ttyWatchDog):

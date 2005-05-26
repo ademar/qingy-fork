@@ -245,6 +245,10 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 		AC_DEFINE(slackware, 1, [Define if target platform is Slackware Linux])
 		DISTRO="slackware"
 	fi
+	if test "`ls /etc/SuSE* 2>/dev/null | grep \"SuSE\"`" != ""; then
+		AC_DEFINE(suse, 1, [Define if target platform is SuSE Linux])
+		DISTRO="suse"
+	fi
 	AC_SUBST(PAMDATA,)
 	AC_MSG_RESULT([$DISTRO])
 # End check for distribution
@@ -294,6 +298,7 @@ echo "
 Configuration:
 
   Source code location:       ${srcdir}
+  Target distribution:        ${DISTRO}
   Compiler:                   ${CC}
   Compiler flags:             ${CFLAGS}
   

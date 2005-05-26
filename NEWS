@@ -35,6 +35,7 @@ qingy CVS-0.6.0-CVS:
   because that situation can not (yet) be distinguished from
   when you come from an unused tty (which is owned by root
   as well)...
+- Fixed a number of tty guardian related bugs.
 - Other small fixes and clean-ups.
 
 

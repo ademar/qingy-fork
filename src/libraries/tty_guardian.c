@@ -66,7 +66,6 @@
 #define PASSWD_MAX 128
 
 
-
 /* checks wether given string is a number */
 int is_number(char *string)
 {
@@ -80,13 +79,12 @@ int is_number(char *string)
 }
 
 /* we check wether <process> is qingy or getty */
-int is_getty(pid_t process)
+char *is_getty(pid_t process)
 {
 	char *temp = int_to_str(process);
 	char *link = StrApp((char**)NULL, "/proc/", temp, "/exe", (char*)NULL);	
 	char buf[256];
 	int size;
-	int result = 0;
 
 	free(temp);
 	size = readlink(link, buf, 255);
@@ -95,10 +93,10 @@ int is_getty(pid_t process)
 	if (size == -1) abort();
 	buf[size] = '\0';
 
-	if (strstr(buf, "getty")) result = 1;
-	if (strstr(buf, "qingy")) result = 1;
+	if (strstr(buf, "getty")) return "getty";
+	if (strstr(buf, "qingy")) return "qingy";
 
-	return result;
+	return NULL;
 }
 
 /*
@@ -161,8 +159,18 @@ pid_t has_controlling_process(int tty)
 		free(dirname);
 		if (counter == 3)
 		{
+			char *getty;
+
 			result = atoi(entry->d_name);
-			break;
+			getty  = is_getty(result);
+
+			if (!getty)                 break;
+			if (strcmp(getty, "qingy")) break;
+
+			/* qingy is controlling this tty, we do not return this value
+			 * so that we can catch a possible qingy-spawned shell
+			 */
+			result = 0;
 		}
 	}
 	closedir(dir);
@@ -274,6 +282,8 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 	{ /* this is our master, not an intruder */
 		free(previous_intruder);
 		previous_intruder = intruder;
+		if (send_him_here != where_is_intruder)
+			set_active_tty(send_him_here);
 		return;
 	}
 
@@ -312,6 +322,8 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 				{ /* now we are sure about user identity */
 					free(previous_intruder);
 					previous_intruder = intruder;
+					if (send_him_here != where_is_intruder)
+						set_active_tty(send_him_here);
 					return;
 				}
 			}
@@ -320,7 +332,7 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 				 * we check wether it is some sort of getty
 				 */
 				if (is_getty(process))
-				{	/* getty is running here: we cannot know who intruder is */
+				{ /* getty is running here: we cannot know who intruder is */
 					free(intruder);
 					intruder = strdup("unknown");
 					free(previous_intruder);
@@ -329,7 +341,9 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 				{ /* this tty is controlled by root: we grant access */
 					free(previous_intruder);
 					previous_intruder = intruder;
-					return;					
+					if (send_him_here != where_is_intruder)
+						set_active_tty(send_him_here);
+					return;
 				}
 			}
 		}
@@ -344,7 +358,11 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 	if (previous_intruder)
 		if (strcmp(previous_intruder, "root"))
 				if (!strcmp(previous_intruder,intruder))
-					return; /* it's a hard life being sure of someone... */
+				{ /* it's a hard life being sure of someone... */
+					if (send_him_here != where_is_intruder)
+						set_active_tty(send_him_here);
+					return;
+				}
 
 	/* tell user to authenticate himself */
 	retval = WatchDog_Bark(dog_master, intruder, where_is_intruder);	
@@ -392,13 +410,21 @@ void ttyWatchDog(pid_t child, char *dog_master, int fence1, int fence2)
 			abort();
 		}
 		if (where_is_intruder != where_was_intruder)
+		{
 			if ((where_is_intruder == fence1 && where_was_intruder != fence2) || where_is_intruder == fence2)
 			{ /* if an X session is active user must be sent to X tty, after passing auth */
 				if (fence2)
 					WatchDog_Sniff(dog_master, where_was_intruder, where_is_intruder, fence2);
 				else
 					WatchDog_Sniff(dog_master, where_was_intruder, where_is_intruder, fence1);
-			}		
+			}
+			else if (where_is_intruder == fence1 && where_was_intruder == fence2)
+			{
+				set_active_tty(fence2);
+				where_was_intruder = fence2;
+				where_is_intruder  = fence2;
+			}
+		}
 		nanosleep(&delay, NULL); /* wait a little before checking again */
 	}
 }
