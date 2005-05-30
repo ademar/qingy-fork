@@ -266,8 +266,8 @@ void ComboBox_setWidth(ComboBox *thiz, char *selection)
 }
 
 void ComboBox_setHeightNYpos(ComboBox *thiz, int n_items)
-{//FIXME!!!!!!!!!!!!!
-	int            min_items      = 5; /* minimum number of elements we would like on screen */
+{
+	int            min_items      = 10; /* minimum number of elements we would like on screen */
 	int            fitting_down;
 	int            fitting_up;
 	IDirectFBFont *font;
