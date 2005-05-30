@@ -65,7 +65,7 @@ endif
 	@echo "# to any tty you chose to. Default setting is 'no'." >> settings
 	@echo "#lock_sessions = yes" >> settings
 	@echo "" >> settings
-	@echo "# How many times should we try to fire app qingy interface" >> settings
+	@echo "# How many times should we retry to fire app qingy interface" >> settings
 	@echo "# before reverting to text mode? Default is 0..." >> settings
 	@echo "#retries = 1" >> settings
 	@echo "" >> settings

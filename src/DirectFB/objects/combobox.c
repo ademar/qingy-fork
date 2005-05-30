@@ -338,7 +338,7 @@ void ComboBox_SelectItem(ComboBox *thiz, char *selection)
 void ComboBox_KeyEvent(ComboBox *thiz, int direction)
 {
 	DropDown *dropDown;
-	int       i = 0;
+	int       i;
 
   if (!thiz          ) return;
 	if (!thiz->selected) return;
@@ -351,39 +351,54 @@ void ComboBox_KeyEvent(ComboBox *thiz, int direction)
   switch (direction)
   {
 		case UP:
-			for (; i<thiz->n_items; i++)
+			for (i=0; i<thiz->n_items; i++)
 				if (thiz->items[i] == dropDown->selected)
 				{
 					if (i > 0)
 					{
-						dropDown->selected = thiz->items[i - 1];
+						i--;
+						dropDown->selected = thiz->items[i];
 						if (!thiz->isclicked)
-							thiz->SelectItem(thiz, thiz->items[i - 1]);
+							thiz->SelectItem(thiz, thiz->items[i]);
+						else
+							while (i < dropDown->first_item)
+								dropDown->first_item--;
 					}
 					else
 					{
 						dropDown->selected = thiz->items[thiz->n_items - 1];
 						if (!thiz->isclicked)
 							thiz->SelectItem(thiz, thiz->items[thiz->n_items - 1]);
+						else
+						{
+							dropDown->first_item = thiz->n_items - dropDown->n_items;
+							if (dropDown->first_item < 0) dropDown->first_item = 0;
+						}
 					}
 					break;
 				}
 			break;
 		case DOWN:
-			for (; i<thiz->n_items; i++)
+			for (i=0; i<thiz->n_items; i++)
 				if (thiz->items[i] == dropDown->selected)
 				{
 					if (i < (thiz->n_items - 1))
 					{
-						dropDown->selected = thiz->items[i + 1];
+						i++;
+						dropDown->selected = thiz->items[i];
 						if (!thiz->isclicked)
-							thiz->SelectItem(thiz, thiz->items[i + 1]);
+							thiz->SelectItem(thiz, thiz->items[i]);
+						else
+							while (i > (dropDown->first_item + dropDown->n_items - 1))
+								dropDown->first_item++;
 					}
 					else
 					{
 						dropDown->selected = thiz->items[0];
 						if (!thiz->isclicked)
 							thiz->SelectItem(thiz, thiz->items[0]);
+						else
+							dropDown->first_item = 0;
 					}
 					break;
 				}
@@ -405,20 +420,27 @@ void ComboBox_KeyEvent(ComboBox *thiz, int direction)
 		int y_step = thiz->height / dropDown->n_items;
 		int index  = dropDown->first_item;
 		int y      = 0;
-		int margin = dropDown->scrollbar;
+		int margin = 0;
 
 		thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x77);
+
+		/* draw lateral scrollbar if needed */
+		dropDown->scrollbar = 0;
+		if (thiz->n_items > dropDown->n_items)
+		{
+			DrawScrollBar(thiz);
+			margin = dropDown->scrollbar;
+		}
 
 		/* draw items on screen */
 		for (i=0; i<dropDown->n_items; i++)
 		{
-			if (thiz->items[index]==dropDown->selected)
+			if (thiz->items[index] == dropDown->selected)
 			{
 				thiz->surface->FillRectangle (thiz->surface, 0, y + 1, thiz->width - margin, y_step + 1);
 				thiz->surface->SetColor (thiz->surface, 0, 0, 0, thiz->text_color.A);
 				thiz->surface->DrawString (thiz->surface, thiz->items[index], -1, 4, y, DSTF_LEFT|DSTF_TOP);
 				thiz->surface->SetColor (thiz->surface, thiz->text_color.R, thiz->text_color.G, thiz->text_color.B, thiz->text_color.A);
-				dropDown->selected = thiz->items[index];
 			}
 			else
 				thiz->surface->DrawString (thiz->surface, thiz->items[index], -1, 4, y, DSTF_LEFT|DSTF_TOP);
@@ -430,10 +452,6 @@ void ComboBox_KeyEvent(ComboBox *thiz, int direction)
 		/* draw a nice rectangle around combobox items */
 		thiz->surface->SetColor (thiz->surface, thiz->text_color.R, thiz->text_color.G, thiz->text_color.B, thiz->text_color.A);
 		thiz->surface->DrawRectangle (thiz->surface, 0, 0, thiz->width, thiz->height);
-
-		/* draw lateral scrollbar if needed */
-		if (thiz->n_items > dropDown->n_items)
-			DrawScrollBar(thiz);
 
 		thiz->surface->Flip(thiz->surface, NULL, 0);
 	}
@@ -559,7 +577,7 @@ void ComboBox_Click(ComboBox *thiz)
 		ComboBox_setHeightNYpos(thiz, 1);
 		thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
 
-		if (dropDown && thiz->mouse) thiz->selected = dropDown->selected;
+		if (thiz->mouse) thiz->selected = dropDown->selected;
 
 		thiz->isclicked = 0;
  		ComboBox_SelectItem(thiz, thiz->selected);

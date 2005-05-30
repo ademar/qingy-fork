@@ -1,4 +1,4 @@
-qingy CVS-0.6.0-CVS:
+qingy 0.6.0 (30 May 2005):
 - SECURITY ENHANCEMENT: added support for encrypting communications
   between qingy and its user interface, triggered by new ./configure
   option: --enable-crypto, enabled by default.

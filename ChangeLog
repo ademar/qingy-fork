@@ -1,3 +1,8 @@
+2005-05-30  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/objects/combobox.c:
+	Completed drop-down menu for combo boxes...
+
 2005-05-26  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/libraries/tty_guardian.c (has_controlling_process)
