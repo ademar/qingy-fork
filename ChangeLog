@@ -1,3 +1,9 @@
+2005-06-13  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/session.c:
+	Print error message (from errno) to stderr in case
+	execve fails...
+
 2005-05-30  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/DirectFB/objects/combobox.c:

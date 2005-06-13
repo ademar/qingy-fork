@@ -1,6 +1,9 @@
 [FIXES]
 
 
+SYSLOG/LOGFILE SUPPORT
+
+
 - Some command line options should migrate to config file...
 
 * Name theme tarball a bit better

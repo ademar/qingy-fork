@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <syslog.h>
 #include <time.h>
 #include <unistd.h>
@@ -623,7 +624,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 		execve(pw->pw_shell, args, environ);
       
 		/* execve should never return! */
-		fprintf(stderr, "session: fatal error: cannot start your session!\n");
+		fprintf(stderr, "session: fatal error: cannot start your session: %s!\n", strerror(errno));
 		exit(0);
 	}
   set_last_user(username);
@@ -760,7 +761,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 		execve(pw->pw_shell, args, environ);
       
 		/* execve should never return! */
-		fprintf(stderr, "session: fatal error: cannot start your session!\n");
+		fprintf(stderr, "session: fatal error: cannot start your session: %s!\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
   set_last_user(username);
