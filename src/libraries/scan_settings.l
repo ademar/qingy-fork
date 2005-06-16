@@ -168,6 +168,8 @@ text_mode               return TEXT_MODE_TOK;
 menu                    return MENU_KEY_TOK;
 win                     return WIN_KEY_TOK;
 keybindings             return KEYBINDINGS_TOK;
+user                    return USER_TOK;
+last_session_policy     return LAST_SESSION_POLICY_TOK;
 
 
 "#"[^\n]*"\n" ;			/* skip comments */

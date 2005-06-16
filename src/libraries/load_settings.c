@@ -3,8 +3,8 @@
                        load_settings.c  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : noberasco.gnu@disi.unige.it
+    copyright            : (C) 2003-2005 by Noberasco Michele
+    e-mail               : s4t4n@gentoo.org
 ***************************************************************************/
 
 /***************************************************************************
@@ -106,6 +106,7 @@ void initialize_variables(void)
   silent                  = 1;
 	clear_background        = 0;
   SHUTDOWN_POLICY         = EVERYONE;
+	LAST_SESSION_POLICY     = USER;
 	GOT_THEME               = 0;
 	lock_sessions           = 0;
 	retries                 = 0;
@@ -330,37 +331,83 @@ char *get_last_session(char *user)
   return strdup(tmp);
 }
 
-int set_last_session(char *user, char *session)
+void set_last_session(char *user, char *session, int tty)
 {
-  char *homedir;
-  char *filename;
-  FILE *fp;
-  
-  if (!user || !session) return 0;
-	homedir = get_home_dir(user);
-  if (!homedir) return 0;
-  
-  filename = (char *) calloc(strlen(homedir)+8, sizeof(char));
-  strcpy(filename, homedir);
-  free(homedir);
-  if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
-  strcat(filename, ".qingy");
-  fp = fopen(filename, "w");
-  free(filename);
-  
-  if (!fp) 
-	{		
-		/* (MICHELE): should not happen, but hell!
-		 * who cares if it does?
-		 * perror("Qingy error");
-		 */
-		return 0;
+  if (!session) return;
+
+	/* we write last session in user home dir */
+	if (user)
+	{
+		char *filename;
+		FILE *fp;
+		char *homedir = get_home_dir(user);
+
+		if (homedir)
+		{
+			filename = (char *) calloc(strlen(homedir)+8, sizeof(char));
+			strcpy(filename, homedir);
+			free(homedir);
+			if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
+			strcat(filename, ".qingy");
+			fp = fopen(filename, "w");
+			free(filename);
+
+			if (fp) 
+			{		
+				fprintf(fp, "%s", session);
+				fclose(fp);
+			}
+		}
 	}
 
-  fprintf(fp, "%s", session);
-  fclose(fp);
+	/* we write last session in tty_last_session file */
+	if (tty)
+	{
+		char   *ttystr      = int_to_str(tty);
+		char   *filenamein  = (char *) calloc(strlen(TMP_FILE_DIR)+20, sizeof(char));
+		char   *filenameout = (char *) calloc(strlen(TMP_FILE_DIR)+24, sizeof(char));
+		char   *line        = NULL;
+		size_t  len         = 0;
+		FILE   *filein;
+		FILE   *fileout;
 
-  return 1;
+		strcpy(filenamein, TMP_FILE_DIR);
+		if (filenamein[strlen(filenamein)-1] != '/') strcat(filenamein, "/");
+		strcpy(filenameout, filenamein);
+		strcat(filenamein,  "qingy-lastsessions");
+		strcat(filenameout, "qingy-lastsessions-new");
+		filein  = fopen(filenamein,  "r");
+		fileout = fopen(filenameout, "w");
+
+		if (!fileout) 
+		{
+			if (filein) fclose(filein);
+			remove(filenameout);
+			free(filenamein);
+			free(filenameout);
+			free(ttystr);
+			return;
+		}
+
+		if (filein)
+		{
+			while (getline(&line, &len, filein) != -1)
+				if (strncmp(line, ttystr, strlen(ttystr)))
+					fputs(line, fileout);
+
+			fclose(filein);
+		}
+
+		fprintf(fileout, "%s %s\n", ttystr, session);
+
+		fclose(fileout);
+		remove(filenamein);
+		rename(filenameout, filenamein);
+
+		free(filenamein); free(filenameout);
+		free(ttystr);
+		if (line) free(line);
+	}
 }
 
 /* see if we know this guy... */

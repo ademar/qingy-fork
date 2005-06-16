@@ -628,7 +628,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 		exit(0);
 	}
   set_last_user(username);
-  set_last_session(username, session);	  	
+  set_last_session(username, session, current_vt);
   
   if (!lock_sessions) wait(NULL);
 	else
@@ -765,7 +765,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 		exit(EXIT_FAILURE);
 	}
   set_last_user(username);
-  set_last_session(username, session);  
+  set_last_session(username, session, current_vt);
   
   /* wait a bit, then clear console from X starting messages */
   sleep(3);

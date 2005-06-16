@@ -2,8 +2,8 @@
                        load_settings.h  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : noberasco.gnu@disi.unige.it
+    copyright            : (C) 2003-2005 by Noberasco Michele
+    e-mail               : s4t4n@gentoo.org
  ***************************************************************************/
 
 /***************************************************************************
@@ -110,6 +110,14 @@ typedef enum
 } shutdown_policies;
 shutdown_policies SHUTDOWN_POLICY;
 
+/* Last session policy... */
+typedef enum 
+{
+  USER=0,
+  TTY
+} last_session_policies;
+last_session_policies LAST_SESSION_POLICY;
+
 /* screen saver stuff */
 struct _screensaver_options
 {
@@ -208,7 +216,7 @@ int set_last_user(char *user);
 
 /* get/save last session used by <user> */
 char *get_last_session(char *user);
-int set_last_session(char *user, char *session);
+void set_last_session(char *user, char *session, int tty);
 
 /* see if we know this guy... */
 char *get_welcome_msg(char *user);

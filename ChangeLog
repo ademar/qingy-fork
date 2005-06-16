@@ -1,3 +1,19 @@
+2005-06-16  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/session.c,
+	* src/libraries/load_settings.c (set_last_session):
+	Save last session fired up on a per-user AND per-tty basis...
+
+2005-06-15  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l,
+	* src/libraries/load_settings.c (initialize_variables),
+	* src/libraries/load_settings.h: 
+	Adding support to select wether qingy should calculate last session
+	on a per-user or a per-tty basis. Default will be current functionality,
+	i.e. per-user.
+
 2005-06-13  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/libraries/session.c:
