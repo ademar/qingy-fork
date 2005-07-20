@@ -16,9 +16,6 @@ SYSLOG/LOGFILE SUPPORT
 
 - extend the --verbose option to virtually report all that can be reported ;-)
 
-* Some people reported a supposed memory leak inside qingy, but I was not
-  able to reproduce the issue...
-
 
 
 
@@ -72,8 +69,6 @@ SYSLOG/LOGFILE SUPPORT
 
 * Make code compliant to the GNU Coding Standards.. That is to be done in order
   to try inclusion in the GNU Project.
-
-- option for selecting session based on tty, not on user
 
 - Add support for handling console bootsplash from inside qingy? That is: qingy
   background becomes framebuffer background when you log in...

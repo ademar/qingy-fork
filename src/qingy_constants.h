@@ -5,7 +5,7 @@
 #ifndef QINGY_CONST_H
 #define QINGY_CONST_H
 
-#define MAX 255
+#define MAX 256
 #define QINGY_FAILURE -1
 
 #endif 

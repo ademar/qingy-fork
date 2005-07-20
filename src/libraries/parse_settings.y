@@ -136,6 +136,7 @@ static window_t wind =
 /* a configuration */
 config: /* nothing */
 | config tty_specific
+| config last_session
 | config lck_sess
 | config scrsvrs_dir
 | config themes_dir
@@ -151,7 +152,6 @@ config: /* nothing */
 | config sleep
 | config theme { TTY_CHECK_COND GOT_THEME=set_theme_result; }
 | config shutdown
-| config last_session
 | config window
 | config keybindings
 | config CLEAR_BACKGROUND_TOK '=' YES_TOK { if (!clear_background_is_set) clear_background = 1; }
@@ -163,6 +163,7 @@ tty_specific: TTY_TOK '=' ANUM_T { intended_tty = $3; } '{' config_tty '}' { int
 
 /* tty specific allowed configuration */
 config_tty: /* nothing */
+| config_tty last_session
 | config_tty lck_sess
 | config_tty scrsvrs_dir
 | config_tty themes_dir
@@ -178,7 +179,6 @@ config_tty: /* nothing */
 | config_tty sleep
 | config_tty theme { TTY_CHECK_COND GOT_THEME=set_theme_result; }
 | config_tty shutdown
-| config_tty last_session
 | config_tty window
 | config_tty CLEAR_BACKGROUND_TOK '=' YES_TOK { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 1;} }
 | config_tty CLEAR_BACKGROUND_TOK '=' NO_TOK  { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 0;} }
@@ -318,12 +318,12 @@ shutdown: SHUTDOWN_TOK '=' EVERYONE_TOK
 ;
 
 /* shutdown policies */
-last_session: LAST_SESSION_TOK '=' USER_TOK
+last_session: LAST_SESSION_POLICY_TOK '=' USER_TOK
 	{
 	  if (in_theme) yyerror("Setting 'last_session_policy' is not allowed in theme file.");
 	  TTY_CHECK_COND LAST_SESSION_POLICY = USER;
 	}
-| LAST_SESSION_TOK '=' TTY_TOK
+| LAST_SESSION_POLICY_TOK '=' TTY_TOK
 	{
 	  if (in_theme) yyerror("Setting 'last_session_policy' is not allowed in theme file.");
 	  TTY_CHECK_COND LAST_SESSION_POLICY = TTY;

@@ -1,4 +1,4 @@
-AC_INIT([qingy],[0.6.0],[s4t4n@gentoo.org])
+AC_INIT([qingy],[0.6.1],[s4t4n@gentoo.org])
 AC_PREREQ(2.57)
 AC_CONFIG_SRCDIR(src/main.c)
 AM_INIT_AUTOMAKE([1.6 check-news dist-bzip2])
@@ -236,6 +236,7 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	if test "`ls /etc/*release   2>/dev/null | grep \"gentoo\"`"    != ""; then
 		AC_DEFINE(gentoo, 1, [Define if target platform is Gentoo Linux])
 		DISTRO="gentoo"
+		PAMDATA="gentoo/qingy"
 	fi
 	if test "`ls /etc/debian*    2>/dev/null | grep \"debian\"`"    != ""; then
 		AC_DEFINE(debian, 1, [Define if target platform is Debian Linux])

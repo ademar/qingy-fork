@@ -178,25 +178,27 @@ void Draw_Background_Image(int do_the_drawing)
  */
 void set_user_session(char *user)
 {
-  char *user_session = get_last_session(user);
+  char *user_session = NULL;
 	int   i            = 0;
   
   if (!session || !session->items)
-	{
-		free(user_session);
 		return;
-	}
+
+	user_session = get_last_session(user);
   
   if (user_session)
 	{
 		for (; i<session->n_items; i++)
 			if (!strcmp(session->items[i], user_session))
+			{
 				if (session->items[i] != session->selected)
 				{
 					session->SelectItem(session, session->items[i]);
 					free(user_session);
 					return;
 				}
+				else return;
+			}
 
 		free(user_session);
 	}

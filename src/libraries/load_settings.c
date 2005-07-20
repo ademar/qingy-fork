@@ -257,23 +257,16 @@ void yyerror(char *error)
 
 char *get_last_user(void)
 {
-  FILE *fp = fopen(LAST_USER, "r");
-  char tmp[MAX];  
+  FILE   *fp   = fopen(LAST_USER, "r");
+	char   *line = NULL;
+	size_t  len  = 0;
   
-	/*
-	 * no point in printing out an error:
-	 * it just means that no user has
-	 * logged in with qingy, yet
-	 */
   if (!fp) return NULL;
-  if (fscanf(fp, "%s", tmp) != 1)
-	{
-		fclose(fp);
-		return NULL;
-	}
-  fclose(fp);
-  
-  return strdup(tmp);
+
+	getline(&line, &len, fp);
+	fclose(fp);
+
+  return line;
 }
 
 int set_last_user(char *user)
@@ -296,39 +289,66 @@ int set_last_user(char *user)
 
 char *get_last_session(char *user)
 {
-  char *homedir;
-  char filename[MAX];
-  char tmp[MAX];
-  FILE *fp;
-  
-  if (!user) return NULL;  
-  homedir = get_home_dir(user);
-  if (!homedir) return NULL;
-  
-  strcpy(filename, homedir);
-  free(homedir);
-  if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
-  strcat(filename, ".qingy");
-  fp = fopen(filename, "r");
-  if (!fp)
-    /* perror("Qingy error"); */
-		/* (MICHELE): Bloody hell, this is NOT an error!
-		 * it just means that there is no previously recorded
-		 * session for this user!
-		 */
-    return NULL;
-  if (!get_line(tmp, fp, MAX))
+  FILE   *fp;
+	char   *result   = NULL;
+  char   *filename = NULL;
+	char   *line     = NULL;
+	size_t  len      = 0;
+
+
+	if (LAST_SESSION_POLICY == TTY)
 	{
-		/* (MICHELE) if it did open it,
-		 * it will also close it without problems!
-		 * if(fclose(fp)==EOF)
-		 * perror("Qingy error");
-		 */
-		fclose(fp);
-		return NULL;
+		filename = (char *) calloc(strlen(TMP_FILE_DIR)+20, sizeof(char));
+  
+		strcpy(filename, TMP_FILE_DIR);
+		if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
+		strcat(filename, "qingy-lastsessions");
 	}
-  fclose(fp);
-  return strdup(tmp);
+
+	if (LAST_SESSION_POLICY == USER)
+	{
+		char *homedir;
+
+		if (!user) return NULL;
+
+		homedir  = get_home_dir(user);
+		if (!homedir) return NULL;
+
+		filename = (char *) calloc(strlen(homedir)+8, sizeof(char));
+  
+		strcpy(filename, homedir);
+		free(homedir);
+		if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
+		strcat(filename, ".qingy");
+	}
+
+	fp = fopen(filename, "r");
+	free(filename);
+	if (!fp) return NULL;
+
+	if (LAST_SESSION_POLICY == USER)
+		if (getline(&line, &len, fp) != -1)
+			result = line;
+
+	if (LAST_SESSION_POLICY == TTY)
+	{
+		char *ttystr    = int_to_str(current_tty);
+		int   lenttystr = strlen(ttystr);
+		int   lenline;
+
+		while ((lenline=getline(&line, &len, fp)) != -1)
+			if (!strncmp(line, ttystr, lenttystr))
+			{
+				result = strndup(line + lenttystr + 1, lenline - lenttystr - 2);
+				break;
+			}
+		free(line);
+		free(ttystr);
+	}
+
+	fclose(fp);
+
+	return result;
 }
 
 void set_last_session(char *user, char *session, int tty)
@@ -364,6 +384,7 @@ void set_last_session(char *user, char *session, int tty)
 	if (tty)
 	{
 		char   *ttystr      = int_to_str(tty);
+		int     lenttystr   = strlen(ttystr);
 		char   *filenamein  = (char *) calloc(strlen(TMP_FILE_DIR)+20, sizeof(char));
 		char   *filenameout = (char *) calloc(strlen(TMP_FILE_DIR)+24, sizeof(char));
 		char   *line        = NULL;
@@ -392,7 +413,7 @@ void set_last_session(char *user, char *session, int tty)
 		if (filein)
 		{
 			while (getline(&line, &len, filein) != -1)
-				if (strncmp(line, ttystr, strlen(ttystr)))
+				if (strncmp(line, ttystr, lenttystr))
 					fputs(line, fileout);
 
 			fclose(filein);

@@ -35,7 +35,7 @@ if WANT_SCREEN_SAVERS
 	@echo "# Where are the screen savers?" >> settings
 	@echo "screensavers_dir = \"@SCREENSAVERS_DIR@\"" >> settings
 	@echo "" >> settings
-	@echo "#       screensaver \"pixel\"" >> settings
+	@echo "#screensaver \"pixel\"" >> settings
 	@echo "screensaver \"running_time\"#=\"%H:%S:%M\"" >> settings
 	@echo "" >> settings
 endif
@@ -48,7 +48,14 @@ endif
 	@echo "" >> settings
 	@echo "# Who is allowed to shut down the system?" >> settings
 	@echo "# Allowed options are 'everyone', 'root', 'noone'" >> settings
+	@echo "# default policy is everyone" >> settings
 	@echo "# shutdown_policy = everyone" >> settings
+	@echo "" >> settings
+	@echo "# How should last session be calculated?" >> settings
+	@echo "# user means get last session of selected user" >> settings
+	@echo "# tty  means get last session of current tty" >> settings
+	@echo "# default policy is user" >> settings
+	@echo "#last_session_policy = user" >> settings
 	@echo "" >> settings
 	@echo "# What happens when we press the 'sleep' button?" >> settings
 	@echo "#sleep = \"/usr/local/sbin/hibernate\"" >> settings

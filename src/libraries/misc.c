@@ -121,24 +121,6 @@ char *get_home_dir(char *user)
 }
 
 
-int get_line(char *tmp, FILE *fp, int max)
-{
-  int result = 0;
-  int temp;
-  
-  if (!tmp || !fp || max<1) return 0;
-  while((temp = fgetc(fp)) != EOF)
-	{
-		if (temp == '\n') break;
-		if (result == max-1) break;
-		tmp[result] = (char) temp;
-		result++;
-	}
-  tmp[result] = '\0';
-  return result;
-}
-
-
 char *print_welcome_message(char *preamble, char *postamble)
 {
   char *text = (char *) calloc(MAX, sizeof(char));

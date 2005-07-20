@@ -58,9 +58,6 @@ void ClearScreen(void);
 /* get <user> home directory */
 char *get_home_dir(char *user);
 
-/* Reads an entire line from fp */
-int get_line(char *tmp, FILE *fp, int max);
-
 /* Prints a welcome message */
 char *print_welcome_message(char *preamble, char *postamble);
 

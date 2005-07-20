@@ -1,4 +1,27 @@
+2005-07-12  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* configure.in,
+	* media/pam/gentoo/qingy,
+	* media/pam/Makefile.am: 
+	Re-added a Gentoo-specific PAM module that makes use of pam_stack.so
+
+2005-06-17  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* media/Makefile.am (settings):
+	Updated sample config file with last session policy.
+
+	* media/qingy-mode.el:
+	Updated mayor mode with last session policy.
+
+	* src/DirectFB/directfb_mode.c (set_user_session),
+	* src/libraries/load_settings.c (get_last_session):
+	Completed support for per-tty last session selection.
+
 2005-06-16  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/misc.c,
+	* src/libraries/misc.h:
+	Removed no longer used get_line() function.
 
 	* src/libraries/session.c,
 	* src/libraries/load_settings.c (set_last_session):

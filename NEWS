@@ -1,3 +1,10 @@
+qingy CVS-0.6.1-CVS:
+- Added support for selecting last session on a per-user or a
+  per-tty basis. Previous (and current default) behaviour was
+  per-user only. To change it you have to set variable
+  last_session_policy in settings file.
+
+
 qingy 0.6.0 (30 May 2005):
 - SECURITY ENHANCEMENT: added support for encrypting communications
   between qingy and its user interface, triggered by new ./configure

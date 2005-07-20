@@ -43,6 +43,7 @@
 
 (defconst qingy-font-lock-keywords-1
   (list
+   '("\\(last_session_policy\\)" . font-lock-variable-name-face)
    '("\\(lastsession\\)" . font-lock-constant-face)
    '("\\(t\\(?:hemes_dir\\|ext_sessions\\|emp_files_dir\\|ext_mode\\)\\)" . font-lock-variable-name-face)
 	 '("\\(x\\(?:_sessions\\|_args\\|init\\|_server\\)\\)" . font-lock-variable-name-face)
@@ -54,6 +55,7 @@
 	 '("\\(r\\(?:elogin\\|eboot\\)\\)" . font-lock-variable-name-face)
 	 '("\\(s\\(?:leep\\)\\)" . font-lock-variable-name-face)
 	 '("\\(u\\(?:sername\\)\\)" . font-lock-variable-name-face)
+	 '("\\(u\\(?:ser\\)\\)" . font-lock-constant-face)
    '("\\(content\\|default_\\(?:\\(?:cursor\\|text\\)_color\\)\\|linkto\\|text_orientation\\)" . font-lock-variable-name-face)
    '("\\(b\\(?:ackground\\|utton_opacity\\)\\|cursor_color\\|font\\|text_color\\|other_text_color\\|\\(?:selected_\\)?window_opacity\\)" . font-lock-variable-name-face)
    '("\\(center\\|\\(?:lef\\|righ\\)t\\)" . font-lock-constant-face)
