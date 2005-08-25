@@ -1,3 +1,11 @@
+2005-08-24  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* media/screensavers/photos/photos.c (is_image):
+	Made file extensions checks to ignore case.
+	(screen_saver_entry):
+	Made photo screen-saver honour the aspect ratio of
+	images, so that it no longer distorts them.
+
 2005-07-12  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* configure.in,

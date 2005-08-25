@@ -70,8 +70,8 @@ int is_image(char *filename)
 	if (lun<5) return 0;
 
 	temp = filename + lun - 4;
-	if (!strcmp(temp, ".png")) return 1;
-	if (!strcmp(temp, ".jpg")) return 1;
+	if (!strcasecmp(temp, ".png")) return 1;
+	if (!strcasecmp(temp, ".jpg")) return 1;
 
 	return 0;
 }
@@ -127,13 +127,20 @@ int load_images_list(char **params, int silent)
 
 void screen_saver_entry(Q_screen_t env)
 {
+	DFBSurfaceDescription desc;
 	IDirectFBImageProvider *provider;
+	DFBRectangle dest_rectangle;
 	static int n_images = 0;
 	int errorcount = 0;
 	int image;
   unsigned int seconds=5;
   unsigned int milli_seconds=0;
+	int image_width,  image_height;
+	int screen_width, screen_height;
+	float xy_ratio;
+	IDirectFBSurface *dest_surface;
 
+	env.surface->GetSize(env.surface, &screen_width, &screen_height);
 
   if (!env.dfb || !env.surface) return;
   /* we clear event buffer to avoid being bailed out immediately */
@@ -186,8 +193,47 @@ void screen_saver_entry(Q_screen_t env)
 			}
 		}
 
+		/* Let's make sure that the image will not be distorted */
+		provider->GetSurfaceDescription(provider, &desc);
+		image_width  = desc.width;
+		image_height = desc.height;
+		xy_ratio = (float)image_width / (float)image_height;
+
+		if (image_width > image_height)
+		{
+			if (image_width < screen_width)
+			{
+				dest_rectangle.x=(screen_width-image_width)/2;
+				dest_rectangle.w=image_width;
+			}
+			else
+			{
+				dest_rectangle.x=0;
+				dest_rectangle.w=screen_width;
+			}
+			dest_rectangle.h=dest_rectangle.w/xy_ratio;
+			dest_rectangle.y=(screen_height-dest_rectangle.h)/2;
+		}
+		else
+		{
+			if (image_height < screen_height)
+			{
+				dest_rectangle.y=(screen_height-image_height)/2;
+				dest_rectangle.h=image_height;
+			}
+			else
+			{
+				dest_rectangle.y=0;
+				dest_rectangle.h=screen_height;
+			}
+			dest_rectangle.w=dest_rectangle.h*xy_ratio;
+			dest_rectangle.x=(screen_width-dest_rectangle.w)/2;
+		}
+
+		/* now we display the image */
+		env.surface->GetSubSurface(env.surface, &dest_rectangle, &dest_surface);
 		env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0xFF);
-		provider->RenderTo (provider, env.surface, NULL);
+		provider->RenderTo (provider, dest_surface, NULL);
 		provider->Release (provider);
 		env.surface->Flip (env.surface, NULL, DSFLIP_BLIT);
 

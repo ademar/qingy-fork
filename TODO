@@ -2,6 +2,8 @@
 
 
 SYSLOG/LOGFILE SUPPORT
+TIMED RELOGIN
+CREATE_TEMP_FILES_DIR_DURING_INSTALL
 
 
 - Some command line options should migrate to config file...
