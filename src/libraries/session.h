@@ -33,6 +33,7 @@
 char *get_sessions(void);
 
 /* Password autentication */
+int gui_check_password(char *username, char *password, char *session, int pppid);
 int check_password(char *username, char *password);
 
 /* Start the session of your choice */

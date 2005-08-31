@@ -1,3 +1,38 @@
+2005-08-31  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/tty_guardian.c (ttyWatchDog, WatchDog_Sniff),
+	* src/libraries/tty_guardian.h (ttyWatchDog),
+	* src/libraries/session.c (Text_Login, Graph_Login):
+	Made X start up in the same tty we logged in instead of switching
+	to a new one.
+
+2005-08-30  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* media/qingy-mode.el,
+	* src/libraries/load_settings.c,
+	* src/libraries/load_settings.h, 
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l,
+	* media/Makefile.am (settings): 
+	Added support to select wether qingy should calculate last user
+	on a global or a per-tty basis. Default will be current functionality,
+	i.e. global.
+
+	* src/main.c:
+	Made qingy GUI communicate auth data to its main process using
+	a fifo instead of an actual file (increases security).
+
+	* src/libraries/session.c,
+	* src/libraries/session.h,
+	* src/DirectFB/directfb_mode.c,
+	* src/main.c,
+	* configure.in:
+	Made qingy to authenticate user only once (in the main process).
+	When the GUI needs to authenticate a user, it will ask the main
+	process to do so on its behalf, and is passed the result. When
+	the main process has to start the user session, authentication
+	is already done.
+
 2005-08-24  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* media/screensavers/photos/photos.c (is_image):

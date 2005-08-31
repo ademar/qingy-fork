@@ -51,8 +51,14 @@ endif
 	@echo "# default policy is everyone" >> settings
 	@echo "# shutdown_policy = everyone" >> settings
 	@echo "" >> settings
-	@echo "# How should last session be calculated?" >> settings
-	@echo "# user means get last session of selected user" >> settings
+	@echo "# How should latest user be calculated?" >> settings
+	@echo "# global means get latest user that logged in using qingy from whichever tty" >> settings
+	@echo "# tty    means get latest user that logged in using current tty" >> settings
+	@echo "# default policy is global" >> settings
+	@echo "#last_user_policy = global" >> settings
+	@echo "" >> settings
+	@echo "# How should latest user session be calculated?" >> settings
+	@echo "# user means get last session of each user" >> settings
 	@echo "# tty  means get last session of current tty" >> settings
 	@echo "# default policy is user" >> settings
 	@echo "#last_session_policy = user" >> settings

@@ -124,7 +124,7 @@ static window_t wind =
 %token MENU_KEY_TOK WIN_KEY_TOK ALT_KEY_TOK CTRL_KEY_TOK KEYBINDINGS_TOK
 
 /* last session tokens */
-%token USER_TOK LAST_SESSION_POLICY_TOK
+%token USER_TOK LAST_USER_POLICY_TOK LAST_SESSION_POLICY_TOK GLOBAL_TOK
 
 /* typed tokens: */
 %token <ival>  ANUM_T 		/* int */
@@ -136,6 +136,7 @@ static window_t wind =
 /* a configuration */
 config: /* nothing */
 | config tty_specific
+| config last_user
 | config last_session
 | config lck_sess
 | config scrsvrs_dir
@@ -163,6 +164,7 @@ tty_specific: TTY_TOK '=' ANUM_T { intended_tty = $3; } '{' config_tty '}' { int
 
 /* tty specific allowed configuration */
 config_tty: /* nothing */
+| config_tty last_user
 | config_tty last_session
 | config_tty lck_sess
 | config_tty scrsvrs_dir
@@ -317,16 +319,29 @@ shutdown: SHUTDOWN_TOK '=' EVERYONE_TOK
 	}
 ;
 
-/* shutdown policies */
+/* last user policies */
+last_user: LAST_USER_POLICY_TOK '=' GLOBAL_TOK
+	{
+	  if (in_theme) yyerror("Setting 'last_user_policy' is not allowed in theme file.");
+	  TTY_CHECK_COND LAST_USER_POLICY = LU_GLOBAL;
+	}
+| LAST_USER_POLICY_TOK '=' TTY_TOK
+	{
+	  if (in_theme) yyerror("Setting 'last_user_policy' is not allowed in theme file.");
+	  TTY_CHECK_COND LAST_USER_POLICY = LU_TTY;
+	}
+;
+
+/* last session policies */
 last_session: LAST_SESSION_POLICY_TOK '=' USER_TOK
 	{
 	  if (in_theme) yyerror("Setting 'last_session_policy' is not allowed in theme file.");
-	  TTY_CHECK_COND LAST_SESSION_POLICY = USER;
+	  TTY_CHECK_COND LAST_SESSION_POLICY = LS_USER;
 	}
 | LAST_SESSION_POLICY_TOK '=' TTY_TOK
 	{
 	  if (in_theme) yyerror("Setting 'last_session_policy' is not allowed in theme file.");
-	  TTY_CHECK_COND LAST_SESSION_POLICY = TTY;
+	  TTY_CHECK_COND LAST_SESSION_POLICY = LS_TTY;
 	}
 ;
  

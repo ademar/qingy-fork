@@ -129,6 +129,7 @@ int                   screensaver_countdown = 0;
 #endif
 float                 x_ratio               = 1;  /* theme res. should be corrected by x_ratio */
 float                 y_ratio               = 1;  /* and y_ratio to match the actual res.      */
+int                   ppid                  = 0;  /* process id of out parent                  */
 
 void safe_exit(int exitstatus)
 {
@@ -512,7 +513,7 @@ void begin_shutdown_sequence (actions action)
       reset_screen(&evt);
       return;
     case ROOT: /* only root can shutdown the system */
-      if (!check_password("root", password->text))
+      if (!gui_check_password("root", password->text, session->selected, ppid))
 			{
 				if (action == DO_SLEEP)
 					primary->DrawString (primary, "You must enter root password to put this machine to sleep!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
@@ -769,8 +770,6 @@ void start_login_sequence(DFBInputEvent *evt)
 {
   int  free_temp = 0;
   char *message;
-  char *user_name;
-  char *user_session;
   char *welcome_msg;
   char *temp;
 
@@ -780,7 +779,6 @@ void start_login_sequence(DFBInputEvent *evt)
   primary->DrawString (primary, message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
   free(message);
   primary->Flip (primary, NULL, DSFLIP_BLIT);
-  sleep(1);
 
   if (hide_last_user && !strcmp(username->text, "lastuser"))
 	{
@@ -788,7 +786,8 @@ void start_login_sequence(DFBInputEvent *evt)
 		free_temp = 1;
 	}
   else temp = username->text;
-  if (!check_password(temp, password->text))
+
+  if (!gui_check_password(temp, password->text, session->selected, ppid))
 	{
 		primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
 		if (!clear_background) Draw_Background_Image(0);
@@ -807,25 +806,11 @@ void start_login_sequence(DFBInputEvent *evt)
   primary->Flip (primary, NULL, DSFLIP_BLIT);
   free(welcome_msg);
   sleep(1);
-  user_name = strdup(temp);  
-  user_session = strdup(session->selected);
   if (free_temp) free(temp);
 
-#ifdef WANT_CRYPTO
-	encrypt_item(stdout, user_name);
-	encrypt_item(stdout, password->text);
-	encrypt_item(stdout, user_session);
-	fflush(stdout);
-#else
-	fprintf(stdout, "%s\n%s\n%s\n", user_name, password->text, user_session);
-#endif
-
   /* we overwrite memory areas containing sensitive information */
-  memset(user_name,      '\0', sizeof(user_name     ));
+  memset(username->text, '\0', sizeof(username->text));
   memset(password->text, '\0', sizeof(password->text));
-  memset(user_session,   '\0', sizeof(user_session  ));
-
-  free(user_name); free(user_session);
 
 	close_framebuffer_mode();
   exit(EXIT_SUCCESS);
@@ -1265,6 +1250,9 @@ int main (int argc, char *argv[])
   /* Stop GPM if necessary */
   we_stopped_gpm = stop_gpm();
 #endif
+
+	/* get the pid of our father process */
+	ppid = atoi(argv[argc-1]);
 
   /* we initialize directfb */
   if (silent) stderr_disable();

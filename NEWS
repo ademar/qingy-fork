@@ -1,9 +1,20 @@
 qingy CVS-0.6.1-CVS:
+- SECURITY ENHANCEMENT: made qingy GUI communicate auth data
+  to its main process using a fifo instead of an actual file.
+- Made X start up in the same tty we logged in instead of switching
+  to a new one.
+- Made qingy check authentication data only once, in its main
+  process. Until now it was once in the GUI and once in the
+  main process, leading to potential problems with /etc/securetty
+  since the GUI does not live in the same tty as the main process.
 - Added support for selecting last session on a per-user or a
   per-tty basis. Previous (and current default) behaviour was
   per-user only. To change it you have to set variable
   last_session_policy in settings file.
-
+- Added support to select wether qingy should calculate last user
+  on a global or a per-tty basis. Default will be current
+  functionality, i.e. global. To change it you have to set variable
+  last_user_policy in settings file.
 
 qingy 0.6.0 (30 May 2005):
 - SECURITY ENHANCEMENT: added support for encrypting communications

@@ -220,9 +220,9 @@ char *read_password(int tty)
 /* block user until he authenticates */
 int WatchDog_Bark (char *dog_master, char *intruder, int our_land)
 {
-	int dest = get_available_tty();
+	int   dest = get_available_tty();
 	char *password;
-	int retval;
+	int   retval;
 
 	if (dest == -1)            return 0;
 	if (!dog_master)           return 0;
@@ -262,12 +262,15 @@ int WatchDog_Bark (char *dog_master, char *intruder, int our_land)
 	unlock_tty_switching();
 	switch_to_tty(our_land);
 	disallocate_tty(dest);
+
+	if (retval)
+		set_active_tty(our_land);
 	
 	return retval;
 }
 
 /* check wether user has auth to visit our tty */
-void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intruder, int send_him_here)
+void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intruder)
 {
 	static char *previous_intruder = NULL;
 	char        *intruder;
@@ -282,8 +285,6 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 	{ /* this is our master, not an intruder */
 		free(previous_intruder);
 		previous_intruder = intruder;
-		if (send_him_here != where_is_intruder)
-			set_active_tty(send_him_here);
 		return;
 	}
 
@@ -322,8 +323,6 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 				{ /* now we are sure about user identity */
 					free(previous_intruder);
 					previous_intruder = intruder;
-					if (send_him_here != where_is_intruder)
-						set_active_tty(send_him_here);
 					return;
 				}
 			}
@@ -341,8 +340,6 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 				{ /* this tty is controlled by root: we grant access */
 					free(previous_intruder);
 					previous_intruder = intruder;
-					if (send_him_here != where_is_intruder)
-						set_active_tty(send_him_here);
 					return;
 				}
 			}
@@ -358,11 +355,7 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 	if (previous_intruder)
 		if (strcmp(previous_intruder, "root"))
 				if (!strcmp(previous_intruder,intruder))
-				{ /* it's a hard life being sure of someone... */
-					if (send_him_here != where_is_intruder)
-						set_active_tty(send_him_here);
-					return;
-				}
+					return; /* it's a hard life being sure of someone... */
 
 	/* tell user to authenticate himself */
 	retval = WatchDog_Bark(dog_master, intruder, where_is_intruder);	
@@ -375,24 +368,20 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 	}
 
 	/* user has authenticated correctly */
-	set_active_tty(send_him_here);
 	free(previous_intruder);
 	previous_intruder = intruder;
 }
 
-/*
- * guard specified ttys against unauthorized access
- * fence1 is text tty, fence2, if present, is X tty
- */
-void ttyWatchDog(pid_t child, char *dog_master, int fence1, int fence2)
+/* guard specified ttys against unauthorized access */
+void ttyWatchDog(pid_t child, char *dog_master, int fence1)
 {
 	struct timespec delay;
 	int where_is_intruder  = 0;
 	int where_was_intruder = 0;
 
-	if (!child)             return;
-	if (!dog_master)        WAIT_N_RETURN;
-	if (!fence1 && !fence2) WAIT_N_RETURN;
+	if (!child)      return;
+	if (!dog_master) WAIT_N_RETURN;
+	if (!fence1)     WAIT_N_RETURN;
 
 	/* We set up a delay of 0.1 seconds */
   delay.tv_sec  = 0;
@@ -410,21 +399,9 @@ void ttyWatchDog(pid_t child, char *dog_master, int fence1, int fence2)
 			abort();
 		}
 		if (where_is_intruder != where_was_intruder)
-		{
-			if ((where_is_intruder == fence1 && where_was_intruder != fence2) || where_is_intruder == fence2)
-			{ /* if an X session is active user must be sent to X tty, after passing auth */
-				if (fence2)
-					WatchDog_Sniff(dog_master, where_was_intruder, where_is_intruder, fence2);
-				else
-					WatchDog_Sniff(dog_master, where_was_intruder, where_is_intruder, fence1);
-			}
-			else if (where_is_intruder == fence1 && where_was_intruder == fence2)
-			{
-				set_active_tty(fence2);
-				where_was_intruder = fence2;
-				where_is_intruder  = fence2;
-			}
-		}
+			if (where_is_intruder == fence1)
+				WatchDog_Sniff(dog_master, where_was_intruder, where_is_intruder);
+
 		nanosleep(&delay, NULL); /* wait a little before checking again */
 	}
 }

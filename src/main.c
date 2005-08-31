@@ -51,8 +51,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
-#include <sys/types.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #ifdef WANT_CRYPTO
 #include "crypto.h"
@@ -67,19 +67,60 @@
 
 
 char *autologin_filename = NULL;
+char *username           = NULL;
+char *password           = NULL;
+char *session            = NULL;
+FILE *fp_fromGUI         = NULL;
+FILE *fp_toGUI           = NULL;
+int   auth_ok            = 0;
 
+
+void authenticate_user(int signum)
+{
+#ifndef WANT_CRYPTO
+	size_t len = 0;
+#endif 
+
+	/* temporarily disable signal catching */
+	signal(signum, SIG_IGN);
+
+#ifndef WANT_CRYPTO
+	if (getline(&username, &len, fp_fromGUI) == -1) username = NULL; len = 0;
+	if (getline(&password, &len, fp_fromGUI) == -1) password = NULL; len = 0;
+	if (getline(&session,  &len, fp_fromGUI) == -1) session  = NULL; len = 0;
+
+	/* remove trailing newlines from these values */
+	if (username) username[strlen(username) - 1] = '\0';
+	if (password) password[strlen(password) - 1] = '\0';
+	if (session)  session [strlen(session)  - 1] = '\0';
+#else
+	username = decrypt_item(fp_fromGUI);
+	password = decrypt_item(fp_fromGUI);
+	session  = decrypt_item(fp_fromGUI);
+#endif
+
+	if (check_password(username, password))
+	{
+		fprintf(fp_toGUI, "\nAUTH_OK\n");
+		auth_ok = 1;
+	}
+	else
+		fprintf(fp_toGUI, "\nAUTH_FAIL\n");
+
+	fflush(fp_toGUI);
+
+	/* re-enable signal catching */
+	signal(signum, authenticate_user);
+}
 
 void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 {
-  int      i,j;
-	int      returnstatus = QINGY_FAILURE;
-	char   **gui_argv     = NULL;
-	char    *username     = NULL;
-	char    *password     = NULL;
-	char    *session      = NULL;
-#ifndef WANT_CRYPTO
-	size_t   len          = 0;
-#endif
+  int    i,j;
+	int    returnstatus = QINGY_FAILURE;
+	char **gui_argv     = NULL;
+	char  *toGUI        = StrApp((char**)NULL, TMP_FILE_DIR, "/qingyXXXXXX", (char*)NULL);
+	char  *fromGUI      = strdup(toGUI);
+	int    fd;
 
   /* We clear the screen */
   ClearScreen();
@@ -98,7 +139,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		if (!silent && resolution) fprintf(stderr, "framebuffer resolution is '%s'.\n", resolution);
 
 		/* Set up command line for our interface */
-		gui_argv = (char **) calloc(argc+2, sizeof(char *));
+		gui_argv = (char **) calloc(argc+3, sizeof(char *));
 		gui_argv[0] = DFB_INTERFACE;
 		for (j=1; j<argc; j++)
 			gui_argv[j] = argv[j];
@@ -115,89 +156,97 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 			StrApp(&(gui_argv[j]), ",mode=",  resolution, (char*)NULL);
 			free(resolution);
 		}
+		gui_argv[++j] = int_to_str(getpid());
 		gui_argv[++j] = NULL;
+
+		/* let's create a couple of file names to communicate with our GUI:
+		 * First the one we will receive auth data from...
+		 */
+		fd = mkstemp(fromGUI);
+		if (fd == -1)
+		{
+			fprintf(stderr, "%s: fatal error: could not create temporary file!\n", argv[0]);
+			free(fromGUI);
+			text_mode();
+		}
+
+		/* sad thing having to call mkstemp just to have a reasonably secure unique file name,
+		 * yet I think it is better than callind tempnam...
+		 */
+		close(fd);
+		unlink(fromGUI);
+
+		/* let's create a nice FIFO to receive user auth data */
+		if (mkfifo(fromGUI, S_IRUSR|S_IWUSR))
+		{
+			fprintf(stderr, "%s: fatal error: could not create temporary file!\n", argv[0]);
+			free(fromGUI);
+			text_mode();
+		}
+
+		/* ...then the one we will use to send data to our GUI */
+		fd = mkstemp(toGUI);
+		if (fd == -1)
+		{
+			fprintf(stderr, "%s: fatal error: could not create temporary file!\n", argv[0]);
+			exit(EXIT_FAILURE);
+		}
+		if (chmod(toGUI, S_IRUSR|S_IWUSR))
+		{
+			fprintf(stderr, "%s: fatal error: cannot chmod() file '%s'!\n", argv[0], toGUI);
+			exit(EXIT_FAILURE);
+		}
+		fp_toGUI = fdopen(fd, "w");
+		if (!fp_toGUI)
+		{
+			fprintf(stderr, "%s: fatal error: unable to open temporary file '%s'!\n", argv[0], toGUI);
+			free(fromGUI);
+			free(toGUI);
+			text_mode();
+		}
+
+#ifdef WANT_CRYPTO
+		/* we write the public key to our GUI... */
+		save_public_key(fp_toGUI);
+		/* ...and make sure it gets through */
+		fflush(fp_toGUI);
+#endif
 
 		/* let's go! */
 		for (i=0; i<=retries; i++)
-		{ /* let's create a unique file name to communicate with our GUI */
-			char  *comm_file_name = StrApp((char**)NULL, TMP_FILE_DIR, "/", "qingyXXXXXX", (char*)NULL);
-			int    fd;
-			FILE  *fp;
-			pid_t  pid;
-			
-			fd = mkstemp(comm_file_name);
-			if (fd == -1)
-			{
-				fprintf(stderr, "%s: fatal error: could not create temporary file!\n", argv[0]);
-				abort();
-			}
-
-			/* set file mode to 600 */
-			if (chmod(comm_file_name, S_IRUSR|S_IWUSR))
-			{
-				fprintf(stderr, "%s: fatal error: cannot chmod() file '%s'!\n", argv[0], comm_file_name);
-				abort();
-			}
-
-			/* open our file for reading */
-			fp = fdopen(fd, "r");
-			if (!fp)
-			{
-				fprintf(stderr, "%s: fatal error: unable to open temporary file '%s'!\n", argv[0], comm_file_name);
-				abort();
-			}
-
-			/* let's spawn a child, that will fire up our GUI and make it write to our temp file */
-			pid = fork();
+		{
+			pid_t pid = fork(); /* let's spawn a child, that will fire up our GUI and make it write to our temp file */
 
 			switch ((int)pid)
 			{
 				case -1:
 					fprintf(stderr, "%s: fatal error: fork() failed!\n", argv[0]);
-					abort();
-				case 0:  /* child */
-					/* let's redirect stdout to our comm file */
-					if (!freopen(comm_file_name, "w", stdout))
+					fclose(fp_toGUI);
+					unlink(fromGUI);
+					unlink(toGUI);
+					free(toGUI);
+					free(fromGUI);
+					text_mode();
+
+				case 0: /* child */
+					/* we set up the standard input for our GUI... */
+					if (!freopen(toGUI, "r", stdin))
+					{
+						fprintf(stderr, "%s: fatal error: unable to redirect standard input!\n", argv[0]);
+						exit(EXIT_FAILURE);
+					}
+
+					/* once set up, we unlink() it so that noone else will tamper */
+					unlink(toGUI);
+
+					/* ... then the standard output */
+					if (!freopen(fromGUI, "w", stdout))
 					{
 						fprintf(stderr, "%s: fatal error: unable to redirect standard output!\n", argv[0]);
 						exit(EXIT_FAILURE);
 					}
 					/* remove comm file so that noone will tamper */
-					unlink(comm_file_name);
-
-#ifdef WANT_CRYPTO
-					/* we will write the public key to a (securely created) temp file... */
-					strcpy(comm_file_name + strlen(comm_file_name) - 6, "XXXXXX");
-					fd = mkstemp(comm_file_name);
-					if (fd == -1)
-					{
-						fprintf(stderr, "%s: fatal error: could not create temporary file!\n", argv[0]);
-						abort();
-					}
-					if (chmod(comm_file_name, S_IRUSR|S_IWUSR))
-					{
-						fprintf(stderr, "%s: fatal error: cannot chmod() file '%s'!\n", argv[0], comm_file_name);
-						abort();
-					}
-					fp = fdopen(fd, "w");
-					if (!fp)
-					{
-						fprintf(stderr, "%s: fatal error: unable to open temporary file '%s'!\n", argv[0], comm_file_name);
-						abort();
-					}
-					save_public_key(fp);
-
-					/* ...which we set up as standard input for our GUI */
-					if (!freopen(comm_file_name, "r", stdin))
-					{
-						fprintf(stderr, "%s: fatal error: unable to redirect standard input!\n", argv[0]);
-						exit(EXIT_FAILURE);
-					}
-					fclose(fp);
-
-					/* once set up, we unlink() it so that noone else will tamper */
-					unlink(comm_file_name);
-#endif
+					unlink(fromGUI);
 
 					/* OK, let's fire up the GUI */
 					execve(gui_argv[0], gui_argv, NULL);
@@ -205,13 +254,32 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 					/* we should never get here unless the execve failed */
 					fprintf(stderr, "%s: fatal error: unable to execute %s!\n", argv[0], gui_argv[0]);
 					exit(EXIT_FAILURE);
+
 				default: /* parent */
+					/* install handler so that our GUI can signal us to
+					 * (try to) authenticate a user
+					 */
+					signal(SIGUSR1, authenticate_user);
+
+					/* it is now safe to open our fifo to read auth data */
+					fp_fromGUI = fopen(fromGUI, "r");
+
 					/* we wait for our child to exit */
-					waitpid(pid, &returnstatus, 0);
+					while (1)
+					{
+						waitpid(pid, &returnstatus, 0);
+						if (WIFEXITED(returnstatus))
+							break;
+					}
+
+					/* we no longer need the signal handler */
+					signal(SIGUSR1, SIG_DFL);
+
 					break;
 			}
 
-			free(comm_file_name);
+			free(toGUI);
+			free(fromGUI);
 
 			if (WIFEXITED(returnstatus))
 				returnstatus = WEXITSTATUS(returnstatus);
@@ -219,23 +287,15 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 				returnstatus = QINGY_FAILURE;
 
 			/* break the cycle if we are sure we don't have to read authentication data... */
-			if (returnstatus != QINGY_FAILURE && returnstatus != EXIT_SUCCESS)
+			if (returnstatus != QINGY_FAILURE )
 			{
-				fclose(fp);
+				fclose(fp_fromGUI);
+				fclose(fp_toGUI);
 				break;
 			}
 
-#ifdef WANT_CRYPTO
-			username = decrypt_item(fp);
-			password = decrypt_item(fp);
-			session  = decrypt_item(fp);
-#else
-			if (getline(&username, &len, fp) == -1) username = NULL; len = 0;
-			if (getline(&password, &len, fp) == -1) password = NULL; len = 0;
-			if (getline(&session,  &len, fp) == -1) session  = NULL; len = 0;
-#endif
-
-			fclose(fp);
+			fclose(fp_fromGUI);
+			fclose(fp_toGUI);
 
 			/* if we have authentication data we can break the cycle */
 			if (username && password && session)
@@ -249,14 +309,8 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		}
 
 		free(gui_argv[--j]);
+		free(gui_argv[--j]);
 		free(gui_argv);
-
-#ifndef WANT_CRYPTO
-		/* remove trailing newlines from these values */
-		if (username) username[strlen(username) - 1] = '\0';
-		if (password) password[strlen(password) - 1] = '\0';
-		if (session)  session [strlen(session)  - 1] = '\0';
-#endif
 	}
 	else
 	{
@@ -279,7 +333,10 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 	switch (returnstatus)
 	{
 		case EXIT_SUCCESS:
-			if (check_password(username, password))
+			if (!auth_ok)
+				auth_ok = check_password(username, password);
+
+			if (auth_ok)				
 			{
 				if (password) memset(password, '\0', sizeof(password));
 				start_session(username, session);
@@ -407,7 +464,7 @@ int main(int argc, char *argv[])
   /* We switch to tty <tty> */
 	Switch_TTY;
 
-	/* parse settings file again */
+	/* parse settings file */
 	load_settings();
 
 #ifdef WANT_CRYPTO

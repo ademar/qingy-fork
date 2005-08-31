@@ -110,11 +110,19 @@ typedef enum
 } shutdown_policies;
 shutdown_policies SHUTDOWN_POLICY;
 
+/* Last user policy... */
+typedef enum 
+{
+  LU_GLOBAL=0,
+  LU_TTY
+} last_user_policies;
+last_user_policies LAST_USER_POLICY;
+
 /* Last session policy... */
 typedef enum 
 {
-  USER=0,
-  TTY
+  LS_USER=0,
+  LS_TTY
 } last_session_policies;
 last_session_policies LAST_SESSION_POLICY;
 

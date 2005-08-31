@@ -210,7 +210,7 @@ void TextBox_SetText(TextBox *thiz, char *text)
 void TextBox_ClearText(TextBox *thiz)
 {
 	if (!thiz) return;
-	if (thiz->text) *thiz->text = '\0';
+	if (thiz->text) memset(thiz->text, '\0', sizeof(thiz->text));
 	thiz->position = 0;
 	if (thiz->hasfocus) TextBox_KeyEvent(thiz, REDRAW, NONE, 1);
 	else TextBox_KeyEvent(thiz, REDRAW, NONE, 0);

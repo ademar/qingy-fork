@@ -169,7 +169,9 @@ menu                    return MENU_KEY_TOK;
 win                     return WIN_KEY_TOK;
 keybindings             return KEYBINDINGS_TOK;
 user                    return USER_TOK;
+last_user_policy        return LAST_USER_POLICY_TOK;
 last_session_policy     return LAST_SESSION_POLICY_TOK;
+global                  return GLOBAL_TOK;
 
 
 "#"[^\n]*"\n" ;			/* skip comments */

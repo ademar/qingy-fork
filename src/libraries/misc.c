@@ -372,7 +372,6 @@ void text_mode()
   exit(EXIT_FAILURE);
 }
 
-
 void Error(int fatal)
 {
 	/* seconds before we die: let's be kind to init! */

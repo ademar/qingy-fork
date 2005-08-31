@@ -75,6 +75,11 @@
 #include <shadow.h>
 #endif
 
+
+#ifdef WANT_CRYPTO
+#include "crypto.h"
+#endif
+
 #include "session.h"
 #include "memmgmt.h"
 #include "vt.h"
@@ -262,6 +267,39 @@ void LogEvent(struct passwd *pw, int status)
 	}
   
   closelog();
+}
+
+int gui_check_password(char *username, char *password, char *session, int ppid)
+{
+	char result[10];
+
+	/* sent auth data to our parent... */
+#ifdef WANT_CRYPTO
+	encrypt_item(stdout, username);
+	encrypt_item(stdout, password);
+	encrypt_item(stdout, session);
+#else
+	fprintf(stdout, "%s\n%s\n%s\n", username, password, session);
+#endif
+	fflush(stdout);
+
+	/* ...signal it to check auth data... */
+	if (kill (ppid, SIGUSR1))
+		return 0;
+
+	/* ... wait until it has done so... */
+	while (1)
+	{
+		sleep(1);
+		if (fscanf(stdin, "%9s", result) != EOF)
+			break;
+	}
+
+	/* ...finally, fetch the results */
+	if (!strcmp(result, "AUTH_OK"))
+		return 1;
+
+	return 0;
 }
 
 int check_password(char *username, char *user_password)
@@ -632,7 +670,8 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   
   if (!lock_sessions) wait(NULL);
 	else
-		ttyWatchDog(proc_id, username, current_vt, 0);
+		ttyWatchDog(proc_id, username, current_vt);
+/* 		ttyWatchDog(proc_id, username, current_vt, 0); */
 
   memset(username, '\0', sizeof(username));	
 	free(username); free(session);
@@ -690,7 +729,6 @@ int which_X_server(void)
 void Graph_Login(struct passwd *pw, char *session, char *username)
 {
   pid_t proc_id;
-  int dest_vt = get_available_tty();
   char *x_server = int_to_str(which_X_server());
   char *vt = NULL;
   char *args[4];
@@ -698,13 +736,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   int retval;
 #endif
 
-  if (dest_vt != -1) vt = int_to_str(dest_vt);
-  else
-	{
-		fprintf(stderr, "%s: fatal error: cannot find an unused vt!\n", program_name);
-		sleep(5); /* be nice to init and allow user to read message */
-		exit(EXIT_FAILURE);
-	}
+	vt = int_to_str(current_vt);
   
   args[0] = shell_base_name(pw->pw_shell);
   args[1] = strdup("-c");
@@ -718,7 +750,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   else
     args[2] = StrApp(&(args[2]), X_SESSIONS_DIRECTORY, "\"", session, "\" -- ", (char*)NULL);
 
-  // add the chosed X server, if one was chosen
+  // add the chosen X server, if one has been chosen
 	if (X_SERVER)
 		args[2] = StrApp(&(args[2]), X_SERVER, " :", x_server, " vt", vt, (char*)NULL);
 	else
@@ -774,21 +806,9 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   
   /* while X server is active, we wait for user
      to switch to our tty and redirect him there */
-  if (!lock_sessions)
-		while(1)
-		{
-			pid_t result;
-      
-			result = waitpid(-1, NULL, WNOHANG);
-			if (!result || result == -1)
-			{
-				if (get_active_tty() == current_vt) set_active_tty(dest_vt);
-				sleep(1);
-			}
-			else break;
-		}
+  if (!lock_sessions) wait(NULL);
 	else
-		ttyWatchDog(proc_id, username, current_vt, dest_vt);
+		ttyWatchDog(proc_id, username, current_vt);
 
   memset(username, '\0', sizeof(username));	
 	free(username); free(session);
@@ -801,7 +821,6 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 #else
   LogEvent(pw, CLOSE_SESSION);
 #endif
-  if (get_active_tty() == dest_vt) set_active_tty(current_vt);  
 
 	remove_utmp_entry();
   
@@ -809,7 +828,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   restore_tty_ownership();
   
   /* disallocate tty X was running in */
-  disallocate_tty(dest_vt);
+	disallocate_tty(current_vt);
   
   free(args[0]);
   free(args[1]);

@@ -106,7 +106,8 @@ void initialize_variables(void)
   silent                  = 1;
 	clear_background        = 0;
   SHUTDOWN_POLICY         = EVERYONE;
-	LAST_SESSION_POLICY     = USER;
+	LAST_USER_POLICY        = LU_GLOBAL;
+	LAST_SESSION_POLICY     = LS_USER;
 	GOT_THEME               = 0;
 	lock_sessions           = 0;
 	retries                 = 0;
@@ -257,32 +258,110 @@ void yyerror(char *error)
 
 char *get_last_user(void)
 {
-  FILE   *fp   = fopen(LAST_USER, "r");
-	char   *line = NULL;
-	size_t  len  = 0;
-  
-  if (!fp) return NULL;
+	FILE   *fp     = fopen(LAST_USER, "r");
+	char   *line   = NULL;
+	char   *result = NULL;
+	char   *ttystr = NULL;
+	size_t  len    = 0;
 
-	getline(&line, &len, fp);
+	if (!fp) return NULL;
+
+	if (getline(&line, &len, fp) == -1)
+	{
+		fclose(fp);
+		return NULL;
+	}
+
+	if (LAST_USER_POLICY == LU_GLOBAL)
+	{
+		char temp[strlen(line) + 1];
+		int items = sscanf(line, "%s", temp);
+
+		fclose(fp);
+		free(line);
+
+		if (items != 1)
+			return NULL;
+
+		return strdup(temp);
+	}
+
+	ttystr = int_to_str(current_tty);
+
+	while (1)
+	{
+		int  size = strlen(line) + 1;
+		char user[size];
+		char tty [size];
+		int  items = sscanf(line, "%s%s", user, tty);
+
+		if (items == 0)
+			break;
+
+		if (items == 2)
+			if (!strcmp(tty, ttystr))
+			{
+				result = strdup(user);
+				break;
+			}
+
+		if (getline(&line, &len, fp) == -1)
+			break;
+	}
+
 	fclose(fp);
+	free(line);
+	free(ttystr);
 
-  return line;
+	return result;
 }
 
 int set_last_user(char *user)
 {
-  FILE *fp;
+	char   *fileOUT = StrApp((char**)NULL, LAST_USER, "-new", (char*)NULL);
+	char   *line    = NULL;
+	size_t  len     = 0;
+  FILE   *fpIN;
+	FILE   *fpOUT;
   
-  if (!user) return 0;
-  fp = fopen(LAST_USER, "w");
-	/*
-	 * no point in printing out an error:
-	 * it just means that on next launch
-	 * we will ask for user name, too
-	 */
-  if (!fp) return 0;
-  fprintf(fp, "%s", user);
-  fclose(fp);
+  if (!user)
+	{
+		free(fileOUT);
+		return 0;
+	}
+
+	fpIN  = fopen(LAST_USER, "r");
+	fpOUT = fopen(fileOUT,   "w");
+
+	if (!fpOUT)
+	{
+		if (fpIN) fclose(fpIN);
+		free(fileOUT);
+
+		return 0;
+	}
+
+	fprintf(fpOUT, "%s %d\n", user, current_tty);
+
+	if (fpIN)
+	{
+		while (getline(&line, &len, fpIN) != -1)
+		{
+			char name[strlen(line) + 1];
+			int tty;
+
+			if (sscanf(line, "%s%d", name, &tty) == 2)
+				if (current_tty != tty)
+					fprintf(fpOUT, "%s", line);
+		}
+
+		fclose(fpIN);
+	}
+
+	fclose(fpOUT);
+	remove(LAST_USER);
+	rename(fileOUT, LAST_USER);
+	free(fileOUT);
   
   return 1;
 }
@@ -296,7 +375,7 @@ char *get_last_session(char *user)
 	size_t  len      = 0;
 
 
-	if (LAST_SESSION_POLICY == TTY)
+	if (LAST_SESSION_POLICY == LS_TTY)
 	{
 		filename = (char *) calloc(strlen(TMP_FILE_DIR)+20, sizeof(char));
   
@@ -305,7 +384,7 @@ char *get_last_session(char *user)
 		strcat(filename, "qingy-lastsessions");
 	}
 
-	if (LAST_SESSION_POLICY == USER)
+	if (LAST_SESSION_POLICY == LS_USER)
 	{
 		char *homedir;
 
@@ -326,11 +405,11 @@ char *get_last_session(char *user)
 	free(filename);
 	if (!fp) return NULL;
 
-	if (LAST_SESSION_POLICY == USER)
+	if (LAST_SESSION_POLICY == LS_USER)
 		if (getline(&line, &len, fp) != -1)
 			result = line;
 
-	if (LAST_SESSION_POLICY == TTY)
+	if (LAST_SESSION_POLICY == LS_TTY)
 	{
 		char *ttystr    = int_to_str(current_tty);
 		int   lenttystr = strlen(ttystr);
