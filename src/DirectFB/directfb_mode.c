@@ -1259,10 +1259,10 @@ int main (int argc, char *argv[])
 	result = DirectFBInit (&argc, &argv);
   if (result == DFB_OK) result = DirectFBSetOption("session","-1");
   if (result == DFB_OK) result = DirectFBCreate (&dfb);
-  if (silent) stderr_enable();
   if (result == DFB_OK) result = dfb->EnumInputDevices (dfb, enum_input_device, &devices);
   if (result == DFB_OK) result = dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &events);
   if (result == DFB_OK) result = dfb->GetDisplayLayer (dfb, DLID_PRIMARY, &layer);
+	if (silent) stderr_enable(&current_tty);
 
   /* any errors so far? */
 	if (result != DFB_OK)

@@ -67,7 +67,7 @@ int disallocate_tty(int tty);
 
 /* enable or disable stdout and stderr */
 void stderr_disable(void);
-void stderr_enable(void);
+void stderr_enable(int *vt);
 
 /* get console framebuffer resolution */
 char *get_fb_resolution(char *fb_device);

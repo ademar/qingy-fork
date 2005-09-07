@@ -1,3 +1,17 @@
+2005-09-07  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/DirectFB/directfb_mode.c (main),
+	* src/libraries/vt.h,
+	* src/libraries/vt.c (stderr_enable, stderr_disable): 
+	Change stderr_disable to actually close the stderr stream
+	instead of reopening it to /dev/null. Changed stderr_enable
+	to accept an argument that specifies what tty should be
+	opened for the stderr output. If NULL is passed, then
+	the currently active one will be used.
+	Strange as it may be, these changes are necessary for
+	the screen_savers (expecially the photos one) to perform
+	well (i.e.: don't crash with an invalid permissions error).
+
 2005-08-31  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/libraries/tty_guardian.c (ttyWatchDog, WatchDog_Sniff),

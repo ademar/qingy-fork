@@ -187,15 +187,21 @@ int unlock_tty_switching(void)
 
 void stderr_disable(void)
 {
-  stderr = freopen("/dev/null", "w", stderr);
+	fclose(stderr);
 }
 
-void stderr_enable(void)
+void stderr_enable(int *vt)
 {
-  char *ttyname = create_tty_name(get_active_tty());
+  char *ttyname;
+
+	if (!vt)
+		ttyname = create_tty_name(get_active_tty());
+	else
+		ttyname = create_tty_name(*vt);
   
   if (!ttyname) return;
-  stderr = freopen(ttyname, "w", stderr);
+
+	stderr = fopen(ttyname, "w");
   free(ttyname);
 }
 

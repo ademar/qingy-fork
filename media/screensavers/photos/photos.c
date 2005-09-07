@@ -127,20 +127,19 @@ int load_images_list(char **params, int silent)
 
 void screen_saver_entry(Q_screen_t env)
 {
-	DFBSurfaceDescription desc;
-	IDirectFBImageProvider *provider;
-	DFBRectangle dest_rectangle;
 	static int n_images = 0;
+
+	DFBSurfaceDescription desc;
+	IDirectFBImageProvider *provider=NULL;
+	DFBRectangle dest_rectangle;
 	int errorcount = 0;
 	int image;
   unsigned int seconds=5;
   unsigned int milli_seconds=0;
 	int image_width,  image_height;
-	int screen_width, screen_height;
 	float xy_ratio;
-	IDirectFBSurface *dest_surface;
+	IDirectFBSurface *dest_surface=NULL;
 
-	env.surface->GetSize(env.surface, &screen_width, &screen_height);
 
   if (!env.dfb || !env.surface) return;
   /* we clear event buffer to avoid being bailed out immediately */
@@ -181,6 +180,7 @@ void screen_saver_entry(Q_screen_t env)
 		while (errorcount < 100)
 		{
 			image = rand() % n_images;
+
 			if (env.dfb->CreateImageProvider (env.dfb, images[image], &provider) == DFB_OK) break;
 			errorcount++;
 			if (errorcount == 100)
@@ -201,33 +201,33 @@ void screen_saver_entry(Q_screen_t env)
 
 		if (image_width > image_height)
 		{
-			if (image_width < screen_width)
+			if (image_width < env.screen_width)
 			{
-				dest_rectangle.x=(screen_width-image_width)/2;
+				dest_rectangle.x=(env.screen_width-image_width)/2;
 				dest_rectangle.w=image_width;
 			}
 			else
 			{
 				dest_rectangle.x=0;
-				dest_rectangle.w=screen_width;
+				dest_rectangle.w=env.screen_width;
 			}
 			dest_rectangle.h=dest_rectangle.w/xy_ratio;
-			dest_rectangle.y=(screen_height-dest_rectangle.h)/2;
+			dest_rectangle.y=(env.screen_height-dest_rectangle.h)/2;
 		}
 		else
 		{
-			if (image_height < screen_height)
+			if (image_height < env.screen_height)
 			{
-				dest_rectangle.y=(screen_height-image_height)/2;
+				dest_rectangle.y=(env.screen_height-image_height)/2;
 				dest_rectangle.h=image_height;
 			}
 			else
 			{
 				dest_rectangle.y=0;
-				dest_rectangle.h=screen_height;
+				dest_rectangle.h=env.screen_height;
 			}
 			dest_rectangle.w=dest_rectangle.h*xy_ratio;
-			dest_rectangle.x=(screen_width-dest_rectangle.w)/2;
+			dest_rectangle.x=(env.screen_width-dest_rectangle.w)/2;
 		}
 
 		/* now we display the image */
@@ -235,7 +235,10 @@ void screen_saver_entry(Q_screen_t env)
 		env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0xFF);
 		provider->RenderTo (provider, dest_surface, NULL);
 		provider->Release (provider);
+		provider = NULL;
 		env.surface->Flip (env.surface, NULL, DSFLIP_BLIT);
+		dest_surface->Release(dest_surface);
+		dest_surface = NULL;
 
 		env.screen_saver_events->WaitForEventWithTimeout(env.screen_saver_events, seconds, milli_seconds);
 		if (env.screen_saver_events->HasEvent(env.screen_saver_events) == DFB_OK) return;

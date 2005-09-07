@@ -265,7 +265,7 @@ int WatchDog_Bark (char *dog_master, char *intruder, int our_land)
 
 	if (retval)
 		set_active_tty(our_land);
-	
+
 	return retval;
 }
 
@@ -396,7 +396,8 @@ void ttyWatchDog(pid_t child, char *dog_master, int fence1)
 		if (where_is_intruder == -1)
 		{
 			fprintf(stderr, "\nfatal error: cannot get active tty number!\n");
-			abort();
+			WAIT_N_RETURN;
+			//abort();
 		}
 		if (where_is_intruder != where_was_intruder)
 			if (where_is_intruder == fence1)

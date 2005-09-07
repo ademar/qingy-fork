@@ -28,4 +28,3 @@
 
 /* guard specified ttys from unauthorized access */
 void ttyWatchDog(pid_t child, char *username, int tty_watch1);
-/* void ttyWatchDog(pid_t child, char *username, int tty_watch1, int tty_watch2); */

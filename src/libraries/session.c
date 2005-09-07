@@ -671,7 +671,6 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   if (!lock_sessions) wait(NULL);
 	else
 		ttyWatchDog(proc_id, username, current_vt);
-/* 		ttyWatchDog(proc_id, username, current_vt, 0); */
 
   memset(username, '\0', sizeof(username));	
 	free(username); free(session);
@@ -800,9 +799,9 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   set_last_session(username, session, current_vt);
   
   /* wait a bit, then clear console from X starting messages */
-  sleep(3);
-  ClearScreen();
-  fprintf(stderr, "Switching to X Server...\n");
+  //sleep(3);
+  //ClearScreen();
+  //fprintf(stderr, "Switching to X Server...\n");
   
   /* while X server is active, we wait for user
      to switch to our tty and redirect him there */
