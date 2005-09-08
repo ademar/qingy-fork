@@ -1,5 +1,5 @@
 /***************************************************************************
-                           misc.h  -  description
+                           misc.c  -  description
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003-2005 by Noberasco Michele
@@ -270,16 +270,10 @@ char *get_file_owner(char *file)
 }
 
 
-/*int uptime(int *days, int *hours, int *mins)*/
 int get_system_uptime()
 {
 	double  uptime_secs;
-/* 	int     seconds_in_days; */
 	FILE   *fp;
-
-/* 	if (!days)  return 0; */
-/* 	if (!hours) return 0; */
-/* 	if (!mins)  return 0; */
 
 	fp = fopen("/proc/uptime", "r");
 	if (!fp) return 0;
@@ -292,13 +286,6 @@ int get_system_uptime()
 
 	fclose(fp);
 
-/* 	*days  = uptime_secs / (60 * 60 * 24); */
-/* 	seconds_in_days = *days * 60 * 60 * 24; */
-
-/* 	*hours = (uptime_secs - seconds_in_days) / (60 * 60); */
-/* 	*mins  = (uptime_secs - (seconds_in_days + (*hours * 60 * 60))) / 60; */
-
-/* 	return 1; */
 	return (int) uptime_secs;
 }
 

@@ -79,24 +79,23 @@ int is_number(char *string)
 }
 
 /* we check wether <process> is qingy or getty */
-char *is_getty(pid_t process)
+int is_getty(char *process)
 {
-	char *temp = int_to_str(process);
-	char *link = StrApp((char**)NULL, "/proc/", temp, "/exe", (char*)NULL);	
+	char *link = StrApp((char**)NULL, "/proc/", process, "/exe", (char*)NULL);	
 	char buf[256];
 	int size;
 
-	free(temp);
 	size = readlink(link, buf, 255);
 	free(link);
 	
-	if (size == -1) abort();
+	if (size == -1) return -1;
+
 	buf[size] = '\0';
 
-	if (strstr(buf, "getty")) return "getty";
-	if (strstr(buf, "qingy")) return "qingy";
+	if (strstr(buf, "getty")) return 1;
+	if (strstr(buf, "qingy")) return 1;
 
-	return NULL;
+	return 0;
 }
 
 /*
@@ -104,13 +103,13 @@ char *is_getty(pid_t process)
  * entries to find a process that owns /dev/tty<tty> (or /dev/vc/<tty>)
  * of which we return the pid
  */
-pid_t has_controlling_process(int tty)
+char *has_controlling_processes(int tty)
 {
 	struct dirent *entry;
 	char  *device  = create_tty_name(tty);
 	char  *device2 = create_vc_name (tty);
 	DIR   *dir     = opendir("/proc");
-	pid_t  result  = 0;
+	char  *result  = NULL;
 
 	if (!dir)
 	{
@@ -159,18 +158,10 @@ pid_t has_controlling_process(int tty)
 		free(dirname);
 		if (counter == 3)
 		{
-			char *getty;
-
-			result = atoi(entry->d_name);
-			getty  = is_getty(result);
-
-			if (!getty)                 break;
-			if (strcmp(getty, "qingy")) break;
-
-			/* qingy is controlling this tty, we do not return this value
-			 * so that we can catch a possible qingy-spawned shell
-			 */
-			result = 0;
+			if (!result)
+				result=strdup(entry->d_name);
+			else
+				StrApp(&result, ",", entry->d_name, (char*)NULL);
 		}
 	}
 	closedir(dir);
@@ -228,7 +219,13 @@ int WatchDog_Bark (char *dog_master, char *intruder, int our_land)
 	if (!dog_master)           return 0;
 	if (!intruder)             return 0;
 	if (!switch_to_tty(dest))  return 0;
-	if (!set_active_tty(dest)) return 0;
+
+	unlock_tty_switching();
+	if (!set_active_tty(dest))
+	{
+		lock_tty_switching();
+		return 0;
+	}
 
 	/*
 	 * we don't want our intruder to switch to the tty
@@ -259,18 +256,21 @@ int WatchDog_Bark (char *dog_master, char *intruder, int our_land)
 	fflush(stdout);
 	sleep(2);
 	ClearScreen();
-	unlock_tty_switching();
 	switch_to_tty(our_land);
 	disallocate_tty(dest);
 
 	if (retval)
-		set_active_tty(our_land);
+	{
+		unlock_tty_switching();
+	  set_active_tty(our_land);
+		lock_tty_switching();
+	}
 
 	return retval;
 }
 
 /* check wether user has auth to visit our tty */
-void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intruder)
+void WatchDog_Sniff(char *dog_master, int fence, int where_was_intruder)
 {
 	static char *previous_intruder = NULL;
 	char        *intruder;
@@ -289,79 +289,45 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 	}
 
 	if (!strcmp(intruder, "root"))
-	{ /* there are 2 possibilities here:
-		 * - tty is unused (thus we cannot know the user)
-		 * - tty is in use, thus either:
-		 *   - check wether qingy (or another getty) is running in this terminal, then
-		 *   - check owner of /dev/vc/<where_was_intruder> (probably an X session)
+	{ /*
+		 * if qingy or some getty is controlling this tty
+		 * we cannot be sure of user identity
 		 */
-		if (!is_tty_available(where_was_intruder))
-		{
-			pid_t process = has_controlling_process(where_was_intruder);
-			if (!process)
-			{ /* This tty in not controlled by any process:
-				 * we assume an X server is running here, thus
-				 * we check owner of /dev/vc/<where_was_intruder>
-				 * to get owner of this tty
-				 */
-				char *temp = int_to_str(where_was_intruder);
-				
-				free(intruder);
-				file = StrApp((char**)NULL, "/dev/vc/", temp, (char*)NULL);
-				free(temp);
-				intruder = get_file_owner(file);
-				free(file);
+		char *procs = has_controlling_processes(where_was_intruder);
 
-				if (!strcmp(intruder, "root"))
-				{ /* we cannot be sure of user identity */
-					free(intruder);
-					intruder = strdup("unknown");
-					free(previous_intruder);
-				}
-				
-				if (!strcmp(intruder, dog_master))
+		if (procs)
+		{
+			char *proc = strtok(procs,",");
+
+			while (proc)
+			{
+				if (!is_getty(proc))
 				{ /* now we are sure about user identity */
+					free(procs);
 					free(previous_intruder);
 					previous_intruder = intruder;
-					return;
+					return;					
 				}
+				proc = strtok(NULL,",");
 			}
-			else
-			{ /* some process is controlling this tty:
-				 * we check wether it is some sort of getty
-				 */
-				if (is_getty(process))
-				{ /* getty is running here: we cannot know who intruder is */
-					free(intruder);
-					intruder = strdup("unknown");
-					free(previous_intruder);
-				}
-				else
-				{ /* this tty is controlled by root: we grant access */
-					free(previous_intruder);
-					previous_intruder = intruder;
-					return;
-				}
-			}
+			free(procs);
 		}
-		else
-		{ /* vt is not in use: we cannot know who intruder is */
-			free(intruder);
-			intruder = strdup("unknown");
-			free(previous_intruder);
-		}
+
+		free(intruder);
+		intruder = strdup("unknown");
+		free(previous_intruder);
 	}
 
 	if (previous_intruder)
-		if (strcmp(previous_intruder, "root"))
-				if (!strcmp(previous_intruder,intruder))
-					return; /* it's a hard life being sure of someone... */
+		if (!strcmp(previous_intruder,intruder))
+			return; /* it's a hard life being sure of someone... */
 
 	/* tell user to authenticate himself */
-	retval = WatchDog_Bark(dog_master, intruder, where_is_intruder);	
+	retval = WatchDog_Bark(dog_master, intruder, fence);
 
 	if (!retval)
 	{ /* user has no right to be here */
+		unlock_tty_switching();
 		set_active_tty(where_was_intruder);
 		free(previous_intruder);
 		return;
@@ -373,7 +339,7 @@ void WatchDog_Sniff(char *dog_master, int where_was_intruder, int where_is_intru
 }
 
 /* guard specified ttys against unauthorized access */
-void ttyWatchDog(pid_t child, char *dog_master, int fence1)
+void ttyWatchDog(pid_t child, char *dog_master, int fence)
 {
 	struct timespec delay;
 	int where_is_intruder  = 0;
@@ -381,7 +347,7 @@ void ttyWatchDog(pid_t child, char *dog_master, int fence1)
 
 	if (!child)      return;
 	if (!dog_master) WAIT_N_RETURN;
-	if (!fence1)     WAIT_N_RETURN;
+	if (!fence)      WAIT_N_RETURN;
 
 	/* We set up a delay of 0.1 seconds */
   delay.tv_sec  = 0;
@@ -390,18 +356,23 @@ void ttyWatchDog(pid_t child, char *dog_master, int fence1)
 	/* Main loop: we wait until the user switches to the tty we are guarding */
   while (waitpid(child, NULL, WNOHANG) != child)
 	{
+		lock_tty_switching();
+
 		if (!where_was_intruder) where_was_intruder = get_active_tty();
 		else where_was_intruder = where_is_intruder;
 		where_is_intruder = get_active_tty();
 		if (where_is_intruder == -1)
 		{
-			fprintf(stderr, "\nfatal error: cannot get active tty number!\n");
-			WAIT_N_RETURN;
-			//abort();
+			fprintf(stderr, "\ntty guardian: serious issue: cannot get active tty number!\n");
+			unlock_tty_switching();
+			nanosleep(&delay, NULL);
+			continue;
 		}
 		if (where_is_intruder != where_was_intruder)
-			if (where_is_intruder == fence1)
-				WatchDog_Sniff(dog_master, where_was_intruder, where_is_intruder);
+			if (where_is_intruder == fence)
+				WatchDog_Sniff(dog_master, fence, where_was_intruder);
+
+		unlock_tty_switching();
 
 		nanosleep(&delay, NULL); /* wait a little before checking again */
 	}

@@ -1,4 +1,16 @@
+2005-09-08  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/vt.c (lock_tty_switching):
+	Fixed another of these 'forgot to close an open file' bugs.
+
 2005-09-07  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/libraries/tty_guardian.c:
+	Rewamped the tty guardian to reflect the fact that X servers
+	are now started in the same tty as the main qingy process.
+
+	* src/libraries/session.c (Graph_Login, Text_Login):
+	Added '-login' to the args I pass to the shell...
 
 	* src/DirectFB/directfb_mode.c (main),
 	* src/libraries/vt.h,

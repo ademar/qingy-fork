@@ -170,6 +170,7 @@ int lock_tty_switching(void)
   
   if (fd == -1) return 0;
   if (ioctl (fd, VT_LOCKSWITCH, 513) == -1) return 0;
+  if (close(fd) == -1) return 0;
 
   return 1;
 }

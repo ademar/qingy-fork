@@ -624,23 +624,24 @@ void remove_utmp_entry(void)
 void Text_Login(struct passwd *pw, char *session, char *username)
 {
   pid_t proc_id;
-  char *args[4] = {NULL, NULL, NULL, NULL};
+  char *args[5] = {NULL, NULL, NULL, NULL, NULL};
 #ifdef USE_PAM
   int retval;
 #endif
   
   args[0] = shell_base_name(pw->pw_shell);
+	args[1] = strdup("-login");
   if (!session || strcmp(session+6, "Console"))
 	{
-		args[1] = strdup("-c");
-		args[2] = StrApp((char **)NULL, TEXT_SESSIONS_DIRECTORY, "\"", session+6, "\"", (char *)NULL);
+		args[2] = strdup("-c");
+		args[3] = StrApp((char **)NULL, TEXT_SESSIONS_DIRECTORY, "\"", session+6, "\"", (char *)NULL);
 	}
   
   proc_id = fork();
   if (proc_id == -1)
 	{
 		fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
-		free(args[0]); free(args[1]); free(args[2]); 
+		free(args[0]); free(args[1]); free(args[2]); free(args[3]);
 		exit(EXIT_FAILURE);
 	}
   if (!proc_id)
@@ -693,6 +694,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   free(args[0]);
   free(args[1]);
   free(args[2]);
+	free(args[3]);
   exit(EXIT_SUCCESS);
 }
 
@@ -730,7 +732,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   pid_t proc_id;
   char *x_server = int_to_str(which_X_server());
   char *vt = NULL;
-  char *args[4];
+  char *args[5];
 #ifdef USE_PAM
   int retval;
 #endif
@@ -738,31 +740,32 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	vt = int_to_str(current_vt);
   
   args[0] = shell_base_name(pw->pw_shell);
-  args[1] = strdup("-c");
+	args[1] = strdup("-login");
+  args[2] = strdup("-c");
 
   // now we compose the xinit launch command line
-	args[2] = StrApp((char**)NULL, XINIT, " ", (char*)NULL);
+	args[3] = StrApp((char**)NULL, XINIT, " ", (char*)NULL);
 
   // add the chosen X session
   if (!strcmp(session, "Your .xsession"))
-    args[2] = StrApp(&(args[2]), "$HOME/.xsession -- ", (char*)NULL);
+    args[3] = StrApp(&(args[3]), "$HOME/.xsession -- ", (char*)NULL);
   else
-    args[2] = StrApp(&(args[2]), X_SESSIONS_DIRECTORY, "\"", session, "\" -- ", (char*)NULL);
+    args[3] = StrApp(&(args[3]), X_SESSIONS_DIRECTORY, "\"", session, "\" -- ", (char*)NULL);
 
   // add the chosen X server, if one has been chosen
 	if (X_SERVER)
-		args[2] = StrApp(&(args[2]), X_SERVER, " :", x_server, " vt", vt, (char*)NULL);
+		args[3] = StrApp(&(args[3]), X_SERVER, " :", x_server, " vt", vt, (char*)NULL);
 	else
-		args[2] = StrApp(&(args[2]), ":", x_server, " vt", vt, (char*)NULL);
+		args[3] = StrApp(&(args[3]), ":", x_server, " vt", vt, (char*)NULL);
 
   // add the supplied X server arguments, if supplied
 	if (X_ARGS)
-		args[2] = StrApp(&(args[2]), " ", X_ARGS, (char*)NULL);
+		args[3] = StrApp(&(args[3]), " ", X_ARGS, (char*)NULL);
 
   // done... as a final touch we suppress verbose output
-	args[2] = StrApp(&(args[2]), " >& /dev/null", (char*)NULL);
+	args[3] = StrApp(&(args[3]), " >& /dev/null", (char*)NULL);
 
-  args[3] = NULL;
+  args[4] = NULL;
   free(x_server);
   free(vt);
   
@@ -770,7 +773,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   if (proc_id == -1)
 	{
 		fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
-		free(args[0]); free(args[1]); free(args[2]);
+		free(args[0]); free(args[1]); free(args[2]); free(args[3]);
 		exit(EXIT_FAILURE);
 	}
   if (!proc_id)
@@ -797,11 +800,6 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	}
   set_last_user(username);
   set_last_session(username, session, current_vt);
-  
-  /* wait a bit, then clear console from X starting messages */
-  //sleep(3);
-  //ClearScreen();
-  //fprintf(stderr, "Switching to X Server...\n");
   
   /* while X server is active, we wait for user
      to switch to our tty and redirect him there */
@@ -832,6 +830,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   free(args[0]);
   free(args[1]);
   free(args[2]);
+	free(args[3]);
   exit(EXIT_SUCCESS);
 }
 
