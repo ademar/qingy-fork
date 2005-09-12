@@ -195,7 +195,7 @@ int is_a_directory(char *what)
 int stop_gpm(void)
 {
   int retval;
-  char *filename = StrApp((char**)0, DATADIR, "gpm", (char*)0);
+  char *filename = StrApp((char**)0, tmp_files_dir, "gpm", (char*)0);
   FILE *fp;
   
   retval = system("/etc/init.d/gpm stop >/dev/null 2>/dev/null");
@@ -229,7 +229,7 @@ int start_gpm(void)
 {
   int retval;
   struct timespec delay;
-  char *filename = StrApp((char**)0, DATADIR, "gpm", (char*)0);
+  char *filename = StrApp((char**)0, tmp_files_dir, "gpm", (char*)0);
   
   /* We set up a delay of 0.5 seconds */
   delay.tv_sec= 0;

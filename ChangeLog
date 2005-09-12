@@ -1,3 +1,17 @@
+2005-09-09  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* LOTS_OF_FILES:
+	Sanitizing some variable names...
+
+	* src/libraries/load_settings.c (load_settings):
+	Fixed a bug where the temp_files_dir variable
+	in settings file wasn't always honoured.
+
+	Made qingy complain (and fail) if its temp files dir
+	does not exist (or is not accessible for whatever reasons).
+
+	Adding some more (and more useful) error messages.
+
 2005-09-08  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/libraries/vt.c (lock_tty_switching):

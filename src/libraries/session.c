@@ -165,7 +165,7 @@ char *get_sessions(void)
   static char   *dirname = NULL;
   static int     status  = 0;
   
-  if (!dirname) dirname = X_SESSIONS_DIRECTORY;
+  if (!dirname) dirname = x_sessions_directory;
   
   switch (status)
 	{
@@ -180,9 +180,9 @@ char *get_sessions(void)
       if (!dir)
 			{				
 				fprintf(stderr, "session: unable to open directory \"%s\"\n", dirname);
-				if (dirname == X_SESSIONS_DIRECTORY)
+				if (dirname == x_sessions_directory)
 				{
-					dirname = TEXT_SESSIONS_DIRECTORY;
+					dirname = text_sessions_directory;
 					return get_sessions();
 				}
 				status = 0;
@@ -195,7 +195,7 @@ char *get_sessions(void)
 				if (!(entry= readdir(dir))) break;
 				if (!strcmp(entry->d_name, "." )) continue;
 				if (!strcmp(entry->d_name, "..")) continue;      
-				if (dirname == X_SESSIONS_DIRECTORY)
+				if (dirname == x_sessions_directory)
 				{
 #ifdef slackware
 					if (strncmp(entry->d_name, "xinitrc.", 8)) continue;
@@ -209,13 +209,13 @@ char *get_sessions(void)
 				else return StrApp((char**)NULL, "Text: ", entry->d_name, (char*)NULL);
 			}
       closedir(dir);
-      if (dirname == TEXT_SESSIONS_DIRECTORY)
+      if (dirname == text_sessions_directory)
 			{
 				dirname = NULL;
 				status = 0;
 				return NULL;
 			}
-      dirname = TEXT_SESSIONS_DIRECTORY;
+      dirname = text_sessions_directory;
       status = 2;
       return get_sessions();
 	}
@@ -443,11 +443,11 @@ void setEnvironment(struct passwd *pwd, int is_x_session)
 {
 #ifdef USE_PAM
 	int    i;
-	char **env   = pam_getenvlist(pamh);
+	char **env      = pam_getenvlist(pamh);
 #endif
-  char  *mail  = StrApp((char**)NULL, _PATH_MAILDIR, "/", pwd->pw_name, (char*)NULL);
-	char  *path  = strdup("/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin");
-	char  *xinit = NULL;
+  char  *mail     = StrApp((char**)NULL, _PATH_MAILDIR, "/", pwd->pw_name, (char*)NULL);
+	char  *path     = strdup("/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin");
+	char  *my_xinit = NULL;
   
   environ    = (char **) calloc(2, sizeof(char *));
   environ[0] = NULL;
@@ -456,20 +456,20 @@ void setEnvironment(struct passwd *pwd, int is_x_session)
 	 * if XINIT is set, we add it's path to PATH,
 	 * assuming that X will sit in the same directory...
 	 */
-	if (XINIT)
+	if (xinit)
 	{
-		int i = strlen(XINIT);
+		int i = strlen(xinit);
 
 		for (; i>=0; i--)
-			if (XINIT[i] == '/')
+			if (xinit[i] == '/')
 			{
-				xinit = strndup(XINIT, (i+1)*sizeof(char));
+				my_xinit = strndup(xinit, (i+1)*sizeof(char));
 				break;
 			}
 	}
-	if (xinit)
+	if (my_xinit)
 	{
-		StrApp(&path, ":", xinit, (char*)NULL);
+		StrApp(&path, ":", my_xinit, (char*)NULL);
 		free(xinit);
 	}
 
@@ -634,7 +634,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   if (!session || strcmp(session+6, "Console"))
 	{
 		args[2] = strdup("-c");
-		args[3] = StrApp((char **)NULL, TEXT_SESSIONS_DIRECTORY, "\"", session+6, "\"", (char *)NULL);
+		args[3] = StrApp((char **)NULL, text_sessions_directory, "\"", session+6, "\"", (char *)NULL);
 	}
   
   proc_id = fork();
@@ -730,7 +730,7 @@ int which_X_server(void)
 void Graph_Login(struct passwd *pw, char *session, char *username)
 {
   pid_t proc_id;
-  char *x_server = int_to_str(which_X_server());
+  char *my_x_server = int_to_str(which_X_server());
   char *vt = NULL;
   char *args[5];
 #ifdef USE_PAM
@@ -744,29 +744,29 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   args[2] = strdup("-c");
 
   // now we compose the xinit launch command line
-	args[3] = StrApp((char**)NULL, XINIT, " ", (char*)NULL);
+	args[3] = StrApp((char**)NULL, xinit, " ", (char*)NULL);
 
   // add the chosen X session
   if (!strcmp(session, "Your .xsession"))
     args[3] = StrApp(&(args[3]), "$HOME/.xsession -- ", (char*)NULL);
   else
-    args[3] = StrApp(&(args[3]), X_SESSIONS_DIRECTORY, "\"", session, "\" -- ", (char*)NULL);
+    args[3] = StrApp(&(args[3]), x_sessions_directory, "\"", session, "\" -- ", (char*)NULL);
 
   // add the chosen X server, if one has been chosen
-	if (X_SERVER)
-		args[3] = StrApp(&(args[3]), X_SERVER, " :", x_server, " vt", vt, (char*)NULL);
+	if (x_server)
+		args[3] = StrApp(&(args[3]), x_server, " :", my_x_server, " vt", vt, (char*)NULL);
 	else
-		args[3] = StrApp(&(args[3]), ":", x_server, " vt", vt, (char*)NULL);
+		args[3] = StrApp(&(args[3]), ":", my_x_server, " vt", vt, (char*)NULL);
 
   // add the supplied X server arguments, if supplied
-	if (X_ARGS)
-		args[3] = StrApp(&(args[3]), " ", X_ARGS, (char*)NULL);
+	if (x_args)
+		args[3] = StrApp(&(args[3]), " ", x_args, (char*)NULL);
 
   // done... as a final touch we suppress verbose output
 	args[3] = StrApp(&(args[3]), " >& /dev/null", (char*)NULL);
 
   args[4] = NULL;
-  free(x_server);
+  free(my_x_server);
   free(vt);
   
   proc_id = fork();

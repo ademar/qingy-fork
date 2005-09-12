@@ -46,21 +46,21 @@ int retries;
 
 /* NOTE: some of these should become #defines through autoconf... */
 char *program_name;
-char *DATADIR;
-char *SCREENSAVERS_DIR;
-char *SETTINGS;
-char *LAST_USER;
-char *X_SESSIONS_DIRECTORY;
-char *TEXT_SESSIONS_DIRECTORY;
-char *XINIT;
-char *X_SERVER;
-char *X_ARGS;
+char *datadir;
+char *screensavers_dir;
+char *settings;
+char *last_user;
+char *x_sessions_directory;
+char *text_sessions_directory;
+char *xinit;
+char *x_server;
+char *x_args;
 char *FONT;
 char *BACKGROUND;
 char *THEME_DIR;
 char *THEMES_DIR;
 char *DFB_INTERFACE;
-char *TMP_FILE_DIR;
+char *tmp_files_dir;
 char *SLEEP_CMD;
 
 /* autologin stuff */

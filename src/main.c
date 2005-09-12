@@ -118,7 +118,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
   int    i,j;
 	int    returnstatus = QINGY_FAILURE;
 	char **gui_argv     = NULL;
-	char  *toGUI        = StrApp((char**)NULL, TMP_FILE_DIR, "/qingyXXXXXX", (char*)NULL);
+	char  *toGUI        = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
 	char  *fromGUI      = strdup(toGUI);
 	int    fd;
 
@@ -418,7 +418,7 @@ int check_autologin(int our_tty_number)
 	/* set autologin temp file name */
 	temp = int_to_str(our_tty_number);
 	autologin_filename =
-		StrApp((char**)NULL, TMP_FILE_DIR, "/", AUTOLOGIN_FILE_BASENAME, "tty", temp, (char*)NULL);
+		StrApp((char**)NULL, tmp_files_dir, "/", AUTOLOGIN_FILE_BASENAME, "tty", temp, (char*)NULL);
 	free(temp);	
 
 	if (access(autologin_filename, F_OK     )) return 1; /* file does not exist */
@@ -465,7 +465,8 @@ int main(int argc, char *argv[])
 	Switch_TTY;
 
 	/* parse settings file */
-	load_settings();
+	if (!load_settings())
+		text_mode();
 
 #ifdef WANT_CRYPTO
 	generate_keys(); /* generate public/private keys */

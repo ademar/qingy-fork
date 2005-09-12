@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
 #include <errno.h>
@@ -74,24 +75,24 @@ void initialize_variables(void)
 {
   SCREENSAVER_NAME        = NULL;
 	AUTOLOGIN_FILE_BASENAME = strdup("qingy-autologin-");
-  TEXT_SESSIONS_DIRECTORY = NULL;
-  X_SESSIONS_DIRECTORY    = NULL;
+  text_sessions_directory = NULL;
+  x_sessions_directory    = NULL;
 	AUTOLOGIN_USERNAME      = NULL;
 	AUTOLOGIN_PASSWORD      = NULL;
 	AUTOLOGIN_SESSION       = NULL;
-	SCREENSAVERS_DIR        = NULL;
+	screensavers_dir        = NULL;
 	DFB_INTERFACE           = StrApp((char**)NULL, SBINDIR, "qingy-DirectFB", (char*)NULL);
-	TMP_FILE_DIR            = strdup("/var/lib/misc");
+	tmp_files_dir           = strdup("/var/lib/misc");
   BACKGROUND              = NULL;
 	THEMES_DIR              = NULL;
   THEME_DIR               = NULL;
-  LAST_USER               = NULL;
+  last_user               = NULL;
 	SLEEP_CMD               = NULL;
-  SETTINGS                = NULL;	
-	X_SERVER                = NULL;
-  X_ARGS                  = NULL;
-  DATADIR                 = NULL;	
-  XINIT                   = NULL;
+  settings                = NULL;	
+	x_server                = NULL;
+  x_args                  = NULL;
+  datadir                 = NULL;	
+  xinit                   = NULL;
   FONT                    = NULL;
   screensaver_options     = NULL;
   windowsList             = NULL;
@@ -124,10 +125,10 @@ void initialize_variables(void)
 
 void set_default_paths(void)
 {
-  TEXT_SESSIONS_DIRECTORY = strdup("/etc/qingy/sessions");
-	X_SESSIONS_DIRECTORY    = strdup("/etc/X11/Sessions/"); 
-  XINIT                   = strdup("/usr/X11R6/bin/xinit");
-	SCREENSAVERS_DIR        = strdup("/usr/lib/qingy/screensavers");
+  text_sessions_directory = strdup("/etc/qingy/sessions");
+	x_sessions_directory    = strdup("/etc/X11/Sessions/"); 
+  xinit                   = strdup("/usr/X11R6/bin/xinit");
+	screensavers_dir        = strdup("/usr/lib/qingy/screensavers");
 	THEMES_DIR              = strdup("/usr/share/qingy/themes");
 	/*
 	 * (michele): no need to check strdup return values,
@@ -245,12 +246,12 @@ void yyerror(char *error)
 		fprintf(stderr, "qingy: error in configuration file %s:\n", file_error);
 		fprintf(stderr, "       %s.\n", error);
 	}
-  free(X_SESSIONS_DIRECTORY);
-  free(TEXT_SESSIONS_DIRECTORY);
-  free(XINIT);
+  free(x_sessions_directory);
+  free(text_sessions_directory);
+  free(xinit);
   free(FONT);
   free(THEME_DIR);
-	free(SCREENSAVERS_DIR);
+	free(screensavers_dir);
 	free(THEMES_DIR);
 	set_default_paths();
   THEME_DIR = StrApp((char**)NULL, THEMES_DIR, "/default/", (char*)NULL);
@@ -258,7 +259,7 @@ void yyerror(char *error)
 
 char *get_last_user(void)
 {
-	FILE   *fp     = fopen(LAST_USER, "r");
+	FILE   *fp     = fopen(last_user, "r");
 	char   *line   = NULL;
 	char   *result = NULL;
 	char   *ttystr = NULL;
@@ -318,7 +319,7 @@ char *get_last_user(void)
 
 int set_last_user(char *user)
 {
-	char   *fileOUT = StrApp((char**)NULL, LAST_USER, "-new", (char*)NULL);
+	char   *fileOUT = StrApp((char**)NULL, last_user, "-new", (char*)NULL);
 	char   *line    = NULL;
 	size_t  len     = 0;
   FILE   *fpIN;
@@ -330,7 +331,7 @@ int set_last_user(char *user)
 		return 0;
 	}
 
-	fpIN  = fopen(LAST_USER, "r");
+	fpIN  = fopen(last_user, "r");
 	fpOUT = fopen(fileOUT,   "w");
 
 	if (!fpOUT)
@@ -359,8 +360,8 @@ int set_last_user(char *user)
 	}
 
 	fclose(fpOUT);
-	remove(LAST_USER);
-	rename(fileOUT, LAST_USER);
+	remove(last_user);
+	rename(fileOUT, last_user);
 	free(fileOUT);
   
   return 1;
@@ -377,9 +378,9 @@ char *get_last_session(char *user)
 
 	if (LAST_SESSION_POLICY == LS_TTY)
 	{
-		filename = (char *) calloc(strlen(TMP_FILE_DIR)+20, sizeof(char));
+		filename = (char *) calloc(strlen(tmp_files_dir)+20, sizeof(char));
   
-		strcpy(filename, TMP_FILE_DIR);
+		strcpy(filename, tmp_files_dir);
 		if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
 		strcat(filename, "qingy-lastsessions");
 	}
@@ -464,14 +465,14 @@ void set_last_session(char *user, char *session, int tty)
 	{
 		char   *ttystr      = int_to_str(tty);
 		int     lenttystr   = strlen(ttystr);
-		char   *filenamein  = (char *) calloc(strlen(TMP_FILE_DIR)+20, sizeof(char));
-		char   *filenameout = (char *) calloc(strlen(TMP_FILE_DIR)+24, sizeof(char));
+		char   *filenamein  = (char *) calloc(strlen(tmp_files_dir)+20, sizeof(char));
+		char   *filenameout = (char *) calloc(strlen(tmp_files_dir)+24, sizeof(char));
 		char   *line        = NULL;
 		size_t  len         = 0;
 		FILE   *filein;
 		FILE   *fileout;
 
-		strcpy(filenamein, TMP_FILE_DIR);
+		strcpy(filenamein, tmp_files_dir);
 		if (filenamein[strlen(filenamein)-1] != '/') strcat(filenamein, "/");
 		strcpy(filenameout, filenamein);
 		strcat(filenamein,  "qingy-lastsessions");
@@ -537,7 +538,7 @@ char *get_welcome_msg(char *username)
 			if (welcome_msg) return welcome_msg;
 		}
   }
-  path = StrApp((char**)NULL, DATADIR, "welcomes", (char*)NULL);
+  path = StrApp((char**)NULL, datadir, "welcomes", (char*)NULL);
   fp   = fopen(path, "r");
   free(path);
   
@@ -790,47 +791,69 @@ int check_windows_sanity()
 int load_settings(void)
 {
 	static int first_time = 1;
+	struct stat status;
 
 	if (!first_time)
 		destroy_keybindings_list();
 
 	first_time = 0;
 
-  DATADIR   = strdup(SETTINGS_DIR "/");
-  SETTINGS  = StrApp((char**)NULL, DATADIR, "settings", (char*)NULL);
-  LAST_USER = StrApp((char**)NULL, TMP_FILE_DIR, "/qingy-lastuser", (char*)NULL);  
+  datadir  = strdup(SETTINGS_DIR "/");
+  settings = StrApp((char**)NULL, datadir, "settings", (char*)NULL);
   
-  yyin = fopen(SETTINGS, "r");
+  yyin = fopen(settings, "r");
   if (!yyin)
 	{
-		fprintf(stderr, "load_settings: settings file not found: reverting to text mode\n");
+		fprintf(stderr, "qingy: load_settings: settings file (%s) not found:\n", settings);
+		perror(NULL);
+		fprintf(stderr, "Reverting to text mode\n");
 		return 0;
 	}
 
-  file_error = SETTINGS;
+  file_error = settings;
   yyparse();
   fclose(yyin);
   file_error = NULL;
+
+	/* complain if tmp_files_dir does not exist (or is not a directory) */
+	if (!stat(tmp_files_dir, &status))
+	{
+		if (!S_ISDIR(status.st_mode))
+		{
+			fprintf(stderr, "qingy: load_settings: fatal error: the temp files directory you chose,\n");
+			fprintf(stderr, "(%s), is not a directory!\n", tmp_files_dir);
+			return 0;
+		}
+	}
+	else
+	{
+		fprintf(stderr, "qingy: load_settings: fatal error: cannot access temp files directory\n");
+		fprintf(stderr, "(%s): ", tmp_files_dir);
+		perror(NULL);
+		return 0;
+	}
+
+	last_user = StrApp((char**)NULL, tmp_files_dir, "/qingy-lastuser", (char*)NULL);  
   
-  if (!TEXT_SESSIONS_DIRECTORY ||
-			!X_SESSIONS_DIRECTORY    ||
-			!XINIT                   ||
-			!SCREENSAVERS_DIR        ||
+  if (!text_sessions_directory ||
+			!x_sessions_directory    ||
+			!xinit                   ||
+			!screensavers_dir        ||
 			!THEMES_DIR)
 	{
-		fprintf(stderr, "load_settings: warning: you left some variables undefined\n");
+		fprintf(stderr, "qingy: load_settings: warning: you left some variables undefined\n");
 		fprintf(stderr, "in settings file, anomalies may occur!\n");
 	}
 
   if (!GOT_THEME)
 	{
-		fprintf(stderr, "load_settings: cannot proceed without a theme!\n");
+		fprintf(stderr, "qingy: load_settings: cannot proceed without a theme!\n");
 		return 0;
 	}
 
   if (!check_windows_sanity())
 	{
-		fprintf(stderr, "Error in windows configuration:\n");
+		fprintf(stderr, "qingy: load_settings: Error in windows configuration:\n");
 		fprintf(stderr, "make sure you set up at least login password and session windows!\n");
 		return 0;
 	}

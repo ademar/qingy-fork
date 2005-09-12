@@ -231,7 +231,7 @@ lck_sess: LOCK_SESSIONS_TOK '=' YES_TOK { TTY_CHECK_COND lock_sessions = 1; }
 scrsvrs_dir: SCRSVRS_DIR_TOK '=' QUOTSTR_T
 	{
 		if(in_theme) yyerror("Setting 'screensavers_dir' is not allowed in theme file.");
-		TTY_CHECK_COND SCREENSAVERS_DIR = strdup($3);
+		TTY_CHECK_COND screensavers_dir = strdup($3);
 	}
 
 /* where are located the themes? */
@@ -245,7 +245,7 @@ themes_dir: THEMES_DIR_TOK '=' QUOTSTR_T
 temp_dir: TEMP_FILES_DIR_TOK '=' QUOTSTR_T
 	{
 		if(in_theme) yyerror("Setting 'temp_files_dir' is not allowed in theme file.");
-		TTY_CHECK_COND { if (TMP_FILE_DIR) free(TMP_FILE_DIR); TMP_FILE_DIR = strdup($3); };
+		TTY_CHECK_COND { if (tmp_files_dir) free(tmp_files_dir); tmp_files_dir = strdup($3); };
 	}
 
 /* Screensaver: "name" or "name" = "option", "option"  */
@@ -261,7 +261,7 @@ scrsvr_with_options: QUOTSTR_T      { TTY_CHECK_COND {SSAVER_CHECK_COND add_to_o
 xsessdir: XSESSION_DIR_TOK '=' QUOTSTR_T 
 	{
 	  if(in_theme) yyerror("Setting 'x_sessions' is not allowed in theme file.");
-	  TTY_CHECK_COND X_SESSIONS_DIRECTORY = strdup($3);
+	  TTY_CHECK_COND x_sessions_directory = strdup($3);
 	};
 
 
@@ -269,28 +269,28 @@ xsessdir: XSESSION_DIR_TOK '=' QUOTSTR_T
 txtsessdir: TXTSESSION_DIR_TOK '=' QUOTSTR_T
 	{
 	  if(in_theme) yyerror("Setting 'test_sessions' is not allowed in theme file.");
-	  TTY_CHECK_COND TEXT_SESSIONS_DIRECTORY = strdup($3);
+	  TTY_CHECK_COND text_sessions_directory = strdup($3);
 	};
 
 /* xinit executable.  Note that it cannot be in theme file..  */
 xinit: XINIT_TOK '=' QUOTSTR_T
 	{
 	  if(in_theme) yyerror("Setting 'xinit' is not allowed in theme file");
-	  TTY_CHECK_COND XINIT = strdup($3);
+	  TTY_CHECK_COND xinit = strdup($3);
 	};
 
 /* xinit executable.  Note that it cannot be in theme file..  */
 x_server: X_SERVER_TOK '=' QUOTSTR_T
 	{
 	  if(in_theme) yyerror("Setting 'xinit' is not allowed in theme file");
-	  TTY_CHECK_COND X_SERVER = strdup($3);
+	  TTY_CHECK_COND x_server = strdup($3);
 	};
 
 /* args to be passed to the X server.  Note that it cannot be in theme file..  */
 x_args: X_ARGS_TOK '=' QUOTSTR_T
 	{
 	  if(in_theme) yyerror("Setting 'x_args' is not allowed in theme file");
-	  TTY_CHECK_COND X_ARGS = strdup($3);
+	  TTY_CHECK_COND x_args = strdup($3);
 	};
 
 /* gui retries value.  Note that it cannot be in theme file..  */

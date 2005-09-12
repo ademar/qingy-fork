@@ -188,6 +188,7 @@ void ComboBox_MouseOver(ComboBox *thiz, int status)
 			where->SetColor (where, thiz->text_color.R, thiz->text_color.G, thiz->text_color.B, thiz->text_color.A);
 			where->DrawRectangle (where, 0, 0, dest.w, dest.h);
 			where->FillTriangle (where, dest.w - dest.h + dest.h/3, dest.h/3, dest.w - dest.h/3, dest.h/3, dest.w - (dest.h/2), dest.h - dest.h/3);
+			where->Release(where);
 		}
 
 		thiz->surface->Flip(thiz->surface, NULL, 0);

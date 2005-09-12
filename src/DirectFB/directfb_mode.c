@@ -222,7 +222,7 @@ void close_framebuffer_mode (void)
 	 * And do it the HARD WAY!
 	 */
 
-  /* destroy all labels */
+/*   /\* destroy all labels *\/ */
 /*   while (Labels) */
 /* 	{ */
 /* 		Label_list *temp = Labels; */

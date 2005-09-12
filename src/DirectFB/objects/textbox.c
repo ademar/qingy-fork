@@ -161,6 +161,7 @@ void DrawCursor(TextBox *thiz)
 	thiz->surface->GetSubSurface(thiz->surface, &dest, &where);
 	where->SetColor (where, thiz->cursor_color.R, thiz->cursor_color.G, thiz->cursor_color.B, thiz->cursor_color.A);
 	where->FillRectangle (where, 0, 0, dest.w, dest.h);
+	where->Release(where);
 	if (free_text) free(text);
 }
 
