@@ -1,3 +1,8 @@
+2005-09-19  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* LOTS_OF_FILES:
+	Done sanitizing variable names.
+
 2005-09-09  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* LOTS_OF_FILES:

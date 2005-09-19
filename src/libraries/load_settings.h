@@ -55,37 +55,37 @@ char *text_sessions_directory;
 char *xinit;
 char *x_server;
 char *x_args;
-char *FONT;
-char *BACKGROUND;
-char *THEME_DIR;
-char *THEMES_DIR;
-char *DFB_INTERFACE;
+char *font;
+char *background;
+char *theme_dir;
+char *themes_dir;
+char *dfb_interface;
 char *tmp_files_dir;
-char *SLEEP_CMD;
+char *sleep_cmd;
 
 /* autologin stuff */
-char *AUTOLOGIN_FILE_BASENAME;
-char *AUTOLOGIN_USERNAME;
-char *AUTOLOGIN_PASSWORD;
-char *AUTOLOGIN_SESSION;
-int   DO_AUTOLOGIN;
-int   AUTO_RELOGIN;
+char *autologin_file_basename;
+char *autologin_username;
+char *autologin_password;
+char *autologin_session;
+int   do_autologin;
+int   auto_relogin;
 
 /* other stuff */
 char *fb_device;
 char *resolution;
 
-int BUTTON_OPACITY;
-int WINDOW_OPACITY;
-int SELECTED_WINDOW_OPACITY;
+int button_opacity;
+int window_opacity;
+int selected_window_opacity;
 
 /*
  * this is the native resolution of the theme, i.e. the resolution
  * the theme was designed for, and we should scale only if our
  * current resolution is different from this one
  */
-int THEME_XRES;
-int THEME_YRES;
+int theme_xres;
+int theme_yres;
 
 /* colors */
 typedef struct
@@ -97,9 +97,9 @@ typedef struct
 }
 color_t;
 
-color_t DEFAULT_TEXT_COLOR;
-color_t DEFAULT_CURSOR_COLOR;
-color_t OTHER_TEXT_COLOR;
+color_t default_text_color;
+color_t default_cursor_color;
+color_t other_text_color;
 
 /* Shutdown permissions policy... */
 typedef enum 
@@ -108,7 +108,7 @@ typedef enum
   ROOT,
   NOONE
 } shutdown_policies;
-shutdown_policies SHUTDOWN_POLICY;
+shutdown_policies shutdown_policy;
 
 /* Last user policy... */
 typedef enum 
@@ -116,7 +116,7 @@ typedef enum
   LU_GLOBAL=0,
   LU_TTY
 } last_user_policies;
-last_user_policies LAST_USER_POLICY;
+last_user_policies last_user_policy;
 
 /* Last session policy... */
 typedef enum 
@@ -124,7 +124,7 @@ typedef enum
   LS_USER=0,
   LS_TTY
 } last_session_policies;
-last_session_policies LAST_SESSION_POLICY;
+last_session_policies last_session_policy;
 
 /* screen saver stuff */
 struct _screensaver_options
@@ -135,7 +135,7 @@ struct _screensaver_options
 struct _screensaver_options *screensaver_options;
 
 /* screensaver name */
-char* SCREENSAVER_NAME;
+char* screensaver_name;
 
 /* Custom windows can be of the following- they mean:
    - UNKNOWN: default value, treat as error.
@@ -230,7 +230,7 @@ void set_last_session(char *user, char *session, int tty);
 char *get_welcome_msg(char *user);
 
 /* theme stuff */
-int GOT_THEME;
+int got_theme;
 extern int set_theme(char *theme);
 char *get_random_theme();
 

@@ -54,7 +54,7 @@ void Button_MouseOver(Button *thiz, int status)
 void Button_Show(Button *thiz)
 {
 	if (!thiz || !thiz->window) return;
-	thiz->window->SetOpacity(thiz->window, BUTTON_OPACITY);
+	thiz->window->SetOpacity(thiz->window, button_opacity);
 }
 
 void Button_Hide(Button *thiz)
@@ -178,7 +178,7 @@ Button *Button_Create(const char *normal, const char *mouseover, int xpos, int y
 	window->SetOpacity( window, 0x00 );
 	window->RaiseToTop( window );
 	window->GetSurface( window, &surface );
-	window->SetOpacity( window, BUTTON_OPACITY );
+	window->SetOpacity( window, button_opacity );
 	but->mouse = 0;
 	but->surface = surface;
 	but->window = window;

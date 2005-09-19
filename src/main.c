@@ -132,7 +132,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 
 		/* display native theme resolution */
 		if (!silent)
-			fprintf(stderr, "Native theme resolution is '%dx%d'\n", THEME_XRES, THEME_YRES);
+			fprintf(stderr, "Native theme resolution is '%dx%d'\n", theme_xres, theme_yres);
 
 		/* get resolution of console framebuffer */
 		if (!resolution) resolution = get_fb_resolution( (fb_device) ? fb_device : "/dev/fb0" );
@@ -140,7 +140,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 
 		/* Set up command line for our interface */
 		gui_argv = (char **) calloc(argc+3, sizeof(char *));
-		gui_argv[0] = DFB_INTERFACE;
+		gui_argv[0] = dfb_interface;
 		for (j=1; j<argc; j++)
 			gui_argv[j] = argv[j];
 
@@ -318,9 +318,9 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		int fd = creat(autologin_filename, S_IRUSR|S_IWUSR);
 		close(fd);
 
-		username     = AUTOLOGIN_USERNAME;
-		password     = AUTOLOGIN_PASSWORD;
-		session      = AUTOLOGIN_SESSION;
+		username     = autologin_username;
+		password     = autologin_password;
+		session      = autologin_session;
 		returnstatus = EXIT_SUCCESS;
 	}
 
@@ -362,7 +362,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		case EXIT_SLEEP:
 			if (username) memset(username, '\0', sizeof(username));
       if (password) memset(password, '\0', sizeof(password));
-			if (SLEEP_CMD) execl (SLEEP_CMD, SLEEP_CMD, (char*)NULL);
+			if (sleep_cmd) execl (sleep_cmd, sleep_cmd, (char*)NULL);
 			fprintf(stderr, "\nfatal error: could not execute sleep command!\n");
 			exit(EXIT_FAILURE);
 			break;
@@ -394,31 +394,31 @@ int check_autologin(int our_tty_number)
 	struct stat  filestat;
 	time_t       uptime;
 
-	if (!DO_AUTOLOGIN) return 0;
+	if (!do_autologin) return 0;
 
 	/* Sanity checks */
-	if (!AUTOLOGIN_USERNAME || !AUTOLOGIN_PASSWORD || !AUTOLOGIN_SESSION)
+	if (!autologin_username || !autologin_password || !autologin_session)
 	{
 		fprintf(stderr, "\nAutologin disabled: insuffucient user data!\n");
 		return 0;
 	}
-	if (!strcmp(AUTOLOGIN_SESSION, "LAST"))
+	if (!strcmp(autologin_session, "LAST"))
 	{
-		free(AUTOLOGIN_SESSION);
-		AUTOLOGIN_SESSION = get_last_session(AUTOLOGIN_USERNAME);
-		if (!AUTOLOGIN_SESSION)
+		free(autologin_session);
+		autologin_session = get_last_session(autologin_username);
+		if (!autologin_session)
 		{
-			fprintf(stderr, "\nAutologin disabled: could not get last session of user %s!\n", AUTOLOGIN_USERNAME);
+			fprintf(stderr, "\nAutologin disabled: could not get last session of user %s!\n", autologin_username);
 			return 0;			
 		}
 	}
 
-	if (AUTO_RELOGIN) return 1;
+	if (auto_relogin) return 1;
 
 	/* set autologin temp file name */
 	temp = int_to_str(our_tty_number);
 	autologin_filename =
-		StrApp((char**)NULL, tmp_files_dir, "/", AUTOLOGIN_FILE_BASENAME, "tty", temp, (char*)NULL);
+		StrApp((char**)NULL, tmp_files_dir, "/", autologin_file_basename, "tty", temp, (char*)NULL);
 	free(temp);	
 
 	if (access(autologin_filename, F_OK     )) return 1; /* file does not exist */

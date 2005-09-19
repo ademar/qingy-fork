@@ -196,7 +196,7 @@ int yywrap()
     yy_delete_buffer( YY_CURRENT_BUFFER );
     yy_switch_to_buffer(settings_buf);
     settings_buf=NULL;
-    GOT_THEME=1;
+    got_theme=1;
     in_theme=0;
     return 0;
   }
@@ -211,8 +211,8 @@ int set_theme(char *theme)
 
   if (!theme) return 0;
   
-  THEME_DIR = StrApp((char**)NULL, THEMES_DIR, "/", theme, "/", (char*)NULL);
-  file = StrApp((char**)NULL, THEME_DIR, "theme", (char*)NULL);
+  theme_dir = StrApp((char**)NULL, themes_dir, "/", theme, "/", (char*)NULL);
+  file = StrApp((char**)NULL, theme_dir, "theme", (char*)NULL);
   fp = fopen(file, "r");
 	free(file);
   if (!fp)

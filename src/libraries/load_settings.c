@@ -73,47 +73,47 @@ int   in_theme   = 0;
 
 void initialize_variables(void)
 {
-  SCREENSAVER_NAME        = NULL;
-	AUTOLOGIN_FILE_BASENAME = strdup("qingy-autologin-");
+  screensaver_name        = NULL;
+	autologin_file_basename = strdup("qingy-autologin-");
   text_sessions_directory = NULL;
   x_sessions_directory    = NULL;
-	AUTOLOGIN_USERNAME      = NULL;
-	AUTOLOGIN_PASSWORD      = NULL;
-	AUTOLOGIN_SESSION       = NULL;
+	autologin_username      = NULL;
+	autologin_password      = NULL;
+	autologin_session       = NULL;
 	screensavers_dir        = NULL;
-	DFB_INTERFACE           = StrApp((char**)NULL, SBINDIR, "qingy-DirectFB", (char*)NULL);
+	dfb_interface           = StrApp((char**)NULL, SBINDIR, "qingy-DirectFB", (char*)NULL);
 	tmp_files_dir           = strdup("/var/lib/misc");
-  BACKGROUND              = NULL;
-	THEMES_DIR              = NULL;
-  THEME_DIR               = NULL;
+  background              = NULL;
+	themes_dir              = NULL;
+  theme_dir               = NULL;
   last_user               = NULL;
-	SLEEP_CMD               = NULL;
+	sleep_cmd               = NULL;
   settings                = NULL;	
 	x_server                = NULL;
   x_args                  = NULL;
   datadir                 = NULL;	
   xinit                   = NULL;
-  FONT                    = NULL;
+  font                    = NULL;
   screensaver_options     = NULL;
   windowsList             = NULL;
 	fb_device               = NULL;
 	resolution              = NULL;
-	DO_AUTOLOGIN            = 0;
-	AUTO_RELOGIN            = 0;
+	do_autologin            = 0;
+	auto_relogin            = 0;
   no_shutdown_screen      = 0;
   disable_last_user       = 0;
   hide_last_user          = 0;
   hide_password           = 0;
   silent                  = 1;
 	clear_background        = 0;
-  SHUTDOWN_POLICY         = EVERYONE;
-	LAST_USER_POLICY        = LU_GLOBAL;
-	LAST_SESSION_POLICY     = LS_USER;
-	GOT_THEME               = 0;
+  shutdown_policy         = EVERYONE;
+	last_user_policy        = LU_GLOBAL;
+	last_session_policy     = LS_USER;
+	got_theme               = 0;
 	lock_sessions           = 0;
 	retries                 = 0;
-	THEME_XRES              = 800;
-	THEME_YRES              = 600;
+	theme_xres              = 800;
+	theme_yres              = 600;
 #ifdef USE_SCREEN_SAVERS
 	screensaver_timeout     = 5;
 	use_screensaver         = 1;
@@ -129,7 +129,7 @@ void set_default_paths(void)
 	x_sessions_directory    = strdup("/etc/X11/Sessions/"); 
   xinit                   = strdup("/usr/X11R6/bin/xinit");
 	screensavers_dir        = strdup("/usr/lib/qingy/screensavers");
-	THEMES_DIR              = strdup("/usr/share/qingy/themes");
+	themes_dir              = strdup("/usr/share/qingy/themes");
 	/*
 	 * (michele): no need to check strdup return values,
 	 *            it is done automatically in memmgmt.c!
@@ -179,20 +179,20 @@ void add_to_options(char *option)
 char *get_random_theme()
 {
   DIR *dir;
-  char *themes_dir = StrApp((char**)NULL, THEMES_DIR, "/", (char*)NULL);
+  char *my_themes_dir = StrApp((char**)NULL, themes_dir, "/", (char*)NULL);
   char *result;
   struct dirent *entry;
   int n_themes = 0;
   char *themes[128];
   int i;
 
-  dir= opendir(themes_dir);	
+  dir= opendir(my_themes_dir);
   if (!dir)
 	{		
     /* perror("Qingy error"); */
 		/* This is not a qingy error ;-P */
-		fprintf(stderr, "qingy: get_random_theme(): cannot open directory \"%s\"!\n", themes_dir);
-		free(themes_dir);
+		fprintf(stderr, "qingy: get_random_theme(): cannot open directory \"%s\"!\n", my_themes_dir);
+		free(my_themes_dir);
     return strdup("default");
   }
 
@@ -211,7 +211,7 @@ char *get_random_theme()
     if (!strcmp(entry->d_name, "." )) continue;
     if (!strcmp(entry->d_name, "..")) continue;    
     
-    temp = StrApp((char**)NULL, themes_dir, entry->d_name, (char*)NULL);
+    temp = StrApp((char**)NULL, my_themes_dir, entry->d_name, (char*)NULL);
     if (is_a_directory(temp))
 		{
 			themes[n_themes] = strdup(entry->d_name);
@@ -249,12 +249,12 @@ void yyerror(char *error)
   free(x_sessions_directory);
   free(text_sessions_directory);
   free(xinit);
-  free(FONT);
-  free(THEME_DIR);
+  free(font);
+  free(theme_dir);
 	free(screensavers_dir);
-	free(THEMES_DIR);
+	free(themes_dir);
 	set_default_paths();
-  THEME_DIR = StrApp((char**)NULL, THEMES_DIR, "/default/", (char*)NULL);
+  theme_dir = StrApp((char**)NULL, themes_dir, "/default/", (char*)NULL);
 }
 
 char *get_last_user(void)
@@ -273,7 +273,7 @@ char *get_last_user(void)
 		return NULL;
 	}
 
-	if (LAST_USER_POLICY == LU_GLOBAL)
+	if (last_user_policy == LU_GLOBAL)
 	{
 		char temp[strlen(line) + 1];
 		int items = sscanf(line, "%s", temp);
@@ -376,7 +376,7 @@ char *get_last_session(char *user)
 	size_t  len      = 0;
 
 
-	if (LAST_SESSION_POLICY == LS_TTY)
+	if (last_session_policy == LS_TTY)
 	{
 		filename = (char *) calloc(strlen(tmp_files_dir)+20, sizeof(char));
   
@@ -385,7 +385,7 @@ char *get_last_session(char *user)
 		strcat(filename, "qingy-lastsessions");
 	}
 
-	if (LAST_SESSION_POLICY == LS_USER)
+	if (last_session_policy == LS_USER)
 	{
 		char *homedir;
 
@@ -406,11 +406,11 @@ char *get_last_session(char *user)
 	free(filename);
 	if (!fp) return NULL;
 
-	if (LAST_SESSION_POLICY == LS_USER)
+	if (last_session_policy == LS_USER)
 		if (getline(&line, &len, fp) != -1)
 			result = line;
 
-	if (LAST_SESSION_POLICY == LS_TTY)
+	if (last_session_policy == LS_TTY)
 	{
 		char *ttystr    = int_to_str(current_tty);
 		int   lenttystr = strlen(ttystr);
@@ -628,8 +628,8 @@ void restore_default_contents(window_t *window)
   window->polltime          = 0;
   window->text_size         = LARGE;
   window->text_orientation  = LEFT;
-  window->text_color        = &DEFAULT_TEXT_COLOR;
-  window->cursor_color      = &DEFAULT_CURSOR_COLOR;
+  window->text_color        = &default_text_color;
+  window->cursor_color      = &default_cursor_color;
   window->type              = UNKNOWN;
   window->next              = NULL;
   window->content           = NULL;
@@ -718,8 +718,8 @@ void destroy_windows_list(window_t *w)
 		free(temp->command);
 		free(temp->content);
 		free(temp->linkto);
-		if (temp->text_color   != &DEFAULT_TEXT_COLOR)   free(temp->text_color);
-		if (temp->cursor_color != &DEFAULT_CURSOR_COLOR) free(temp->cursor_color);
+		if (temp->text_color   != &default_text_color)   free(temp->text_color);
+		if (temp->cursor_color != &default_cursor_color) free(temp->cursor_color);
 		free(temp);
 	}	
 }
@@ -839,13 +839,13 @@ int load_settings(void)
 			!x_sessions_directory    ||
 			!xinit                   ||
 			!screensavers_dir        ||
-			!THEMES_DIR)
+			!themes_dir)
 	{
 		fprintf(stderr, "qingy: load_settings: warning: you left some variables undefined\n");
 		fprintf(stderr, "in settings file, anomalies may occur!\n");
 	}
 
-  if (!GOT_THEME)
+  if (!got_theme)
 	{
 		fprintf(stderr, "qingy: load_settings: cannot proceed without a theme!\n");
 		return 0;

@@ -478,7 +478,7 @@ void ComboBox_SetFocus(ComboBox *thiz, int focus)
   {
     thiz->window->RequestFocus(thiz->window);
     thiz->hasfocus=1;
-    thiz->window->SetOpacity(thiz->window, SELECTED_WINDOW_OPACITY);
+    thiz->window->SetOpacity(thiz->window, selected_window_opacity);
 		thiz->MouseOver(thiz, thiz->mouse);
     return;
   }
@@ -491,7 +491,7 @@ void ComboBox_SetFocus(ComboBox *thiz, int focus)
 	}
 
   thiz->hasfocus = 0;
-  thiz->window->SetOpacity(thiz->window, WINDOW_OPACITY);
+  thiz->window->SetOpacity(thiz->window, window_opacity);
 	thiz->MouseOver(thiz, thiz->mouse);
   return;
 }
@@ -656,8 +656,8 @@ void ComboBox_Hide(ComboBox *thiz)
 
 void ComboBox_Show(ComboBox *thiz)
 {
-  if (thiz->hasfocus) thiz->window->SetOpacity(thiz->window, SELECTED_WINDOW_OPACITY);
-  else thiz->window->SetOpacity(thiz->window, WINDOW_OPACITY);
+  if (thiz->hasfocus) thiz->window->SetOpacity(thiz->window, selected_window_opacity);
+  else thiz->window->SetOpacity(thiz->window, window_opacity);
 }
 
 void ComboBox_Destroy(ComboBox *thiz)

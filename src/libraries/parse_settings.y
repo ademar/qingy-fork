@@ -56,8 +56,8 @@ static window_t wind =
     0,
     LARGE,
     LEFT,
-    &DEFAULT_TEXT_COLOR,
-    &DEFAULT_CURSOR_COLOR,
+    &default_text_color,
+    &default_cursor_color,
     UNKNOWN,
     NULL,
     NULL,
@@ -151,7 +151,7 @@ config: /* nothing */
 | config x_args
 | config gui_retries
 | config sleep
-| config theme { TTY_CHECK_COND GOT_THEME=set_theme_result; }
+| config theme { TTY_CHECK_COND got_theme=set_theme_result; }
 | config shutdown
 | config window
 | config keybindings
@@ -179,12 +179,12 @@ config_tty: /* nothing */
 | config_tty x_args
 | config_tty gui_retries
 | config_tty sleep
-| config_tty theme { TTY_CHECK_COND GOT_THEME=set_theme_result; }
+| config_tty theme { TTY_CHECK_COND got_theme=set_theme_result; }
 | config_tty shutdown
 | config_tty window
 | config_tty CLEAR_BACKGROUND_TOK '=' YES_TOK { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 1;} }
 | config_tty CLEAR_BACKGROUND_TOK '=' NO_TOK  { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 0;} }
-| config_tty autologin { TTY_CHECK_COND DO_AUTOLOGIN=1;  }
+| config_tty autologin { TTY_CHECK_COND do_autologin=1;  }
 ;
 
 autologin: AUTOLOGIN_TOK '{' config_autologin '}';
@@ -192,34 +192,34 @@ autologin: AUTOLOGIN_TOK '{' config_autologin '}';
 config_autologin: username
 | config_autologin password
 | config_autologin session
-| config_autologin RELOGIN_TOK '=' YES_TOK { TTY_CHECK_COND AUTO_RELOGIN = 1; }
-| config_autologin RELOGIN_TOK '=' NO_TOK  { TTY_CHECK_COND AUTO_RELOGIN = 0; }
+| config_autologin RELOGIN_TOK '=' YES_TOK { TTY_CHECK_COND auto_relogin = 1; }
+| config_autologin RELOGIN_TOK '=' NO_TOK  { TTY_CHECK_COND auto_relogin = 0; }
 ;
 
 username: USERNAME_TOK '=' QUOTSTR_T 
 	{
-	  TTY_CHECK_COND AUTOLOGIN_USERNAME = strdup($3);
+	  TTY_CHECK_COND autologin_username = strdup($3);
 	}
 
 password: PASSWORD_TOK '=' QUOTSTR_T 
 	{
-	  TTY_CHECK_COND AUTOLOGIN_PASSWORD = strdup($3);
+	  TTY_CHECK_COND autologin_password = strdup($3);
 	}
 
-session: SESSION_TOK '=' QUOTSTR_T { TTY_CHECK_COND AUTOLOGIN_SESSION = strdup($3); }
-| SESSION_TOK '=' LAST_SESSION_TOK { TTY_CHECK_COND AUTOLOGIN_SESSION = strdup("LAST"); }
+session: SESSION_TOK '=' QUOTSTR_T { TTY_CHECK_COND autologin_session = strdup($3); }
+| SESSION_TOK '=' LAST_SESSION_TOK { TTY_CHECK_COND autologin_session = strdup("LAST"); }
 
 dfb_interface: DFB_INTERFACE_TOK '=' QUOTSTR_T
 	{
 	  if(in_theme) yyerror("Setting 'qingy_DirectFB' is not allowed in theme file.");
-	  TTY_CHECK_COND { if (DFB_INTERFACE) free(DFB_INTERFACE); DFB_INTERFACE = strdup($3); }
+	  TTY_CHECK_COND { if (dfb_interface) free(dfb_interface); dfb_interface = strdup($3); }
 	}
 
 /* sleep cupport */
 sleep: SLEEP_TOK '=' QUOTSTR_T
 	{
 	  if(in_theme) yyerror("Setting 'sleep' is not allowed in theme file.");
-	  TTY_CHECK_COND { if (SLEEP_CMD) free(SLEEP_CMD); SLEEP_CMD = strdup($3); }
+	  TTY_CHECK_COND { if (sleep_cmd) free(sleep_cmd); sleep_cmd = strdup($3); }
 	}
 
 /* options to enable or disable session locking */
@@ -238,7 +238,7 @@ scrsvrs_dir: SCRSVRS_DIR_TOK '=' QUOTSTR_T
 themes_dir: THEMES_DIR_TOK '=' QUOTSTR_T
 	{
 		if(in_theme) yyerror("Setting 'themes_dir' is not allowed in theme file.");
-		TTY_CHECK_COND THEMES_DIR = strdup($3);
+		TTY_CHECK_COND themes_dir = strdup($3);
 	}
 
 /* where should we put the temp files? */
@@ -249,8 +249,8 @@ temp_dir: TEMP_FILES_DIR_TOK '=' QUOTSTR_T
 	}
 
 /* Screensaver: "name" or "name" = "option", "option"  */
-ssav:	SCREENSAVER_TOK QUOTSTR_T { TTY_CHECK_COND {SSAVER_CHECK_COND SCREENSAVER_NAME = $2;} }
-| SCREENSAVER_TOK QUOTSTR_T '=' scrsvr_with_options { TTY_CHECK_COND SCREENSAVER_NAME = $2;}
+ssav:	SCREENSAVER_TOK QUOTSTR_T { TTY_CHECK_COND {SSAVER_CHECK_COND screensaver_name = $2;} }
+| SCREENSAVER_TOK QUOTSTR_T '=' scrsvr_with_options { TTY_CHECK_COND screensaver_name = $2;}
 ;
 
 scrsvr_with_options: QUOTSTR_T      { TTY_CHECK_COND {SSAVER_CHECK_COND add_to_options($1);} }
@@ -304,18 +304,18 @@ gui_retries: RETRIES_TOK '=' ANUM_T
 shutdown: SHUTDOWN_TOK '=' EVERYONE_TOK
 	{
 	  if (in_theme) yyerror("Setting 'shutdown_policy' is not allowed in theme file.");
-	  TTY_CHECK_COND SHUTDOWN_POLICY = EVERYONE;
+	  TTY_CHECK_COND shutdown_policy = EVERYONE;
 	}
 | SHUTDOWN_TOK '=' ONLY_ROOT_TOK
 	{
 	  fprintf(stderr,"c)INTHEME: %d\n", in_theme);
 	  if (in_theme) yyerror("Setting 'shutdown_policy' is not allowed in theme file.");
-	  TTY_CHECK_COND SHUTDOWN_POLICY = ROOT;
+	  TTY_CHECK_COND shutdown_policy = ROOT;
 	}
 | SHUTDOWN_TOK '=' NO_ONE_TOK
 	{
 	  if (in_theme) yyerror("Setting 'shutdown_policy' is not allowed in theme file.");
-	  TTY_CHECK_COND SHUTDOWN_POLICY = NOONE;
+	  TTY_CHECK_COND shutdown_policy = NOONE;
 	}
 ;
 
@@ -323,12 +323,12 @@ shutdown: SHUTDOWN_TOK '=' EVERYONE_TOK
 last_user: LAST_USER_POLICY_TOK '=' GLOBAL_TOK
 	{
 	  if (in_theme) yyerror("Setting 'last_user_policy' is not allowed in theme file.");
-	  TTY_CHECK_COND LAST_USER_POLICY = LU_GLOBAL;
+	  TTY_CHECK_COND last_user_policy = LU_GLOBAL;
 	}
 | LAST_USER_POLICY_TOK '=' TTY_TOK
 	{
 	  if (in_theme) yyerror("Setting 'last_user_policy' is not allowed in theme file.");
-	  TTY_CHECK_COND LAST_USER_POLICY = LU_TTY;
+	  TTY_CHECK_COND last_user_policy = LU_TTY;
 	}
 ;
 
@@ -336,12 +336,12 @@ last_user: LAST_USER_POLICY_TOK '=' GLOBAL_TOK
 last_session: LAST_SESSION_POLICY_TOK '=' USER_TOK
 	{
 	  if (in_theme) yyerror("Setting 'last_session_policy' is not allowed in theme file.");
-	  TTY_CHECK_COND LAST_SESSION_POLICY = LS_USER;
+	  TTY_CHECK_COND last_session_policy = LS_USER;
 	}
 | LAST_SESSION_POLICY_TOK '=' TTY_TOK
 	{
 	  if (in_theme) yyerror("Setting 'last_session_policy' is not allowed in theme file.");
-	  TTY_CHECK_COND LAST_SESSION_POLICY = LS_TTY;
+	  TTY_CHECK_COND last_session_policy = LS_TTY;
 	}
 ;
  
@@ -367,48 +367,48 @@ colorprop: DEFAULT_TXT_COL_TOK '=' COLOR_T
 		TTY_CHECK_COND
 		{
 			if (!silent) fprintf(stderr, "Setting default color to %d\n", *($3));	  
-			DEFAULT_TEXT_COLOR.R=$3[3]; DEFAULT_TEXT_COLOR.G=$3[2]; 
-			DEFAULT_TEXT_COLOR.B=$3[1]; DEFAULT_TEXT_COLOR.A=$3[0];
+			default_text_color.R=$3[3]; default_text_color.G=$3[2]; 
+			default_text_color.B=$3[1]; default_text_color.A=$3[0];
 		}
 	}
 | DEFAULT_TXT_COL_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T
 	{
 		TTY_CHECK_COND
 		{
-			DEFAULT_TEXT_COLOR.R = $3; DEFAULT_TEXT_COLOR.G= $5;
-			DEFAULT_TEXT_COLOR.B = $7; DEFAULT_TEXT_COLOR.A= $9;
+			default_text_color.R = $3; default_text_color.G= $5;
+			default_text_color.B = $7; default_text_color.A= $9;
 		}
 	}
 |  DEFAULT_CUR_COL_TOK '=' COLOR_T
 	{ 
 		TTY_CHECK_COND
 		{
-			DEFAULT_CURSOR_COLOR.R=$3[3]; DEFAULT_CURSOR_COLOR.G=$3[2];
-			DEFAULT_CURSOR_COLOR.B=$3[1]; DEFAULT_CURSOR_COLOR.A=$3[0];
+			default_cursor_color.R=$3[3]; default_cursor_color.G=$3[2];
+			default_cursor_color.B=$3[1]; default_cursor_color.A=$3[0];
 		}
 	}
 |  DEFAULT_CUR_COL_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T
 	{ 
 		TTY_CHECK_COND
 		{
-			DEFAULT_CURSOR_COLOR.R = $3; DEFAULT_CURSOR_COLOR.G= $5; 
-			DEFAULT_CURSOR_COLOR.B = $7; DEFAULT_CURSOR_COLOR.A= $9; 
+			default_cursor_color.R = $3; default_cursor_color.G= $5; 
+			default_cursor_color.B = $7; default_cursor_color.A= $9; 
 		}
 	}
 | OTHER_TXT_COL_TOK '=' COLOR_T
 	{ 
 		TTY_CHECK_COND
 		{
-			OTHER_TEXT_COLOR.R=$3[3]; OTHER_TEXT_COLOR.G=$3[2]; 
-			OTHER_TEXT_COLOR.B=$3[1]; OTHER_TEXT_COLOR.A=$3[0];
+			other_text_color.R=$3[3]; other_text_color.G=$3[2]; 
+			other_text_color.B=$3[1]; other_text_color.A=$3[0];
 		}
 	}
 | OTHER_TXT_COL_TOK '=' ANUM_T ',' ANUM_T ',' ANUM_T ',' ANUM_T
 	{ 
 		TTY_CHECK_COND
 		{
-			OTHER_TEXT_COLOR.R = $3; OTHER_TEXT_COLOR.G= $5; 
-			OTHER_TEXT_COLOR.B = $7; OTHER_TEXT_COLOR.A= $9;
+			other_text_color.R = $3; other_text_color.G= $5; 
+			other_text_color.B = $7; other_text_color.A= $9;
 		}
 	}
 ;
@@ -418,27 +418,27 @@ resolutionprop: THEME_RES_TOK '=' ANUM_T 'x' ANUM_T
 	{
 		TTY_CHECK_COND
 		{
-			THEME_XRES = $3; THEME_YRES = $5;
+			theme_xres = $3; theme_yres = $5;
 		}
 	}
 | THEME_RES_TOK '=' ANUM_T 'X' ANUM_T
 	{
 		TTY_CHECK_COND
 		{
-			THEME_XRES = $3; THEME_YRES = $5;
+			theme_xres = $3; theme_yres = $5;
 		}
 	}
 ;
 
 /* string properties */
-strprop: BG_TOK '=' QUOTSTR_T { TTY_CHECK_COND BACKGROUND = StrApp((char**)NULL, THEME_DIR, $3, (char*)NULL); }
-| FONT_TOK      '=' QUOTSTR_T { TTY_CHECK_COND FONT       = StrApp((char**)NULL, THEME_DIR, $3, (char*)NULL); }
+strprop: BG_TOK '=' QUOTSTR_T { TTY_CHECK_COND background = StrApp((char**)NULL, theme_dir, $3, (char*)NULL); }
+| FONT_TOK      '=' QUOTSTR_T { TTY_CHECK_COND font       = StrApp((char**)NULL, theme_dir, $3, (char*)NULL); }
 ;
 
 /* numbers in themes */
-anumprop: BUTTON_OPAC_TOK '=' ANUM_T { TTY_CHECK_COND BUTTON_OPACITY          = $3; }
-| WIN_OP_TOK              '=' ANUM_T { TTY_CHECK_COND WINDOW_OPACITY          = $3; }
-| SEL_WIN_OP_TOK          '=' ANUM_T { TTY_CHECK_COND SELECTED_WINDOW_OPACITY = $3; }
+anumprop: BUTTON_OPAC_TOK '=' ANUM_T { TTY_CHECK_COND button_opacity          = $3; }
+| WIN_OP_TOK              '=' ANUM_T { TTY_CHECK_COND window_opacity          = $3; }
+| SEL_WIN_OP_TOK          '=' ANUM_T { TTY_CHECK_COND selected_window_opacity = $3; }
 ;
 
 /* key bindings */
@@ -471,11 +471,11 @@ window: WINDOW_TOK '{' windefns '}'
 	{
 		TTY_CHECK_COND
 		{
-			if (GOT_THEME)
+			if (got_theme)
 			{
 				destroy_windows_list(windowsList); 
 				windowsList = NULL;
-				GOT_THEME   = 0;
+				got_theme   = 0;
 			}
 			add_window_to_list(&wind);
 		}

@@ -102,12 +102,12 @@ void Label_SetFocus(Label *thiz, int focus)
 	{
 		thiz->window->RequestFocus(thiz->window);
 		thiz->hasfocus=1;
-		thiz->window->SetOpacity(thiz->window, SELECTED_WINDOW_OPACITY);
+		thiz->window->SetOpacity(thiz->window, selected_window_opacity);
 		return;
 	}
 
 	thiz->hasfocus = 0;
-	thiz->window->SetOpacity(thiz->window, WINDOW_OPACITY);
+	thiz->window->SetOpacity(thiz->window, window_opacity);
 	return;
 }
 
@@ -118,8 +118,8 @@ void Label_Hide(Label *thiz)
 
 void Label_Show(Label *thiz)
 {
-	if (thiz->hasfocus) thiz->window->SetOpacity(thiz->window, SELECTED_WINDOW_OPACITY);
-	else thiz->window->SetOpacity(thiz->window, WINDOW_OPACITY);
+	if (thiz->hasfocus) thiz->window->SetOpacity(thiz->window, selected_window_opacity);
+	else thiz->window->SetOpacity(thiz->window, window_opacity);
 }
 
 void Label_Destroy(Label *thiz)

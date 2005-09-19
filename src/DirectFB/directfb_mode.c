@@ -155,7 +155,7 @@ void Draw_Background_Image(int do_the_drawing)
   primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
   if (!panel_image)
 	{ /* we design the surface */
-		if (BACKGROUND)  panel_image = load_image (BACKGROUND, primary, dfb, x_ratio, y_ratio);
+		if (background)  panel_image = load_image (background, primary, dfb, x_ratio, y_ratio);
 		if (panel_image) panel_image->GetSize (panel_image, &panel_width, &panel_height);
 	}
   /*	
@@ -487,7 +487,7 @@ void clear_screen(void)
 	if (!clear_background) Draw_Background_Image(1);
 	else primary->Flip (primary, NULL, DSFLIP_BLIT);
 	primary->SetFont (primary, font_large);
-  primary->SetColor (primary, OTHER_TEXT_COLOR.R, OTHER_TEXT_COLOR.G, OTHER_TEXT_COLOR.B, OTHER_TEXT_COLOR.A);
+  primary->SetColor (primary, other_text_color.R, other_text_color.G, other_text_color.B, other_text_color.A);
 }
 
 void begin_shutdown_sequence (actions action)
@@ -500,7 +500,7 @@ void begin_shutdown_sequence (actions action)
   clear_screen();
   
   /* First, we check shutdown policy */
-  switch (SHUTDOWN_POLICY)
+  switch (shutdown_policy)
 	{
     case NOONE: /* no one is allowed to shut down the system */
 			if (action == DO_SLEEP)
@@ -709,7 +709,7 @@ void handle_mouse_event (DFBInputEvent *evt)
 #endif
 							break;
 						case DO_SLEEP:
-							if (!SLEEP_CMD)
+							if (!sleep_cmd)
 							{
 								DFBInputEvent evt;
 
@@ -859,7 +859,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 				primary->Flip  (primary, NULL, DSFLIP_BLIT);
 				break;
 			case DO_SLEEP:
-				if (!SLEEP_CMD)
+				if (!sleep_cmd)
 				{
 					DFBInputEvent evt;
 
@@ -1050,10 +1050,10 @@ int create_windows()
   window_desc.caps  = DWCAPS_ALPHACHANNEL;
   while (window)
 	{
-		window_desc.posx   = window->x      * screen_width  / THEME_XRES;
-		window_desc.posy   = window->y      * screen_height / THEME_YRES;
-		window_desc.width  = window->width  * screen_width  / THEME_XRES;
-		window_desc.height = window->height * screen_height / THEME_YRES;	
+		window_desc.posx   = window->x      * screen_width  / theme_xres;
+		window_desc.posy   = window->y      * screen_height / theme_yres;
+		window_desc.width  = window->width  * screen_width  / theme_xres;
+		window_desc.height = window->height * screen_height / theme_yres;	
 		switch(window->text_size)
 		{
 			case TINY:
@@ -1137,8 +1137,8 @@ int create_windows()
 					buttons->next = (Button_list *) calloc(1, sizeof(Button_list));
 					buttons = buttons->next;
 	      }
-				image1 = StrApp((char **)NULL, THEME_DIR, window->content, "_normal.png",    (char *)NULL);
-				image2 = StrApp((char **)NULL, THEME_DIR, window->content, "_mouseover.png", (char *)NULL);
+				image1 = StrApp((char **)NULL, theme_dir, window->content, "_normal.png",    (char *)NULL);
+				image2 = StrApp((char **)NULL, theme_dir, window->content, "_mouseover.png", (char *)NULL);
 				buttons->button = Button_Create(image1, image2, window_desc.posx, window_desc.posy, layer, primary, dfb, x_ratio, y_ratio);
 				if (!buttons->button) return 0;			
 				buttons->next = NULL;
@@ -1175,26 +1175,26 @@ int create_windows()
   window_desc.posy   = screen_height - (font_small_height);
   window_desc.width  = screen_width/5;
   window_desc.height = font_small_height;
-  lock_key_statusA = Label_Create(layer, font_small, &OTHER_TEXT_COLOR, &window_desc);
+  lock_key_statusA = Label_Create(layer, font_small, &other_text_color, &window_desc);
   if (!lock_key_statusA) return 0;
   lock_key_statusA->SetFocus(lock_key_statusA, 1);
   lock_key_statusA->Hide(lock_key_statusA);  
   lock_key_statusA->SetText(lock_key_statusA, "CAPS LOCK is pressed", CENTERBOTTOM);
   window_desc.posy = 0;
-  lock_key_statusB = Label_Create(layer, font_small, &OTHER_TEXT_COLOR, &window_desc);
+  lock_key_statusB = Label_Create(layer, font_small, &other_text_color, &window_desc);
   if (!lock_key_statusB) return 0;
   lock_key_statusB->SetFocus(lock_key_statusB, 1);
   lock_key_statusB->Hide(lock_key_statusB);
   lock_key_statusB->SetText(lock_key_statusB, "CAPS LOCK is pressed", LEFT);
   window_desc.posx = screen_width - screen_width/5;
   window_desc.height = 2*font_small_height;
-  lock_key_statusC = Label_Create(layer, font_small, &OTHER_TEXT_COLOR, &window_desc);
+  lock_key_statusC = Label_Create(layer, font_small, &other_text_color, &window_desc);
   if (!lock_key_statusC) return 0;
   lock_key_statusC->SetFocus(lock_key_statusC, 1);
   lock_key_statusC->Hide(lock_key_statusC);
   lock_key_statusC->SetText(lock_key_statusC, "CAPS LOCK is pressed", RIGHT);
   window_desc.posy = screen_height - (font_small_height);
-  lock_key_statusD = Label_Create(layer, font_small, &OTHER_TEXT_COLOR, &window_desc);
+  lock_key_statusD = Label_Create(layer, font_small, &other_text_color, &window_desc);
   if (!lock_key_statusD) return 0;
   lock_key_statusD->SetFocus(lock_key_statusD, 1);
   lock_key_statusD->Hide(lock_key_statusD);
@@ -1206,7 +1206,7 @@ int create_windows()
 int set_font_sizes ()
 {
   DFBFontDescription fdsc;
-  const char *fontfile = FONT;
+  const char *fontfile = font;
 
   fdsc.flags = DFDESC_HEIGHT;
   fdsc.height = screen_width / 30;
@@ -1283,8 +1283,8 @@ int main (int argc, char *argv[])
 	}
   primary->GetSize(primary, &screen_width, &screen_height);
 
-	if (screen_width  != THEME_XRES) x_ratio = (float)screen_width/(float)THEME_XRES;
-	if (screen_height != THEME_YRES) y_ratio = (float)screen_height/(float)THEME_YRES;
+	if (screen_width  != theme_xres) x_ratio = (float)screen_width/(float)theme_xres;
+	if (screen_height != theme_yres) y_ratio = (float)screen_height/(float)theme_yres;
 
   if (!set_font_sizes ())
 	{
@@ -1326,7 +1326,7 @@ int main (int argc, char *argv[])
 
 #ifdef USE_SCREEN_SAVERS
   /* initialize screen saver stuff */
-  screen_saver_kind    = SCREENSAVER_NAME;
+  screen_saver_kind    = screensaver_name;
   screen_saver_surface = primary;
   screen_saver_dfb     = dfb;
   screen_saver_events  = events;
@@ -1346,7 +1346,7 @@ int main (int argc, char *argv[])
 		else
 		{
 			primary->SetFont  (primary, font_large);
-			primary->SetColor (primary, OTHER_TEXT_COLOR.R, OTHER_TEXT_COLOR.G, OTHER_TEXT_COLOR.B, OTHER_TEXT_COLOR.A);
+			primary->SetColor (primary, other_text_color.R, other_text_color.G, other_text_color.B, other_text_color.A);
 			activate_screen_saver();
 		}
 #else  /* don't want screensavers */

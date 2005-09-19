@@ -248,7 +248,7 @@ void TextBox_SetFocus(TextBox *thiz, int focus)
 	{
 		thiz->window->RequestFocus(thiz->window);
 		thiz->hasfocus = 1;
-		thiz->window->SetOpacity(thiz->window, SELECTED_WINDOW_OPACITY);
+		thiz->window->SetOpacity(thiz->window, selected_window_opacity);
 		if (!thiz->text) thiz->position = 0;
 		else thiz->position = strlen(thiz->text);
 		TextBox_KeyEvent(thiz, REDRAW, NONE, 1);
@@ -256,7 +256,7 @@ void TextBox_SetFocus(TextBox *thiz, int focus)
 	}
 
 	thiz->hasfocus = 0;
-	thiz->window->SetOpacity(thiz->window, WINDOW_OPACITY);
+	thiz->window->SetOpacity(thiz->window, window_opacity);
 	TextBox_KeyEvent(thiz, REDRAW, NONE, 0);
 	return;
 }
@@ -268,8 +268,8 @@ void TextBox_Hide(TextBox *thiz)
 
 void TextBox_Show(TextBox *thiz)
 {
-	if (thiz->hasfocus) thiz->window->SetOpacity(thiz->window, SELECTED_WINDOW_OPACITY);
-	else thiz->window->SetOpacity(thiz->window, WINDOW_OPACITY);
+	if (thiz->hasfocus) thiz->window->SetOpacity(thiz->window, selected_window_opacity);
+	else thiz->window->SetOpacity(thiz->window, window_opacity);
 }
 
 void TextBox_Destroy(TextBox *thiz)
