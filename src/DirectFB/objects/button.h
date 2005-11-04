@@ -1,9 +1,9 @@
 /***************************************************************************
-                      directfb_button.h  -  description
+                          button.h  -  description
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003-2005 by Noberasco Michele
-    e-mail               : noberasco.gnu@disi.unige.it
+    e-mail               : michele.noberasco@tiscali.it
  ***************************************************************************/
 
 /***************************************************************************

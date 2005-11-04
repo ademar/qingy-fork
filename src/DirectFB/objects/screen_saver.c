@@ -2,8 +2,8 @@
                        screen_saver.c  -  description
                             --------------------
     begin            : Apr 10 2003
-    copyright        : (C) 2003,2004 by Noberasco Michele, Paolo Gianrossi
-    e-mail           : noberasco.gnu@disi.unige.it
+    copyright        : (C) 2003-2005 by Noberasco Michele, Paolo Gianrossi
+    e-mail           : michele.noberasco@tiscali.it
                        paolino.gnu@disi.unige.it
 ***************************************************************************/
 

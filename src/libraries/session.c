@@ -2,8 +2,8 @@
                          session.c  -  description
                             -------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2004 by Noberasco Michele
-    e-mail               : s4t4n@gentoo.org
+    copyright            : (C) 2003-2005 by Noberasco Michele
+    e-mail               : michele.noberasco@tiscali.it
 ***************************************************************************/
 
 /***************************************************************************
@@ -744,7 +744,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   args[2] = strdup("-c");
 
   // now we compose the xinit launch command line
-	args[3] = StrApp((char**)NULL, xinit, " ", (char*)NULL);
+	args[3] = StrApp((char**)NULL, "exec ", xinit, " ", (char*)NULL);
 
   // add the chosen X session
   if (!strcmp(session, "Your .xsession"))

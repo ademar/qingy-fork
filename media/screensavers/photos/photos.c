@@ -1,9 +1,9 @@
 /***************************************************************************
-                       screen_saver.c  -  description
+                          photos.c  -  description
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : noberasco.gnu@disi.unige.it
+    e-mail               : michele.noberasco@tiscali.it
 ***************************************************************************/
 
 /***************************************************************************

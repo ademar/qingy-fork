@@ -4,7 +4,7 @@
 /*  Copyright (C) 2004 Paolo Gianrossi, Michele Noberasco              */
 /* - All rights reserved                                               */
 /*                                                                     */	
-/*    Michele Noberasco <noberasco.gnu@disi.unige.it>                  */	
+/*    Michele Noberasco <michele.noberasco@tiscali.it>                 */	
 /*    Paolo Gianrossi <paolino.gnu@disi.unige.it>                      */
 /*                                                                     */
 /* This program is free software; you can redistribute it and/or       */

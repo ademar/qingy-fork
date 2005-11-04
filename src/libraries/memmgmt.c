@@ -3,7 +3,7 @@
                             --------------------
     begin                : Feb 16 2004
     copyright            : (C) 2004-2005 by Noberasco Michele
-    e-mail               : noberasco.gnu@disi.unige.it
+    e-mail               : michele.noberasco@tiscali.it
  ***************************************************************************/
 
 /***************************************************************************
