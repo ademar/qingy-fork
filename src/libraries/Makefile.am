@@ -24,13 +24,15 @@ libqingy_la_SOURCES =                 \
     misc.c           misc.h           \
     vt.c             vt.h
 
-if WANT_CRYPTO
-libqingy_la_SOURCES +=                \
-    crypto.c         crypto.h
+if CRYPTO_OPENSSL
+libqingy_la_SOURCES += crypto.h crypto_openssl.c
+endif
+if CRYPTO_LIBGCRYPT
+libqingy_la_SOURCES += crypto.h crypto_libgcrypt.c
 endif
 
 EXTRA_libqingy_la_SOURCES =           \
-    crypto.c         crypto.h
+    crypto_openssl.c crypto_libgcrypt.c crypto.h
 
 libqingy_la_LIBADD  = @PASSWDLIB@ @CRYPTOLIB@
 libqingy_la_LDFLAGS = -release @VERSION@

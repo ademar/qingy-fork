@@ -1,14 +1,25 @@
+2005-11-22  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in:
+	Made headers and library checks actually abort ./configure
+	if needed dependancies are not found.
+
+2005-11-07  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in:
+	Added auto-detection of Mobile Pentium 4 processors...
+
 2005-11-04  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* ALL_FILES:
 	Changed my e-mail address to michele.noberasco@tiscali.it
 
-2005-09-19  Noberasco Michele  <s4t4n@gentoo.org>
+2005-09-19  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* LOTS_OF_FILES:
 	Done sanitizing variable names.
 
-2005-09-09  Noberasco Michele  <s4t4n@gentoo.org>
+2005-09-09  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* LOTS_OF_FILES:
 	Sanitizing some variable names...
@@ -22,12 +33,12 @@
 
 	Adding some more (and more useful) error messages.
 
-2005-09-08  Noberasco Michele  <s4t4n@gentoo.org>
+2005-09-08  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/vt.c (lock_tty_switching):
 	Fixed another of these 'forgot to close an open file' bugs.
 
-2005-09-07  Noberasco Michele  <s4t4n@gentoo.org>
+2005-09-07  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/tty_guardian.c:
 	Rewamped the tty guardian to reflect the fact that X servers
@@ -48,7 +59,7 @@
 	the screen_savers (expecially the photos one) to perform
 	well (i.e.: don't crash with an invalid permissions error).
 
-2005-08-31  Noberasco Michele  <s4t4n@gentoo.org>
+2005-08-31  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/tty_guardian.c (ttyWatchDog, WatchDog_Sniff),
 	* src/libraries/tty_guardian.h (ttyWatchDog),
@@ -56,7 +67,7 @@
 	Made X start up in the same tty we logged in instead of switching
 	to a new one.
 
-2005-08-30  Noberasco Michele  <s4t4n@gentoo.org>
+2005-08-30  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* media/qingy-mode.el,
 	* src/libraries/load_settings.c,
@@ -83,7 +94,7 @@
 	the main process has to start the user session, authentication
 	is already done.
 
-2005-08-24  Noberasco Michele  <s4t4n@gentoo.org>
+2005-08-24  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* media/screensavers/photos/photos.c (is_image):
 	Made file extensions checks to ignore case.
@@ -91,14 +102,14 @@
 	Made photo screen-saver honour the aspect ratio of
 	images, so that it no longer distorts them.
 
-2005-07-12  Noberasco Michele  <s4t4n@gentoo.org>
+2005-07-12  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* configure.in,
 	* media/pam/gentoo/qingy,
 	* media/pam/Makefile.am: 
 	Re-added a Gentoo-specific PAM module that makes use of pam_stack.so
 
-2005-06-17  Noberasco Michele  <s4t4n@gentoo.org>
+2005-06-17  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* media/Makefile.am (settings):
 	Updated sample config file with last session policy.
@@ -110,7 +121,7 @@
 	* src/libraries/load_settings.c (get_last_session):
 	Completed support for per-tty last session selection.
 
-2005-06-16  Noberasco Michele  <s4t4n@gentoo.org>
+2005-06-16  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/misc.c,
 	* src/libraries/misc.h:
@@ -120,7 +131,7 @@
 	* src/libraries/load_settings.c (set_last_session):
 	Save last session fired up on a per-user AND per-tty basis...
 
-2005-06-15  Noberasco Michele  <s4t4n@gentoo.org>
+2005-06-15  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/parse_settings.y,
 	* src/libraries/scan_settings.l,
@@ -130,37 +141,37 @@
 	on a per-user or a per-tty basis. Default will be current functionality,
 	i.e. per-user.
 
-2005-06-13  Noberasco Michele  <s4t4n@gentoo.org>
+2005-06-13  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c:
 	Print error message (from errno) to stderr in case
 	execve fails...
 
-2005-05-30  Noberasco Michele  <s4t4n@gentoo.org>
+2005-05-30  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/objects/combobox.c:
 	Completed drop-down menu for combo boxes...
 
-2005-05-26  Noberasco Michele  <s4t4n@gentoo.org>
+2005-05-26  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/tty_guardian.c (has_controlling_process)
 	(is_getty):
 	Made tty_guardian recognize qingy-spawned shells.
 
-2005-05-19  Noberasco Michele  <s4t4n@gentoo.org>
+2005-05-19  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/tty_guardian.c:
 	Fixed some issues in session locking regarding
 	moving user to the appropriate tty when an X
 	session is active.
 
-2005-05-18  Noberasco Michele  <s4t4n@gentoo.org>
+2005-05-18  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/tty_guardian.c (ttyWatchDog):
 	Fixed small bug in session locking where user password
 	is asked when you exit an X session...
 
-2005-05-16  Noberasco Michele  <s4t4n@gentoo.org>
+2005-05-16  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/directfb_mode.c (handle_mouse_event):
 	Implemented mouse wheel actions for combo boxes...
@@ -175,19 +186,19 @@
 	do not intend to, at least right now. What I should
 	implement is mouse wheel actions...
 
-2005-05-12  Noberasco Michele  <s4t4n@gentoo.org>
+2005-05-12  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/objects/combobox.c:
 	Now we correctly plot the lateral scrollbar, still
 	have to handle its input events...
 	...now clicking on the top and bottom triangles work...
 
-2005-04-19  Noberasco Michele  <s4t4n@gentoo.org>
+2005-04-19  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/objects/combobox.c:
 	Paving the ground for lateral scrollbar...
 
-2005-04-15  Noberasco Michele  <s4t4n@gentoo.org>
+2005-04-15  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/directfb_mode.c,
 	* src/DirectFB/objects/combobox.c:
@@ -198,7 +209,7 @@
 	Now all I need to implement is a side scrolling bar, then
 	my combo box will be complete.
 
-2005-04-14  Noberasco Michele  <s4t4n@gentoo.org>
+2005-04-14  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/objects/combobox.c,
 	* src/DirectFB/objects/combobox.h,
@@ -215,14 +226,14 @@
 	took the precedence, making mouseover effect on
 	an unfolded combobox look jerky...
 
-2005-04-12  Noberasco Michele  <s4t4n@gentoo.org>
+2005-04-12  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/objects/combobox.c:
 	Code clean ups, both in form and functionality...
 	Made drop-down menu appear downwards or upwards according
 	to screen position.
 
-2005-04-11  Noberasco Michele  <s4t4n@gentoo.org>
+2005-04-11  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* directfb_mode.c (handle_buttons):
 	Made buttons un-mouseover-able and unclickable
@@ -237,7 +248,7 @@
 	Reverted latest changes as they introduced quirks, will
 	rework them from scratch...
 
-2005-04-08  Noberasco Michele  <s4t4n@gentoo.org>
+2005-04-08  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/directfb_mode.c,
 	* src/DirectFB/objects/combobox.c,
@@ -245,25 +256,25 @@
 	Removed listbox.c and listbox.h as they are not
 	necessary, after all...
 
-2005-04-07  Noberasco Michele  <s4t4n@gentoo.org>
+2005-04-07  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/objects/combobox.c,
 	* src/DirectFB/directfb_mode.c (handle_mouse_event):
 	Continuing work on drop-down menu...
 
-2005-04-01  Noberasco Michele  <s4t4n@gentoo.org>
+2005-04-01  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/directfb_mode.c (close_framebuffer_mode):
 	Stop shutting down DirectFB gracefully *again*, it is
 	faster this way, and it also feels more stable...
 
-2005-03-31  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-31  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c (Graph_Login, Text_Login):
 	Overwrite memory areas containing sensitive user info
 	before quitting...
 
-2005-03-30  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-30  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/main.c (start_up):
 	Overwrite memory areas containing sensitive user info
@@ -285,7 +296,7 @@
 	* src/libraries/tty_guardian.c (ttyWatchDog):
 	Indentation clean ups.
 
-2005-03-19  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-19  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/tty_guardian.c:
 	Brought tty guardian to a usable state: now it
@@ -304,14 +315,14 @@
 	when you come from an unused tty (which is owned by root
 	as well)...
 
-2005-03-18  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-18  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c:
 	Updated handling of utmp/wtmp logging so that
 	chrootkit no longer finds deletions in the latter
 	when user logs out.
 
-2005-03-17  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-17  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/objects/combobox.c,
 	* src/DirectFB/objects/listbox.h,
@@ -320,7 +331,7 @@
 	I need a new object, a listbox, to handle mouse clicks
 	on comboboxes... beginning to implement that...
 
-2005-03-16  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-16  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/crypto.c:
 	Fixed bug that prevented the public/privte keys to stay in
@@ -340,7 +351,7 @@
 	Moved crypto stuff to separate files.
 	Code clean ups...
 
-2005-03-15  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-15  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/memmgmt.h,
 	* src/libraries/memmgmt.c,
@@ -351,7 +362,7 @@
 	Implemented support for encrypting communications
 	to a usable state...
 
-2005-03-14  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-14  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/main.c,
 	* src/libraries/Makefile.am, 
@@ -360,20 +371,20 @@
 	and its user interface, trigered by new ./configure option:
 	--enable-crypto, enabled by default.
 
-2005-03-11  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-11  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/main.c (start_up):
 	Pass user authentication data between main qingy and its gui
 	trough a securely created temp file instead of a pipe...
 
-2005-03-10  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-10  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/objects/combobox.c,
 	* src/DirectFB/objects/combobox.h, 
 	* src/DirectFB/directfb_mode.c: 
 	More work on drop-down menus for combo boxes.
 
-2005-03-09  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-09  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/main.c (start_up):
 	Added 'no-vt-switching' to the args we pass to DirectFB to
@@ -385,7 +396,7 @@
 	* src/DirectFB/objects/combobox.c:
 	Started work on adding a drop-down menu to combo boxes...
 
-2005-03-08  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-08  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* configure.in:
 	Because of theme file modifications, tagged
@@ -421,7 +432,7 @@
 	by comparing the current screen resolution and
 	the one the theme was designed for...
 
-2005-03-07  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-07  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/directfb_mode.c,
 	* media/Makefile.am (settings):
@@ -434,7 +445,7 @@
 	actions defined in keybindings.h instead
 	of defining their own data structures...
 
-2005-03-05  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-05  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* configure.in,
 	* src/DirectFB/directfb_mode.c:
@@ -445,7 +456,7 @@
 	* src/DirectFB/directfb_mode.c:
 	Completed keybindings support.
 
-2005-03-04  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-04  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/objects/utils.c (modifier_is_pressed),
 	* src/DirectFB/objects/utils.h,
@@ -461,7 +472,7 @@
 	* src/libraries/keybindings.h:
 	Added new keybinding action: revert to text mode...
 
-2005-03-03  Noberasco Michele  <s4t4n@gentoo.org>
+2005-03-03  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/load_settings.c,
 	* src/DirectFB/directfb_mode.c,
@@ -478,7 +489,7 @@
 	the code that actually makes qingy take these
 	actions...
 
-2005-02-04  Noberasco Michele  <s4t4n@gentoo.org>
+2005-02-04  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/main.c (start_up):
 	Fix a rather obscure bug in which login could fail even if username
@@ -499,12 +510,12 @@
 	Usage: in theme file, specify something like
 	native_resolution = 800x600
 
-2004-12-24  Noberasco Michele  <s4t4n@gentoo.org>
+2004-12-24  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/misc.c (PrintUsage):
 	Changed help message slightly.
 
-2004-12-21  Noberasco Michele  <s4t4n@gentoo.org>
+2004-12-21  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* media/Makefile.am (settings),
 	* media/qingy-mode.el,
@@ -517,14 +528,14 @@
 	* src/libraries/parse_settings.y:
 	Added sleep support...
 
-2004-11-29  Noberasco Michele  <s4t4n@gentoo.org>
+2004-11-29  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/main.c (start_up):
 	Fall back to text mode if login fails, instead of defaulting
 	to the 'brains went pop' option ;-)
 	Sigh, this means that my brains HAVE gone pop!
 
-2004-11-28  Noberasco Michele  <s4t4n@gentoo.org>
+2004-11-28  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/main.c (check_autologin),
 	* src/libraries/parse_settings.y,
@@ -550,7 +561,7 @@
 	* src/libraries/misc.c (get_system_uptime): 
 	Completed autologin support...
 
-2004-11-27  Noberasco Michele  <s4t4n@gentoo.org>
+2004-11-27  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* media/Makefile.am (settings),
 	* src/main.c (start_up, main),
@@ -560,24 +571,24 @@
 	* src/libraries/scan_settings.l:
 	Begin work on autologin feature...
 
-2004-11-25  Noberasco Michele  <s4t4n@gentoo.org>
+2004-11-25  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* media/Makefile.am (settings):
 	Duh, forgot to update the default settings file
 	with standard X servers arguments...
 
-2004-11-20  Noberasco Michele  <s4t4n@gentoo.org>
+2004-11-20  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/main.c (start_up):
 	Wait for 1 second before attempting to restart
 	qingy interface if previous attemt failed
 
-2004-11-16  Noberasco Michele  <s4t4n@gentoo.org>
+2004-11-16  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c:
 	Unset the DISPLAY env variable when logging in with a text session...
 
-2004-11-12  Noberasco Michele  <s4t4n@gentoo.org>
+2004-11-12  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* media/settings (x_args),
 	* media/qingy-mode.el (qingy-font-lock-keywords-1),
@@ -589,12 +600,12 @@
 	Added support for passing user-defined arguments to the X server.
 	To enhance security, as a default we now pass '-nolisten tcp'...
 
-2004-10-06  Noberasco Michele  <s4t4n@gentoo.org>
+2004-10-06  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* media/pam/Makefile.am (EXTRA_DIST):
 	Fix typo.
 
-2004-10-05  Noberasco Michele  <s4t4n@gentoo.org>
+2004-10-05  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* media/pam/Makefile.am,
 	* media/pam/debian (removed),
@@ -603,13 +614,13 @@
 	Added a new PAM module that apparently works for every distro
 	(tested on Debian, fedora core, red hat, slackware), removed old modules...
 
-2004-10-01  Noberasco Michele  <s4t4n@gentoo.org>
+2004-10-01  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* configure.in:
 	Added support for AMD Athlon64 processors optimization.
 	Fixed support for shadow password authentication...
 
-2004-09-18  Noberasco Michele  <s4t4n@gentoo.org>
+2004-09-18  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c (Graph_Login),
 	(Text_Login):
@@ -620,7 +631,7 @@
 	Fix stuff so that qingy links correctly against the PAM library
 	when compiled as a static binary.
 
-2004-09-10  Noberasco Michele  <s4t4n@gentoo.org>
+2004-09-10  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/directfb_mode.c,
 	* src/main.c (start_up),
@@ -634,7 +645,7 @@
 	* media/Makefile.am (settings): 
 	Add an example of 'retries' to settings file.
 
-2004-09-09  Noberasco Michele  <s4t4n@gentoo.org>
+2004-09-09  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* media/pam/Makefile.am (EXTRA_DIST):
 	Fix debian pam file location...
@@ -650,7 +661,7 @@
 	should try to bring its gui up before reverting
 	to text mode...
 
-2004-08-20  Noberasco Michele  <s4t4n@gentoo.org>
+2004-08-20  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* media/pam/debian/qingy,
 	* media/pam/default/qingy,
@@ -667,7 +678,7 @@
 	Remove limitation of passing '-h' as first
 	cmd line argument...
 
-2004-08-19  Noberasco Michele  <s4t4n@gentoo.org>
+2004-08-19  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/misc.c:
 	Fix typo...
@@ -682,7 +693,7 @@
 	Correct bug I just introduced not allowing to run qingy any more
 	due to incorrect cmd line arguments handling...
 
-2004-08-18  Noberasco Michele  <s4t4n@gentoo.org>
+2004-08-18  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* lotsa_files_have_been_changed:
 	Change way of handling of ParseCMDLine() dualism as previous
@@ -704,12 +715,12 @@
 	This fixes a bug that prevented command line arguments
 	to be honoured by qingy-interface...
 
-2004-08-17  Noberasco Michele  <s4t4n@gentoo.org>
+2004-08-17  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/directfb_mode.c (main):
 	Fixed bug that prevented tty specific options in config file to work.
 
-2004-08-16  Noberasco Michele  <s4t4n@gentoo.org>
+2004-08-16  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* media/qingy-mode.el:
 	Update qingy emacs major mode with the newest items...
@@ -738,13 +749,13 @@
 	Remove support for the '--black-screen-workaround'
 	cmd line arg, as it is no longer needed.
 
-2004-08-10  Noberasco Michele  <s4t4n@gentoo.org>
+2004-08-10  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c (check_password):
 	Change PAM authentication code to feed it the full
 	tty name if using the short one fails...
 
-2004-07-28  Noberasco Michele  <s4t4n@gentoo.org>
+2004-07-28  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* README (Options):
 	Update README
@@ -766,7 +777,7 @@
 	* src/DirectFB/objects/utils.h:
 	Add the NONE modifier.
 
-2004-07-02  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-07-02  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/load_settings.c (load_settings):
 	moved last user file from /etc/qingy/ to /var/lib/misc/
@@ -774,7 +785,7 @@
 	Thanks to Jason Andryuk <the_deuce@yahoo.com>
 	for poinint this out.
 
-2004-06-17  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-06-17  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/objects/button.c (load_image_int),
 	(load_image, Button_Create):
@@ -783,7 +794,7 @@
 	making the black pixels transparent...
 	Code still in need of some cleaning up, but it works...
 
-2004-06-14  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-06-14  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/objects/button.h (enum),
 	* src/DirectFB/directfb_mode.c (create_windows),
@@ -793,7 +804,7 @@
 	* src/libraries/scan_settings.l:
 	Allow for buttons with no action associated to them.
 
-2004-04-26  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-04-26  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* most_files_have_been_changed,
 	* qingy.spec.in added:
@@ -838,7 +849,7 @@
 	If PAM receives tty name in /dev/tty1 form, then pam_console.so
 	module refuse to work.
 
-2004-03-28  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-03-28  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* configure.in,
 	* src/libraries/session.c (Graph_Login),
@@ -854,7 +865,7 @@
 	Use this if qingy fails to properly detect your framebuffer
 	resolution.
 
-2004-03-24  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-03-24  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* configure.in:
 	Changed version to 0.4.1
@@ -872,7 +883,7 @@
 	* src/libraries/session.c (get_sessions):
 	Some fixes...
 
-2004-03-23  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-03-23  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/main.c (start_up),
 	* src/DirectFB/directfb_mode.c (directfb_mode):
@@ -880,12 +891,12 @@
 	it does it with tty switching enabled so that user is not
 	stuck in front of a 'respawning too fast' message...
 
-2004-03-18  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-03-18  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* doc/qingy.texi (Installing from the tarball):
 	Revamped installation instructions...
 
-2004-03-09  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-03-09  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/load_settings.c:
 	various code clean-ups
@@ -910,12 +921,12 @@
 	to the impossibility to fire up an X session because the X
 	server cannot be found (true for Slackware, maybe others).
 
-2004-02-29  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-02-29  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c:
 	code cleanups.
 
-2004-02-27  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-02-27  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/tty_guardian.c:
 	fixed some tty_guardian problems;
@@ -924,12 +935,12 @@
 	  up an X server manually, the tty the X server is running in is
 	  not guarded.
 
-2004-02-26  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-02-26  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/main.c (main, ParseCMDLine):
 	Add some more sanity checks...	
 
-2004-02-25  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-02-25  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c (PAM_conv):
 	some cleanups, remove unnecessary code.
@@ -943,7 +954,7 @@
 	to enable installation of emacs major mode (now disabled
 	by default).
 
-2004-02-24  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-02-24  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* media/qingy-mode.el:
 	updated to reflect new stuff in config and theme files;
@@ -955,7 +966,7 @@
 	Paolino: I believe I got it right, but of course
 	         I don't understand a gnat about lisp ;-P
 
-2004-02-19  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-02-19  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* most_files_have_been_changed,
 	* various_files_moved_or_added:
@@ -966,7 +977,7 @@
 	Moved most files in src/ to src/libraries/
 	Now I'll take a rest and watch some pr0n ;-P
 
-2004-02-16  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-02-16  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/load_settings.c (get_random_theme): 
 	simplify method to get value fot srand()
@@ -975,7 +986,7 @@
 	begin work on creating shared libraries and linking to them
 	instead of creating a huge binary
 
-2004-02-12  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-02-12  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* media/default/Makefile.am,
 	* configure.in,
@@ -1010,7 +1021,7 @@
 	up an X server manually, the tty the X server is running in is
 	not guarded.
 
-2004-02-11  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-02-11  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/tty_guardian.c:
 	More work, works a bit better...
@@ -1026,7 +1037,7 @@
 	added new path to includes, otherwise compilation fails
 	if screensaver_module.h is not found in /etc/qingy/screensavers/
 
-2004-02-09  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-02-09  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/tty_guardian.c: more work on session locking;
 	now it works except that if you come from an unused
@@ -1036,7 +1047,7 @@
 	an X server from inside a text session, that X server
 	is not guarded...
 
-2004-02-06  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-02-06  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/chvt.c (get_tty_owner),
 	* src/chvt.h (get_tty_owner): 
@@ -1053,7 +1064,7 @@
 	instead of parsing command line arguments 'by hand'.
 	Various small fixes and clean ups.
 
-2004-02-04  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-02-04  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/scan_settings.l,
 	* src/parse_settings.y,
@@ -1090,7 +1101,7 @@
 	(disallocate_tty): conform to the coding style of the other functions.
 	(get_fb_resolution): add some checks.
 
-2004-02-03  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-02-03  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/chvt.c (get_active_tty):
 	I really would like to know the guy who had
@@ -1116,7 +1127,7 @@
 	}
 	These settings will take effect only if qingy is started from tty3
 
-2004-02-01  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-02-01  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/parse_settings.y,
 	* src/scan_settings.l,
@@ -1132,7 +1143,7 @@
 	defines the default policy (we use that setting
 	if the theme file do not set it itself)...
 
-2004-01-30  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-01-30  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/directfb_mode.c: cosmetic fixes,
 	some stuff to make it sompliant to GNU coding style
@@ -1165,7 +1176,7 @@
 
 	* media/screensavers/Makefile.am: added, completing Make-tree
 
-2004-01-24  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-01-24  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/directfb_mode.c (begin_shutdown_sequence):
 	minor clean ups
@@ -1196,7 +1207,7 @@
 	welcome message. Retained global welcomes file option as well as
 	default.
 
-2004-01-22  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-01-22  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/parse_settings.y: Fixed a bug where a pointer got displayed
 	instead of the value it pointed to...
@@ -1218,7 +1229,7 @@
 	* src/DirectFB/directfb_mode.c (handle_keyboard_event): Added
 	powerkeys option
 
-2004-01-17  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+2004-01-17  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/objects/screensaver_module.h: see below...
 

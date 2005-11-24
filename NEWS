@@ -15,6 +15,7 @@ qingy CVS-0.6.1-CVS:
   on a global or a per-tty basis. Default will be current
   functionality, i.e. global. To change it you have to set variable
   last_user_policy in settings file.
+- Added support for Mobile Pentium 4 processors optimization.
 - Several bug fixes.
 
 qingy 0.6.0 (30 May 2005):

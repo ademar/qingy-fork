@@ -1,7 +1,7 @@
 AC_INIT([qingy],[0.6.1],[michele.noberasco@tiscali.it])
-AC_PREREQ(2.57)
+AC_PREREQ(2.59)
 AC_CONFIG_SRCDIR(src/main.c)
-AM_INIT_AUTOMAKE([1.6 check-news dist-bzip2])
+AM_INIT_AUTOMAKE([1.9 check-news dist-bzip2])
 AM_CONFIG_HEADER([config.h])
 
 AC_GNU_SOURCE
@@ -49,6 +49,10 @@ AM_PATH_LISPDIR
 				#Is our CPU a Pentium 4?
 				if test "`echo $PROCESSOR | grep \"Intel(R) Pentium(R) 4\"`" != ""; then
 					CPUFLAGS="-march=pentium4"
+				fi
+				#Is our CPU a Mobile Pentium 4?
+				if test "`echo $PROCESSOR | grep \"Intel(R) Pentium(R) M\"`" != ""; then
+					CPUFLAGS="-march=pentium4m"
 				fi
 				#K6 processor
 				if test "`echo $PROCESSOR | grep \"AMD-K6(tm)\"`" != ""; then
@@ -98,8 +102,9 @@ AM_PATH_LISPDIR
 # End check for C headers
 
 # Check functions
-	AC_CHECK_LIB(crypt, crypt, , , )
-	AC_CHECK_LIB(dl, dlopen, , , )
+	LIBRARIES_ERROR_MESSAGE="One or more function libraries that are necessary to compile this program are missing on this system. Cannot continue."
+	AC_CHECK_LIB(crypt, crypt, ,[AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])] , )
+	AC_CHECK_LIB(dl, dlopen, ,[AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])] , )
 # End check functions
 
 # Wether we should compile qingy mayor mode for emacs
@@ -133,8 +138,8 @@ AM_PATH_LISPDIR
 	if test -z "$PASSWDLIB" \
     	    && ( test "$enable_shadow" != "no" -a "$enable_pam" != "yes" \
     	    || test "$enable_pam" = "yes" -a "$enable_shadow" = "yes" ); then
-    	    AC_CHECK_LIB(shadow, main,[PASSWDLIB="-lshadow"])
-    	    AC_CHECK_HEADERS(shadow.h)
+    	    AC_CHECK_LIB(shadow, main,[PASSWDLIB="-lshadow"],[AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+    	    AC_CHECK_HEADERS(shadow.h,,[AC_MSG_ERROR([$HEADERS_ERROR_MESSAGE])])
 					AC_DEFINE(SHADOW_PASSWD, 1, [Define if you want qingy to use shadow passwords for auth])
 	fi
 	AC_SUBST(PASSWDLIB)
@@ -152,23 +157,44 @@ AM_PATH_LISPDIR
 # End compile statically stuff
 
 # Wether we should enable crypto support
-	AC_ARG_ENABLE(crypto, AC_HELP_STRING([--enable-crypto],
-	[make qingy encrypt communications with its user interface (default is yes)]),, [enable_crypto=yes])
-	if test "$enable_crypto" == "yes"; then
-		AC_CHECK_HEADERS([openssl/rsa.h openssl/engine.h openssl/bn.h])
-		AC_CHECK_LIB(crypto, RSA_new,[CRYPTOLIB="-lcrypto"])
-		AC_CHECK_LIB(crypto, RSA_free,[CRYPTOLIB="-lcrypto"])
-		AC_CHECK_LIB(crypto, RSA_generate_key,[CRYPTOLIB="-lcrypto"])
-		AC_CHECK_LIB(crypto, RSA_size,[CRYPTOLIB="-lcrypto"])
-		AC_CHECK_LIB(crypto, RSA_public_encrypt,[CRYPTOLIB="-lcrypto"])
-		AC_CHECK_LIB(crypto, RSA_private_decrypt,[CRYPTOLIB="-lcrypto"])
-		AC_CHECK_LIB(crypto, BN_hex2bn,[CRYPTOLIB="-lcrypto"])
-		AC_CHECK_LIB(crypto, BN_bn2hex,[CRYPTOLIB="-lcrypto"])
-		AC_DEFINE(WANT_CRYPTO, 1, [Define if we should enable crypto support])
-		AC_MSG_NOTICE([qingy will encrypt communications with its user interface])
+	AC_ARG_ENABLE(crypto, AC_HELP_STRING([--enable-crypto=<arg>],
+	[make qingy encrypt communications with its user interface. Supported crypto libraries are: none (no encryption), \
+	 openssl (openssl RSA encryption), libgcrypt (GNU libgcrypt RSA encryption]),, [enable_crypto=openssl])
+	if test "$enable_crypto" == "openssl"; then
+		AC_CHECK_HEADERS([openssl/rsa.h openssl/engine.h openssl/bn.h],,[AC_MSG_ERROR([$HEADERS_ERROR_MESSAGE])])
+		AC_CHECK_LIB(crypto, RSA_new,            [CRYPTOLIB="-lcrypto"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_CHECK_LIB(crypto, RSA_free,           [CRYPTOLIB="-lcrypto"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_CHECK_LIB(crypto, RSA_generate_key,   [CRYPTOLIB="-lcrypto"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_CHECK_LIB(crypto, RSA_size,           [CRYPTOLIB="-lcrypto"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_CHECK_LIB(crypto, RSA_public_encrypt, [CRYPTOLIB="-lcrypto"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_CHECK_LIB(crypto, RSA_private_decrypt,[CRYPTOLIB="-lcrypto"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_CHECK_LIB(crypto, BN_hex2bn,          [CRYPTOLIB="-lcrypto"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_CHECK_LIB(crypto, BN_bn2hex,          [CRYPTOLIB="-lcrypto"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_DEFINE(CRYPTO_OPENSSL, 1, [Define what crypto library we should use])
+		AC_MSG_NOTICE([qingy will encrypt communications with its user interface using openssl])
 		AC_SUBST(CRYPTOLIB)
+	elif test "$enable_crypto" == "libgcrypt"; then
+		AC_CHECK_HEADERS([gcrypt.h],,[AC_MSG_ERROR([$HEADERS_ERROR_MESSAGE])])
+		AC_CHECK_LIB(gcrypt, gcry_check_version,  [CRYPTOLIB="-lgcrypt"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_CHECK_LIB(gcrypt, gcry_control,        [CRYPTOLIB="-lgcrypt"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_CHECK_LIB(gcrypt, gcry_sexp_new,       [CRYPTOLIB="-lgcrypt"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_CHECK_LIB(gcrypt, gcry_pk_genkey,      [CRYPTOLIB="-lgcrypt"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_CHECK_LIB(gcrypt, gcry_sexp_release,   [CRYPTOLIB="-lgcrypt"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_CHECK_LIB(gcrypt, gcry_sexp_find_token,[CRYPTOLIB="-lgcrypt"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_CHECK_LIB(gcrypt, gcry_sexp_nth_data,  [CRYPTOLIB="-lgcrypt"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_CHECK_LIB(gcrypt, gcry_strsource,      [CRYPTOLIB="-lgcrypt"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_CHECK_LIB(gcrypt, gcry_strerror,       [CRYPTOLIB="-lgcrypt"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_DEFINE(CRYPTO_LIBGCRYPT, 1, [Define what crypto library we should use])
+		AC_MSG_NOTICE([qingy will encrypt communications with its user interface using GNU libgcrypt])
+		AC_SUBST(CRYPTOLIB)
+	elif test ["$enable_crypto" == "none"] -o ["$enable_crypto" == "no"] -o ["$enable_crypto" == "false"]; then
+		AC_MSG_NOTICE([qingy will NOT encrypt communications with its user interface])
+		enable_crypto="none"
+	else
+		AC_MSG_ERROR([You specified an incorrect argument to --enable-crypto, see ./configure --help])
 	fi
-	AM_CONDITIONAL(WANT_CRYPTO, test "$enable_crypto" == "yes")
+	AM_CONDITIONAL(CRYPTO_OPENSSL,   test ["$enable_crypto" == "openssl"])
+	AM_CONDITIONAL(CRYPTO_LIBGCRYPT, test ["$enable_crypto" == "libgcrypt"])
 # End check for crypto support
 
 # Wether we should disable screen saver support
