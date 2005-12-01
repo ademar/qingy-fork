@@ -271,7 +271,10 @@ void LogEvent(struct passwd *pw, int status)
 
 int gui_check_password(char *username, char *password, char *session, int ppid)
 {
-	char result[10];
+	char   result[10];
+	time_t start;
+
+	strcpy(result, "\0");
 
 	/* sent auth data to our parent... */
 #ifdef WANT_CRYPTO
@@ -285,14 +288,26 @@ int gui_check_password(char *username, char *password, char *session, int ppid)
 
 	/* ...signal it to check auth data... */
 	if (kill (ppid, SIGUSR1))
-		return 0;
+	  return 0;
 
-	/* ... wait until it has done so... */
-	while (1)
+	start = time(NULL);
+
+	/* ... wait until it has done so... and set a handy timeout! */
+	while (time(NULL) - start <= 10)
 	{
 		sleep(1);
+
 		if (fscanf(stdin, "%9s", result) != EOF)
 			break;
+		else
+		{
+			FILE *oldstderr = stderr;
+			freopen("/qingylog.txt", "a", stderr);
+
+			fprintf(stderr, "got EOF...%ul\n",time(NULL));
+			if (ferror(stdin))
+				perror(NULL);
+		}
 	}
 
 	/* ...finally, fetch the results */

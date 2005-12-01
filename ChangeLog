@@ -1,3 +1,11 @@
+2005-12-01  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/session.c,
+	* src/libraries/Makefile.am,
+	* configure.in,
+	* src/libraries/crypto_libgcrypt.c:
+	Adding support for GNU libgcrypt. Still does not work, though...
+
 2005-11-22  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* configure.in:

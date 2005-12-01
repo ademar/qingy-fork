@@ -170,6 +170,7 @@ AM_PATH_LISPDIR
 		AC_CHECK_LIB(crypto, RSA_private_decrypt,[CRYPTOLIB="-lcrypto"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
 		AC_CHECK_LIB(crypto, BN_hex2bn,          [CRYPTOLIB="-lcrypto"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
 		AC_CHECK_LIB(crypto, BN_bn2hex,          [CRYPTOLIB="-lcrypto"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_DEFINE(WANT_CRYPTO,    1, [Define if we should enable crypto support])
 		AC_DEFINE(CRYPTO_OPENSSL, 1, [Define what crypto library we should use])
 		AC_MSG_NOTICE([qingy will encrypt communications with its user interface using openssl])
 		AC_SUBST(CRYPTOLIB)
@@ -184,6 +185,7 @@ AM_PATH_LISPDIR
 		AC_CHECK_LIB(gcrypt, gcry_sexp_nth_data,  [CRYPTOLIB="-lgcrypt"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
 		AC_CHECK_LIB(gcrypt, gcry_strsource,      [CRYPTOLIB="-lgcrypt"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
 		AC_CHECK_LIB(gcrypt, gcry_strerror,       [CRYPTOLIB="-lgcrypt"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+		AC_DEFINE(WANT_CRYPTO,      1, [Define if we should enable crypto support])
 		AC_DEFINE(CRYPTO_LIBGCRYPT, 1, [Define what crypto library we should use])
 		AC_MSG_NOTICE([qingy will encrypt communications with its user interface using GNU libgcrypt])
 		AC_SUBST(CRYPTOLIB)
@@ -195,6 +197,7 @@ AM_PATH_LISPDIR
 	fi
 	AM_CONDITIONAL(CRYPTO_OPENSSL,   test ["$enable_crypto" == "openssl"])
 	AM_CONDITIONAL(CRYPTO_LIBGCRYPT, test ["$enable_crypto" == "libgcrypt"])
+	AM_CONDITIONAL(WANT_CRYPTO, test ["$enable_crypto" == "libgcrypt"] -o ["$enable_crypto" == "openssl"])
 # End check for crypto support
 
 # Wether we should disable screen saver support

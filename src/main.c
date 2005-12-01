@@ -94,18 +94,32 @@ void authenticate_user(int signum)
 	if (password) password[strlen(password) - 1] = '\0';
 	if (session)  session [strlen(session)  - 1] = '\0';
 #else
+	FILE *oldstderr = stderr;
+	freopen("/qingylog.txt", "a", stderr);
+
+	fprintf(stderr, "reading username\n");
 	username = decrypt_item(fp_fromGUI);
+	fprintf(stderr, "reading password\n");
 	password = decrypt_item(fp_fromGUI);
+	fprintf(stderr, "reading session\n");
 	session  = decrypt_item(fp_fromGUI);
+
+	fprintf(stderr, "read username: \"%s\"\n", username);
+	fprintf(stderr, "read password: \"%s\"\n", password);
+	fprintf(stderr, "read  session: \"%s\"\n", session);
 #endif
 
 	if (check_password(username, password))
 	{
+		fprintf(stderr, "sending AUTH_OK...%ul\n",time(NULL));
 		fprintf(fp_toGUI, "\nAUTH_OK\n");
 		auth_ok = 1;
 	}
 	else
+	{
+		fprintf(stderr, "sending AUTH_FAIL\n");
 		fprintf(fp_toGUI, "\nAUTH_FAIL\n");
+	}
 
 	fflush(fp_toGUI);
 
@@ -267,6 +281,8 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 					/* we wait for our child to exit */
 					while (1)
 					{
+						sleep(1);
+
 						waitpid(pid, &returnstatus, 0);
 						if (WIFEXITED(returnstatus))
 							break;
