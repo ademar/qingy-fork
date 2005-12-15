@@ -1,3 +1,17 @@
+2005-12-12  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in:
+	Added check for all libgcrypt function calls.
+
+2005-12-07  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/main.c (authenticate_user),
+	* src/libraries/session.c (gui_check_password),
+	* src/DirectFB/directfb_mode.c (start_login_sequence),
+	* src/libraries/crypto_libgcrypt.c:
+	Support for GNU libgcrypt is almost done. Still to check
+	why on some rare occasions it fails to decrypt an item.
+
 2005-12-01  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c,

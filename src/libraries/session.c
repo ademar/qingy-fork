@@ -299,16 +299,11 @@ int gui_check_password(char *username, char *password, char *session, int ppid)
 
 		if (fscanf(stdin, "%9s", result) != EOF)
 			break;
-		else
-		{
-			FILE *oldstderr = stderr;
-			freopen("/qingylog.txt", "a", stderr);
-
-			fprintf(stderr, "got EOF...%ul\n",time(NULL));
-			if (ferror(stdin))
-				perror(NULL);
-		}
 	}
+
+	/* if a timeout occurred, return error */
+	if (time(NULL) - start > 10)
+		return -1;
 
 	/* ...finally, fetch the results */
 	if (!strcmp(result, "AUTH_OK"))

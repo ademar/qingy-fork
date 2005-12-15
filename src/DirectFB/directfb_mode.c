@@ -768,6 +768,7 @@ void handle_mouse_event (DFBInputEvent *evt)
 
 void start_login_sequence(DFBInputEvent *evt)
 {
+	int  result;
   int  free_temp = 0;
   char *message;
   char *welcome_msg;
@@ -787,33 +788,44 @@ void start_login_sequence(DFBInputEvent *evt)
 	}
   else temp = username->text;
 
-  if (!gui_check_password(temp, password->text, session->selected, ppid))
+	result = gui_check_password(temp, password->text, session->selected, ppid);
+	switch (result)
 	{
-		primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-		if (!clear_background) Draw_Background_Image(0);
-		primary->DrawString (primary, "Login failed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
-		primary->Flip (primary, NULL, DSFLIP_BLIT);
-		sleep(2);
-		password->ClearText(password);
-		reset_screen(evt);
-		if (free_temp) free(temp);
-		return;
+		case 1: /* login success */
+			primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
+			if (!clear_background) Draw_Background_Image(0);
+			welcome_msg = get_welcome_msg(temp);
+			primary->DrawString (primary, welcome_msg, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+			primary->Flip (primary, NULL, DSFLIP_BLIT);
+			free(welcome_msg);
+			sleep(1);
+			if (free_temp) free(temp);
+
+			/* we overwrite memory areas containing sensitive information */
+			memset(username->text, '\0', sizeof(username->text));
+			memset(password->text, '\0', sizeof(password->text));
+
+			close_framebuffer_mode();
+			exit(EXIT_SUCCESS);
+			break; /* not really necessary here */
+
+		case 0: /* login failure */
+			message = StrApp((char**)NULL, "Login failed!", (char*)NULL);
+			break;
+
+		default: /* crypto error occurred */
+			message = StrApp((char**)NULL, "Crypto error - regenerate your keys!", (char*)NULL);
+			break;
 	}
-  primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-  if (!clear_background) Draw_Background_Image(0);
-  welcome_msg = get_welcome_msg(temp);
-  primary->DrawString (primary, welcome_msg, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
-  primary->Flip (primary, NULL, DSFLIP_BLIT);
-  free(welcome_msg);
-  sleep(1);
-  if (free_temp) free(temp);
 
-  /* we overwrite memory areas containing sensitive information */
-  memset(username->text, '\0', sizeof(username->text));
-  memset(password->text, '\0', sizeof(password->text));
-
-	close_framebuffer_mode();
-  exit(EXIT_SUCCESS);
+	primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
+	if (!clear_background) Draw_Background_Image(0);
+	primary->DrawString (primary, message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+	primary->Flip (primary, NULL, DSFLIP_BLIT);
+	sleep(2);
+	password->ClearText(password);
+	reset_screen(evt);
+	if (free_temp) free(temp);
 }
 
 int handle_keyboard_event(DFBInputEvent *evt)

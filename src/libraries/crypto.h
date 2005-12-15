@@ -1,5 +1,5 @@
 /***************************************************************************
-                           crypto.h  -  description
+                          crypto.h  -  description
                             --------------------
     begin                : Apr 10 2003
     copyright            : (C) 2003-2005 by Noberasco Michele

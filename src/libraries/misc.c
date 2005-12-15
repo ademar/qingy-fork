@@ -105,7 +105,7 @@ void to_lower(char *string)
 
 void ClearScreen(void)
 {
-  system("/usr/bin/clear 2>/dev/null");
+  //system("/usr/bin/clear 2>/dev/null");
 }
 
 
