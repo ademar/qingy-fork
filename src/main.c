@@ -99,11 +99,6 @@ void authenticate_user(int signum)
 	session  = decrypt_item(fp_fromGUI);
 #endif
 
-/* 	stderr = freopen("/log.txt", "a", stderr); */
-/* 	fprintf(stderr, "Trying to login with \"%s\", \"%s\", \"%s\"\n", username, password, session); */
-/* 	fclose(stderr); */
-/* 	stderr_enable(NULL); */
-
 	if (check_password(username, password))
 	{
 		fprintf(fp_toGUI, "\nAUTH_OK\n");

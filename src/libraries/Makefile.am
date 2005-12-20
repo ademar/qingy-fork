@@ -30,9 +30,13 @@ endif
 if CRYPTO_LIBGCRYPT
 libqingy_la_SOURCES += crypto.h crypto_libgcrypt.c
 endif
+if CRYPTO_GPGME
+libqingy_la_SOURCES += crypto.h crypto_gpgme.c
+AM_CPPFLAGS          = $(GPGME_CFLAGS)
+endif
 
 EXTRA_libqingy_la_SOURCES =           \
-    crypto_openssl.c crypto_libgcrypt.c crypto.h
+    crypto_openssl.c crypto_libgcrypt.c crypto_gpgme.c crypto.h
 
 libqingy_la_LIBADD  = @PASSWDLIB@ @CRYPTOLIB@
 libqingy_la_LDFLAGS = -release @VERSION@

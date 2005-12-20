@@ -1,3 +1,10 @@
+2005-12-20  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in,
+	* src/libraries/crypto_gpgme.c,
+	* src/libraries/Makefile.am:
+	Adding support for gpgme, as libgcrypt is crippled.
+
 2005-12-12  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* configure.in:

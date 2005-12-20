@@ -16,6 +16,8 @@ qingy CVS-0.6.1-CVS:
   functionality, i.e. global. To change it you have to set variable
   last_user_policy in settings file.
 - Added support for Mobile Pentium 4 processors optimization.
+- Added EXPERIMENTAL support for GNU libgcrypt as crypto library.
+  If you decide to try it out, good luck creating a good keypair!
 - Several bug fixes.
 
 qingy 0.6.0 (30 May 2005):

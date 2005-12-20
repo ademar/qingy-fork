@@ -73,6 +73,9 @@ int is_image(char *filename)
 	if (!strcasecmp(temp, ".png")) return 1;
 	if (!strcasecmp(temp, ".jpg")) return 1;
 
+	temp = filename + lun - 5;
+	if (!strcasecmp(temp, ".jpeg")) return 1;
+
 	return 0;
 }
 
