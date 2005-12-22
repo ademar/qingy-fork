@@ -1,9 +1,21 @@
+2005-12-22  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/misc.c (parse_etc_issue, text_mode):
+	Adding support for parsing /etc/issue when displaying
+	a text mode login.
+
 2005-12-20  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/screensavers/photos/photos.c (screen_saver_entry):
+	Utterly and completely fixed photo screen saver screen ratio
+	and crashes (due to invalid permissions) issues.
 
 	* configure.in,
 	* src/libraries/crypto_gpgme.c,
 	* src/libraries/Makefile.am:
-	Adding support for gpgme, as libgcrypt is crippled.
+	Adding support for gpgme, as libgcrypt is a crippled beast.
+	I was never, ever, able to generate a key pair that decrypted
+	all the items it got fed.
 
 2005-12-12  Michele Noberasco  <michele.noberasco@tiscali.it>
 

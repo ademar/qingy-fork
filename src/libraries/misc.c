@@ -31,14 +31,17 @@
 
 #include <ctype.h>
 #include <pwd.h>
+#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <utmp.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/utsname.h>
 
 #if HAVE_DIRENT_H
 # include <dirent.h>
@@ -349,13 +352,182 @@ void PrintUsage()
 	printf("\tPrint this help message.\n\n");
 }
 
+void parse_etc_issue(void)
+{
+/* 	struct options *op; */
+/* 	struct termio *tp; */
+	FILE    *fd;
+/* 	int     oflag; */
+	int     c;
+	struct utsname uts;
+
+	(void) uname(&uts);
+
+	(void) write(1, "\r\n", 2);			/* start a new line */
+	
+	fd = fopen("/etc/issue", "r");
+
+	if (fd)
+	{
+/* 		oflag = tp->c_oflag;			/\* save current setting *\/ */
+/* 		tp->c_oflag |= (ONLCR | OPOST);		/\* map NL in output to CR-NL *\/ */
+/* 		(void) ioctl(0, TCSETAW, tp); */
+
+		while ((c = getc(fd)) != EOF)
+		{
+	    if (c == '\\')
+			{
+				c = getc(fd);
+
+				switch (c)
+				{
+					case 's':
+						(void) printf ("%s", uts.sysname);
+						break;
+		    
+					case 'n':
+						(void) printf ("%s", uts.nodename);
+						break;
+		    
+					case 'r':
+						(void) printf ("%s", uts.release);
+						break;
+		    
+					case 'v':
+						(void) printf ("%s", uts.version);
+						break;
+		    
+					case 'm':
+						(void) printf ("%s", uts.machine);
+						break;
+
+					case 'o':
+					{
+						char domainname[256];
+#ifdef HAVE_getdomainname
+						getdomainname(domainname, sizeof(domainname));
+#else
+						strcpy(domainname, "unknown_domain");
+#endif
+						domainname[sizeof(domainname)-1] = '\0';
+						printf ("%s", domainname);
+					}
+					break;
+
+					case 'O':
+					{
+						char *domain = NULL;
+						char host[HOST_NAME_MAX + 1];
+						struct hostent *hp = NULL;
+			
+						if (gethostname(host, HOST_NAME_MAX) || !(hp = gethostbyname(host))) {
+							domain = "	 unknown_domain";
+						}
+						else
+						{
+							/* get the s	ubstring after the first . */
+							domain = strchr(hp->h_name, '.');
+							if (domain == NULL)
+								domain = ".(none)";
+						}
+						printf("%s", ++domain);
+					}  
+					break;
+
+					case 'd':
+					case 't':
+					{
+						char *weekday[] = { "Sun", "Mon", "Tue", "Wed", "Thu",
+																"Fri", "Sat" };
+						char *month[] = { "Jan", "Feb", "Mar", "Apr", "May",
+															"Jun", "Jul", "Aug", "Sep", "Oct",
+															"Nov", "Dec" };
+						time_t now;
+						struct tm *tm;
+
+						(void) time (&now);
+						tm = localtime(&now);
+
+						if (c == 'd')
+							(void) printf ("%s %s %d  %d",
+														 weekday[tm->tm_wday], month[tm->tm_mon],
+														 tm->tm_mday, 
+														 tm->tm_year < 70 ? tm->tm_year + 2000 :
+														 tm->tm_year + 1900);
+						else
+							(void) printf ("%02d:%02d:%02d",
+														 tm->tm_hour, tm->tm_min, tm->tm_sec);
+		      
+						break;
+					}
+
+					case 'l':
+						(void) printf ("/dev/tty%d", current_tty);
+						break;
+
+/* 					case 'b': */
+/* 					{ */
+/* 						int i; */
+
+/* 						for (i = 0; speedtab[i].speed; i++) { */
+/* 							if (speedtab[i].code == (tp->c_cflag & CBAUD)) { */
+/* 								printf("%ld", speedtab[i].speed); */
+/* 								break; */
+/* 							} */
+/* 						} */
+/* 						break; */
+/* 					} */
+					case 'u':
+					case 'U':
+					{
+						int users = 0;
+						struct utmp *ut;
+						setutent();
+						while ((ut = getutent()))
+							if (ut->ut_type == USER_PROCESS)
+								users++;
+						endutent();
+						printf ("%d ", users);
+						if (c == 'U')
+							printf ((users == 1) ? "user" : "users");
+						break;
+					}
+					default:
+						(void) putchar(c);
+				}
+			}
+	    else
+	      (void) putchar(c);
+		}
+		fflush(stdout);
+
+/* 		tp->c_oflag = oflag;			/\* restore settings *\/ */
+/* 		(void) ioctl(0, TCSETAW, tp);		/\* wait till output is gone *\/ */
+		(void) fclose(fd);
+	}
+/* #endif */
+/* #ifdef __linux__ */
+/* 	{ */
+/* 		MAXHOSTNAMELEN */
+/* 		char hn[HOST_NAME_MAX+1]; */
+
+/* 		(void) gethostname(hn, HOST_NAME_MAX); */
+/* 		write(1, hn, strlen(hn)); */
+/* 	} */
+/* #endif		 */
+/* 	(void) write(1, LOGIN, sizeof(LOGIN) - 1);	/\* always show login prompt *\/ */
+
+}
 
 void text_mode()
 {
+	parse_etc_issue();
+
   execl("/bin/login", "/bin/login", NULL);
 
   /* We should never get here... */
   fprintf(stderr, "\nCannot exec \"/bin/login\"...\n");
+	sleep(3);
   exit(EXIT_FAILURE);
 }
 

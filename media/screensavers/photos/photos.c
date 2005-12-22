@@ -202,33 +202,29 @@ void screen_saver_entry(Q_screen_t env)
 		image_height = desc.height;
 		xy_ratio = (float)image_width / (float)image_height;
 
+		if (image_width > env.screen_width)
+		{
+			image_width  = env.screen_width;
+			image_height = image_width/xy_ratio;
+		}
+
+		if (image_height > env.screen_height)
+		{
+			image_height = env.screen_height;
+			image_width  = image_height*xy_ratio;
+		}
+
 		if (image_width > image_height)
 		{
-			if (image_width < env.screen_width)
-			{
-				dest_rectangle.x=(env.screen_width-image_width)/2;
-				dest_rectangle.w=image_width;
-			}
-			else
-			{
-				dest_rectangle.x=0;
-				dest_rectangle.w=env.screen_width;
-			}
+			dest_rectangle.x=(env.screen_width-image_width)/2;
+			dest_rectangle.w=image_width;
 			dest_rectangle.h=dest_rectangle.w/xy_ratio;
 			dest_rectangle.y=(env.screen_height-dest_rectangle.h)/2;
 		}
 		else
 		{
-			if (image_height < env.screen_height)
-			{
-				dest_rectangle.y=(env.screen_height-image_height)/2;
-				dest_rectangle.h=image_height;
-			}
-			else
-			{
-				dest_rectangle.y=0;
-				dest_rectangle.h=env.screen_height;
-			}
+			dest_rectangle.y=(env.screen_height-image_height)/2;
+			dest_rectangle.h=image_height;
 			dest_rectangle.w=dest_rectangle.h*xy_ratio;
 			dest_rectangle.x=(env.screen_width-dest_rectangle.w)/2;
 		}
