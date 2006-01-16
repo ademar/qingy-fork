@@ -105,6 +105,7 @@ void initialize_variables(void)
   hide_last_user          = 0;
   hide_password           = 0;
   silent                  = 1;
+	text_mode_login         = 0;
 	clear_background        = 0;
   shutdown_policy         = EVERYONE;
 	last_user_policy        = LU_GLOBAL;
@@ -868,9 +869,10 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 {
 	extern char *optarg;
 	extern int optind, opterr, optopt;
-	const char optstring[] = "-f:pldvns:rh";
+	const char optstring[] = "-tf:pldvns:rh";
 	const struct option longopts[] =
 	{
+		{"text-mode",               no_argument,       NULL, 't'},
 		{"fb-device",               required_argument, NULL, 'f'},
 		{"hide-password",           no_argument,       NULL, 'p'},
 		{"hide-lastuser",           no_argument,       NULL, 'l'},
@@ -920,6 +922,9 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 		if (retval == -1) break;
 		switch (retval)
 		{
+			case 't': /* text mode login */
+				text_mode_login = 1;
+				break;
 			case 'f': /* use this framebuffer device */
 				if (paranoia) fb_device = strdup(optarg);
 				break;

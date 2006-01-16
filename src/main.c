@@ -127,6 +127,9 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 
 	if (!do_autologin)
 	{
+		/* should we perform a text-mode login? */
+		if (text_mode_login) text_mode();
+
 		/* parse settings file again, it may have been changed in the mean while */
 		load_settings();
 

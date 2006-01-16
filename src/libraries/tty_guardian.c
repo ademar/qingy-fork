@@ -175,6 +175,7 @@ char *read_password(int tty)
 {
 	char *device = create_tty_name(tty);
 	int fd = open(device, O_RDONLY);
+	struct termios orig_attr;
 	struct termios attr;
 	char buf[PASSWD_MAX];
 	char *retval;
@@ -186,6 +187,8 @@ char *read_password(int tty)
 
 	/* we disable input echoing */
 	if (tcgetattr(fd, &attr) == -1) ABORT_N_RETURN;
+	memcpy(&orig_attr, &attr, sizeof(struct termios));
+
 	attr.c_lflag &= ~(ECHO|ISIG);
 	if (tcsetattr(fd, TCSAFLUSH|TCSASOFT, &attr) == -1) ABORT_N_RETURN;
 
@@ -199,6 +202,10 @@ char *read_password(int tty)
 		if (pos == PASSWD_MAX-1) break;
 	}
 	buf[pos] = '\0';
+
+	/* restore terminal attributes */
+	if (tcsetattr(fd, TCSAFLUSH|TCSASOFT, &orig_attr) == -1) ABORT_N_RETURN;
+
 	close(fd);
 	
 	/* we clear the buffer before exiting */

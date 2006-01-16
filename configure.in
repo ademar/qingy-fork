@@ -94,7 +94,7 @@ AM_PATH_LISPDIR
 # Check for C headers
 	HEADERS="ctype.h fcntl.h grp.h lastlog.h paths.h pwd.h stdio.h stdlib.h string.h \
 	         signal.h syslog.h time.h unistd.h linux/kd.h linux/vt.h sys/ioctl.h     \
-	         sys/types.h sys/stat.h sys/wait.h"
+	         sys/types.h sys/stat.h sys/utsname.h sys/wait.h"
 	HEADERS_ERROR_MESSAGE="One or more system headers that are necessary to compile this program are missing on this system. Cannot continue."
 	AC_CHECK_HEADERS([$HEADERS],,[AC_MSG_ERROR([$HEADERS_ERROR_MESSAGE])],)
 	AC_HEADER_DIRENT
@@ -105,6 +105,7 @@ AM_PATH_LISPDIR
 	LIBRARIES_ERROR_MESSAGE="One or more function libraries that are necessary to compile this program are missing on this system. Cannot continue."
 	AC_CHECK_LIB(crypt, crypt, ,[AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])] , )
 	AC_CHECK_LIB(dl, dlopen, ,[AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])] , )
+	AC_CHECK_FUNC(getdomainname, [AC_DEFINE(HAVE_getdomainname, 1, [Define if we have function getdomainname])],)
 # End check functions
 
 # Wether we should compile qingy mayor mode for emacs
@@ -283,6 +284,10 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 		AC_DEFINE(gentoo, 1, [Define if target platform is Gentoo Linux])
 		DISTRO="gentoo"
 		PAMDATA="gentoo/qingy"
+	fi
+	if test "`ls /etc/*release 2>/dev/null | grep \"fedora\"`" != ""; then
+		AC_DEFINE(fedora, 1, [Define if target platform is Fedora Core Linux])
+		DISTRO="fedora"
 	fi
 	if test "`ls /etc/debian*    2>/dev/null | grep \"debian\"`"    != ""; then
 		AC_DEFINE(debian, 1, [Define if target platform is Debian Linux])

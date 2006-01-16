@@ -1,6 +1,16 @@
 qingy CVS-0.6.1-CVS:
 - SECURITY ENHANCEMENT: made qingy GUI communicate auth data
   to its main process using a fifo instead of an actual file.
+- Added support for Fedora Core Linux. This means that I added some magic
+  to detect wether Gnome or Kde (or both of course) are installed, so that
+  qingy can display them in the sessions list...
+- Manage text mode logins internally, without calling 'login'.
+  In this case, /etc/issue will be parsed and its contents
+  displayed on screen before login prompt.
+- Added '-t' command line argument that tells qingy to
+  perform a text mode login (no graphics). This will allow users
+  to log in using an old-fashioned getty-like mode, but still retain
+  qingy advanced features like autologin and session locking.
 - Made X start up in the same tty we logged in instead of switching
   to a new one.
 - Made qingy check authentication data only once, in its main

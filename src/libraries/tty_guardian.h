@@ -28,3 +28,6 @@
 
 /* guard specified ttys from unauthorized access */
 void ttyWatchDog(pid_t child, char *username, int tty_watch1);
+
+/* read user password without echoing it */
+char *read_password(int tty);

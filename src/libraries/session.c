@@ -42,6 +42,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <utmp.h>
+#include <sys/stat.h>
 
 #if HAVE_DIRENT_H
 # include <dirent.h>
@@ -96,6 +97,31 @@
 
 int current_vt;
 extern char **environ;
+
+#define CHECK_SESSION(session_test, session_script, session_script_content)           \
+	filename = StrApp((char**)NULL, dirname, session_script, (char*)NULL);              \
+	if (!access(session_test, F_OK))                                                    \
+	{                                                                                   \
+		if (access(filename, F_OK))                                                       \
+		{                                                                                 \
+			FILE *fp = fopen(filename, "w");                                                \
+			if (!fp)                                                                        \
+				fprintf(stderr, "session: unable to create session file \"%s\"\n", filename); \
+			else                                                                            \
+			{                                                                               \
+				fprintf(fp, session_script_content);                                          \
+				fclose(fp);                                                                   \
+			}                                                                               \
+		}                                                                                 \
+	}                                                                                   \
+	else                                                                                \
+	{                                                                                   \
+		if (!access(filename, F_OK))                                                      \
+			remove(filename);                                                               \
+	}                                                                                   \
+	free(filename);
+
+
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -170,6 +196,38 @@ char *get_sessions(void)
   switch (status)
 	{
     case 0:
+#ifdef fedora
+			{
+				struct stat dirstat;
+				int         createdir   = 0;
+				int         populatedir = 1;
+
+				if (stat(dirname, &dirstat) == -1)
+					createdir = 1;
+
+				if (!createdir)
+					if (S_ISDIR(dirstat.st_mode))
+						createdir = 1;
+
+				if (createdir)
+					if (mkdir(dirname, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) == -1)
+					{
+						fprintf(stderr, "session: unable to create directory \"%s\"\n", dirname);
+						populatedir = 0;
+					}
+
+				if (populatedir)
+				{
+					char *filename;
+
+					/* have we got gnome? */
+					CHECK_SESSION("/usr/bin/gnome-session", "/Gnome", "/usr/bin/gnome-session\n");
+
+					/* have we got kde? */
+					CHECK_SESSION("/usr/bin/startkde", "/Kde", "/usr/bin/startkde\n");
+				}
+			}
+#endif
       status = 1;
       return strdup("Text: Console");
     case 1:
@@ -886,5 +944,6 @@ void start_session(char *username, char *session)
   
   /* we don't get here unless we couldn't start user session */
   fprintf(stderr, "Couldn't login user '%s'!\n", username);
+	sleep(3);
   exit(EXIT_FAILURE);
 }

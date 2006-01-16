@@ -33,6 +33,7 @@
 #endif
 
 int silent;
+int text_mode_login;
 int hide_password;
 int hide_last_user;
 int disable_last_user;

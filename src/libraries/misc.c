@@ -64,6 +64,8 @@
 #include "memmgmt.h"
 #include "load_settings.h"
 #include "vt.h"
+#include "session.h"
+#include "tty_guardian.h"
 
 
 int int_log10(int n)
@@ -108,7 +110,7 @@ void to_lower(char *string)
 
 void ClearScreen(void)
 {
-  //system("/usr/bin/clear 2>/dev/null");
+  system("/usr/bin/clear 2>/dev/null");
 }
 
 
@@ -330,6 +332,8 @@ void PrintUsage()
   printf("\nqingy version %s\n", PACKAGE_VERSION);
   printf("\nusage: qinqy <ttyname> [options]\n");
   printf("Options:\n");
+  printf("\t-t, --text-mode\n");
+  printf("\tPerform a text-mode login prompt (no graphics).\n\n");
   printf("\t-f <device>, --fb-device <device>\n");
   printf("\tUse <device> as framebuffer device.\n\n");
   printf("\t-p, --hide-password\n");
@@ -352,27 +356,21 @@ void PrintUsage()
 	printf("\tPrint this help message.\n\n");
 }
 
+/* A good paty of the code in this function comes from agetty (util-linux),
+ * it is GPL-2 software anyway :-)
+ */
 void parse_etc_issue(void)
 {
-/* 	struct options *op; */
-/* 	struct termio *tp; */
-	FILE    *fd;
-/* 	int     oflag; */
-	int     c;
-	struct utsname uts;
+	FILE           *fd;
+	int             c;
+	struct utsname  uts;
 
 	(void) uname(&uts);
-
 	(void) write(1, "\r\n", 2);			/* start a new line */
-	
 	fd = fopen("/etc/issue", "r");
 
 	if (fd)
 	{
-/* 		oflag = tp->c_oflag;			/\* save current setting *\/ */
-/* 		tp->c_oflag |= (ONLCR | OPOST);		/\* map NL in output to CR-NL *\/ */
-/* 		(void) ioctl(0, TCSETAW, tp); */
-
 		while ((c = getc(fd)) != EOF)
 		{
 	    if (c == '\\')
@@ -420,12 +418,13 @@ void parse_etc_issue(void)
 						char host[HOST_NAME_MAX + 1];
 						struct hostent *hp = NULL;
 			
-						if (gethostname(host, HOST_NAME_MAX) || !(hp = gethostbyname(host))) {
+						if (gethostname(host, HOST_NAME_MAX) || !(hp = gethostbyname(host)))
+						{
 							domain = "	 unknown_domain";
 						}
 						else
 						{
-							/* get the s	ubstring after the first . */
+							/* get the substring after the first . */
 							domain = strchr(hp->h_name, '.');
 							if (domain == NULL)
 								domain = ".(none)";
@@ -465,6 +464,7 @@ void parse_etc_issue(void)
 						(void) printf ("/dev/tty%d", current_tty);
 						break;
 
+/* 'b' option not supported for now */
 /* 					case 'b': */
 /* 					{ */
 /* 						int i; */
@@ -493,42 +493,86 @@ void parse_etc_issue(void)
 						break;
 					}
 					default:
-						(void) putchar(c);
+						putchar(c);
 				}
 			}
 	    else
-	      (void) putchar(c);
+				putchar(c);
 		}
-		fflush(stdout);
 
-/* 		tp->c_oflag = oflag;			/\* restore settings *\/ */
-/* 		(void) ioctl(0, TCSETAW, tp);		/\* wait till output is gone *\/ */
+		fflush(stdout);
 		(void) fclose(fd);
 	}
-/* #endif */
-/* #ifdef __linux__ */
-/* 	{ */
-/* 		MAXHOSTNAMELEN */
-/* 		char hn[HOST_NAME_MAX+1]; */
-
-/* 		(void) gethostname(hn, HOST_NAME_MAX); */
-/* 		write(1, hn, strlen(hn)); */
-/* 	} */
-/* #endif		 */
-/* 	(void) write(1, LOGIN, sizeof(LOGIN) - 1);	/\* always show login prompt *\/ */
-
 }
 
 void text_mode()
 {
+	char           *username = NULL;
+	char           *password = NULL;
+	size_t          len      = 0;
+#ifdef __linux__
+	char            hn[HOST_NAME_MAX+1];
+
+	gethostname(hn, HOST_NAME_MAX);
+#endif
+
 	parse_etc_issue();
 
-  execl("/bin/login", "/bin/login", NULL);
+	while (!username)
+	{
+#ifdef __linux__
+		write(1, hn, strlen(hn));
+		write(1, " ", strlen(" "));
+#endif
 
-  /* We should never get here... */
-  fprintf(stderr, "\nCannot exec \"/bin/login\"...\n");
-	sleep(3);
-  exit(EXIT_FAILURE);
+		fprintf(stdout, "login: ");
+		fflush(stdout);
+
+		if (getline(&username, &len, stdin) == -1)
+		{
+			fprintf(stderr, "\nCould not read user name... aborting!\n");
+			sleep(3);
+			exit(EXIT_FAILURE);
+		}
+
+		if (!username)
+		{
+			fprintf(stderr, "\nInvalid user name!\n\n");
+		}
+
+		if (username)
+		{
+			len = strlen(username);
+
+			if (len < 2)
+			{
+				fprintf(stderr, "\nInvalid user name!\n\n");
+				free(username);
+				username=NULL;
+			}
+		}
+
+		if (username)
+		{
+			username[len-1] = '\0';
+		}
+	}
+
+	fprintf(stdout, "Password: ");
+	fflush(stdout);
+
+	password = read_password(current_tty);
+	fprintf(stdout, "\n");
+	fflush(stdout);
+
+	if (!check_password(username, password))
+	{
+		fprintf(stderr, "\nLogin failed!\n");
+		sleep(3);
+		exit(EXIT_SUCCESS);
+	}
+
+	start_session(username, "Text: Console");
 }
 
 void Error(int fatal)

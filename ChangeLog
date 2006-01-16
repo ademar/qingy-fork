@@ -1,3 +1,31 @@
+2006-01-16  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/session.c (get_sessions):
+	Clean ups in Fedora specific code.
+
+2006-01-13  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/session.c (get_sessions),
+	* configure.in:
+	Added support for Fedora Core Linux. This means that I added some magic
+	to detect wether Gnome or Kde (or both of course) are installed, so that
+	qingy can display them in the sessions list...
+
+	* src/libraries/load_settings.h,
+	* src/libraries/load_settings.c,
+	* src/main.c,
+	* src/libraries/misc.c (PrintUsage): 
+	Added '-t' command line argument that tells qingy to
+	perform a text mode login (no graphics).
+	
+	* src/libraries/misc.c (text_mode):
+	Manage text mode logins internally, without calling 'login'.
+
+2006-01-12  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/tty_guardian.c (read_password):
+	Restore tty echoing after reading password.
+
 2005-12-22  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/misc.c (parse_etc_issue, text_mode):
