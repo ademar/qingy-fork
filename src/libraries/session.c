@@ -2,7 +2,7 @@
                          session.c  -  description
                             -------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2005 by Noberasco Michele
+    copyright            : (C) 2003-2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
 ***************************************************************************/
 
@@ -561,6 +561,9 @@ void setEnvironment(struct passwd *pwd, int is_x_session)
 	/* We unset DISPLAY if this is not an X session... */
 	if (!is_x_session)
 		unsetenv("DISPLAY");
+
+	/* finally clear the screen */
+	if (silent) ClearScreen();
 }
 
 void restore_tty_ownership(void)
@@ -921,8 +924,6 @@ void start_session(char *username, char *session)
 		free(session);
 		exit(EXIT_FAILURE);
 	}
-  
-  ClearScreen();
   
 #ifdef USE_PAM
   if (update_token)

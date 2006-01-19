@@ -2,7 +2,7 @@
                        tty_guardian.c  -  description
                             --------------------
     begin                : Feb 04 2004
-    copyright            : (C) 2004-2005 by Noberasco Michele
+    copyright            : (C) 2004-2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
  ***************************************************************************/
 

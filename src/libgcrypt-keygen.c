@@ -25,7 +25,6 @@ int test_keys(void)
 {
 	FILE *fp;
 	char *test[] = {"moc", "mamma", "papa", "pippo", "s4t4n", "123 prova", "sdpoifj", "spdofk", "psodfkj", "psokf", "psodkf", "mic", "sdf", "moc", "Text: Console", "Gnome", NULL};
-	//char *test[] = {"mamma", "papa", "pippo", "s4t4n", "123 prova", "sdpoifj", "spdofk", "psodfkj", "psokf", "psodkf", "mic", NULL};
 	int   i      = 0;
 
 	fp = fopen("encdata.txt", "w");

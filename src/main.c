@@ -2,7 +2,7 @@
                            main.c  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2005 by Noberasco Michele
+    copyright            : (C) 2003-2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
 ***************************************************************************/
 
@@ -123,15 +123,15 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 	int    fd;
 
   /* We clear the screen */
-  ClearScreen();
+  if (silent) ClearScreen();
 
 	if (!do_autologin)
 	{
-		/* should we perform a text-mode login? */
-		if (text_mode_login) text_mode();
-
 		/* parse settings file again, it may have been changed in the mean while */
 		load_settings();
+
+		/* should we perform a text-mode login? */
+		if (text_mode_login) text_mode();
 
 		/* display native theme resolution */
 		if (!silent)
@@ -477,6 +477,9 @@ int main(int argc, char *argv[])
 
 	/* Should we log in user directly? Totally insecure, but handy */
 	if (check_autologin(our_tty_number)) start_up(argc, argv, our_tty_number, 1);
+
+	/* Should we perform a text mode login? */
+	if (text_mode_login) text_mode();
 
   /* Main loop: we wait until the user switches to the tty we are running in */
   while (1)

@@ -2,7 +2,7 @@
                            misc.c  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2005 by Noberasco Michele
+    copyright            : (C) 2003-2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
 ***************************************************************************/
 
@@ -30,12 +30,14 @@
 #endif
 
 #include <ctype.h>
+#include <curses.h>
 #include <pwd.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <term.h>
 #include <time.h>
 #include <unistd.h>
 #include <utmp.h>
@@ -110,7 +112,8 @@ void to_lower(char *string)
 
 void ClearScreen(void)
 {
-  system("/usr/bin/clear 2>/dev/null");
+	setupterm((char *) 0, STDOUT_FILENO, (int *) 0);
+	tputs(clear_screen, 1, putchar);
 }
 
 

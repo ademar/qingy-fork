@@ -1,3 +1,12 @@
+2006-01-19  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in,
+	* src/libraries/Makefile.am (libqingy_la_LIBADD),
+	* src/libraries/misc.c (ClearScreen),
+	* src/libraries/session.c:
+	Added proper support for screen clearing using ncurses instead of
+	system("clear") which was ugly.
+
 2006-01-16  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c (get_sessions):
