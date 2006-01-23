@@ -50,7 +50,7 @@
    '("\\(c\\(?:lear_background\\)\\|l\\(?:ock_sessions\\)\\|s\\(?:creensavers_dir\\|creensaver\\|hutdown_policy\\|ession\\)\\)" . font-lock-variable-name-face)
 	 '("\\(k\\(?:ill\\)\\)" . font-lock-variable-name-face)
 	 '("\\(n\\(?:ative_resolution\\|ext_tty\\)\\)" . font-lock-variable-name-face)
-	 '("\\(p\\(?:assword\\|rev_tty\\|oweroff\\)\\)" . font-lock-variable-name-face)
+	 '("\\(p\\(?:assword\\|rev_tty\\|oweroff\\|re_gui_script\\|ost_gui_script\\)\\)" . font-lock-variable-name-face)
 	 '("\\(q\\(?:ingy_DirectFB\\)\\)" . font-lock-variable-name-face)
 	 '("\\(r\\(?:elogin\\|eboot\\)\\)" . font-lock-variable-name-face)
 	 '("\\(s\\(?:leep\\)\\)" . font-lock-variable-name-face)

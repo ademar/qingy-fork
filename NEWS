@@ -11,6 +11,10 @@ qingy CVS-0.6.1-CVS:
   perform a text mode login (no graphics). This will allow users
   to log in using an old-fashioned getty-like mode, but still retain
   qingy advanced features like autologin and session locking.
+- Added support for calling a script just before qingy GUI is fired up,
+  and one after it is shut down. Useful if DirectFB is picky about your
+  machine and you need to do something before/after switching DirectFB
+  mode on/off.
 - Made X start up in the same tty we logged in instead of switching
   to a new one.
 - Made qingy check authentication data only once, in its main

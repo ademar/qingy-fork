@@ -1,6 +1,6 @@
 ## Makefile.am for qingy/media
 
-SUBDIRS = default sessions pam screensavers
+SUBDIRS = default gpm-lock sessions pam screensavers
 
 if WANT_EMACS_STUFF
 lisp_LISP  = qingy-mode.el
@@ -30,6 +30,15 @@ settings: Makefile
 	@echo "" >> settings
 	@echo "# Parameter we should pass to the X server" >> settings
 	@echo "x_args = \"-nolisten tcp\"" >> settings
+	@echo "" >> settings
+	@echo "# Scripts that should be executed just before/after qingy GUI is fired up/shut down" >> settings
+if WANT_GPM_LOCK
+	@echo "pre_gui_script  = \"$(settingsdatadir)/pre_GUI.sh\"" >> settings
+	@echo "post_gui_script = \"$(settingsdatadir)/post_GUI.sh\"" >> settings
+else
+	@echo "#pre_gui_script  = \"/path/to/pre_guiscript.sh\"" >> settings
+	@echo "#post_gui_script = \"/path/to/post_gui_script.sh\"" >> settings
+endif
 	@echo "" >> settings
 if WANT_SCREEN_SAVERS
 	@echo "# Where are the screen savers?" >> settings

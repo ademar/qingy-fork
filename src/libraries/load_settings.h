@@ -63,6 +63,8 @@ char *themes_dir;
 char *dfb_interface;
 char *tmp_files_dir;
 char *sleep_cmd;
+char *pre_gui_script;
+char *post_gui_script;
 
 /* autologin stuff */
 char *autologin_file_basename;

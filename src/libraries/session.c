@@ -839,7 +839,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   args[4] = NULL;
   free(my_x_server);
   free(vt);
-  
+
   proc_id = fork();
   if (proc_id == -1)
 	{

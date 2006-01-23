@@ -70,6 +70,9 @@ char *get_file_owner(char *file);
 /* Get system uptime */
 int get_system_uptime();
 
+/* guess what :-) */
+void execute_script(char *script);
+
 /* other stuff */
 char *assemble_message(char *content, char *command);
 void text_mode();

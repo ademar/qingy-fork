@@ -75,6 +75,7 @@ FILE *fp_toGUI           = NULL;
 int   auth_ok            = 0;
 
 
+
 void authenticate_user(int signum)
 {
 #ifndef WANT_CRYPTO
@@ -161,6 +162,10 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		}
 		gui_argv[++j] = int_to_str(getpid());
 		gui_argv[++j] = NULL;
+
+		/* should we execute some script before switching to graphic mode? */
+		if (pre_gui_script)
+			execute_script(pre_gui_script);
 
 		/* let's create a couple of file names to communicate with our GUI:
 		 * First the one we will receive auth data from...
@@ -314,6 +319,10 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		free(gui_argv[--j]);
 		free(gui_argv[--j]);
 		free(gui_argv);
+
+		/* should we execute some script after returning from graphic mode? */
+		if (post_gui_script)
+			execute_script(post_gui_script);
 	}
 	else
 	{

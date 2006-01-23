@@ -1,4 +1,31 @@
+2006-01-23  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/Makefile.am,
+	* media/gpm-lock/gentoo/pre_GUI.sh,
+	* media/gpm-lock/gentoo/post_GUI.sh,
+	* configure.in,
+	* media/gpm-lock/Makefile.am: 
+	Moving GPM locking support to distro-dependent pre/post GUI scripts
+	instead of having it hardcoded.
+
+2006-01-20  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/main.c,
+	* src/libraries/misc.c (execute_script),
+	* src/libraries/misc.h: 
+	Done adding support for calling scripts
+
 2006-01-19  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/qingy-mode.el,
+	* src/libraries/scan_settings.l,
+	* src/libraries/parse_settings.y,
+	* src/libraries/load_settings.h,
+	* src/libraries/load_settings.c (initialize_variables): 
+	Adding support for calling a script just before qingy GUI is fired up,
+	and one after it is shut down. Useful if DirectFB is picky about your
+	machine and you need to do something before/after switching DirectFB
+	mode on/off.
 
 	* configure.in,
 	* src/libraries/Makefile.am (libqingy_la_LIBADD),

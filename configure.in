@@ -281,6 +281,7 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	AC_MSG_CHECKING([for host distribution])
 	DISTRO="unknown"
 	PAMDATA="default/qingy"
+	GPM_LOCK="none"
 	if test "`ls /etc/*release   2>/dev/null | grep \"redhat\"`"    != ""; then
 		AC_DEFINE(redhat, 1, [Define if target platform is RadHat Linux])
 		DISTRO="redhat"
@@ -293,6 +294,7 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 		AC_DEFINE(gentoo, 1, [Define if target platform is Gentoo Linux])
 		DISTRO="gentoo"
 		PAMDATA="gentoo/qingy"
+		GPM_LOCK="gentoo"
 	fi
 	if test "`ls /etc/*release 2>/dev/null | grep \"fedora\"`" != ""; then
 		AC_DEFINE(fedora, 1, [Define if target platform is Fedora Core Linux])
@@ -311,7 +313,9 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 		DISTRO="suse"
 	fi
 	AC_SUBST(PAMDATA,)
+	AC_SUBST(GPM_LOCK,)
 	AC_MSG_RESULT([$DISTRO])
+	AM_CONDITIONAL(WANT_GPM_LOCK, test ["$enable_gpm_lock" == "yes"] -a ["$GPM_LOCK" != "none"])
 # End check for distribution
 
 	AC_PATH_PROG([XINIT], [xinit],   [/usr/X11R6/bin/xinit],   [$PATH:/usr/X11R6/bin:/usr/bin/X11:/usr/bin:/usr/local/bin])
@@ -338,6 +342,7 @@ AC_CONFIG_FILES([                          \
 	src/DirectFB/Makefile                    \
 	media/Makefile                           \
 	media/default/Makefile                   \
+	media/gpm-lock/Makefile                  \
 	media/sessions/Makefile                  \
 	media/pam/Makefile                       \
 	media/screensavers/Makefile              \

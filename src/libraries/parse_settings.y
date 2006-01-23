@@ -126,6 +126,9 @@ static window_t wind =
 /* last session tokens */
 %token USER_TOK LAST_USER_POLICY_TOK LAST_SESSION_POLICY_TOK GLOBAL_TOK
 
+/* scrips that are called before the gui fires up and after it is shut down */
+%token PRE_GUI_TOK POST_GUI_TOK
+
 /* typed tokens: */
 %token <ival>  ANUM_T 		/* int */
 %token <str>   QUOTSTR_T	/* char* */
@@ -142,6 +145,8 @@ config: /* nothing */
 | config scrsvrs_dir
 | config themes_dir
 | config temp_dir
+| config pre_gui
+| config post_gui
 | config ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config dfb_interface
 | config xsessdir
@@ -170,6 +175,8 @@ config_tty: /* nothing */
 | config_tty scrsvrs_dir
 | config_tty themes_dir
 | config_tty temp_dir
+| config_tty pre_gui
+| config_tty post_gui
 | config_tty ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config_tty dfb_interface
 | config_tty xsessdir
@@ -246,6 +253,20 @@ temp_dir: TEMP_FILES_DIR_TOK '=' QUOTSTR_T
 	{
 		if(in_theme) yyerror("Setting 'temp_files_dir' is not allowed in theme file.");
 		TTY_CHECK_COND { if (tmp_files_dir) free(tmp_files_dir); tmp_files_dir = strdup($3); };
+	}
+
+/* script that is called before the gui is fired up */
+pre_gui: PRE_GUI_TOK '=' QUOTSTR_T
+	{
+		if(in_theme) yyerror("Setting 'pre_gui_script' is not allowed in theme file.");
+		TTY_CHECK_COND { if (pre_gui_script) free(pre_gui_script); pre_gui_script = strdup($3); };
+	}
+
+/* script that is called after the gui is shut down */
+post_gui: POST_GUI_TOK '=' QUOTSTR_T
+	{
+		if(in_theme) yyerror("Setting 'post_gui_script' is not allowed in theme file.");
+		TTY_CHECK_COND { if (post_gui_script) free(post_gui_script); post_gui_script = strdup($3); };
 	}
 
 /* Screensaver: "name" or "name" = "option", "option"  */

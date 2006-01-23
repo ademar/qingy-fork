@@ -44,6 +44,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/utsname.h>
+#include <sys/wait.h>
 
 #if HAVE_DIRENT_H
 # include <dirent.h>
@@ -636,4 +637,29 @@ char *get_resolution(char *resolution)
 	free(temp); free(temp2);
 
 	return result;
+}
+
+void execute_script(char *script)
+{
+	if (!script) return;
+
+	if (access(script, X_OK))
+	{
+		fprintf(stderr, "qingy: could not execute your user defined command '%s'!\n", script);
+		return;
+	}
+
+	switch ((int)fork())
+	{
+		case -1: /* error */
+			fprintf(stderr, "qingy: fatal error: cannot issue fork() command!\n");
+			sleep(2);
+			exit(EXIT_FAILURE);
+		case 0: /* child */
+			execve(script, NULL, NULL);
+			fprintf(stderr, "qingy: could not execute your user defined command '%s'!\n", script);
+			sleep(4);
+		default: /* parent */
+			wait(NULL);
+	}
 }

@@ -98,6 +98,8 @@ void initialize_variables(void)
   windowsList             = NULL;
 	fb_device               = NULL;
 	resolution              = NULL;
+	pre_gui_script          = NULL;
+	post_gui_script         = NULL;
 	do_autologin            = 0;
 	auto_relogin            = 0;
   no_shutdown_screen      = 0;
