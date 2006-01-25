@@ -29,6 +29,13 @@ qingy CVS-0.6.1-CVS:
   on a global or a per-tty basis. Default will be current
   functionality, i.e. global. To change it you have to set variable
   last_user_policy in settings file.
+- Added new settings file variable, x_server_offset.
+  This is the offset used to search for an available X server number.
+  This number will affect the DISPLAY env variable. 
+  Default is 1, setting it to 0 will make buggy OpenGL implementations
+  (like the ATI one) work with qingy (read: 3D support), but it will also
+  make impossible to start an X server from console using startx without
+  passing it extra parameters.
 - Added support for Mobile Pentium 4 processors optimization.
 - Added EXPERIMENTAL support for GNU libgcrypt as crypto library.
   If you decide to try it out, good luck creating a good keypair!

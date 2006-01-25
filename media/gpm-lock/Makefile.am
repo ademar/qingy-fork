@@ -8,4 +8,4 @@ else
 gpmlockdata_SCRIPTS =
 endif
 
-EXTRA_SCRIPTS = gentoo/pre_GUI.sh gentoo/post_GUI.sh
+EXTRA_DIST = gentoo/pre_GUI.sh gentoo/post_GUI.sh

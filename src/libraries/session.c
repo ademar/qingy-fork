@@ -776,25 +776,29 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 int which_X_server(void)
 {
   FILE *fp;
-  char filename[20] = "/tmp/.X1-lock";
-  int num = 1;
+  int   num      = x_server_offset;
+	char *temp     = int_to_str(num);
+  char *filename = StrApp((char**)NULL, "/tmp/.X", temp, "-lock", (char*)NULL);
   
   /*
-   * we start our search from server :1 (instead of :0)
+   * we start our search from server :x_server_offset (default is :1, instead of :0)
    * to allow a console user to start his own X server
    * using the default startx command
    */
-  
+
+	free(temp);
+
   while ((fp = fopen(filename, "r")))
   {
-    char *temp = int_to_str(++num);
     fclose(fp);
-    strcpy(filename, "/tmp/.X");
-    strcat(filename, temp);
-    free(temp);
-    strcat(filename, "-lock");
-  }
-  
+		free(filename);
+    temp = int_to_str(++num);
+		filename = StrApp((char**)NULL, "/tmp/.X", temp, "-lock", (char*)NULL);
+		free(temp);
+	}
+
+	free(filename);
+
   return num;
 }
 

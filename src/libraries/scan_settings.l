@@ -174,6 +174,7 @@ last_session_policy     return LAST_SESSION_POLICY_TOK;
 global                  return GLOBAL_TOK;
 pre_gui_script          return PRE_GUI_TOK;
 post_gui_script         return POST_GUI_TOK;
+x_server_offset         return X_SERVER_OFFSET_TOK;
 
 
 "#"[^\n]*"\n" ;			/* skip comments */

@@ -31,6 +31,14 @@ settings: Makefile
 	@echo "# Parameter we should pass to the X server" >> settings
 	@echo "x_args = \"-nolisten tcp\"" >> settings
 	@echo "" >> settings
+	@echo "# Offset to search for an available X server number." >> settings
+	@echo "# This number affects the DISPLAY env variable." >> settings
+	@echo "# Default is 1, setting it to 0 will make buggy OpenGL implementations" >> settings
+	@echo "# (like the ATI one) work with qingy, but it will also make impossible" >> settings
+	@echo "# to start an X server from console using startx without passing it" >> settings
+	@echo "# extra parameters." >> settings
+	@echo "#x_server_offset = 1" >> settings
+	@echo "" >> settings
 	@echo "# Scripts that should be executed just before/after qingy GUI is fired up/shut down" >> settings
 if WANT_GPM_LOCK
 	@echo "pre_gui_script  = \"$(settingsdatadir)/pre_GUI.sh\"" >> settings

@@ -502,7 +502,7 @@ int main(int argc, char *argv[])
 		if (user_tty_number == our_tty_number) start_up(argc, argv, our_tty_number, 0);
 		nanosleep(&delay, NULL); /* wait a little before checking again */
 	}
-  
+
   /* We should never get here */
   fprintf(stderr, "\nGo tell my creator not to smoke that stuff, next time...\n");
   /* NOTE (paolino): indeed! */

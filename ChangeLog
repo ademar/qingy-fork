@@ -1,3 +1,29 @@
+2006-01-25  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/Makefile.am (settings),
+	* src/libraries/session.c (which_X_server),
+	* src/libraries/load_settings.c (initialize_variables),
+	* src/libraries/load_settings.h,
+	* src/libraries/scan_settings.l,
+	* src/libraries/parse_settings.y: 
+	Added new settings file variable, x_server_offset.
+	This is the offset used to search for an available X server number.
+	This number will affect the DISPLAY env variable. 
+	Default is 1, setting it to 0 will make buggy OpenGL implementations
+	(like the ATI one) work with qingy, but it will also make impossible
+	to start an X server from console using startx without passing it
+	extra parameters.
+
+2006-01-24  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/gpm-lock/gentoo/pre_GUI.sh,
+	* media/gpm-lock/gentoo/post_GUI.sh,
+	* src/DirectFB/directfb_mode.c,
+	* src/libraries/misc.c,
+	* src/libraries/misc.h:
+	Removed GPM locking support from qingy code, moved it to
+	external scripts.
+
 2006-01-23  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* media/Makefile.am,

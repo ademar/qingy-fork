@@ -44,6 +44,7 @@ int clear_background;
 int current_tty;
 int lock_sessions;
 int retries;
+int x_server_offset;
 
 /* NOTE: some of these should become #defines through autoconf... */
 char *program_name;

@@ -129,6 +129,9 @@ static window_t wind =
 /* scrips that are called before the gui fires up and after it is shut down */
 %token PRE_GUI_TOK POST_GUI_TOK
 
+/* X server offset */
+%token X_SERVER_OFFSET_TOK
+
 /* typed tokens: */
 %token <ival>  ANUM_T 		/* int */
 %token <str>   QUOTSTR_T	/* char* */
@@ -147,6 +150,7 @@ config: /* nothing */
 | config temp_dir
 | config pre_gui
 | config post_gui
+| config x_serv_offset
 | config ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config dfb_interface
 | config xsessdir
@@ -177,6 +181,7 @@ config_tty: /* nothing */
 | config_tty temp_dir
 | config_tty pre_gui
 | config_tty post_gui
+| config_tty x_serv_offset
 | config_tty ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config_tty dfb_interface
 | config_tty xsessdir
@@ -319,6 +324,13 @@ gui_retries: RETRIES_TOK '=' ANUM_T
 	{
 	  if(in_theme) yyerror("Setting 'retries' is not allowed in theme file");
 	  TTY_CHECK_COND retries = $3;
+	};
+
+/* Offset the search for an available X server should start with  */
+x_serv_offset: X_SERVER_OFFSET_TOK '=' ANUM_T
+	{
+	  if(in_theme) yyerror("Setting 'x_server_offset' is not allowed in theme file");
+	  TTY_CHECK_COND x_server_offset = $3;
 	};
 
 /* shutdown policies */
