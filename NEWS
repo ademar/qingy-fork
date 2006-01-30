@@ -15,6 +15,9 @@ qingy CVS-0.6.1-CVS:
   and one after it is shut down. Useful if DirectFB is picky about your
   machine and you need to do something before/after switching DirectFB
   mode on/off.
+- Moved GPM start/stop code to external scripts that are called via
+  the feature described above. Currently supported distros are Gentoo
+  and Fedora.
 - Made X start up in the same tty we logged in instead of switching
   to a new one.
 - Made qingy check authentication data only once, in its main

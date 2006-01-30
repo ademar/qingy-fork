@@ -1,3 +1,36 @@
+2006-01-27  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in (fedora),
+	* media/gpm-lock/Makefile.am,
+	* media/gpm-lock/fedora/pre_GUI.sh,
+	* media/gpm-lock/fedora/post_GUI.sh:
+	Added GPM start/stop scripts for Fedora.
+
+	* src/libraries/crypto_libgcrypt.c (int_generate_keys):
+	Fixed public and private key files permissions.
+
+2006-01-26  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libgcrypt-keygen.c:
+	Prettified a bit the key generator. Made it output key files
+	in /${sysconfdir}/qingy/
+	Ready for release?
+
+	* src/libraries/crypto_libgcrypt.c:
+	Make sure main qingy will not attempt to generate e key pair,
+	as our helper program will handle that.
+
+	* src/main.c (main):
+	Moving key generation to a new program, qingy-keygen, that will
+	be installed alongside qingy. If key pair is not generated, qingy
+	will default to text mode...
+
+	* src/libraries/Makefile.am,
+	* src/Makefile.am,
+	* configure.in:
+	Commented out gpgme stuff, it is incomplete and I want to release
+	a new qingy version *very* soon.
+
 2006-01-25  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* media/Makefile.am (settings),

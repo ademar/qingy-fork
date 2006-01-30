@@ -818,26 +818,26 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	args[1] = strdup("-login");
   args[2] = strdup("-c");
 
-  // now we compose the xinit launch command line
+  /* now we compose the xinit launch command line */
 	args[3] = StrApp((char**)NULL, "exec ", xinit, " ", (char*)NULL);
 
-  // add the chosen X session
+  /* add the chosen X session */
   if (!strcmp(session, "Your .xsession"))
     args[3] = StrApp(&(args[3]), "$HOME/.xsession -- ", (char*)NULL);
   else
     args[3] = StrApp(&(args[3]), x_sessions_directory, "\"", session, "\" -- ", (char*)NULL);
 
-  // add the chosen X server, if one has been chosen
+  /* add the chosen X server, if one has been chosen */
 	if (x_server)
 		args[3] = StrApp(&(args[3]), x_server, " :", my_x_server, " vt", vt, (char*)NULL);
 	else
 		args[3] = StrApp(&(args[3]), ":", my_x_server, " vt", vt, (char*)NULL);
 
-  // add the supplied X server arguments, if supplied
+  /* add the supplied X server arguments, if supplied */
 	if (x_args)
 		args[3] = StrApp(&(args[3]), " ", x_args, (char*)NULL);
 
-  // done... as a final touch we suppress verbose output
+  /* done... as a final touch we suppress verbose output */
 	args[3] = StrApp(&(args[3]), " >& /dev/null", (char*)NULL);
 
   args[4] = NULL;
@@ -853,6 +853,8 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	}
   if (!proc_id)
 	{
+		char *ttyname = create_tty_name(current_vt);
+
 		/* write to system logs */
 		dolastlog(pw, 1);
 		add_utmp_wtmp_entry(username);
@@ -865,7 +867,13 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
       
 		/* drop root privileges and set user enviroment */
 		switchUser(pw, 1);
-      
+
+		/* clean up standard input, output, error */
+		fclose(stdin);
+	  freopen(ttyname, "w", stdout);
+		freopen(ttyname, "w", stderr);
+		free(ttyname);
+
 		/* start X server and selected session! */
 		execve(pw->pw_shell, args, environ);
       
@@ -873,6 +881,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 		fprintf(stderr, "session: fatal error: cannot start your session: %s!\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
+
   set_last_user(username);
   set_last_session(username, session, current_vt);
   

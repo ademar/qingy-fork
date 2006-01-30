@@ -169,7 +169,8 @@ AM_PATH_LISPDIR
 # Wether we should enable crypto support
 	AC_ARG_ENABLE(crypto, AC_HELP_STRING([--enable-crypto=<arg>],
 	[make qingy encrypt communications with its user interface. Supported crypto libraries are: none (no encryption), \
-	 openssl (openssl RSA encryption), libgcrypt (GNU libgcrypt RSA encryption), gpgme (GnuPG Made Easy RSA encryption)]),, [enable_crypto=openssl])
+	 openssl (openssl RSA encryption), libgcrypt (GNU libgcrypt RSA encryption)]),, [enable_crypto=openssl])
+#	 openssl (openssl RSA encryption), libgcrypt (GNU libgcrypt RSA encryption), gpgme (GnuPG Made Easy RSA encryption)]),, [enable_crypto=openssl])
 	if test "$enable_crypto" == "openssl"; then
 		AC_CHECK_HEADERS([openssl/rsa.h openssl/engine.h openssl/bn.h],,[AC_MSG_ERROR([$HEADERS_ERROR_MESSAGE])])
 		AC_CHECK_LIB(crypto, RSA_new,            [CRYPTOLIB="-lcrypto"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
@@ -184,15 +185,15 @@ AM_PATH_LISPDIR
 		AC_DEFINE(CRYPTO_OPENSSL, 1, [Define what crypto library we should use])
 		AC_MSG_NOTICE([qingy will encrypt communications with its user interface using openssl])
 		AC_SUBST(CRYPTOLIB)
-	elif test "$enable_crypto" == "gpgme"; then
-		AM_PATH_GPGME
-		AC_CHECK_HEADERS([gpgme/gpgme.h],,[AC_MSG_ERROR([$HEADERS_ERROR_MESSAGE])])
-		AC_CHECK_LIB(gpgme, gpgme_check_version,, [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
-		AC_DEFINE(WANT_CRYPTO,  1, [Define if we should enable crypto support])
-		AC_DEFINE(CRYPTO_GPGME, 1, [Define what crypto library we should use])
-		CRYPTOLIB="$GPGME_LIBS"
-		AC_MSG_NOTICE([qingy will encrypt communications with its user interface using gpgme])
-		AC_SUBST(CRYPTOLIB)
+#	elif test "$enable_crypto" == "gpgme"; then
+#		AM_PATH_GPGME
+#		AC_CHECK_HEADERS([gpgme/gpgme.h],,[AC_MSG_ERROR([$HEADERS_ERROR_MESSAGE])])
+#		AC_CHECK_LIB(gpgme, gpgme_check_version,, [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+#		AC_DEFINE(WANT_CRYPTO,  1, [Define if we should enable crypto support])
+#		AC_DEFINE(CRYPTO_GPGME, 1, [Define what crypto library we should use])
+#		CRYPTOLIB="$GPGME_LIBS"
+#		AC_MSG_NOTICE([qingy will encrypt communications with its user interface using gpgme])
+#		AC_SUBST(CRYPTOLIB)
 	elif test "$enable_crypto" == "libgcrypt"; then
 		AC_CHECK_HEADERS([gcrypt.h],,[AC_MSG_ERROR([$HEADERS_ERROR_MESSAGE])])
 		AC_CHECK_LIB(gcrypt, gcry_check_version,       [CRYPTOLIB="-lgcrypt"], [AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
@@ -222,8 +223,9 @@ AM_PATH_LISPDIR
 	fi
 	AM_CONDITIONAL(CRYPTO_OPENSSL,   test ["$enable_crypto" == "openssl"])
 	AM_CONDITIONAL(CRYPTO_LIBGCRYPT, test ["$enable_crypto" == "libgcrypt"])
-	AM_CONDITIONAL(CRYPTO_GPGME,     test ["$enable_crypto" == "gpgme"])
-	AM_CONDITIONAL(WANT_CRYPTO, test ["$enable_crypto" == "libgcrypt"] -o ["$enable_crypto" == "openssl"] -o ["$enable_crypto" == "gpgme"])
+#	AM_CONDITIONAL(CRYPTO_GPGME,     test ["$enable_crypto" == "gpgme"])
+#	AM_CONDITIONAL(WANT_CRYPTO, test ["$enable_crypto" == "libgcrypt"] -o ["$enable_crypto" == "openssl"] -o ["$enable_crypto" == "gpgme"])
+	AM_CONDITIONAL(WANT_CRYPTO, test ["$enable_crypto" == "libgcrypt"] -o ["$enable_crypto" == "openssl"])
 # End check for crypto support
 
 # Wether we should disable screen saver support
@@ -299,6 +301,7 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	if test "`ls /etc/*release 2>/dev/null | grep \"fedora\"`" != ""; then
 		AC_DEFINE(fedora, 1, [Define if target platform is Fedora Core Linux])
 		DISTRO="fedora"
+		GPM_LOCK="fedora"
 	fi
 	if test "`ls /etc/debian*    2>/dev/null | grep \"debian\"`"    != ""; then
 		AC_DEFINE(debian, 1, [Define if target platform is Debian Linux])

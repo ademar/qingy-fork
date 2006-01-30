@@ -7,9 +7,10 @@
 #include "memmgmt.h"
 #include "misc.h"
 
-#define RETRIES 50
+#define RETRIES 30
+#define TEMP_FILE_NAME "/tmp/qingy-testencdata.txt"
 
-void int_generate_keys(int try_to_restore);
+void int_generate_keys(int try_to_restore, int fail_if_restore_fail);
 void set_key_files(char *path);
 void flush_keys();
 
@@ -27,20 +28,26 @@ int test_keys(void)
 	char *test[] = {"moc", "mamma", "papa", "pippo", "s4t4n", "123 prova", "sdpoifj", "spdofk", "psodfkj", "psokf", "psodkf", "mic", "sdf", "moc", "Text: Console", "Gnome", NULL};
 	int   i      = 0;
 
-	fp = fopen("encdata.txt", "w");
+	fp = fopen(TEMP_FILE_NAME, "w");
+
+	fprintf(stdout, "Encrypting: ");
 	for (;; i++)
 	{
 		if (!test[i]) break;
 
-fprintf(stderr, "'%s', ",test[i]);
+		fprintf(stdout, "'%s'",test[i]);
+		
+		if (test[i+1])
+			fprintf(stdout, ", ");
 
 		encrypt_item(fp, test[i]);
 	}
 	fclose(fp);
-fprintf(stderr, "\n");
+	fprintf(stdout, "\n");
 
 
-	fp = fopen("encdata.txt", "r");
+	fprintf(stdout, "Decrypting: ");
+	fp = fopen(TEMP_FILE_NAME, "r");
 	for (i=0;; i++)
 	{
 		char *dec;
@@ -49,23 +56,25 @@ fprintf(stderr, "\n");
 
 		dec = decrypt_item(fp);
 
-fprintf(stderr, "'%s', ", dec);
-
 		if (!dec)
 		{
-			fclose(fp);fprintf(stderr, "\n");
+			fclose(fp);
+			fprintf(stdout, "FAILURE!\n");
 			return 0;
 		}
 
+		fprintf(stdout, "'%s', ", dec);
+
 		if (strcmp(dec, test[i]))
 		{
-			fclose(fp);fprintf(stderr, "\n");
+			fclose(fp);
+			fprintf(stdout, "\n");
 			return 0;
 		}
 	}
 	fclose(fp);
 
-fprintf(stderr, "\n");
+	fprintf(stdout, "\n");
 
 	return 1;
 }
@@ -75,33 +84,28 @@ int main(void)
 	char  logbuf[65535];
 	int   retval = EXIT_FAILURE;
 	int   count  = 0;
-	char *path;
+	char *datadir=strdup(SETTINGS_DIR "/");
 	char *pubkey;
 	char *prvkey;
 
-	if (!getcwd(logbuf, 65535*sizeof(char)))
-	{
-		fprintf(stderr, "Failed getting current working directory!\n");
-		exit(EXIT_FAILURE);
-	}
-	strcat(logbuf, "/");
-	path = strdup(logbuf);
-
-	pubkey = StrApp((char**)NULL, path, "public_key",  (char*)NULL);
-	prvkey = StrApp((char**)NULL, path, "private_key", (char*)NULL);
+	pubkey = StrApp((char**)NULL, datadir, "public_key",  (char*)NULL);
+	prvkey = StrApp((char**)NULL, datadir, "private_key", (char*)NULL);
 
 	fprintf(stdout, "\n\n\n");
-	fprintf(stdout, "Please note that libgcrypt support is still somewhat experimental...\n");
-	fprintf(stdout, "For some reason, some key pairs are not able to decrypt all items,\n");
-	fprintf(stdout, "so we are going to create one during install and test it against\n");
-	fprintf(stdout, "a variety of items in order to minimize this effect.\n");
+	fprintf(stdout, "Please note that libgcrypt support is still experimental...\n");
+	fprintf(stdout, "For some reason, most key pairs I create are not able to decrypt\n");
+	fprintf(stdout, "all items, so we are going to create one and test it against\n");
+	fprintf(stdout, "a variety of items in order to minimize this issue.\n");
+	fprintf(stdout, "'Login failed' messages from qingy GUI when you are sure your\n");
+	fprintf(stdout, "password is correct usually means that your key pair is broken,\n");
+	fprintf(stdout, "and you have to generate a new one!\n");
 
 	srand((unsigned int)time(NULL));
 	gcry_check_version(NULL);
 	gcry_control( GCRYCTL_INIT_SECMEM, 16384, 0 );
 	gcry_set_progress_handler ((&my_progress_handler), logbuf);
 
-	set_key_files(path);
+	set_key_files(datadir);
 
 	for (; count < RETRIES; count++)
 	{
@@ -112,19 +116,19 @@ int main(void)
 		fprintf(stdout, "\n\n");
 
 		/* generate key couple */
-		int_generate_keys(0);
+		int_generate_keys(0, 0);
 
-fprintf(stderr, "key generated!\n");
+		fprintf(stdout, "key generated!\n");
 
 		/* throw it away */
 		flush_keys();
 
-fprintf(stderr, "key deleted!\n");
+		//fprintf(stderr, "key deleted!\n");
 
 		/* reload it from disk */
-		int_generate_keys(1);
+		int_generate_keys(1, 1);
 
-fprintf(stderr, "key restored!\n");
+		//fprintf(stderr, "key restored!\n");
 
 		/* does this pair work? */
 		if (test_keys()) break;
@@ -137,10 +141,10 @@ fprintf(stderr, "key restored!\n");
 		if (count == RETRIES-1)
 			fprintf(stdout, "giving up!\n");
 		else
-			fprintf(stdout, "trying again!\n");
+			fprintf(stdout, "trying again (will retry %d times)!\n", RETRIES-count-1);
 	}
 	
-	free(path);
+	free(datadir);
 
 	if (!access(prvkey, F_OK) && !access(pubkey, F_OK))
 	{
@@ -150,7 +154,7 @@ fprintf(stderr, "key restored!\n");
 	else
 		fprintf(stdout, "Failed to generate key pair!\n\n\n");
 
-	remove("encdata.txt");
+	remove(TEMP_FILE_NAME);
 	free(pubkey);
 	free(prvkey);
 

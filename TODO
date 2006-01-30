@@ -9,14 +9,6 @@ SUPPORT FOR CUSTOMIZING the "logging in..." and such like messages (in theme).
 
 - Some command line options should migrate to config file...
 
-* Name theme tarball a bit better
-  (BETTER YET, MOVE EVERYTHING TO FRESHMEAT AND WIPE IT OUT!)
-
-* make the GPM start/stop stuff work for distros other
-  than Gentoo, too...
-  BETTER YET, wipe it out completely, since DirectFB 0.9.21 finally supports it!
-  (Does it? Doesn't work here :-/ )
-
 - extend the --verbose option to virtually report all that can be reported ;-)
 
 
@@ -57,8 +49,6 @@ SUPPORT FOR CUSTOMIZING the "logging in..." and such like messages (in theme).
 
 [DOC]
 
-- write a FAQ
-
 - Update ALL documentation as it is severely outdated
 
 
@@ -69,12 +59,6 @@ SUPPORT FOR CUSTOMIZING the "logging in..." and such like messages (in theme).
 - Allow user to log into remote systems, also with xdmcp...
 
 - Add support for wildcards in paths in config files...
-
-* Make code compliant to the GNU Coding Standards.. That is to be done in order
-  to try inclusion in the GNU Project.
-
-- Add support for handling console bootsplash from inside qingy? That is: qingy
-  background becomes framebuffer background when you log in...
 
 - support some graphics toolkits other than DirectFB
 

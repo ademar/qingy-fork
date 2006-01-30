@@ -36,6 +36,8 @@
 #include <unistd.h>
 #include <gcrypt.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "memmgmt.h"
 #include "misc.h"
@@ -481,7 +483,7 @@ static int restore_keys()
 	return 1;
 }
 
-void int_generate_keys(int try_to_restore)
+int int_generate_keys(int try_to_restore, int fail_if_restore_fail)
 {
 	FILE         *fp;
 	gcry_error_t  error;
@@ -493,7 +495,10 @@ void int_generate_keys(int try_to_restore)
 	/* try to load key pair from disc... */
 	if (try_to_restore)
 		if (restore_keys())
-			return;
+			return 1;
+
+	if (fail_if_restore_fail)
+		return 0;
 
 	/* ...otherwise we generate a new key pair and save it */
 	keypair = (gcry_sexp_t *)calloc(1, sizeof(gcry_sexp_t));
@@ -525,6 +530,7 @@ void int_generate_keys(int try_to_restore)
 		sleep(2);
 		exit(EXIT_FAILURE);
 	}
+	chmod(public_key_file, S_IRUSR|S_IWUSR); /* Fix file permissions */
 	save_public_key(fp);
 	fclose(fp);
 
@@ -535,12 +541,15 @@ void int_generate_keys(int try_to_restore)
 		fprintf(stderr, "qingy: failure: could not open file %s to save private key!\n", private_key_file);
 		sleep(2);
 		exit(EXIT_FAILURE);
-	}	
+	}
+	chmod(private_key_file, S_IRUSR|S_IWUSR); /* Fix file permissions */
 	save_private_key(fp);
 	fclose(fp);
+
+	return 1;
 }
 
-void generate_keys()
+int generate_keys()
 {
 	/* initialize stuff */
 	srand((unsigned int)time(NULL));
@@ -549,7 +558,7 @@ void generate_keys()
 
 	set_key_files(NULL);
 
-	int_generate_keys(1);
+	return int_generate_keys(1, 1);
 }
 
 void flush_keys()

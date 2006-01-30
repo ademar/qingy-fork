@@ -85,11 +85,13 @@ char *decrypt_item(FILE *fp)
 	return retval;
 }
 
-void generate_keys()
+int generate_keys()
 {
 	if (rsa) RSA_free(rsa);
 	srand((unsigned int)time(NULL));
 	rsa = RSA_generate_key(1024, 17, NULL, NULL); 
+
+	return 1;
 }
 
 void save_public_key(FILE *fp)

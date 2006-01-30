@@ -27,7 +27,7 @@
 
 
 /* generate a new public/private key pair */
-void generate_keys(void);
+int generate_keys(void);
 
 /* save/restore public key info to/from file */
 void save_public_key   (FILE *fp);

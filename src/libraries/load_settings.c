@@ -817,6 +817,7 @@ int load_settings(void)
   file_error = settings;
   yyparse();
   fclose(yyin);
+
   file_error = NULL;
 
 	/* complain if tmp_files_dir does not exist (or is not a directory) */

@@ -481,7 +481,13 @@ int main(int argc, char *argv[])
 		text_mode();
 
 #ifdef WANT_CRYPTO
-	generate_keys(); /* generate public/private keys */
+	/* generate (openssl) or restore (all others) public/private keys */
+	if (!generate_keys())
+	{
+		fprintf(stderr, "\n\nqingy: key pair does not exist!\n");
+		fprintf(stderr, "Make sure you run qingy-keygen to generate it\n\n");
+		text_mode();
+	}
 #endif
 
 	/* Should we log in user directly? Totally insecure, but handy */
