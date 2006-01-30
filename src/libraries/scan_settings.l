@@ -216,11 +216,12 @@ int set_theme(char *theme)
   
   theme_dir = StrApp((char**)NULL, themes_dir, "/", theme, "/", (char*)NULL);
   file = StrApp((char**)NULL, theme_dir, "theme", (char*)NULL);
+
   fp = fopen(file, "r");
 	free(file);
   if (!fp)
 	{
-		if (!silent) fprintf(stderr, "load_settings: theme '%s' does not exist.\n", theme);		
+		if (!silent) fprintf(stderr, "load_settings: theme '%s' does not exist in directory '%s'.\n", theme, theme_dir);
 		return 0;
 	}
 	settings_buf=YY_CURRENT_BUFFER;

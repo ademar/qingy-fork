@@ -1,3 +1,9 @@
+2006-01-30  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/session.c (Graph_Login):
+	Added some code to prepare standard input, output, error
+	for fellow X session. This is needed by latest Gnome.
+
 2006-01-27  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* configure.in (fedora),

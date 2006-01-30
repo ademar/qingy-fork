@@ -229,7 +229,7 @@ char *get_random_theme()
 	 * if(closedir(dir)== -1)
 	 *   perror("Qingy error");
 	 */
-  free(themes_dir);
+  free(my_themes_dir);
   
   if (!n_themes) return strdup("default");
   
@@ -239,7 +239,7 @@ char *get_random_theme()
   
   result = strdup(themes[i]);
   for (i=0; i<n_themes; i++) free(themes[i]);
-  
+
   return result;
 }
 
