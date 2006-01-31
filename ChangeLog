@@ -1,3 +1,14 @@
+2006-01-31  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/misc.c (text_mode):
+	Clear password from memory after checking it.
+
+	* configure.in:
+	Changed package version to 0.7.0.
+
+	* src/libraries/scan_settings.l:
+	Make sure theme file gets closed after parsing.
+
 2006-01-30  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c (Graph_Login):

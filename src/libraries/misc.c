@@ -512,6 +512,10 @@ void text_mode()
 		exit(EXIT_SUCCESS);
 	}
 
+	/* wipe password */
+	memset(password, '\0', sizeof(password));
+	free(password);
+
 	start_session(username, "Text: Console");
 }
 

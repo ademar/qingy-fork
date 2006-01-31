@@ -865,7 +865,7 @@ int load_settings(void)
 
 	if (!silent)
 		fprintf(stderr, "Session locking is%s enabled.\n", (lock_sessions) ? "" : " NOT");
-  
+
   return 1;
 }
 

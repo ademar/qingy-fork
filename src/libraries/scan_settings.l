@@ -38,6 +38,7 @@
 char string_buf[MAX_STR_CONST];
 char *string_buf_ptr;
 YY_BUFFER_STATE settings_buf=NULL;
+FILE *theme_fp=NULL;
 
 extern int in_theme;
 extern int yyparse();
@@ -201,6 +202,7 @@ int yywrap()
     settings_buf=NULL;
     got_theme=1;
     in_theme=0;
+		fclose(theme_fp);
     return 0;
   }
   return 1;
@@ -225,7 +227,7 @@ int set_theme(char *theme)
 		return 0;
 	}
 	settings_buf=YY_CURRENT_BUFFER;
-	yyin = fp;
+	theme_fp = yyin = fp;
   yy_switch_to_buffer(yy_create_buffer( yyin, YY_BUF_SIZE ) );
   in_theme = 1;
   return 1;

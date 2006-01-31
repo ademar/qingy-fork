@@ -1,4 +1,4 @@
-qingy CVS-0.6.1-CVS:
+qingy CVS-0.7.0-CVS:
 - SECURITY ENHANCEMENT: made qingy GUI communicate auth data
   to its main process using a fifo instead of an actual file.
 - Added support for Fedora Core Linux. This means that I added some magic
