@@ -46,6 +46,9 @@ typedef struct _Button
 	unsigned int height;				 /* height of the button                        */
 	int mouse;									 /* 1 if mouse is over button, 0 otherwise      */
 
+	/* for internal use only */
+/* 	int prev_status; */
+
 	/* methods */
 	void (*Destroy)   (struct _Button *thiz);
 	void (*MouseOver) (struct _Button *thiz, int status);

@@ -8,6 +8,7 @@ else
 gpmlockdata_SCRIPTS =
 endif
 
-EXTRA_DIST =                             \
-    gentoo/pre_GUI.sh gentoo/post_GUI.sh \
-    fedora/pre_GUI.sh fedora/post_GUI.sh
+EXTRA_DIST =                                    \
+    gentoo/pre_GUI.sh     gentoo/post_GUI.sh    \
+    fedora/pre_GUI.sh     fedora/post_GUI.sh    \
+    slackware/pre_GUI.sh  slackware/post_GUI.sh

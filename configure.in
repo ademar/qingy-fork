@@ -1,4 +1,4 @@
-AC_INIT([qingy],[0.7.0],[michele.noberasco@tiscali.it])
+AC_INIT([qingy],[0.7.2],[michele.noberasco@tiscali.it])
 AC_PREREQ(2.59)
 AC_CONFIG_SRCDIR(src/main.c)
 AM_INIT_AUTOMAKE([1.9 check-news dist-bzip2])
@@ -23,8 +23,10 @@ AM_PATH_LISPDIR
 			GCC_TEST_MESSAGE="Checking for gcc version"
 			AC_MSG_CHECKING([$GCC_TEST_MESSAGE])
 			GCCVERSION="`$CC -dumpversion`"
+			GCCMAJOR="`echo $GCCVERSION | cut -c 1`"
+			GCCMINOR="`echo $GCCVERSION | cut -c 3`"
 			AC_MSG_RESULT([$GCCVERSION])
-			if test "`$CC -dumpversion | grep 3.`" != ""; then
+			if test ["$GCCMAJOR" == "3"] -o ["$GCCMAJOR" == "4"]; then
 				#Good! let see if we can see the system arch
 				PROCESSOR=`cat /proc/cpuinfo`
 				#Is our CPU a Celeron?
@@ -52,7 +54,11 @@ AM_PATH_LISPDIR
 				fi
 				#Is our CPU a Mobile Pentium 4?
 				if test "`echo $PROCESSOR | grep \"Intel(R) Pentium(R) M\"`" != ""; then
-					CPUFLAGS="-march=pentium4m"
+					if test ["$GCCMAJOR" == "4"] -o ["$GCCMINOR" == "4"]; then
+						CPUFLAGS="-march=pentium4m"
+					else
+						CPUFLAGS="-march=pentium4"
+					fi
 				fi
 				#K6 processor
 				if test "`echo $PROCESSOR | grep \"AMD-K6(tm)\"`" != ""; then
@@ -148,7 +154,7 @@ AM_PATH_LISPDIR
 	if test -z "$PASSWDLIB" \
     	    && ( test "$enable_shadow" != "no" -a "$enable_pam" != "yes" \
     	    || test "$enable_pam" = "yes" -a "$enable_shadow" = "yes" ); then
-    	    AC_CHECK_LIB(shadow, main,[PASSWDLIB="-lshadow"],[AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])])
+					AC_CHECK_LIB(shadow, main,[PASSWDLIB="-lshadow"])
     	    AC_CHECK_HEADERS(shadow.h,,[AC_MSG_ERROR([$HEADERS_ERROR_MESSAGE])])
 					AC_DEFINE(SHADOW_PASSWD, 1, [Define if you want qingy to use shadow passwords for auth])
 	fi
@@ -284,6 +290,7 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	DISTRO="unknown"
 	PAMDATA="default/qingy"
 	GPM_LOCK="none"
+	TEMP_FILES_DIR="/var/lib/misc"
 	if test "`ls /etc/*release   2>/dev/null | grep \"redhat\"`"    != ""; then
 		AC_DEFINE(redhat, 1, [Define if target platform is RadHat Linux])
 		DISTRO="redhat"
@@ -310,6 +317,8 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	if test "`ls /etc/slackware* 2>/dev/null | grep \"slackware\"`" != ""; then
 		AC_DEFINE(slackware, 1, [Define if target platform is Slackware Linux])
 		DISTRO="slackware"
+		TEMP_FILES_DIR="/var/lib"
+		GPM_LOCK="slackware"
 	fi
 	if test "`ls /etc/SuSE* 2>/dev/null | grep \"SuSE\"`" != ""; then
 		AC_DEFINE(suse, 1, [Define if target platform is SuSE Linux])
@@ -317,7 +326,12 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	fi
 	AC_SUBST(PAMDATA,)
 	AC_SUBST(GPM_LOCK,)
+	AC_SUBST(TEMP_FILES_DIR,)
 	AC_MSG_RESULT([$DISTRO])
+	gpm_lock_extra_info=""
+	if test ["$GPM_LOCK" == "none"] -a ["$enable_gpm_lock" == "yes"]; then
+		gpm_lock_extra_info="(unsupported distro)"
+	fi
 	AM_CONDITIONAL(WANT_GPM_LOCK, test ["$enable_gpm_lock" == "yes"] -a ["$GPM_LOCK" != "none"])
 # End check for distribution
 
@@ -373,6 +387,6 @@ Configuration:
   
   Password library:           ${DISP_PASSWORD_LIBRARY}
   Screen savers support:      ${enable_screen_savers}
-  gpm locking support:        ${enable_gpm_lock}
+  gpm locking support:        ${enable_gpm_lock} ${gpm_lock_extra_info}
   Crypto support:             ${enable_crypto}
 "

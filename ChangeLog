@@ -1,3 +1,52 @@
+2006-02-08  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in:
+	Allow optimizations for gcc 4. Enable pentium4m optimizations for gcc4.
+
+	* configure.in:
+	Give some message if user wants GPM locking support but his distro
+	is not supported.
+
+2006-02-07  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/objects/screen_saver.c (activate_screen_saver):
+	Be more verbose in verbose mode...
+
+	* configure.in:
+	Bumped version to 0.7.2.
+
+	* media/screensavers/running_time/running_time.c (screen_saver_entry):
+	Made running time screen saver less CPU hungry.
+
+2006-02-06  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in:
+	Limit pentium4m optimizations to gcc 3.4.x
+
+	* configure.in,
+	* media/gpm-lock/Makefile.am,
+	* media/gpm-lock/slackware/pre_GUI.sh,
+	* media/gpm-lock/slackware/post_GUI.sh:
+	Added GPM start/stop scripts for Slackware.
+
+	* configure.in:
+	Added Slackware specific temp file dir.
+
+	* configure.in:
+	Fixed support for non-pam authentication.
+
+	* configure.in,
+	* media/Makefile.am:
+	Made temp files dir depend on distro.
+
+2006-02-02  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/main.c (start_up):
+	Added 'no-hardware' to the args I pass to DirectFB.
+
+	* configure.in: 
+	Tagged version as 0.7.1.
+
 2006-01-31  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/misc.c (text_mode):

@@ -34,13 +34,13 @@
 
 #include <screensaver_module.h>
 
-void 
-screen_saver_entry(Q_screen_t env)
+void screen_saver_entry(Q_screen_t env)
 {
   int posx;
   int posy;
   unsigned int seconds=0;
-  unsigned int milli_seconds=50;
+  unsigned int milli_seconds=125;
+	int timer    = 0;
   
   char string[64];
   char* fmt;
@@ -51,53 +51,62 @@ screen_saver_entry(Q_screen_t env)
   srand((unsigned)time(NULL));
   
   if (!env.dfb || !env.surface) return;
+
   /* we clear event buffer to avoid being bailed out immediately */
   env.screen_saver_events->Reset(env.screen_saver_events);
   
-  posx= rand() % (env.screen_width-200)+100;
-  posy = rand() % (env.screen_height-20)+10;
+  posx = rand() % (env.screen_width - 200) + 100;
+  posy = rand() % (env.screen_height - 20) + 10;
   
-  x_slope=(rand() %2) +1 ;
-  y_slope=(3-x_slope) ;
+  x_slope=(rand() %2) +1;
+  y_slope=(3-x_slope);
   
-  if(*env.params)
-    fmt=*env.params;
+  if (*env.params)
+    fmt = *env.params;
   else
-    fmt=strdup("%I:%M:%S %p");
+    fmt = strdup("%I:%M:%S %p");
+
+	env.surface->SetColor (env.surface, 0xFF, 0x50, 0x50, 0xFF);
+
   /* do screen saver until an input event arrives */
   while (1)
-    {
-      t=time(NULL);
-      strftime (string, 64, fmt, localtime(&t)); 
-      env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0xFF);
-      env.surface->SetColor (env.surface, 0xFF, 0x50, 0x50, 0xFF);
-      env.surface->DrawString (env.surface,
-			   string, -1, posx, posy, DSTF_CENTER);
-      env.surface->Flip (env.surface, NULL, DSFLIP_BLIT);
-
-      if(posx <100 || posx > (env.screen_width -100) || 
-	 posy < 10 || posy > (env.screen_height -10))
 	{
-	  x_slope=(rand() %2) +1 ;
-	  y_slope=(3-x_slope) ;
-	  
-	  x_slope=((rand()%2)==0)?x_slope:-x_slope;
-	  y_slope=((rand()%2)==0)?y_slope:-y_slope;
-	  
-	  if(posx < 100) 
-	    x_slope=(x_slope < 0) ? -x_slope : x_slope;
-	  if(posx > (env.screen_width - 100)) 
-	    x_slope=(x_slope > 0) ? -x_slope : x_slope;
-	  if(posy < 10) 
-	    y_slope=(y_slope < 0) ? -y_slope : y_slope;
-	  if(posy > (env.screen_height - 10))
-	    y_slope=(y_slope > 0) ? -y_slope : y_slope;
-	}
-      posx += x_slope;
-      posy += y_slope;
+		if (timer <= (int)milli_seconds)
+		{
+			t=time(NULL);
+			strftime (string, 64, fmt, localtime(&t));
+			timer = milli_seconds;
+		}
+		else
+			timer -= milli_seconds;
 
-      env.screen_saver_events->WaitForEventWithTimeout(env.screen_saver_events, seconds, milli_seconds);
-      if (env.screen_saver_events->HasEvent(env.screen_saver_events) == DFB_OK)
-	break;
-    }
+		env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0xFF);
+		env.surface->DrawString (env.surface, string, -1, posx, posy, DSTF_CENTER);
+		env.surface->Flip (env.surface, NULL, DSFLIP_BLIT);
+
+		if(posx <100 || posx > (env.screen_width -100) || 
+			 posy < 10 || posy > (env.screen_height -10)  )
+		{
+			x_slope=(rand() %2) +1 ;
+			y_slope=(3-x_slope) ;
+	  
+			x_slope=((rand()%2)==0)?x_slope:-x_slope;
+			y_slope=((rand()%2)==0)?y_slope:-y_slope;
+	  
+			if(posx < 100) 
+				x_slope=(x_slope < 0) ? -x_slope : x_slope;
+			if(posx > (env.screen_width - 100)) 
+				x_slope=(x_slope > 0) ? -x_slope : x_slope;
+			if(posy < 10) 
+				y_slope=(y_slope < 0) ? -y_slope : y_slope;
+			if(posy > (env.screen_height - 10))
+				y_slope=(y_slope > 0) ? -y_slope : y_slope;
+		}
+		posx += x_slope;
+		posy += y_slope;
+
+		env.screen_saver_events->WaitForEventWithTimeout(env.screen_saver_events, seconds, milli_seconds);
+		if (env.screen_saver_events->HasEvent(env.screen_saver_events) == DFB_OK)
+			break;
+	}
 }

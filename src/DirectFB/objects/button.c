@@ -44,11 +44,37 @@ void Button_MouseOver(Button *thiz, int status)
 {
 	if (!thiz) return;
 
+/* 	int i=0; */
+/* 	struct timespec t;	 */
+/* 	t.tv_sec=0; */
+/* 	t.tv_nsec=300000000; */
+
 	thiz->mouse = status;
+
+/* 	if (thiz->prev_status == -1) */
+/* 	{ */
 	thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
 	if (status) thiz->surface->Blit(thiz->surface, thiz->mouseover, NULL, 0, 0);
 	else thiz->surface->Blit(thiz->surface, thiz->normal, NULL, 0, 0);
 	thiz->surface->Flip(thiz->surface, NULL, 0);
+/* 	thiz->prev_status=0; */
+/* 	return; */
+/* 	} */
+
+/* 	for (; i<3; i++) */
+/* 	{ */
+
+/* 	thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00); */
+/* 	if (status) thiz->surface->Blit(thiz->surface, thiz->mouseover, NULL, 0, 0); */
+/* 	else thiz->surface->Blit(thiz->surface, thiz->normal, NULL, 0, 0); */
+/* 	thiz->surface->Flip(thiz->surface, NULL, 0); */
+
+/* 	status=!status; */
+
+/* 	nanosleep(&t, NULL); */
+/* 	} */
+
+/* 	status=!status; */
 }
 
 void Button_Show(Button *thiz)
@@ -160,12 +186,13 @@ Button *Button_Create(const char *normal, const char *mouseover, int xpos, int y
 		free(but);
 		return NULL;
 	}
-	but->xpos      = xpos;
-	but->ypos      = ypos;
-	but->Destroy   = Button_Destroy;
-	but->MouseOver = Button_MouseOver;
-	but->Show      = Button_Show;
-	but->Hide      = Button_Hide;
+	but->xpos        = xpos;
+	but->ypos        = ypos;
+	but->Destroy     = Button_Destroy;
+	but->MouseOver   = Button_MouseOver;
+	but->Show        = Button_Show;
+	but->Hide        = Button_Hide;
+/* 	but->prev_status = -1; */
 
 	window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
 	window_desc.posx   = (unsigned int) but->xpos;

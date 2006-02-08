@@ -1,4 +1,14 @@
-qingy CVS-0.7.0-CVS:
+qingy CVS-0.7.2-CVS:
+- Made running time screen saver less CPU hungry.
+
+qingy 0.7.1 (06 Feb 2006):
+- Fixed (again) support for non-PAM authentication.
+- Added GPM start/stop scripts for Slackware Linux.
+- Added 'no-hardware' to the args I pass to DirectFB. This should solve
+  issues and hangs with some buggy drivers (like ATI's).
+- Limit Mobile Pentium 4 specific optimizations to gcc 3.4.x
+
+qingy 0.7.0 (01 Feb 2006):
 - SECURITY ENHANCEMENT: made qingy GUI communicate auth data
   to its main process using a fifo instead of an actual file.
 - Added support for Fedora Core Linux. This means that I added some magic
@@ -37,8 +47,8 @@ qingy CVS-0.7.0-CVS:
   This number will affect the DISPLAY env variable. 
   Default is 1, setting it to 0 will make buggy OpenGL implementations
   (like the ATI one) work with qingy (read: 3D support), but it will also
-  make impossible to start an X server from console using startx without
-  passing it extra parameters.
+  make it impossible to start an X server from a console session using startx
+  without passing it extra parameters.
 - Added support for Mobile Pentium 4 processors optimization.
 - Added EXPERIMENTAL support for GNU libgcrypt as crypto library.
   If you decide to try it out, good luck creating a good keypair!

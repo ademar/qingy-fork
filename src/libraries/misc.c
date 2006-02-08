@@ -305,6 +305,8 @@ void parse_etc_issue(void)
 	int             c;
 	struct utsname  uts;
 
+	if (!silent) printf("\n");
+
 	(void) uname(&uts);
 	(void) write(1, "\r\n", 2);			/* start a new line */
 	fd = fopen("/etc/issue", "r");

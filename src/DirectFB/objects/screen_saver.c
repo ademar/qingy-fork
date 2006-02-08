@@ -102,6 +102,10 @@ void activate_screen_saver(void)
 
   /* get what screensaver we want and load it */
   ssv_name = StrApp((char **)NULL, screensavers_dir, "/", screen_saver_kind, ".qss", (char*)NULL);
+
+	if (!silent)
+		fprintf(stderr, "Trying to open screen saver \"%s\"\n", ssv_name);
+
   handle   = dlopen(ssv_name, RTLD_NOW); 
   if (!handle)
 	{ 

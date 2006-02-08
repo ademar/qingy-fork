@@ -21,7 +21,7 @@ settings: Makefile
 	@echo "# Directory containing text mode sessions" >> settings
 	@echo "text_sessions = \"@TEXT_SESSIONS_DIR@/\"" >> settings
 	@echo "# Directory where qingy should put its temporary files" >> settings
-	@echo "#temp_files_dir = \"/var/lib/misc\"" >> settings
+	@echo "temp_files_dir = \"@TEMP_FILES_DIR@\"" >> settings
 	@echo "" >> settings
 	@echo "# Full path to the X server" >> settings
 	@echo "# x_server = \"@XFREE@\"" >> settings
