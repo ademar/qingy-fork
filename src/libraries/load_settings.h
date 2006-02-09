@@ -118,7 +118,8 @@ shutdown_policies shutdown_policy;
 typedef enum 
 {
   LU_GLOBAL=0,
-  LU_TTY
+  LU_TTY,
+	LU_NONE
 } last_user_policies;
 last_user_policies last_user_policy;
 
@@ -126,7 +127,8 @@ last_user_policies last_user_policy;
 typedef enum 
 {
   LS_USER=0,
-  LS_TTY
+  LS_TTY,
+	LS_NONE
 } last_session_policies;
 last_session_policies last_session_policy;
 

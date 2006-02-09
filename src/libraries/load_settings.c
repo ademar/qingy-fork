@@ -262,12 +262,15 @@ void yyerror(char *error)
 
 char *get_last_user(void)
 {
-	FILE   *fp     = fopen(last_user, "r");
+	FILE   *fp;
 	char   *line   = NULL;
 	char   *result = NULL;
 	char   *ttystr = NULL;
 	size_t  len    = 0;
 
+	if (last_user_policy == LU_NONE) return NULL;
+
+	fp = fopen(last_user, "r");
 	if (!fp) return NULL;
 
 	if (getline(&line, &len, fp) == -1)
@@ -322,17 +325,17 @@ char *get_last_user(void)
 
 int set_last_user(char *user)
 {
-	char   *fileOUT = StrApp((char**)NULL, last_user, "-new", (char*)NULL);
+	char   *fileOUT;
 	char   *line    = NULL;
 	size_t  len     = 0;
   FILE   *fpIN;
 	FILE   *fpOUT;
-  
-  if (!user)
-	{
-		free(fileOUT);
-		return 0;
-	}
+
+	if (last_user_policy == LU_NONE) return 1;
+
+	if (!user) return 0;
+
+	fileOUT = StrApp((char**)NULL, last_user, "-new", (char*)NULL);
 
 	fpIN  = fopen(last_user, "r");
 	fpOUT = fopen(fileOUT,   "w");
@@ -378,6 +381,8 @@ char *get_last_session(char *user)
 	char   *line     = NULL;
 	size_t  len      = 0;
 
+
+	if (last_session_policy == LS_NONE) return NULL;
 
 	if (last_session_policy == LS_TTY)
 	{
@@ -436,6 +441,7 @@ char *get_last_session(char *user)
 
 void set_last_session(char *user, char *session, int tty)
 {
+	if (last_session_policy == LS_NONE) return;
   if (!session) return;
 
 	/* we write last session in user home dir */

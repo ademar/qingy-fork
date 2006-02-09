@@ -6,6 +6,9 @@ qingy 0.7.1 (06 Feb 2006):
 - Added GPM start/stop scripts for Slackware Linux.
 - Added 'no-hardware' to the args I pass to DirectFB. This should solve
   issues and hangs with some buggy drivers (like ATI's).
+- Added new values for last_user_policy and last_session_policy
+  settings: 'none'. Setting it this way means that qingy will not
+  attempt to fetch (and set) latest user and/or session in any way.
 - Limit Mobile Pentium 4 specific optimizations to gcc 3.4.x
 
 qingy 0.7.0 (01 Feb 2006):

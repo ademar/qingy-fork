@@ -123,8 +123,8 @@ static window_t wind =
 %token NEXT_TTY_TOK PREV_TTY_TOK POWEROFF_TOK REBOOT_TOK KILL_TOK TEXT_MODE_TOK
 %token MENU_KEY_TOK WIN_KEY_TOK ALT_KEY_TOK CTRL_KEY_TOK KEYBINDINGS_TOK
 
-/* last session tokens */
-%token USER_TOK LAST_USER_POLICY_TOK LAST_SESSION_POLICY_TOK GLOBAL_TOK
+/* last user/session tokens */
+%token USER_TOK LAST_USER_POLICY_TOK LAST_SESSION_POLICY_TOK GLOBAL_TOK NONE_TOK
 
 /* scrips that are called before the gui fires up and after it is shut down */
 %token PRE_GUI_TOK POST_GUI_TOK
@@ -363,6 +363,11 @@ last_user: LAST_USER_POLICY_TOK '=' GLOBAL_TOK
 	  if (in_theme) yyerror("Setting 'last_user_policy' is not allowed in theme file.");
 	  TTY_CHECK_COND last_user_policy = LU_TTY;
 	}
+| LAST_USER_POLICY_TOK '=' NONE_TOK
+	{
+	  if (in_theme) yyerror("Setting 'last_user_policy' is not allowed in theme file.");
+	  TTY_CHECK_COND last_user_policy = LU_NONE;
+	}
 ;
 
 /* last session policies */
@@ -375,6 +380,11 @@ last_session: LAST_SESSION_POLICY_TOK '=' USER_TOK
 	{
 	  if (in_theme) yyerror("Setting 'last_session_policy' is not allowed in theme file.");
 	  TTY_CHECK_COND last_session_policy = LS_TTY;
+	}
+| LAST_SESSION_POLICY_TOK '=' NONE_TOK
+	{
+	  if (in_theme) yyerror("Setting 'last_session_policy' is not allowed in theme file.");
+	  TTY_CHECK_COND last_session_policy = LS_NONE;
 	}
 ;
  

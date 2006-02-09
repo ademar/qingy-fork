@@ -1,3 +1,15 @@
+2006-02-09  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/qingy-mode.el,
+	* src/libraries/load_settings.c,
+	* src/libraries/parse_settings.y,
+	* src/libraries/load_settings.h,
+	* src/libraries/scan_settings.l, 
+	* media/Makefile.am (settings):
+	Added new values for last_user_policy and last_session_policy
+	settings: 'none'. Setting it this way means that qingy will not
+	attempt to fetch (and set) latest user and/or session in any way.
+
 2006-02-08  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* configure.in:
