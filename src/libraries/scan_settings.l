@@ -28,6 +28,7 @@
 #endif
 
 #include <string.h>
+#include <time.h>
 #include "parse_settings.h"
 
 #include "load_settings.h"
@@ -177,6 +178,10 @@ global                  return GLOBAL_TOK;
 pre_gui_script          return PRE_GUI_TOK;
 post_gui_script         return POST_GUI_TOK;
 x_server_offset         return X_SERVER_OFFSET_TOK;
+idle_timeout            return IDLE_TIMEOUT_TOK;
+idle_action             return IDLE_ACTION_TOK;
+logout                  return LOGOUT_TOK;
+lock                    return LOCK_TOK;
 
 
 "#"[^\n]*"\n" ;			/* skip comments */

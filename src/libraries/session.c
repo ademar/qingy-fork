@@ -496,6 +496,7 @@ char *shell_base_name(char *name)
 {
   char *base = name;
   char *temp = name;
+	char *retval;
   
   if (!name) return NULL;
   while (*temp)
@@ -504,7 +505,12 @@ char *shell_base_name(char *name)
 		temp++;
 	}
   
-  return StrApp((char**)NULL, "-", base, (char*)NULL);
+	if (strcmp(base, "zsh"))
+		retval = StrApp((char**)NULL, "-", base, (char*)NULL);
+	else
+		retval = strdup(base);
+
+  return retval;
 }
 
 void setEnvironment(struct passwd *pwd, int is_x_session)
@@ -696,18 +702,22 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 {
   pid_t proc_id;
   char *args[5] = {NULL, NULL, NULL, NULL, NULL};
+	int   count   = 0;
 #ifdef USE_PAM
   int retval;
 #endif
   
-  args[0] = shell_base_name(pw->pw_shell);
-	args[1] = strdup("-login");
-  if (!session || strcmp(session+6, "Console"))
+  args[count++] = shell_base_name(pw->pw_shell);
+
+	if (strcmp(args[0], "zsh"))
+		args[count++] = strdup("-login");
+
+	if (!session || strcmp(session+6, "Console"))
 	{
-		args[2] = strdup("-c");
-		args[3] = StrApp((char **)NULL, text_sessions_directory, "\"", session+6, "\"", (char *)NULL);
+		args[count++] = strdup("-c");
+		args[count++] = StrApp((char **)NULL, text_sessions_directory, "\"", session+6, "\"", (char *)NULL);
 	}
-  
+
   proc_id = fork();
   if (proc_id == -1)
 	{
@@ -729,7 +739,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
       
     /* drop root privileges and set user enviroment */
 		switchUser(pw, 0);
-      
+
 		/* let's start the shell! */
 		execve(pw->pw_shell, args, environ);
       
@@ -739,10 +749,8 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 	}
   set_last_user(username);
   set_last_session(username, session, current_vt);
-  
-  if (!lock_sessions) wait(NULL);
-	else
-		ttyWatchDog(proc_id, username, current_vt);
+
+  watch_over_session(proc_id, username, current_vt, 0, 0);
 
   memset(username, '\0', sizeof(username));	
 	free(username); free(session);
@@ -805,42 +813,46 @@ int which_X_server(void)
 void Graph_Login(struct passwd *pw, char *session, char *username)
 {
   pid_t proc_id;
-  char *my_x_server = int_to_str(which_X_server());
+	int   x_offset = which_X_server();
+  char *my_x_server = int_to_str(x_offset);
   char *vt = NULL;
-  char *args[5];
+  char *args[5] = {NULL, NULL, NULL, NULL, NULL};
+	int   count   = 0;
 #ifdef USE_PAM
   int retval;
 #endif
 
 	vt = int_to_str(current_vt);
   
-  args[0] = shell_base_name(pw->pw_shell);
-	args[1] = strdup("-login");
-  args[2] = strdup("-c");
+  args[count++] = shell_base_name(pw->pw_shell);
+
+	if (strcmp(args[0], "zsh"))
+		args[count++] = strdup("-login");
+
+  args[count++] = strdup("-c");
 
   /* now we compose the xinit launch command line */
-	args[3] = StrApp((char**)NULL, "exec ", xinit, " ", (char*)NULL);
+	args[count] = StrApp((char**)NULL, "exec ", xinit, " ", (char*)NULL);
 
   /* add the chosen X session */
   if (!strcmp(session, "Your .xsession"))
-    args[3] = StrApp(&(args[3]), "$HOME/.xsession -- ", (char*)NULL);
+    args[count] = StrApp(&(args[count]), "$HOME/.xsession -- ", (char*)NULL);
   else
-    args[3] = StrApp(&(args[3]), x_sessions_directory, "\"", session, "\" -- ", (char*)NULL);
+    args[count] = StrApp(&(args[count]), x_sessions_directory, "\"", session, "\" -- ", (char*)NULL);
 
   /* add the chosen X server, if one has been chosen */
 	if (x_server)
-		args[3] = StrApp(&(args[3]), x_server, " :", my_x_server, " vt", vt, (char*)NULL);
+		args[count] = StrApp(&(args[count]), x_server, " :", my_x_server, " vt", vt, (char*)NULL);
 	else
-		args[3] = StrApp(&(args[3]), ":", my_x_server, " vt", vt, (char*)NULL);
+		args[count] = StrApp(&(args[count]), ":", my_x_server, " vt", vt, (char*)NULL);
 
   /* add the supplied X server arguments, if supplied */
 	if (x_args)
-		args[3] = StrApp(&(args[3]), " ", x_args, (char*)NULL);
+		args[count] = StrApp(&(args[count]), " ", x_args, (char*)NULL);
 
   /* done... as a final touch we suppress verbose output */
-	args[3] = StrApp(&(args[3]), " >& /dev/null", (char*)NULL);
+	args[count] = StrApp(&(args[count]), " >& /dev/null", (char*)NULL);
 
-  args[4] = NULL;
   free(my_x_server);
   free(vt);
 
@@ -884,12 +896,8 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 
   set_last_user(username);
   set_last_session(username, session, current_vt);
-  
-  /* while X server is active, we wait for user
-     to switch to our tty and redirect him there */
-  if (!lock_sessions) wait(NULL);
-	else
-		ttyWatchDog(proc_id, username, current_vt);
+
+	watch_over_session(proc_id, username, current_vt, 1, x_offset);
 
   memset(username, '\0', sizeof(username));	
 	free(username); free(session);

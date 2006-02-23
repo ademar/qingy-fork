@@ -40,6 +40,7 @@
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "memmgmt.h"
 #include "misc.h"
@@ -64,6 +65,11 @@
 #endif
 
 #define PASSWD_MAX 128
+
+
+
+static int where_is_intruder  = 0;
+static int where_was_intruder = 0;
 
 
 /* checks wether given string is a number */
@@ -216,7 +222,7 @@ char *read_password(int tty)
 }
 
 /* block user until he authenticates */
-int WatchDog_Bark (char *dog_master, char *intruder, int our_land)
+int WatchDog_Bark (char *dog_master, char *intruder, int our_land, int session_timed_out)
 {
 	int   dest = get_available_tty();
 	char *password;
@@ -243,7 +249,14 @@ int WatchDog_Bark (char *dog_master, char *intruder, int our_land)
 	lock_tty_switching();
 
 	ClearScreen();
-	printf("%s, terminal \"/dev/tty%d\" is in use by another user.\n", intruder, our_land);
+	if (session_timed_out)
+	{
+		printf("Session on terminal \"/dev/tty%d\" has timed out and has been locked.\n", our_land);
+	}
+	else
+	{
+		printf("%s, terminal \"/dev/tty%d\" is in use by another user.\n", intruder, our_land);
+	}
 	printf("Please supply root or tty owner password to continue.\n\nPassword: ");
 	fflush(stdout);
 
@@ -330,7 +343,7 @@ void WatchDog_Sniff(char *dog_master, int fence, int where_was_intruder)
 			return; /* it's a hard life being sure of someone... */
 
 	/* tell user to authenticate himself */
-	retval = WatchDog_Bark(dog_master, intruder, fence);
+	retval = WatchDog_Bark(dog_master, intruder, fence, 0);
 
 	if (!retval)
 	{ /* user has no right to be here */
@@ -346,41 +359,106 @@ void WatchDog_Sniff(char *dog_master, int fence, int where_was_intruder)
 }
 
 /* guard specified ttys against unauthorized access */
-void ttyWatchDog(pid_t child, char *dog_master, int fence)
+void ttyWatchDog(char *dog_master, int fence)
 {
-	struct timespec delay;
-	int where_is_intruder  = 0;
-	int where_was_intruder = 0;
+	lock_tty_switching();
 
-	if (!child)      return;
-	if (!dog_master) WAIT_N_RETURN;
-	if (!fence)      WAIT_N_RETURN;
+	if (!where_was_intruder) where_was_intruder = get_active_tty();
+	else where_was_intruder = where_is_intruder;
+	where_is_intruder = get_active_tty();
+	if (where_is_intruder == -1)
+	{
+		fprintf(stderr, "\ntty guardian: serious issue: cannot get active tty number!\n");
+		unlock_tty_switching();
+		return;
+	}
+	if (where_is_intruder != where_was_intruder)
+		if (where_is_intruder == fence)
+			WatchDog_Sniff(dog_master, fence, where_was_intruder);
+
+	unlock_tty_switching();
+}
+
+void resetTtyWatchDog()
+{
+	where_is_intruder  = 0;
+	where_was_intruder = 0;
+}
+
+/* activate post login features if user wants (any of) them.
+ * Now supported: tty guardian, session timeout.
+ */
+void watch_over_session(pid_t proc_id, char *username, int session_vt, int is_x_session, int x_offset)
+{
+	struct timespec  delay;
+	time_t           start_time = time(NULL);
+	char            *tty        = NULL;
+	int              bark       = 0;
+	int              idle_time;
+
+	if (!lock_sessions && (!idle_timeout || !timeout_action))
+	{
+		wait(NULL);
+		return;
+	}
 
 	/* We set up a delay of 0.1 seconds */
   delay.tv_sec  = 0;
   delay.tv_nsec = 100000000;	/* that's 100M */
 
-	/* Main loop: we wait until the user switches to the tty we are guarding */
-  while (waitpid(child, NULL, WNOHANG) != child)
-	{
-		lock_tty_switching();
+	if (idle_timeout && timeout_action)
+		tty = create_tty_name(session_vt);
 
-		if (!where_was_intruder) where_was_intruder = get_active_tty();
-		else where_was_intruder = where_is_intruder;
-		where_is_intruder = get_active_tty();
-		if (where_is_intruder == -1)
+	while (waitpid(proc_id, NULL, WNOHANG) != proc_id)
+	{
+		if (bark)
 		{
-			fprintf(stderr, "\ntty guardian: serious issue: cannot get active tty number!\n");
-			unlock_tty_switching();
+			if (get_active_tty() == session_vt)
+			{
+				while (!WatchDog_Bark (username, username, session_vt, 1));
+				resetTtyWatchDog();
+				start_time = time(NULL);
+				bark = 0;
+			}
+			
 			nanosleep(&delay, NULL);
 			continue;
 		}
-		if (where_is_intruder != where_was_intruder)
-			if (where_is_intruder == fence)
-				WatchDog_Sniff(dog_master, fence, where_was_intruder);
 
-		unlock_tty_switching();
+		if (lock_sessions) ttyWatchDog(username, session_vt);
 
-		nanosleep(&delay, NULL); /* wait a little before checking again */
+		if (idle_timeout && timeout_action)
+		{
+			idle_time = get_session_idle_time(tty, &start_time, is_x_session, x_offset);
+			if (idle_time >= idle_timeout)
+			{
+				fprintf(stderr, "This console has been idle for %d minute%s and I will now ", idle_time, (idle_time == 1) ? "" : "s");
+				
+				switch(timeout_action)
+				{
+					case ST_LOCK:
+					{
+						fprintf(stderr, "lock your session...\n");
+						sleep(1);
+						bark = 1;
+						break;
+					}
+					case ST_LOGOUT:
+					{
+						fprintf(stderr, "log out your session (pid %d)...\n", proc_id);
+						sleep(1);
+						kill(proc_id, SIGHUP);
+						break;
+					}
+					case ST_NONE: /* just to make gcc happy, we do nothing here */
+						break;
+				}
+			}
+		}
+
+		nanosleep(&delay, NULL);
 	}
+
+	if (tty)
+		free(tty);
 }

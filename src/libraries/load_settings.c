@@ -112,6 +112,8 @@ void initialize_variables(void)
   shutdown_policy         = EVERYONE;
 	last_user_policy        = LU_GLOBAL;
 	last_session_policy     = LS_USER;
+	timeout_action          = ST_NONE;
+	idle_timeout            = 0;
 	got_theme               = 0;
 	lock_sessions           = 0;
 	retries                 = 0;

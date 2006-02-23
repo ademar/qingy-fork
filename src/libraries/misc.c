@@ -45,6 +45,8 @@
 #include <sys/stat.h>
 #include <sys/utsname.h>
 #include <sys/wait.h>
+#include <X11/Xlib.h>
+#include <X11/extensions/scrnsaver.h>
 
 #if HAVE_DIRENT_H
 # include <dirent.h>
@@ -215,6 +217,79 @@ char *get_file_owner(char *file)
 }
 
 
+int get_x_idle_time(int x_offset)
+{
+	static XScreenSaverInfo *xinfo     = NULL;
+	static Display          *display   = NULL;
+	int                      idle_time = 0;
+	int                      event_base;
+	int                      error_base;
+
+	if (!display)
+	{
+		char *x_srv_num = int_to_str(x_offset);
+		char *x_server  = StrApp((char**)NULL, ":", x_srv_num, (char*)NULL);
+		
+		display = XOpenDisplay(x_server);
+
+		free(x_srv_num);
+		free(x_server);
+
+		if (!display)
+		{
+			fprintf(stderr, "cannot open display\n");
+			return 0;
+		}
+
+		if (!XScreenSaverQueryExtension(display, &event_base, &error_base))
+		{
+			fprintf(stderr, "no XScreenSaver extension!\n");
+			return 0;
+		}
+
+		xinfo = XScreenSaverAllocInfo();
+	}
+
+	XScreenSaverQueryInfo(display, RootWindow(display, DefaultScreen(display)), xinfo);
+	idle_time = (xinfo->idle) / 60000;
+
+	return idle_time;
+}
+
+/* session idle time, in minutes */
+int get_session_idle_time(char *tty, time_t *start_time, int is_x_session, int x_offset)
+{
+	time_t curr_time = time(NULL);
+	struct stat tty_stat;
+	int tty_idle_time;
+
+	/* no need to perform expensive checks before due time */
+	if (((curr_time - *start_time)/60) < idle_timeout)
+		return 0;
+
+	if (is_x_session)
+		return get_x_idle_time(x_offset);
+
+	/* return if we cannot get tty stats */
+	if (stat(tty, &tty_stat))
+		return 0;
+
+	tty_idle_time = (curr_time - tty_stat.st_atime) / 60;
+
+	if (tty_idle_time < idle_timeout)
+		return tty_idle_time;
+
+	/* we return idle time of /dev/tty (which is the idle time of
+	 * the latest used tty). Not perfect, but it will have to suffice for now...
+	 */
+
+	/* return if we cannot get tty stats */
+	if (stat("/dev/tty", &tty_stat))
+		return 0;
+
+	return (curr_time - tty_stat.st_atime) / 60;
+}
+
 int get_system_uptime()
 {
 	double  uptime_secs;
@@ -296,7 +371,7 @@ void PrintUsage()
 	printf("\tPrint this help message.\n\n");
 }
 
-/* A good paty of the code in this function comes from agetty (util-linux),
+/* A good part of the code in this function comes from agetty (util-linux),
  * it is GPL-2 software anyway :-)
  */
 void parse_etc_issue(void)

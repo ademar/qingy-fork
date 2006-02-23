@@ -132,6 +132,10 @@ static window_t wind =
 /* X server offset */
 %token X_SERVER_OFFSET_TOK
 
+/* session timeout tokens */
+%token IDLE_TIMEOUT_TOK IDLE_ACTION_TOK LOGOUT_TOK LOCK_TOK
+
+
 /* typed tokens: */
 %token <ival>  ANUM_T 		/* int */
 %token <str>   QUOTSTR_T	/* char* */
@@ -158,6 +162,8 @@ config: /* nothing */
 | config xinit
 | config x_server
 | config x_args
+| config idle_timeout
+| config idle_action
 | config gui_retries
 | config sleep
 | config theme { TTY_CHECK_COND got_theme=set_theme_result; }
@@ -189,6 +195,8 @@ config_tty: /* nothing */
 | config_tty xinit
 | config_tty x_server
 | config_tty x_args
+| config_tty idle_timeout
+| config_tty idle_action
 | config_tty gui_retries
 | config_tty sleep
 | config_tty theme { TTY_CHECK_COND got_theme=set_theme_result; }
@@ -387,7 +395,32 @@ last_session: LAST_SESSION_POLICY_TOK '=' USER_TOK
 	  TTY_CHECK_COND last_session_policy = LS_NONE;
 	}
 ;
+
+/* session idle timeout */
+idle_timeout: IDLE_TIMEOUT_TOK '=' ANUM_T
+{
+	if (in_theme) yyerror("Setting 'idle_timeout' is not allowed in theme file.");
+	TTY_CHECK_COND idle_timeout = $3;
+}
  
+/* idle timeout actions */
+idle_action: IDLE_ACTION_TOK '=' LOGOUT_TOK
+	{
+	  if (in_theme) yyerror("Setting 'idle_action' is not allowed in theme file.");
+	  TTY_CHECK_COND timeout_action = ST_LOGOUT;
+	}
+| IDLE_ACTION_TOK '=' LOCK_TOK
+	{
+	  if (in_theme) yyerror("Setting 'idle_action' is not allowed in theme file.");
+	  TTY_CHECK_COND timeout_action = ST_LOCK;
+	}
+| IDLE_ACTION_TOK '=' NONE_TOK
+	{
+	  if (in_theme) yyerror("Setting 'idle_action' is not allowed in theme file.");
+	  TTY_CHECK_COND timeout_action = ST_NONE;
+	}
+;
+
 /* theme: either random, ="themeName" or { definition }  */
 theme: THEME_TOK '=' RAND_TOK { TTY_CHECK_COND {char *temp = get_random_theme(); set_theme_result=set_theme(temp); free(temp);} }
 | THEME_TOK '=' QUOTSTR_T { TTY_CHECK_COND set_theme_result=set_theme($3); }

@@ -132,6 +132,16 @@ typedef enum
 } last_session_policies;
 last_session_policies last_session_policy;
 
+/* session timeout actions... */
+typedef enum 
+{
+  ST_NONE=0,
+  ST_LOCK,
+	ST_LOGOUT
+} timeout_actions;
+timeout_actions timeout_action;
+int idle_timeout;
+
 /* screen saver stuff */
 struct _screensaver_options
 {

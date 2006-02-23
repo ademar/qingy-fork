@@ -64,6 +64,9 @@ char *get_file_owner(char *file);
 /* Get system uptime */
 int get_system_uptime();
 
+/* session idle time, in minutes */
+int get_session_idle_time(char *tty, time_t *start_time, int is_x_session, int x_offset);
+
 /* guess what :-) */
 void execute_script(char *script);
 

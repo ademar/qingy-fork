@@ -31,6 +31,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include "keybindings.h"
 #include "memmgmt.h"
 #include "load_settings.h"

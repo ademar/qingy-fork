@@ -38,9 +38,9 @@ endif
 EXTRA_libqingy_la_SOURCES =           \
     crypto_openssl.c crypto_libgcrypt.c crypto_gpgme.c crypto.h
 
-libqingy_la_LIBADD  = @PASSWDLIB@ @CRYPTOLIB@ @NCURSESLIB@
+libqingy_la_LIBADD  = @PASSWDLIB@ @CRYPTOLIB@ @NCURSESLIB@ @XLIBS@
 libqingy_la_LDFLAGS = -release @VERSION@
 
 libqingy_static_la_SOURCES = $(libqingy_la_SOURCES)
-libqingy_static_la_LIBADD  = @PASSWDLIB@ @CRYPTOLIB@ @NCURSESLIB@
+libqingy_static_la_LIBADD  = @PASSWDLIB@ @CRYPTOLIB@ @NCURSESLIB@ @XLIBS@
 libqingy_static_la_LDFLAGS = -release @VERSION@

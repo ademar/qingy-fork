@@ -1,3 +1,38 @@
+2006-02-23  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/Makefile.am (libqingy_la_LIBADD),
+	* src/libraries/tty_guardian.h,
+	* src/libraries/tty_guardian.c,
+	* src/libraries/misc.h,
+	* src/libraries/misc.c,
+	* configure.in:
+	Added session timeout support for X sessions. We query the running
+	X server for idle time, so we get is for both keystrokes and mouse
+	movements. Still to see whether it is possible not to lock/close
+	session when programs like mplayer are running...
+
+	* src/libraries/session.c (shell_base_name, Text_Login, Graph_Login):
+	Added support for zsh shell.
+
+2006-02-13  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/tty_guardian.h,
+	* src/libraries/tty_guardian.c,
+	* src/libraries/session.c,
+	Working on session timeout... now it works for keystrokes.
+	It does not handle mouse movements or running programs
+	-such as mplayer- yet.
+
+2006-02-10  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/qingy-mode.el,
+	* src/libraries/parse_settings.y,
+	* src/libraries/load_settings.c,
+	* src/libraries/load_settings.h,
+	* src/libraries/scan_settings.l:
+	Adding support for session timeouts, action taken
+	will be one of none, lock, logout...
+
 2006-02-09  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* media/qingy-mode.el,
