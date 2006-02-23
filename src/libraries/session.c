@@ -626,7 +626,8 @@ void dolastlog(struct passwd *pwd, int quiet)
 		{
 			if (read(fd, (char *)&ll, sizeof(ll)) == sizeof(ll) && ll.ll_time != 0)
 	    {
-	      printf("Last login: %.*s ", 24-5, (char *)ctime(&ll.ll_time));
+				time_t when = ll.ll_time;
+				printf("Last login: %.*s ", 24-5, (char*)ctime(&when));
 	      if (*ll.ll_host != '\0')
 					printf("from %.*s\n", (int)sizeof(ll.ll_host), ll.ll_host);
 	      else
@@ -635,7 +636,7 @@ void dolastlog(struct passwd *pwd, int quiet)
 			lseek(fd, (off_t)pwd->pw_uid * sizeof(ll), SEEK_SET);
 		}
 		memset((char *)&ll, 0, sizeof(ll));
-		time(&ll.ll_time);
+		ll.ll_time = time(NULL);
 		xstrncpy(ll.ll_line, tty_name, sizeof(ll.ll_line));
 		if (hostname) xstrncpy(ll.ll_host, hostname, sizeof(ll.ll_host));
 		write(fd, (char *)&ll, sizeof(ll));

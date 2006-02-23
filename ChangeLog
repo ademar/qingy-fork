@@ -1,5 +1,8 @@
 2006-02-23  Michele Noberasco  <michele.noberasco@tiscali.it>
 
+	* src/libraries/session.c (dolastlog):
+	Fixed last login time for 64 bit machines, thanks to Kevin Jamieson.
+
 	* src/libraries/Makefile.am (libqingy_la_LIBADD),
 	* src/libraries/tty_guardian.h,
 	* src/libraries/tty_guardian.c,
