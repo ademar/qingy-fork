@@ -232,13 +232,7 @@ int WatchDog_Bark (char *dog_master, char *intruder, int our_land, int session_t
 	if (!dog_master)           return 0;
 	if (!intruder)             return 0;
 	if (!switch_to_tty(dest))  return 0;
-
-	unlock_tty_switching();
-	if (!set_active_tty(dest))
-	{
-		lock_tty_switching();
-		return 0;
-	}
+	if (!set_active_tty(dest)) return 0;
 
 	/*
 	 * we don't want our intruder to switch to the tty
@@ -283,7 +277,6 @@ int WatchDog_Bark (char *dog_master, char *intruder, int our_land, int session_t
 	{
 		unlock_tty_switching();
 	  set_active_tty(our_land);
-		lock_tty_switching();
 	}
 
 	return retval;
@@ -361,22 +354,17 @@ void WatchDog_Sniff(char *dog_master, int fence, int where_was_intruder)
 /* guard specified ttys against unauthorized access */
 void ttyWatchDog(char *dog_master, int fence)
 {
-	lock_tty_switching();
-
 	if (!where_was_intruder) where_was_intruder = get_active_tty();
 	else where_was_intruder = where_is_intruder;
 	where_is_intruder = get_active_tty();
 	if (where_is_intruder == -1)
 	{
 		fprintf(stderr, "\ntty guardian: serious issue: cannot get active tty number!\n");
-		unlock_tty_switching();
 		return;
 	}
 	if (where_is_intruder != where_was_intruder)
 		if (where_is_intruder == fence)
 			WatchDog_Sniff(dog_master, fence, where_was_intruder);
-
-	unlock_tty_switching();
 }
 
 void resetTtyWatchDog()

@@ -1,3 +1,9 @@
+2006-02-24  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/tty_guardian.c:
+	Fixed bug where session locking did not work if there was more than
+	one running session that required it.
+
 2006-02-23  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c (dolastlog):

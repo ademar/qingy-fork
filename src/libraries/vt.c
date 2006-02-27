@@ -40,6 +40,8 @@
 #include <sys/kd.h>
 #include <sys/vt.h>
 
+#include <errno.h>
+
 #include "memmgmt.h"
 #include "vt.h"
 #include "load_settings.h"

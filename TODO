@@ -62,9 +62,6 @@ SUPPORT FOR CUSTOMIZING the "logging in..." and such like messages (in theme).
 
 - support some graphics toolkits other than DirectFB
 
-- Add support for asking for a password after a given idle timeout.
-  (note: look at 'who' source code to see how it gets idle times)
-
 - Support for scripting things...
 
 - support also the /dev/vc* in spite of /dev/tty*

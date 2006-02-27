@@ -1,4 +1,6 @@
 qingy CVS-0.7.2-CVS:
+- SECURITY FIX: fixed bug where session locking did not work if there was
+  more than one running session that required it.
 - Made running time screen saver less CPU hungry.
 - Added support for zsh shell.
 - Fixed last login time for 64 bit machines, thanks to Kevin Jamieson.
