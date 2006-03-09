@@ -1,3 +1,8 @@
+2006-03-09  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/Makefile.am (settings):
+	Updated default settings file with session locking explanation
+
 2006-02-24  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/tty_guardian.c:

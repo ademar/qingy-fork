@@ -1,9 +1,14 @@
-qingy CVS-0.7.2-CVS:
+qingy 0.7.2 (09 Mar 2006):
 - SECURITY FIX: fixed bug where session locking did not work if there was
   more than one running session that required it.
 - Made running time screen saver less CPU hungry.
 - Added support for zsh shell.
 - Fixed last login time for 64 bit machines, thanks to Kevin Jamieson.
+- Added EXPERIMENTAL session timeout feature, with configurable timeout
+  and actions (you can select either 'close your session' or 'lock it').
+  Right now, locking your session works, closing it may hang your machine
+  (in case of an X session) because qingy might be restarted before X
+  finishes shutting down. Try it at your own risk ;-)
 
 qingy 0.7.1 (06 Feb 2006):
 - Fixed (again) support for non-PAM authentication.

@@ -85,17 +85,25 @@ endif
 	@echo "# What happens when we press the 'sleep' button?" >> settings
 	@echo "#sleep = \"/usr/local/sbin/hibernate\"" >> settings
 	@echo "" >> settings
-	@echo "# wether we should clear background image during dialogs (default is no)..." >> settings
+	@echo "# whether we should clear background image during dialogs (default is no)..." >> settings
 	@echo "# this is the default setting, it gets overridden if the theme you are using" >> settings
 	@echo "# sets the same setting differently..." >> settings
 	@echo "# clear_background = yes" >> settings
 	@echo "" >> settings
-	@echo "# wether to allow session locking; if you enable this, when you try to" >> settings
+	@echo "# whether to allow session locking; if you enable this, when you try to" >> settings
 	@echo "# switch to a qingy-controlled tty whose owner is not your current" >> settings
 	@echo "# user, you will be asked for the password of that user before being" >> settings
 	@echo "# allowed to continue. If you are root, of course, you can switch" >> settings
 	@echo "# to any tty you chose to. Default setting is 'no'." >> settings
 	@echo "#lock_sessions = yes" >> settings
+	@echo "" >> settings
+	@echo "# whether to allow session timeout; if you enable this, after the amount" >> settings
+	@echo "# of minutes specified in idle_timeout variable, idle_action will be" >> settings
+	@echo "# performed. Allowed actions are:" >> settings
+	@echo "# lock     will lock user session asking you for your password" >> settings
+	@echo "# logout   will close your session" >> settings
+	@echo "#idle_timeout = 30" >> settings
+	@echo "#idle_action  = lock" >> settings
 	@echo "" >> settings
 	@echo "# How many times should we retry to fire app qingy interface" >> settings
 	@echo "# before reverting to text mode? Default is 0..." >> settings
