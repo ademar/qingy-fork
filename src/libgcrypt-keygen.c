@@ -7,7 +7,7 @@
 #include "memmgmt.h"
 #include "misc.h"
 
-#define RETRIES 30
+#define RETRIES 5
 #define TEMP_FILE_NAME "/tmp/qingy-testencdata.txt"
 
 void int_generate_keys(int try_to_restore, int fail_if_restore_fail);
@@ -63,7 +63,10 @@ int test_keys(void)
 			return 0;
 		}
 
-		fprintf(stdout, "'%s', ", dec);
+		fprintf(stdout, "'%s'", dec);
+
+		if (test[i+1])
+			fprintf(stdout, ", ");
 
 		if (strcmp(dec, test[i]))
 		{
@@ -92,13 +95,8 @@ int main(void)
 	prvkey = StrApp((char**)NULL, datadir, "private_key", (char*)NULL);
 
 	fprintf(stdout, "\n\n\n");
-	fprintf(stdout, "Please note that libgcrypt support is still experimental...\n");
-	fprintf(stdout, "For some reason, most key pairs I create are not able to decrypt\n");
-	fprintf(stdout, "all items, so we are going to create one and test it against\n");
-	fprintf(stdout, "a variety of items in order to minimize this issue.\n");
-	fprintf(stdout, "'Login failed' messages from qingy GUI when you are sure your\n");
-	fprintf(stdout, "password is correct usually means that your key pair is broken,\n");
-	fprintf(stdout, "and you have to generate a new one!\n");
+	fprintf(stdout, "We are going to create a key pair for qingy and test it\n");
+	fprintf(stdout, "against a variety of items in order to make sure it works.\n");
 
 	srand((unsigned int)time(NULL));
 	gcry_check_version(NULL);
@@ -123,12 +121,8 @@ int main(void)
 		/* throw it away */
 		flush_keys();
 
-		//fprintf(stderr, "key deleted!\n");
-
 		/* reload it from disk */
 		int_generate_keys(1, 1);
-
-		//fprintf(stderr, "key restored!\n");
 
 		/* does this pair work? */
 		if (test_keys()) break;

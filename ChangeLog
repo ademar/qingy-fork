@@ -1,3 +1,26 @@
+2006-03-13  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in,
+	* src/libraries/Makefile.am,
+	* src/Makefile.am:
+	Since libgcrypt now works correctly, removed all traces of gpgme
+	support (which was still in development and didn't work).
+
+2006-03-11  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/crypto_libgcrypt.c,
+	* src/libgcrypt-keygen.c:
+	Code cleaned up.
+
+2006-03-10  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in:
+	Tagged version as 0.7.3
+
+	* src/libraries/crypto_libgcrypt.c (decrypt_item):
+	Fixed libgcrypt encryption/decryption issues! Now it just needs
+	some code cleaning...
+
 2006-03-09  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* media/Makefile.am (settings):

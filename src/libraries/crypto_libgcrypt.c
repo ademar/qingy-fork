@@ -139,6 +139,63 @@ static char *find_token(char *haystack, char *needle, size_t haystack_size)
 	return NULL;
 }
 
+static char *find_item(FILE *fp, char *begin_tag, char *end_tag, size_t *token_length)
+{
+	char    buf[255];
+	size_t  len1;
+	size_t  len2;
+	size_t  len  = 0;
+	char   *pos1 = NULL;
+	char   *pos2 = NULL;
+	char   *retval;
+	int     c;
+
+	if (!fp)        return NULL;
+	if (!begin_tag) return NULL;
+	if (!end_tag)   return NULL;
+
+	len1 = strlen(begin_tag);
+	len2 = strlen(end_tag);
+
+	while ( (c=fgetc(fp)) != EOF )
+	{
+		buf[len++] = (char)c;
+		
+		if (!pos2 && len >= len2)
+		{
+			char *temp = buf + len - len2;
+			if (!strncmp(temp, end_tag, len2))
+			{
+				pos2 = temp;
+				break;
+			}
+		}
+
+		if (!pos1 && len >= len1)
+		{
+			char *temp = buf + len - len1;
+			if (!strncmp(temp, begin_tag, len1))
+			{
+				pos1 = temp;
+			}
+		}		
+		
+	}
+
+	if (!pos1 || !pos2)
+		return NULL;
+
+	pos1 += len1;
+	len   = pos2-pos1;
+
+	*token_length = len;
+	retval = (char*)calloc(len,sizeof(char));
+
+	memcpy(retval, pos1, len);
+
+	return retval;
+}
+
 void encrypt_item(FILE *fp, char *item)
 {
 	gcry_error_t error;
@@ -183,11 +240,7 @@ char *decrypt_item(FILE *fp)
 	gcry_error_t   error;
 	gcry_sexp_t   *encrypted;
 	gcry_sexp_t   *decrypted;
-	char           buf[142];
-	size_t         buflen;
 	size_t         erroffset;
-	char          *pos1 = NULL;
-	char          *pos2 = NULL;
 	char          *item = NULL;
 	char          *temp;
 	size_t         len_item;
@@ -196,20 +249,10 @@ char *decrypt_item(FILE *fp)
 	if (!private_key) return NULL;
 	if (!fp)          return NULL;
 
-	/* get encrypted data from file */
-	if (fread(buf, sizeof(char), 142, fp) != 142)
+	item = find_item(fp, "<item>", "</item>", &len_item);
+
+	if (!item)
 		return NULL;
-
-	buflen=142*sizeof(char);
-
-	pos1 = find_token(buf,  "<item>",  buflen);
-	pos2 = find_token(pos1, "</item>", buflen);
-
-	if (!pos1 || !pos2) return NULL;
-
-	len_item = pos2 - pos1 - 6;
-	item     = (char*)calloc(len_item, sizeof(char));
-	memcpy(item, pos1+6, len_item);
 
 	encrypted = (gcry_sexp_t *)calloc(1, sizeof(gcry_sexp_t));
 	decrypted = (gcry_sexp_t *)calloc(1, sizeof(gcry_sexp_t));
