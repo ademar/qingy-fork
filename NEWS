@@ -1,6 +1,12 @@
-qingy CVS-0.7.3-CVS:
+qingy 0.7.3 (16 Mar 2006):
 - Fixed libgcrypt support. Now it is no longer considered experimental,
   and should work as expected :-)
+- Fixed session timeout, in case of 'logout' action. Using this feature
+  no longer exposes users to possible machine lock-ups. Thus, the whole
+  session timeout feature can now be considered production ready, no longer
+  experimental.
+- Fixed detection of X11 headers and libraries, it should now work
+  on those distros that put them under /usr/X11R6.
 
 qingy 0.7.2 (09 Mar 2006):
 - SECURITY FIX: fixed bug where session locking did not work if there was

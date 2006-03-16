@@ -1,3 +1,15 @@
+2006-03-15  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/tty_guardian.c (watch_over_session):
+	Fixed session timeout, in case of 'logout' action. Using this feature
+	no longer exposes users to possible machine lock-ups. Thus, the whole
+	session timeout feature can now be considered production ready, no longer
+	experimental.
+
+	* configure.in:
+	Fixed detection of X11 headers and libraries, it should now work
+	on those distros that put them under /usr/X11R6.
+
 2006-03-13  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* configure.in,

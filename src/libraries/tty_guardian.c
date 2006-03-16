@@ -435,7 +435,28 @@ void watch_over_session(pid_t proc_id, char *username, int session_vt, int is_x_
 					{
 						fprintf(stderr, "log out your session (pid %d)...\n", proc_id);
 						sleep(1);
+
+						/* when X quits, it changes vt back to the tty it was started from...
+						 * We inhibit this behaviour to avoid confusing the user
+						 * with an unexpected vt change
+						 */
+						if (is_x_session)
+							lock_tty_switching();
+
 						kill(proc_id, SIGHUP);
+
+						if (is_x_session)
+						{
+							/* give X a little time to shut itself down before respawning...
+							 * otherwise qingy might be restarted before the X server goes down
+							 * (remember that we are killing our child, xinit, not the X server),
+							 * and that might hang the machine since two programs would be trying
+							 * to change the video card mode at the same time...
+							 */
+							fprintf(stderr, "qingy will be restarted in 10 seconds...\n");
+							sleep(10);
+							unlock_tty_switching();
+						}
 						break;
 					}
 					case ST_NONE: /* just to make gcc happy, we do nothing here */
