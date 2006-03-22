@@ -65,7 +65,7 @@ void ComboBox_SortItems(ComboBox *thiz)
 	int i          = 0;
 	int x_sessions = 0;
 
-	// We divide X and text sessions ...
+	/* We divide X and text sessions ... */
 	for (; i<(thiz->n_items-1); i++)
 	{
 		int j = i + 1;
@@ -83,7 +83,7 @@ void ComboBox_SortItems(ComboBox *thiz)
 			x_sessions++;
 	}
 
-	// ... we sort X sessions ...
+	/* ... we sort X sessions ... */
 	for (i=0; i<(x_sessions-1); i++)
 	{
 		int j = i + 1;
@@ -96,7 +96,7 @@ void ComboBox_SortItems(ComboBox *thiz)
 			}
 	}
 
-	// ... and text ones
+	/* ... and text ones */
 	for (i=x_sessions; i<(thiz->n_items-1); i++)
 	{
 		int j = i + 1;

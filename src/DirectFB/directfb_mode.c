@@ -216,7 +216,9 @@ void close_framebuffer_mode (void)
 	 * so we are not being nice to it any more!
 	 *
 	 * DIE, you BASTARD, DIE!
-	 * And do it the HARD WAY!
+	 *
+	 * Seriously, this way DirectFB takes care of deallocating
+	 * all stuff, and is much quicker at the job than us...
 	 */
 
 /*   /\* destroy all labels *\/ */
@@ -262,17 +264,19 @@ void close_framebuffer_mode (void)
 /*   if (font_normal)  font_normal->Release  (font_normal); */
 /*   if (font_large)   font_large->Release   (font_large); */
 
-/* 	/\* core DirectFB stuff *\/ */
-/*   if (primary) primary->Release (primary); */
-/*   if (events)  events->Release  (events); */
-/*   if (layer)   layer->Release   (layer); */
+	/* core DirectFB stuff */
+  if (primary) primary->Release (primary);
+  if (events)  events->Release  (events);
+  if (layer)   layer->Release   (layer);
+
 /*   while (devices) */
 /* 	{ */
 /* 		DeviceInfo *next = devices->next; */
 /* 		free (devices); */
 /* 		devices = next; */
 /* 	} */
-/* 	if (dfb) dfb->Release (dfb); */
+
+	if (dfb) dfb->Release (dfb);
 }
 
 void DirectFB_Error()

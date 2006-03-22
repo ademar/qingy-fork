@@ -2,7 +2,7 @@
                           photos.c  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
+    copyright            : (C) 2003-2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
 ***************************************************************************/
 
@@ -38,6 +38,11 @@
 #include <time.h>
 #include <unistd.h>
 #include <screensaver_module.h>
+
+#include <memmgmt.h>
+#include <misc.h>
+
+#include "wildcards.h"
 
 #if HAVE_DIRENT_H
 # include <dirent.h>
@@ -87,42 +92,46 @@ int load_images_list(char **params, int silent)
 
   for (; params[i]; i++)
   {
-    DIR *path;
+		char *param;
+    DIR  *path;
     struct dirent *entry;
 
-		if (!silent) fprintf(stderr, "Loading files from '%s': ", params[i]);
-    path = opendir(params[i]);
-    if (!path) continue;
+		while ((param=expand_path(params[i])))
+		{
+			if (!silent) fprintf(stderr, "Loading files from '%s': ", param);
+			path = opendir(param);
+			if (!path) continue;
 
-    while (1)
-    {
-      if (!(entry= readdir(path))) break;
-      if (!strcmp(entry->d_name, "." )) continue;
-      if (!strcmp(entry->d_name, "..")) continue;
-			if (is_image(entry->d_name))
+			while (1)
 			{
-				char *temp = calloc(strlen(params[i])+strlen(entry->d_name)+2, sizeof(char));
-				if (n_images == max)
+				if (!(entry= readdir(path))) break;
+				if (!strcmp(entry->d_name, "." )) continue;
+				if (!strcmp(entry->d_name, "..")) continue;
+				if (is_image(entry->d_name))
 				{
-					char **temp;
-					max+= 100;
-					temp = (char **) realloc(images, max*sizeof(char *));
-					if (!temp)
+					char *temp = calloc(strlen(param)+strlen(entry->d_name)+2, sizeof(char));
+					if (n_images == max)
 					{
-						fprintf(stderr, "screen_saver: memory allocation failure!\n");
-						abort();
+						char **temp;
+						max+= 100;
+						temp = (char **) realloc(images, max*sizeof(char *));
+						if (!temp)
+						{
+							fprintf(stderr, "screen_saver: memory allocation failure!\n");
+							abort();
+						}
+						images = temp;
 					}
-					images = temp;
+					strcpy(temp, param);
+					if (*(temp+strlen(temp)-1) != '/') strcat(temp, "/");
+					strcat(temp, entry->d_name);
+					images[n_images] = temp;
+					n_images++;
 				}
-				strcpy(temp, params[i]);
-				if (*(temp+strlen(temp)-1) != '/') strcat(temp, "/");
-				strcat(temp, entry->d_name);
-				images[n_images] = temp;
-				n_images++;
 			}
-    }
-		closedir(path);
-		if (!silent) fprintf(stderr, "%d images so far...\n", n_images);
+			closedir(path);
+			if (!silent) fprintf(stderr, "%d images so far...\n", n_images);
+		}
   }
 
 	return n_images;

@@ -19,15 +19,28 @@ It allows the user to log in and start the session of his choice
 - It works ;-)
 - It remembers last user who logged in, with focus on password
 - It also rememebers last session each user chose
+- Alternatively it remembers last session on a per-tty basis
 - Fully themable
+- A theme will look the same on all machines, independently of the resolution (*)
 - You can select your favourite theme, or a random one every time
--	Both text and X sessions are supported
--	You can start more that one X session at once
--	You can even start X inside a console when X sessions are already running
--	PAM support
--	Support for screen savers
--	(Experimental) session locking support
--	tty specific option support
+- Both text and X sessions are supported
+- You can start more that one X session at once
+- You can even start X inside a console when X sessions are already running
+- PAM support
+- Support for screen savers
+- Auto log-in support
+- Session locking support
+- Session timeout, with lock or logout as available actions
+- tty specific options support
+- Customizable key bindings
+- Text mode support (**)
+
+(*)  Provided it has ben converted to the structure of qingy 0.6.0 and higher,
+     which adds the ability to specify the native resolution of the theme,
+     instead of defaulting to 800x600...
+(**) Useful if you don't care about fancy graphics but would like session locking,
+     session timeout, or auto log-in.
+
 
 
 /----------------\

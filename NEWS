@@ -1,3 +1,13 @@
+qingy CVS-0.7.4-CVS:
+- Added support for wildcards in photo screen saver options. This
+  means that you can put something like this in settings file:
+  screensaver "photos" =
+    "/path/to/images/200*"
+  Supported wildcards are * for string expansion and ? for single
+  char expansion.
+- Re-allow for some cleaning before shutting DirectFB mode down.
+  Bug signalled and fixed by Masse Nicolas <masse_nicolas@yahoo.fr>
+
 qingy 0.7.3 (16 Mar 2006):
 - Fixed libgcrypt support. Now it is no longer considered experimental,
   and should work as expected :-)

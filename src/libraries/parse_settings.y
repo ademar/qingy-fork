@@ -1,9 +1,11 @@
 %{
 /*******************************************************************************/
 /* parse_settings.y - Qingy theme and settings files parser 		               */
-/*  v. 0.3 								                                                     */
-/*  Copyright (C) 2004 Paolo Gianrossi - All rights reserved 		               */
-/*  by Paolo Gianrossi <paolino.gnu@disi.unige.it>			                       */
+/*        								                                                     */
+/*  Copyright (C) 2004 Paolo Gianrossi, (C) 2005-2006 Michele Noberasco        */
+/*  All rights reserved                                                        */
+/*  by Paolo Gianrossi   <paolino.gnu@disi.unige.it>                           */
+/*     Michele Noberasco <michele.noberasco@tiscali.it>                        */
 /* 									                                                           */
 /* This program is free software; you can redistribute it and/or 	             */
 /* modify  under the terms of the GNU General Public License as 	             */

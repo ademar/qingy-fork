@@ -1,4 +1,4 @@
-SUBDIRS = media src doc
+SUBDIRS = src media doc
 
 EXTRA_DIST =   \
 		AUTHORS    \

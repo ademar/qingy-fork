@@ -3,10 +3,11 @@
 /**-*-c-*-****************************************************************/
 /* scan_settings.l - config file scanner for qingy                       */
 /*                                                                       */
-/*  Copyright (C) 2003      Paolo Gianrossi   - All rights reserved      */
-/*            (C) 2004-2005 Michele Noberasco                            */
+/*  Copyright (C) 2003      Paolo Gianrossi                              */
+/*            (C) 2004-2006 Michele Noberasco                            */
+/*  All rights reserved                                                  */
 /*  by Paolo Gianrossi   <paolino.gnu@disi.unige.it>                     */
-/*  by Michele Noberasco <s4t4n@gentoo.org>                              */
+/*     Michele Noberasco <s4t4n@gentoo.org>                              */
 /*                                                                       */
 /* This program is free software; you can redistribute it and/or         */
 /* modify  under the terms of the GNU General Public License as          */

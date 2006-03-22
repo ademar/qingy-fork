@@ -1,3 +1,26 @@
+2006-03-21  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/screensavers/photos/Makefile.am,
+	* media/screensavers/photos/wildcards.c,
+	* media/screensavers/photos/wildcards.h,
+	* media/screensavers/photos/photos.c: 
+	Implemented wildcards in photo screen saver.
+
+2006-03-17  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/directfb_mode.c (close_framebuffer_mode):
+	Re-allow for some cleaning before shutting DirectFB mode down.
+	Bug signalled and fixed by Masse Nicolas <masse_nicolas@yahoo.fr>
+
+	* media/screensavers/photos/photos.c,
+	* media/screensavers/photos/Makefile.am: 
+	Altered photos screen saver so that it expands wildcards in paths
+	it is passed. Now implementing the relevant function.
+
+	* Makefile.am:
+	Changed SUBDIRS order so that src will be compiled before media, as photos
+	screensaver now needs libqingy.la
+
 2006-03-15  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/tty_guardian.c (watch_over_session):
