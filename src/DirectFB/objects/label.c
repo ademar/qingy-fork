@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <directfb.h>
+#include <unistd.h>
+#include <pthread.h>
 
 #include "memmgmt.h"
 #include "load_settings.h"
@@ -41,14 +43,14 @@
 #include "misc.h"
 
 
-void Plot(Label *thiz)
+static void Plot(Label *thiz)
 {
 	if (!thiz || !thiz->surface) return;
 
 	thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
 
 	if (thiz->text)
-		switch (thiz->alignment)
+		switch (thiz->text_orientation)
 		{
 			case LEFT:
 				thiz->surface->DrawString (thiz->surface, thiz->text, -1, 0, 0, DSTF_LEFT|DSTF_TOP);
@@ -73,13 +75,51 @@ void Label_ClearText(Label *thiz)
 	Plot(thiz);
 }
 
-void Label_SetText(Label *thiz, char *text, int alignment)
+static int *label_thread(Label *thiz)
+{
+
+	fprintf(stderr, "thread id: %d\n", (int)(thiz->thread_id));
+
+	while (1)
+	{
+		char *message = assemble_message(thiz->content, thiz->command);
+		thiz->SetText(thiz, message);
+		free(message);
+		sleep(thiz->polltime);
+	}
+}
+
+void Label_SetAction(Label *thiz, int polltime, char *content, char *command)
+{
+	if (!thiz) return;
+
+	thiz->polltime = polltime;
+	thiz->content  = strdup(content);
+	thiz->command  = strdup(command);
+
+	if (!polltime)
+	{
+		char *message = assemble_message(thiz->content, thiz->command);
+		thiz->SetText(thiz, message);
+		free(message);
+		return;
+	}
+
+	pthread_create(&(thiz->thread_id), NULL, (void *) label_thread, thiz);
+}
+
+void Label_SetText(Label *thiz, char *text)
 {
 	if (!thiz || !text) return;
 	free(thiz->text);
 	thiz->text = strdup(text);
-	thiz->alignment = alignment;
 	Plot(thiz);
+}
+
+void Label_SetTextOrientation(Label *thiz, int orientation)
+{
+	if (!thiz) return;
+	thiz->text_orientation = orientation;
 }
 
 void Label_SetTextColor(Label *thiz, color_t *text_color)
@@ -136,26 +176,29 @@ Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, color_t *
 	Label *newlabel = NULL;
 
 	newlabel = (Label *) calloc(1, sizeof(Label));
-	newlabel->text         = NULL;
-	newlabel->xpos         = (unsigned int) window_desc->posx;
-	newlabel->ypos         = (unsigned int) window_desc->posy;
-	newlabel->width        = window_desc->width;
-	newlabel->height       = window_desc->height;
-	newlabel->hasfocus     = 0;
-	newlabel->alignment    = LEFT;
-	newlabel->window       = NULL;
-	newlabel->surface      = NULL;
-	newlabel->text_color.R = text_color->R;
-	newlabel->text_color.G = text_color->G;
-	newlabel->text_color.B = text_color->B;
-	newlabel->text_color.A = text_color->A;
-	newlabel->SetFocus     = Label_SetFocus;
-	newlabel->SetTextColor = Label_SetTextColor;
-	newlabel->SetText      = Label_SetText;
-	newlabel->ClearText    = Label_ClearText;
-	newlabel->Hide         = Label_Hide;
-	newlabel->Show         = Label_Show;
-	newlabel->Destroy      = Label_Destroy;
+	newlabel->text               = NULL;
+	newlabel->xpos               = (unsigned int) window_desc->posx;
+	newlabel->ypos               = (unsigned int) window_desc->posy;
+	newlabel->width              = window_desc->width;
+	newlabel->height             = window_desc->height;
+	newlabel->hasfocus           = 0;
+	newlabel->text_orientation   = LEFT;
+	newlabel->window             = NULL;
+	newlabel->surface            = NULL;
+	newlabel->text_color.R       = text_color->R;
+	newlabel->text_color.G       = text_color->G;
+	newlabel->text_color.B       = text_color->B;
+	newlabel->text_color.A       = text_color->A;
+	newlabel->SetFocus           = Label_SetFocus;
+	newlabel->SetTextColor       = Label_SetTextColor;
+	newlabel->SetText            = Label_SetText;
+	newlabel->SetTextOrientation = Label_SetTextOrientation;
+	newlabel->ClearText          = Label_ClearText;
+	newlabel->Hide               = Label_Hide;
+	newlabel->Show               = Label_Show;
+	newlabel->Destroy            = Label_Destroy;
+	newlabel->SetAction          = Label_SetAction;
+	newlabel->thread_id          = 0;
 
 	if (layer->CreateWindow (layer, window_desc, &(newlabel->window)) != DFB_OK) return NULL;
 	newlabel->window->SetOpacity(newlabel->window, 0x00 );

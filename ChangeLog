@@ -1,3 +1,29 @@
+2006-04-05  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/directfb_mode.c,
+	* src/DirectFB/objects/label.c,
+	* src/DirectFB/objects/label.h:
+	Just began making qingy-DirectFB multithreaded. Now each
+	label that is supposed to update itself after a given time
+	gets its own governing thread.
+
+2006-04-03  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/screensavers/photos/photos.c:
+	Fixed screen saver so that it also adds a wildchar entry that
+	expands to a file instead of a directory.
+
+2006-03-30  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in (debian),
+	* media/pam/Makefile.am (EXTRA_DIST),
+	* media/pam/debian/qingy:
+	Added PAM file for debian, provided by Riccardo Stagni <unriccio@email.it>
+
+2006-03-23  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in: Taggged version as 0.7.4.
+
 2006-03-21  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* media/screensavers/photos/Makefile.am,

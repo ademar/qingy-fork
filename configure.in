@@ -1,4 +1,4 @@
-AC_INIT([qingy],[0.7.3],[michele.noberasco@tiscali.it])
+AC_INIT([qingy],[0.8.0],[michele.noberasco@tiscali.it])
 AC_PREREQ(2.59)
 AC_CONFIG_SRCDIR(src/main.c)
 AM_INIT_AUTOMAKE([1.9 check-news dist-bzip2])
@@ -98,9 +98,9 @@ AM_PATH_LISPDIR
 	CFLAGS="-pipe -W -Wall $CFLAGS"
 
 # Check for C headers
-	HEADERS="ctype.h fcntl.h grp.h lastlog.h paths.h pwd.h stdio.h stdlib.h string.h \
-	         signal.h syslog.h time.h unistd.h linux/kd.h linux/vt.h sys/ioctl.h     \
-	         sys/types.h sys/stat.h sys/utsname.h sys/wait.h"
+	HEADERS="ctype.h fcntl.h grp.h lastlog.h paths.h pthread.h pwd.h stdio.h stdlib.h \
+	         signal.h string.h syslog.h time.h unistd.h linux/kd.h linux/vt.h         \
+	         sys/ioctl.h sys/types.h sys/stat.h sys/utsname.h sys/wait.h"
 	HEADERS_ERROR_MESSAGE="One or more system headers that are necessary to compile this program are missing on this system. Cannot continue."
 	AC_CHECK_HEADERS([$HEADERS],,[AC_MSG_ERROR([$HEADERS_ERROR_MESSAGE])],)
 	AC_HEADER_DIRENT
@@ -324,6 +324,7 @@ PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
 	if test "`ls /etc/debian*    2>/dev/null | grep \"debian\"`"    != ""; then
 		AC_DEFINE(debian, 1, [Define if target platform is Debian Linux])
 		DISTRO="debian"
+		PAMDATA="debian/qingy"
 	fi
 	if test "`ls /etc/slackware* 2>/dev/null | grep \"slackware\"`" != ""; then
 		AC_DEFINE(slackware, 1, [Define if target platform is Slackware Linux])
@@ -400,4 +401,5 @@ Configuration:
   Screen savers support:      ${enable_screen_savers}
   gpm locking support:        ${enable_gpm_lock} ${gpm_lock_extra_info}
   Crypto support:             ${enable_crypto}
+  Libs:                       ${LIBS}
 "

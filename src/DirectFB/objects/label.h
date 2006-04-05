@@ -42,23 +42,29 @@
 typedef struct _Label
 {
 	/* properties */
+	pthread_t thread_id;
 	char *text;
 	color_t text_color;
 	unsigned int xpos, ypos;
 	unsigned int width, height;
 	int hasfocus;
-	int alignment;
 	IDirectFBWindow	*window;
 	IDirectFBSurface *surface;
+	int polltime;
+  char *content;
+  char *command;
+  int   text_orientation;
 
 	/* methods */
 	void (*SetFocus)(struct _Label *thiz, int focus);
 	void (*SetTextColor)(struct _Label *thiz, color_t *text_color);
-	void (*SetText)(struct _Label *thiz, char *text, int alignment);
+	void (*SetText)(struct _Label *thiz, char *text);
+	void (*SetTextOrientation)(struct _Label *thiz, int orientation);
 	void (*ClearText)(struct _Label *thiz);
 	void (*Hide)(struct _Label *thiz);
 	void (*Show)(struct _Label *thiz);
 	void (*Destroy)(struct _Label *thiz);
+	void (*SetAction)(struct _Label *thiz, int polltime, char *content, char *command);
 
 } Label;
 

@@ -37,6 +37,8 @@
 #include <directfb.h>
 #include <directfb_keynames.h>
 #include <signal.h>
+#include <pthread.h>
+
 
 #ifdef WANT_CRYPTO
 #include "crypto.h"
@@ -62,15 +64,11 @@
 #include "screen_saver.h"
 #endif
 
+
 /* some super-structures */
 typedef struct label_t
 {
   Label *label;
-  int    polltime;
-  int    countdown;
-  char  *content;
-  char  *command;
-  int    text_orientation;
   struct label_t *next;
 } Label_list;
 typedef struct button_t
@@ -215,7 +213,7 @@ void close_framebuffer_mode (void)
 	 * DirectFB has not been nice to us recently,
 	 * so we are not being nice to it any more!
 	 *
-	 * DIE, you BASTARD, DIE!
+	 * DIE, you BASTARD, DIE! :-P
 	 *
 	 * Seriously, this way DirectFB takes care of deallocating
 	 * all stuff, and is much quicker at the job than us...
@@ -1023,37 +1021,13 @@ void load_sessions(ComboBox *session)
 	session->SortItems(session);
 }
 
-void update_labels()
-{
-  char *message;
-  Label_list *labels = Labels;
-
-  for (; labels; labels = labels->next)
-	{
-		if (!labels->polltime) continue;
-		if (labels->countdown)
-		{
-			labels->countdown--;
-			continue;
-		}
-		if (!labels->command || !labels->content)
-		{
-			labels->polltime = 0;
-			continue;
-		}
-
-		message = assemble_message(labels->content, labels->command);
-		labels->label->SetText(labels->label, message, labels->text_orientation);
-		free(message);
-		labels->countdown = labels->polltime;
-	}
-}
-
 int create_windows()
 {
   DFBWindowDescription window_desc;
   IDirectFBFont *font;
   window_t *window = windowsList;
+	char *message = "CAPS LOCK is pressed";
+	int width;
 
   window_desc.flags = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
   window_desc.caps  = DWCAPS_ALPHACHANNEL;
@@ -1109,20 +1083,10 @@ int create_windows()
 	      }
 				labels->label = Label_Create(layer, font, window->text_color, &window_desc);
 				if (!labels->label) return 0;			
-				labels->content          = strdup(window->content);
-				labels->command          = strdup(window->command);
-				labels->polltime         = window->polltime * 2;
-				labels->text_orientation = window->text_orientation;
-				labels->countdown        = 0;
-				labels->next             = NULL;
-				if (window->command)
-	      {
-					char *message = assemble_message(labels->content, labels->command);
-					labels->label->SetText(labels->label, message, labels->text_orientation);
-					free(message);
-	      }
-				else labels->label->SetText(labels->label, labels->content, window->text_orientation);
+				labels->label->SetTextOrientation(labels->label, window->text_orientation);
+				labels->label->SetAction(labels->label, window->polltime, window->content, window->command);
 				labels->label->SetFocus(labels->label, 0);
+				labels->next = NULL;
 				if (window->linkto)
 	      {
 					if (!strcmp(window->linkto, "login"))    username_label = labels->label;
@@ -1180,34 +1144,39 @@ int create_windows()
   destroy_windows_list(windowsList);
 
   /* Finally we create the four "CAPS LOCK is pressed" windows... */
+	font_small->GetStringWidth (font_small, message, -1, &width);
   window_desc.posx   = 0;
   window_desc.posy   = screen_height - (font_small_height);
-  window_desc.width  = screen_width/5;
+  window_desc.width  = width;
   window_desc.height = font_small_height;
   lock_key_statusA = Label_Create(layer, font_small, &other_text_color, &window_desc);
   if (!lock_key_statusA) return 0;
   lock_key_statusA->SetFocus(lock_key_statusA, 1);
   lock_key_statusA->Hide(lock_key_statusA);  
-  lock_key_statusA->SetText(lock_key_statusA, "CAPS LOCK is pressed", CENTERBOTTOM);
+	lock_key_statusA->SetTextOrientation(lock_key_statusA, CENTERBOTTOM);
+  lock_key_statusA->SetText(lock_key_statusA, message);
   window_desc.posy = 0;
   lock_key_statusB = Label_Create(layer, font_small, &other_text_color, &window_desc);
   if (!lock_key_statusB) return 0;
   lock_key_statusB->SetFocus(lock_key_statusB, 1);
   lock_key_statusB->Hide(lock_key_statusB);
-  lock_key_statusB->SetText(lock_key_statusB, "CAPS LOCK is pressed", LEFT);
-  window_desc.posx = screen_width - screen_width/5;
+	lock_key_statusB->SetTextOrientation(lock_key_statusB, LEFT);
+  lock_key_statusB->SetText(lock_key_statusB, message);
+  window_desc.posx = screen_width - width;
   window_desc.height = 2*font_small_height;
   lock_key_statusC = Label_Create(layer, font_small, &other_text_color, &window_desc);
   if (!lock_key_statusC) return 0;
   lock_key_statusC->SetFocus(lock_key_statusC, 1);
   lock_key_statusC->Hide(lock_key_statusC);
-  lock_key_statusC->SetText(lock_key_statusC, "CAPS LOCK is pressed", RIGHT);
+	lock_key_statusC->SetTextOrientation(lock_key_statusC, RIGHT);
+  lock_key_statusC->SetText(lock_key_statusC, message);
   window_desc.posy = screen_height - (font_small_height);
   lock_key_statusD = Label_Create(layer, font_small, &other_text_color, &window_desc);
   if (!lock_key_statusD) return 0;
   lock_key_statusD->SetFocus(lock_key_statusD, 1);
   lock_key_statusD->Hide(lock_key_statusD);
-  lock_key_statusD->SetText(lock_key_statusD, "CAPS LOCK is pressed", RIGHT);
+	lock_key_statusD->SetTextOrientation(lock_key_statusD, RIGHT);
+  lock_key_statusD->SetText(lock_key_statusD, message);
 
   return 1;
 }
@@ -1393,7 +1362,6 @@ int main (int argc, char *argv[])
 	      if (password->hasfocus) password->KeyEvent(password, REDRAW, NONE, flashing_cursor);
 	      flashing_cursor = !flashing_cursor;
 	      if (use_screensaver) screensaver_countdown--;
-	      update_labels();
 	    }
 			if (!screensaver_countdown)
 	    {
@@ -1406,7 +1374,6 @@ int main (int argc, char *argv[])
 			if (username->hasfocus) username->KeyEvent(username, REDRAW, NONE, flashing_cursor);
 			if (password->hasfocus) password->KeyEvent(password, REDRAW, NONE, flashing_cursor);
 			flashing_cursor = !flashing_cursor;
-			update_labels();
 #endif /* screensaver stuff */
 		}
 	}

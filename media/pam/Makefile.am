@@ -8,4 +8,4 @@ else
 pamdata_DATA =
 endif
 
-EXTRA_DIST = default/qingy gentoo/qingy
+EXTRA_DIST = debian/qingy default/qingy gentoo/qingy
