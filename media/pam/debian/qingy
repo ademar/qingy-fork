@@ -1,0 +1,15 @@
+#%PAM-1.0
+
+auth	requisite	pam_securetty.so
+
+@include common-auth
+
+auth	requisite	pam_nologin.so
+
+@include common-account
+@include common-password
+@include common-session
+
+auth	required	pam_env.so
+session	required	pam_limits.so
+
