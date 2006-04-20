@@ -73,6 +73,11 @@
 #include "tty_guardian.h"
 
 
+#ifndef HOST_NAME_MAX
+#define HOST_NAME_MAX 64
+#endif
+
+
 int int_log10(int n)
 {
   int temp=0;
