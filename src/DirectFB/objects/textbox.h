@@ -2,7 +2,7 @@
                           textbox.h  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2005 by Noberasco Michele
+    copyright            : (C) 2003-2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
 ***************************************************************************/
 
@@ -44,6 +44,8 @@
 typedef struct _TextBox
 {
   /* properties */
+	pthread_t thread_id;
+	IDirectFBEventBuffer *events;
   char *text;
   color_t text_color;
   color_t cursor_color;
@@ -55,9 +57,9 @@ typedef struct _TextBox
   int position;
   IDirectFBWindow	*window;
   IDirectFBSurface *surface;
+	pthread_mutex_t lock;
 
   /* methods */
-  void (*KeyEvent)(struct _TextBox *thiz, int ascii_code, int modifier, int draw_cursor);
   void (*SetFocus)(struct _TextBox *thiz, int focus);
   void (*SetTextColor)(struct _TextBox *thiz, color_t *text_color);
   void (*SetCursorColor)(struct _TextBox *thiz, color_t *cursor_color);
@@ -69,6 +71,12 @@ typedef struct _TextBox
 
 } TextBox;
 
-TextBox *TextBox_Create (IDirectFBDisplayLayer *layer, IDirectFBFont *font,	
-			 color_t *text_color, color_t *cursor_color,
-			 DFBWindowDescription *window_desc);
+TextBox *TextBox_Create
+(
+	IDirectFBDisplayLayer *layer,
+	IDirectFB *dfb,
+	IDirectFBFont *font,	
+	color_t *text_color,
+	color_t *cursor_color,
+	DFBWindowDescription *window_desc
+);

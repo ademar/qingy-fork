@@ -2,7 +2,7 @@
                       directfb_label.c  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2005 by Noberasco Michele
+    copyright            : (C) 2003-2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
  ***************************************************************************/
 
@@ -77,9 +77,6 @@ void Label_ClearText(Label *thiz)
 
 static int *label_thread(Label *thiz)
 {
-
-	fprintf(stderr, "thread id: %d\n", (int)(thiz->thread_id));
-
 	while (1)
 	{
 		char *message = assemble_message(thiz->content, thiz->command);

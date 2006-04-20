@@ -2,7 +2,7 @@
                           button.h  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2005 by Noberasco Michele
+    copyright            : (C) 2003-2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
  ***************************************************************************/
 
@@ -35,6 +35,9 @@
 typedef struct _Button
 {
 	/* properties */
+	pthread_t thread_id;
+	IDirectFBEventBuffer *events;
+	IDirectFBDisplayLayer *layer;
 	IDirectFBWindow  *window;    /* window that will contain the button 				*/
 	IDirectFBSurface *surface;   /* surface of the above                        */
 	IDirectFBSurface *normal;    /* normal button appearance                    */
@@ -44,14 +47,11 @@ typedef struct _Button
 	int ypos;										 /* y position of the button                    */
 	unsigned int width;					 /* width of the button                         */
 	unsigned int height;				 /* height of the button                        */
-	int mouse;									 /* 1 if mouse is over button, 0 otherwise      */
+	int mouseOver;							 /* 1 if mouse is over button, 0 otherwise      */
+	void (*callback)(struct _Button *thiz);
 
-	/* for internal use only */
-/* 	int prev_status; */
-
-	/* methods */
+	/* public methods */
 	void (*Destroy)   (struct _Button *thiz);
-	void (*MouseOver) (struct _Button *thiz, int status);
 	void (*Show)      (struct _Button *thiz);
 	void (*Hide)      (struct _Button *thiz);
 
@@ -62,6 +62,7 @@ Button *Button_Create
 	const char *normal,
 	const char *mouseover,
 	int xpos, int ypos,
+	void (*callback)(struct _Button *thiz),
 	IDirectFBDisplayLayer *layer,
 	IDirectFBSurface *primary,
 	IDirectFB *dfb,

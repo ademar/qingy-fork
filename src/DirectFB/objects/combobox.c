@@ -32,18 +32,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 #include <directfb.h>
+#include <directfb_keynames.h>
 
 #include "memmgmt.h"
 #include "load_settings.h"
 #include "combobox.h"
 #include "directfb_mode.h"
 #include "misc.h"
+#include "utils.h"
 
 
 #define UPWARD   0
 #define DOWNWARD 1
-
 
 typedef struct _DropDown
 {
@@ -60,10 +62,14 @@ typedef struct _DropDown
 } DropDown;
 
 
+static void click(ComboBox *);
+
 void ComboBox_SortItems(ComboBox *thiz)
 {
 	int i          = 0;
 	int x_sessions = 0;
+
+	pthread_mutex_lock(&(thiz->lock));
 
 	/* We divide X and text sessions ... */
 	for (; i<(thiz->n_items-1); i++)
@@ -108,9 +114,11 @@ void ComboBox_SortItems(ComboBox *thiz)
 				thiz->items[j] = swap;
 			}
 	}
+
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
-void ComboBox_PlotEvent(ComboBox *thiz, int flip)
+static void plotEvent(ComboBox *thiz, int flip)
 {
   if (!thiz) return;
 
@@ -119,7 +127,7 @@ void ComboBox_PlotEvent(ComboBox *thiz, int flip)
   if (flip) thiz->surface->Flip(thiz->surface, NULL, 0);
 }
 
-void DrawScrollBar(ComboBox *thiz)
+static void DrawScrollBar(ComboBox *thiz)
 {
 	DropDown      *dropDown;
 	IDirectFBFont *font;
@@ -160,7 +168,7 @@ void DrawScrollBar(ComboBox *thiz)
 	dropDown->scrollbar = unit;
 }
 
-void ComboBox_MouseOver(ComboBox *thiz, int status)
+static void mouseOver(ComboBox *thiz, int status)
 {
 	if (!thiz) return;
 
@@ -168,7 +176,7 @@ void ComboBox_MouseOver(ComboBox *thiz, int status)
 
 	if (!thiz->isclicked)
 	{ /* drop-down menu is not visible atm */
-		ComboBox_PlotEvent(thiz, 0);
+		plotEvent(thiz, 0);
 
 		if (status)
 		{ /* mouse is over combobox, draw a nice box around it */
@@ -248,7 +256,7 @@ void ComboBox_MouseOver(ComboBox *thiz, int status)
 	thiz->surface->Flip(thiz->surface, NULL, 0);
 }
 
-void ComboBox_setWidth(ComboBox *thiz, char *selection)
+static void setWidth(ComboBox *thiz, char *selection)
 {
 	/* we set the combobox width */
 	DFBRectangle rect1, rect2, rect3;
@@ -266,7 +274,7 @@ void ComboBox_setWidth(ComboBox *thiz, char *selection)
 	thiz->window->Resize(thiz->window, thiz->width, thiz->height);
 }
 
-void ComboBox_setHeightNYpos(ComboBox *thiz, int n_items)
+static void setHeightNYpos(ComboBox *thiz, int n_items)
 {
 	int            min_items      = 10; /* minimum number of elements we would like on screen */
 	int            fitting_down;
@@ -325,25 +333,37 @@ void ComboBox_setHeightNYpos(ComboBox *thiz, int n_items)
 	thiz->window->Resize(thiz->window, thiz->width, thiz->height);
 }
 
+static void selectItem(ComboBox *thiz, char *selection, int lock)
+{
+	if (!thiz)      return;
+	if (!selection) return;
+
+	if (lock) pthread_mutex_lock(&(thiz->lock));
+
+	thiz->selected = selection;
+	plotEvent(thiz, 0);
+	setWidth(thiz, selection);
+	mouseOver(thiz, thiz->mouse);
+
+	if (lock) pthread_mutex_unlock(&(thiz->lock));
+}
+
 void ComboBox_SelectItem(ComboBox *thiz, char *selection)
 {
 	if (!thiz)      return;
 	if (!selection) return;
 
-	thiz->selected = selection;
-	ComboBox_PlotEvent(thiz, 0);
-	ComboBox_setWidth(thiz, selection);
-	thiz->MouseOver(thiz, thiz->mouse);
+	selectItem(thiz, selection, 1);
 }
 
-void ComboBox_KeyEvent(ComboBox *thiz, int direction)
+static void keyEvent(ComboBox *thiz, int direction)
 {
 	DropDown *dropDown;
 	int       i;
 
   if (!thiz          ) return;
 	if (!thiz->selected) return;
-	
+
 	dropDown = (DropDown *) thiz->extraData;
 
 	if (!thiz->isclicked)
@@ -360,7 +380,7 @@ void ComboBox_KeyEvent(ComboBox *thiz, int direction)
 						i--;
 						dropDown->selected = thiz->items[i];
 						if (!thiz->isclicked)
-							thiz->SelectItem(thiz, thiz->items[i]);
+							selectItem(thiz, thiz->items[i], 0);
 						else
 							while (i < dropDown->first_item)
 								dropDown->first_item--;
@@ -369,7 +389,7 @@ void ComboBox_KeyEvent(ComboBox *thiz, int direction)
 					{
 						dropDown->selected = thiz->items[thiz->n_items - 1];
 						if (!thiz->isclicked)
-							thiz->SelectItem(thiz, thiz->items[thiz->n_items - 1]);
+							selectItem(thiz, thiz->items[thiz->n_items - 1], 0);
 						else
 						{
 							dropDown->first_item = thiz->n_items - dropDown->n_items;
@@ -388,7 +408,7 @@ void ComboBox_KeyEvent(ComboBox *thiz, int direction)
 						i++;
 						dropDown->selected = thiz->items[i];
 						if (!thiz->isclicked)
-							thiz->SelectItem(thiz, thiz->items[i]);
+							selectItem(thiz, thiz->items[i], 0);
 						else
 							while (i > (dropDown->first_item + dropDown->n_items - 1))
 								dropDown->first_item++;
@@ -397,7 +417,7 @@ void ComboBox_KeyEvent(ComboBox *thiz, int direction)
 					{
 						dropDown->selected = thiz->items[0];
 						if (!thiz->isclicked)
-							thiz->SelectItem(thiz, thiz->items[0]);
+							selectItem(thiz, thiz->items[0], 0);
 						else
 							dropDown->first_item = 0;
 					}
@@ -408,11 +428,11 @@ void ComboBox_KeyEvent(ComboBox *thiz, int direction)
 			if (thiz->isclicked)
 			{
 				thiz->selected = dropDown->selected;
-				thiz->Click(thiz);
+				click(thiz);
 			}
 			break;
 		case REDRAW:
-			ComboBox_PlotEvent(thiz, 1);
+			plotEvent(thiz, 1);
 			break;
   }
 
@@ -463,40 +483,55 @@ void ComboBox_SetTextColor(ComboBox *thiz, color_t *text_color)
 	if (!thiz)       return;
 	if (!text_color) return;
 
+	pthread_mutex_lock(&(thiz->lock));
+
 	thiz->text_color.R = text_color->R;
 	thiz->text_color.G = text_color->G;
 	thiz->text_color.B = text_color->B;
 	thiz->text_color.A = text_color->A;
 	thiz->surface->SetColor (thiz->surface, text_color->R, text_color->G, text_color->B, text_color->A);
+
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
-void ComboBox_SetFocus(ComboBox *thiz, int focus)
+void setFocus(ComboBox *thiz, int focus, int lock)
 {
   if (!thiz) return;
+
+	if (lock) pthread_mutex_lock(&(thiz->lock));
 
   if (focus)
   {
     thiz->window->RequestFocus(thiz->window);
     thiz->hasfocus=1;
     thiz->window->SetOpacity(thiz->window, selected_window_opacity);
-		thiz->MouseOver(thiz, thiz->mouse);
+		mouseOver(thiz, thiz->mouse);
+		if (lock) pthread_mutex_unlock(&(thiz->lock));
     return;
   }
 
 	if (thiz->isclicked)
 	{
-		ComboBox_setWidth(thiz, thiz->selected);
-		ComboBox_setHeightNYpos(thiz, 1);
+		setWidth(thiz, thiz->selected);
+		setHeightNYpos(thiz, 1);
 		thiz->isclicked = 0;
 	}
 
   thiz->hasfocus = 0;
   thiz->window->SetOpacity(thiz->window, window_opacity);
-	thiz->MouseOver(thiz, thiz->mouse);
-  return;
+	mouseOver(thiz, thiz->mouse);
+
+	if (lock) pthread_mutex_unlock(&(thiz->lock));
 }
 
-void ComboBox_ScrollBarClick (ComboBox *thiz, int mouse_y)
+void ComboBox_SetFocus(ComboBox *thiz, int focus)
+{
+  if (!thiz) return;
+
+	setFocus(thiz, focus, 1);
+}
+
+static void scrollBarClick (ComboBox *thiz, int mouse_y)
 {
 	DropDown *dropDown = (DropDown *) thiz->extraData;
 
@@ -505,7 +540,7 @@ void ComboBox_ScrollBarClick (ComboBox *thiz, int mouse_y)
 		if (dropDown->first_item > 0)
 		{
 			dropDown->first_item--;
-			thiz->MouseOver(thiz, 1);
+			mouseOver(thiz, 1);
 			return;
 		}
 
@@ -514,7 +549,7 @@ void ComboBox_ScrollBarClick (ComboBox *thiz, int mouse_y)
 		if ((dropDown->first_item + dropDown->n_items) < thiz->n_items)
 		{
 			dropDown->first_item++;
-			thiz->MouseOver(thiz, 1);
+			mouseOver(thiz, 1);
 			return;
 		}
 
@@ -524,7 +559,7 @@ void ComboBox_ScrollBarClick (ComboBox *thiz, int mouse_y)
 		{
 			dropDown->first_item -= dropDown->n_items;
 			if (dropDown->first_item < 0) dropDown->first_item = 0;
-			thiz->MouseOver(thiz, 1);
+			mouseOver(thiz, 1);
 			return;
 		}
 
@@ -535,12 +570,12 @@ void ComboBox_ScrollBarClick (ComboBox *thiz, int mouse_y)
 			dropDown->first_item += dropDown->n_items;
 			if ((dropDown->first_item + dropDown->n_items) >= thiz->n_items)
 				dropDown->first_item = thiz->n_items - dropDown->n_items;
-			thiz->MouseOver(thiz, 1);
+			mouseOver(thiz, 1);
 			return;
 		}
 }
 
-void ComboBox_Click(ComboBox *thiz)
+static void click(ComboBox *thiz)
 {
 	DropDown *dropDown;
 	char     *largest;
@@ -569,24 +604,24 @@ void ComboBox_Click(ComboBox *thiz)
 				 mouse_y <= (int)(thiz->ypos + thiz->height)
 			 )
 		{
-			ComboBox_ScrollBarClick(thiz, mouse_y);
+			scrollBarClick(thiz, mouse_y);
 			return;
 		}
 
 		/* we fold the combobox */
 
-		ComboBox_setHeightNYpos(thiz, 1);
+		setHeightNYpos(thiz, 1);
 		thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
 
 		if (thiz->mouse) thiz->selected = dropDown->selected;
 
 		thiz->isclicked = 0;
- 		ComboBox_SelectItem(thiz, thiz->selected);
+ 		selectItem(thiz, thiz->selected, 0);
 
 		/* let's check wether mouse is still over this item */
 		if (mouse_x < (int)thiz->xpos || mouse_x > (int)(thiz->xpos + thiz->width ) ||
 				mouse_y < (int)thiz->ypos || mouse_y > (int)(thiz->ypos + thiz->height)   )
-			thiz->MouseOver(thiz, 0);
+			mouseOver(thiz, 0);
 
 		return;
 	}
@@ -603,10 +638,10 @@ void ComboBox_Click(ComboBox *thiz)
 	}
 
 	/* we set the combobox width to that of its largest item */
-	ComboBox_setWidth(thiz, largest);
+	setWidth(thiz, largest);
 
 	/* set combobox height and Y position... */
-	ComboBox_setHeightNYpos(thiz, thiz->n_items);
+	setHeightNYpos(thiz, thiz->n_items);
 
 	/* prepare drop-down menu data */	
 	dropDown->selected   = thiz->selected;
@@ -614,25 +649,31 @@ void ComboBox_Click(ComboBox *thiz)
 	thiz->isclicked      = 1;
 
 	/* draw items on screen and put a nice box around them */
-	thiz->MouseOver(thiz, thiz->mouse);
+	mouseOver(thiz, thiz->mouse);
 }
 
 void ComboBox_AddItem(ComboBox *thiz, char *object)
 {
   if (!thiz || !object) return;
+
+	pthread_mutex_lock(&(thiz->lock));
+
   if (!thiz->items)
   {
 		thiz->items    = (char **) calloc(1, sizeof(char *));
 		thiz->items[0] = strdup(object);
 		thiz->n_items  = 1;
-		thiz->SelectItem(thiz, thiz->items[0]);
+		selectItem(thiz, thiz->items[0], 0);
 
+		pthread_mutex_unlock(&(thiz->lock));
 		return;
   }
 
 	thiz->items = (char **) realloc(thiz->items, (thiz->n_items + 1) * sizeof(char *));
 	thiz->items[thiz->n_items] = strdup(object);
 	thiz->n_items++;
+
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
 void ComboBox_ClearItems(ComboBox *thiz)
@@ -640,6 +681,9 @@ void ComboBox_ClearItems(ComboBox *thiz)
 	int i = 0;
 
   if (!thiz || !thiz->items) return;
+
+	pthread_mutex_lock(&(thiz->lock));
+
   thiz->selected = NULL;
 
 	for (; i<thiz->n_items; i++)
@@ -647,22 +691,31 @@ void ComboBox_ClearItems(ComboBox *thiz)
 
 	free(thiz->items);
 	thiz->n_items = 0;
+
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
 void ComboBox_Hide(ComboBox *thiz)
 {
+	pthread_mutex_lock(&(thiz->lock));
   thiz->window->SetOpacity(thiz->window, 0x00);
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
 void ComboBox_Show(ComboBox *thiz)
 {
+	pthread_mutex_lock(&(thiz->lock));
   if (thiz->hasfocus) thiz->window->SetOpacity(thiz->window, selected_window_opacity);
   else thiz->window->SetOpacity(thiz->window, window_opacity);
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
 void ComboBox_Destroy(ComboBox *thiz)
 {
   if (!thiz) return;
+
+	pthread_mutex_lock(&(thiz->lock));
+
   ComboBox_ClearItems(thiz);
   if (thiz->surface) thiz->surface->Release (thiz->surface);
   if (thiz->window)  thiz->window->Release (thiz->window);
@@ -670,7 +723,106 @@ void ComboBox_Destroy(ComboBox *thiz)
   free(thiz);
 }
 
-ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, color_t *text_color, DFBWindowDescription *window_desc, int screen_width, int screen_height)
+int mouse_over_combobox(ComboBox *thiz)
+{
+	int mouse_x, mouse_y;
+
+	thiz->layer->GetCursorPosition (thiz->layer, &mouse_x, &mouse_y);
+
+	if ( ((mouse_x >= (int)thiz->xpos) && (mouse_x <= ((int)thiz->xpos + (int)thiz->width)))  &&
+			 ((mouse_y >= (int)thiz->ypos) && (mouse_y <= ((int)thiz->ypos + (int)thiz->height)))  )
+		return 1;
+
+	return 0;
+}
+
+static int *combobox_thread(ComboBox *thiz)
+{
+	DFBInputEvent evt;
+	//pthread_t thread_id;
+
+	/* create our flashing cursor thread */
+	//pthread_create(&(thread_id), NULL, (void *) textbox_cursor_thread, thiz);
+
+	while (1)
+	{
+		thiz->events->WaitForEvent(thiz->events);
+		thiz->events->GetEvent (thiz->events, DFB_EVENT (&evt));
+
+		switch (evt.type)
+		{
+			case DIET_AXISMOTION:
+			{
+				pthread_mutex_lock(&(thiz->lock));
+				if (mouse_over_combobox(thiz))
+				{
+					if (evt.axis == DIAI_Z)
+					{
+						if (evt.axisrel == MOUSE_WHEEL_UP)
+							keyEvent(thiz, UP);
+			
+						if (evt.axisrel == MOUSE_WHEEL_DOWN)
+							keyEvent(thiz, DOWN);
+					}
+					mouseOver(thiz, 1);
+				}
+				else
+					mouseOver(thiz, 0);
+				pthread_mutex_unlock(&(thiz->lock));
+
+				break;
+			}
+			case DIET_BUTTONPRESS:
+			case DIET_BUTTONRELEASE:
+			{
+				pthread_mutex_lock(&(thiz->lock));
+				if (mouse_over_combobox(thiz))
+				{
+					setFocus(thiz, 1, 0);
+					click(thiz);
+				}
+				pthread_mutex_unlock(&(thiz->lock));
+
+				break;
+			}
+			case DIET_KEYPRESS:
+			{
+				struct DFBKeySymbolName *symbol_name;
+				modifiers modifier;
+				actions   action;
+				int       ascii_code;
+
+				pthread_mutex_lock(&(thiz->lock));
+
+				if (thiz->hasfocus)
+				{
+					modifier   = modifier_is_pressed(&evt);
+					ascii_code = (int)evt.key_symbol;
+					symbol_name = bsearch (&(evt.key_symbol), keynames, 
+												 sizeof (keynames) / sizeof (keynames[0]) - 1,
+												 sizeof (keynames[0]), compare_symbol);
+
+					action = search_keybindings(modifier, ascii_code);
+
+					if (action == DO_NOTHING)
+						if (symbol_name)
+						{
+							if (ascii_code == RETURN)     keyEvent(thiz, SELECT);
+							if (ascii_code == ARROW_UP)   keyEvent(thiz, UP);
+							if (ascii_code == ARROW_DOWN) keyEvent(thiz, DOWN);
+						}
+				}
+
+				pthread_mutex_unlock(&(thiz->lock));
+				break;
+			}
+			default: /* we do nothing here */
+				break;
+		}
+	}
+}
+
+ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFB *dfb, IDirectFBFont *font, color_t *text_color, DFBWindowDescription *window_desc, int screen_width, int screen_height)
 {
   ComboBox *newbox = NULL;
 
@@ -693,9 +845,6 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, col
 	newbox->text_color.B = text_color->B;
 	newbox->text_color.A = text_color->A;
 	newbox->SetTextColor = ComboBox_SetTextColor;
-	newbox->MouseOver    = ComboBox_MouseOver;
-  newbox->KeyEvent     = ComboBox_KeyEvent;
-	newbox->Click        = ComboBox_Click;
   newbox->SetFocus     = ComboBox_SetFocus;
   newbox->AddItem      = ComboBox_AddItem;
 	newbox->SortItems    = ComboBox_SortItems;
@@ -719,6 +868,11 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, col
   newbox->surface->SetFont (newbox->surface, font);
   newbox->surface->SetColor (newbox->surface, newbox->text_color.R, newbox->text_color.G, newbox->text_color.B, newbox->text_color.A);
   newbox->window->RaiseToTop(newbox->window);
+	newbox->layer = layer;
+
+	dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &(newbox->events));
+	pthread_mutex_init(&(newbox->lock), NULL);
+	pthread_create(&(newbox->thread_id), NULL, (void *) combobox_thread, newbox);
 
   return newbox;
 }

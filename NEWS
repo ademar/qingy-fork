@@ -1,3 +1,8 @@
+qingy SVN-0.8.0-SVN:
+- Multithreaded qingy.
+- Fixed "kill qingy" keybinding behaviour. Now it actually
+  quits qingy, instead of locking up your machine ;-).
+
 qingy 0.7.4 (04 Apr 2006):
 - Added support for wildcards in photo screen saver options. This
   means that you can put something like this in settings file:

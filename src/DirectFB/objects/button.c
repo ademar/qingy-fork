@@ -2,7 +2,7 @@
                           button.c  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2005 by Noberasco Michele
+    copyright            : (C) 2003-2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
  ***************************************************************************/
 
@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <directfb.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "memmgmt.h"
 #include "directfb_mode.h"
@@ -40,41 +41,18 @@
 #include "load_settings.h"
 #include "misc.h"
 
-void Button_MouseOver(Button *thiz, int status)
+static void mouseOver(Button *thiz, int status)
 {
 	if (!thiz) return;
 
-/* 	int i=0; */
-/* 	struct timespec t;	 */
-/* 	t.tv_sec=0; */
-/* 	t.tv_nsec=300000000; */
+	if (thiz->mouseOver == status) return;
 
-	thiz->mouse = status;
+	thiz->mouseOver = status;
 
-/* 	if (thiz->prev_status == -1) */
-/* 	{ */
 	thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
 	if (status) thiz->surface->Blit(thiz->surface, thiz->mouseover, NULL, 0, 0);
 	else thiz->surface->Blit(thiz->surface, thiz->normal, NULL, 0, 0);
 	thiz->surface->Flip(thiz->surface, NULL, 0);
-/* 	thiz->prev_status=0; */
-/* 	return; */
-/* 	} */
-
-/* 	for (; i<3; i++) */
-/* 	{ */
-
-/* 	thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00); */
-/* 	if (status) thiz->surface->Blit(thiz->surface, thiz->mouseover, NULL, 0, 0); */
-/* 	else thiz->surface->Blit(thiz->surface, thiz->normal, NULL, 0, 0); */
-/* 	thiz->surface->Flip(thiz->surface, NULL, 0); */
-
-/* 	status=!status; */
-
-/* 	nanosleep(&t, NULL); */
-/* 	} */
-
-/* 	status=!status; */
 }
 
 void Button_Show(Button *thiz)
@@ -162,7 +140,67 @@ IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, ID
 	return load_image_int(filename, primary, dfb, 0, 0, 0, x_ratio, y_ratio);
 }
 
-Button *Button_Create(const char *normal, const char *mouseover, int xpos, int ypos, IDirectFBDisplayLayer *layer, IDirectFBSurface *primary, IDirectFB *dfb, float x_ratio, float y_ratio)
+static int mouse_over_button(Button *thiz)
+{
+	int mouse_x, mouse_y;
+
+	thiz->layer->GetCursorPosition (thiz->layer, &mouse_x, &mouse_y);
+
+	if ( ((mouse_x >= thiz->xpos) && (mouse_x <= (thiz->xpos + (int) thiz->width)))  &&
+			 ((mouse_y >= thiz->ypos) && (mouse_y <= (thiz->ypos + (int) thiz->height)))  )
+		return 1;
+
+	return 0;
+}
+
+static int *button_thread(Button *thiz)
+{
+	DFBInputEvent evt;
+	int status = 0;
+
+	while (1)
+	{
+		thiz->events->WaitForEvent(thiz->events);
+		thiz->events->GetEvent (thiz->events, DFB_EVENT (&evt));
+		switch (evt.type)
+		{
+			case DIET_AXISMOTION:
+			{
+				if (mouse_over_button(thiz))
+					mouseOver(thiz, 1);
+				else
+					mouseOver(thiz, 0);
+
+				break;
+			}
+			case DIET_BUTTONPRESS:
+			{
+				if (thiz->mouseOver)
+					status=1;
+				else
+					status=0;
+
+				break;
+			}
+			case DIET_BUTTONRELEASE:
+			{
+				if (thiz->mouseOver && status)
+				{
+					status = 0;
+					thiz->callback(thiz);
+				}
+				else
+					status = 0;
+
+				break;
+			}
+			default: /* we do nothing here */
+				break;
+		}
+	}
+}
+
+Button *Button_Create(const char *normal, const char *mouseover, int xpos, int ypos, void (*callback)(struct _Button *thiz), IDirectFBDisplayLayer *layer, IDirectFBSurface *primary, IDirectFB *dfb, float x_ratio, float y_ratio)
 {
 	Button *but;
 	IDirectFBWindow *window;
@@ -189,10 +227,9 @@ Button *Button_Create(const char *normal, const char *mouseover, int xpos, int y
 	but->xpos        = xpos;
 	but->ypos        = ypos;
 	but->Destroy     = Button_Destroy;
-	but->MouseOver   = Button_MouseOver;
 	but->Show        = Button_Show;
 	but->Hide        = Button_Hide;
-/* 	but->prev_status = -1; */
+	but->callback    = callback;
 
 	window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
 	window_desc.posx   = (unsigned int) but->xpos;
@@ -206,9 +243,16 @@ Button *Button_Create(const char *normal, const char *mouseover, int xpos, int y
 	window->RaiseToTop( window );
 	window->GetSurface( window, &surface );
 	window->SetOpacity( window, button_opacity );
-	but->mouse = 0;
+
+	but->mouseOver = 1;
 	but->surface = surface;
 	but->window = window;
+	mouseOver(but, 0);
+	but->layer = layer;
+
+	dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &(but->events));
+
+	pthread_create(&(but->thread_id), NULL, (void *) button_thread, but);
 
 	return but;
 }

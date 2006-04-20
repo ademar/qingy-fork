@@ -35,9 +35,6 @@ char*  screen_saver_kind;
 IDirectFB * screen_saver_dfb;
 /* surface to run the screen saver into */
 IDirectFBSurface * screen_saver_surface;  
-  
-void activate_screen_saver(void);
 
-/* screensaver stops when there is an input event
-   and it returns it here...                      */
-IDirectFBEventBuffer * screen_saver_events;
+/* screensaver stops when there is an input event... */  
+void activate_screen_saver(IDirectFBEventBuffer *screen_saver_events);

@@ -107,24 +107,27 @@ Label                 *lock_key_statusA   = NULL;
 Label                 *lock_key_statusB   = NULL;
 Label                 *lock_key_statusC   = NULL;
 Label                 *lock_key_statusD   = NULL;
-ComboBox              *session            = NULL; /* combo boxes                               */
-int                   screen_width;               /* screen resolution                         */
+ComboBox              *session            = NULL; /* combo boxes */
+int                   screen_width;               /* screen resolution */
 int                   screen_height;
-int                   font_tiny_height;           /* font sizes                                */
+int                   font_tiny_height;           /* font sizes */
 int                   font_smaller_height;
 int                   font_small_height;
 int                   font_normal_height;
 int                   font_large_height;
-int                   username_area_mouse   = 0;  /* sensible areas for mouse cursor to be in  */
+int                   username_area_mouse   = 0; /* sensible areas for mouse cursor to be in */
 int                   password_area_mouse   = 0;
 int                   session_area_mouse    = 0;
 #ifdef USE_SCREEN_SAVERS
-int                   screensaver_active    = 0;  /* screensaver stuff                         */
+int                   screensaver_active    = 0; /* screensaver stuff */
 int                   screensaver_countdown = 0;
 #endif
-float                 x_ratio               = 1;  /* theme res. should be corrected by x_ratio */
-float                 y_ratio               = 1;  /* and y_ratio to match the actual res.      */
-int                   ppid                  = 0;  /* process id of out parent                  */
+float                 x_ratio               = 1; /* theme res. should be corrected by x_ratio */
+float                 y_ratio               = 1; /* and y_ratio to match the actual res. */
+int                   ppid                  = 0; /* process id of out parent */
+int                   thread_action         = 0; /* whether one of our threads is doing anything significant */
+pthread_mutex_t       lock_act              = PTHREAD_MUTEX_INITIALIZER; /* action lock       */
+pthread_mutex_t       lock_ss               = PTHREAD_MUTEX_INITIALIZER; /* screen saver lock */
 
 void safe_exit(int exitstatus)
 {
@@ -283,56 +286,11 @@ void DirectFB_Error()
 	close_framebuffer_mode();
 }
 
-/* mouse movement in buttons area */
-void handle_buttons(int *mouse_x, int *mouse_y)
-{
-  Button_list *buttons       = Buttons;
-  Button_list *other_buttons = Buttons;
-  
-  /* let's check wether mouse is over a button... */
-	if (!session->isclicked)
-		while (buttons)
-		{
-			if ((*mouse_x >= buttons->button->xpos) && (*mouse_x <= (buttons->button->xpos + (int) buttons->button->width)))
-				if ((*mouse_y >= buttons->button->ypos) && (*mouse_y <= (buttons->button->ypos + (int) buttons->button->height)))
-				{
-					if (!buttons->button->mouse)
-					{
-						buttons->button->MouseOver(buttons->button, 1);
-						while (other_buttons)
-						{
-							if (other_buttons->button->mouse && other_buttons->button != buttons->button) other_buttons->button->MouseOver(other_buttons->button, 0);
-							other_buttons = other_buttons->next;
-						}
-						return;
-					}
-					else return; /* we already plotted this event */
-				}
-			buttons = buttons->next;
-		}
-  
-  /* mouse not over any button */
-  while (other_buttons)
-	{
-		if (other_buttons->button->mouse) other_buttons->button->MouseOver(other_buttons->button, 0);
-		other_buttons = other_buttons->next;
-	}
-}
-
 /* mouse movement in textboxes and comboboxes area */
 void handle_text_combo_boxes(int *mouse_x, int *mouse_y)
 {
 	while (1)
 	{
-		/* mouse over session area */
-		if ( (*mouse_x >= (int) session->xpos) && (*mouse_x <= (int) session->xpos + (int) session->width) )
-			if ( (*mouse_y >= (int) session->ypos) && (*mouse_y <= (int) session->ypos + (int) session->height) )
-			{
-				session_area_mouse = 1;
-				session->MouseOver(session, 1);
-				return;
-			}		
-
 		/* mouse over username area */
 		if ( (*mouse_x >= (int) username->xpos) && (*mouse_x <= (int) username->xpos + (int) username->width) )
 			if ( (*mouse_y >= (int) username->ypos) && (*mouse_y <= (int) username->ypos + (int) username->height) )
@@ -351,8 +309,6 @@ void handle_text_combo_boxes(int *mouse_x, int *mouse_y)
   
 		break;
 	}
-
-	if (session->mouse) session->MouseOver(session, 0);
 }
 
 /* mouse movement in labels area */
@@ -398,7 +354,6 @@ void handle_mouse_movement (void)
 
   layer->GetCursorPosition (layer, &mouse_x, &mouse_y);
   handle_text_combo_boxes(&mouse_x, &mouse_y);
-  handle_buttons(&mouse_x, &mouse_y);
   handle_labels(&mouse_x, &mouse_y);
 }
 
@@ -485,7 +440,7 @@ void clear_screen(void)
   primary->SetColor (primary, other_text_color.R, other_text_color.G, other_text_color.B, other_text_color.A);
 }
 
-void begin_shutdown_sequence (actions action)
+void begin_shutdown_sequence (actions action, IDirectFBEventBuffer *events)
 {
   DFBInputEvent evt;
   char message[35];
@@ -606,8 +561,8 @@ void do_ctrl_alt_del(DFBInputEvent *evt)
   char *action = parse_inittab_file();
   
   if (!action) return;	
-  if (!strcmp(action, "poweroff")) {free(action); begin_shutdown_sequence (DO_POWEROFF); return;}
-  if (!strcmp(action, "reboot"))   {free(action); begin_shutdown_sequence (DO_REBOOT  ); return;}
+  if (!strcmp(action, "poweroff")) {free(action); begin_shutdown_sequence (DO_POWEROFF, events); return;}
+  if (!strcmp(action, "reboot"))   {free(action); begin_shutdown_sequence (DO_REBOOT,   events); return;}
   
   /* we display a message */
   clear_screen();
@@ -620,28 +575,13 @@ void do_ctrl_alt_del(DFBInputEvent *evt)
 
 void handle_mouse_event (DFBInputEvent *evt)
 {
-  static Button *button = NULL;
+/*   static Button *button = NULL; */
   static int status = 0;
 
   if (evt->type == DIET_AXISMOTION)
 	{ /* we check wether there is movement on Z axis, aka mouse wheel */
-		if (evt->axis == DIAI_Z)
-		{
-			int mouse_x, mouse_y;
-
-			layer->GetCursorPosition (layer, &mouse_x, &mouse_y);
-
-			if ( (mouse_x >= (int) session->xpos) && (mouse_x <= (int) session->xpos + (int) session->width) )
-				if ( (mouse_y >= (int) session->ypos) && (mouse_y <= (int) session->ypos + (int) session->height) )
-				{
-					if (evt->axisrel == MOUSE_WHEEL_UP)
-						session->KeyEvent(session, UP);
-			
-					if (evt->axisrel == MOUSE_WHEEL_DOWN)
-						session->KeyEvent(session, DOWN);
-				}
-		}
-		else handle_mouse_movement();
+		if (evt->axis != DIAI_Z)
+			handle_mouse_movement();
 	}
   else
 	{	/* mouse button press or release */
@@ -650,20 +590,9 @@ void handle_mouse_event (DFBInputEvent *evt)
 			 * left mouse button is down:
 			 * we check wether mouse pointer is over a specific area
 			 */
-			Button_list *buttons = Buttons;
-
 			if (username_area_mouse) status = 1;
 			if (password_area_mouse) status = 2;
 			if (session_area_mouse)  status = 3;
-			while (buttons)
-	    {
-	      if (buttons->button->mouse)
-				{
-					button = buttons->button;
-					break;
-				}
-	      buttons = buttons->next;
-	    }
 
 			if (session->mouse)
 			{
@@ -673,12 +602,6 @@ void handle_mouse_event (DFBInputEvent *evt)
 	      if (password_label) password_label->SetFocus(password_label, 0);
 	      session->SetFocus(session, 1);
 	      if (session_label) session_label->SetFocus(session_label, 1);
-				session->Click(session);
-			}
-			else if (session->isclicked)
-			{
-				session->Click(session);
-				handle_mouse_movement();
 			}
 		}
 		else
@@ -686,43 +609,6 @@ void handle_mouse_event (DFBInputEvent *evt)
 			 * left mouse button is up:
 			 * if it was on a specific area when down we check if it is still there
 			 */
-			if (button)
-				if (button->mouse)
-					switch (button->action)
-					{
-						case DO_POWEROFF:
-						case DO_REBOOT:
-							begin_shutdown_sequence (button->action);
-							break;
-						case DO_SCREEN_SAVER:
-#ifdef USE_SCREEN_SAVERS
-							screensaver_countdown = 0;
-							screensaver_active    = 1;
-							clear_screen();
-							primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-							primary->Flip  (primary, NULL, DSFLIP_BLIT);
-#endif
-							break;
-						case DO_SLEEP:
-							if (!sleep_cmd)
-							{
-								DFBInputEvent evt;
-
-								clear_screen();
-								primary->DrawString (primary, "You must define sleep command in settings file!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
-								primary->Flip (primary, NULL, 0);
-								sleep(2);
-								events->GetEvent (events, DFB_EVENT (&evt));
-								reset_screen(&evt);
-								break;
-							}
-
-							begin_shutdown_sequence (DO_SLEEP);
-							break;
-						default: /* no action */
-							break;
-					}
-
 			if (username_area_mouse && status == 1)
 	    {	/* username area has been clicked! */
 	      username->SetFocus(username, 1);
@@ -756,9 +642,88 @@ void handle_mouse_event (DFBInputEvent *evt)
 	      if (session_label) session_label->SetFocus(session_label, 1);
 	    }
 			status = 0;		/* we reset click status because button went up */
-			button = NULL;
 		}
 	}
+}
+
+/* callback function to handle button clicks */
+void button_click(Button *button)
+{
+	int doit = 0;
+
+	if (!button) return;
+
+	/* main process is forbidden to perform actions until we are done,
+	 * unless, of course, it is already doing something, in which case
+	 * we wait for it to finish
+	 */
+	while (!doit)
+	{
+		pthread_mutex_lock(&lock_act);
+		if (!thread_action)
+		{
+			thread_action = 1;
+			doit          = 1;
+		}
+		if (!doit)
+		{
+			pthread_mutex_unlock(&lock_act);
+			struct timespec ts;
+			ts.tv_sec = 0;
+			ts.tv_nsec = 10000000;
+			sleep(1);
+		}
+	}
+	pthread_mutex_unlock(&lock_act);
+
+	switch (button->action)
+	{
+		case DO_POWEROFF:
+		case DO_REBOOT:
+			begin_shutdown_sequence (button->action, button->events);
+			break;
+		case DO_SCREEN_SAVER:
+#ifdef USE_SCREEN_SAVERS
+			if (!pthread_mutex_trylock(&lock_ss))
+			{
+				DFBInputEvent evt;
+				
+				clear_screen();
+				primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
+				primary->Flip  (primary, NULL, DSFLIP_BLIT);
+				primary->SetFont  (primary, font_large);
+				primary->SetColor (primary, other_text_color.R, other_text_color.G, other_text_color.B, other_text_color.A);
+				activate_screen_saver(button->events);
+				screensaver_countdown = screensaver_timeout * 120;
+				events->GetEvent(events, DFB_EVENT (&evt));
+				reset_screen(&evt);
+				pthread_mutex_unlock(&lock_ss);
+			}
+#endif
+			break;
+		case DO_SLEEP:
+			if (!sleep_cmd)
+			{
+				DFBInputEvent evt;
+					
+				clear_screen();
+				primary->DrawString (primary, "You must define sleep command in settings file!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+				primary->Flip (primary, NULL, 0);
+				sleep(2);
+				events->GetEvent (events, DFB_EVENT (&evt));
+				reset_screen(&evt);
+				break;
+			}
+
+			begin_shutdown_sequence (DO_SLEEP, button->events);
+			break;
+		default: /* no action */
+			break;
+	}
+
+	pthread_mutex_lock(&lock_act);
+	thread_action = 0;
+	pthread_mutex_unlock(&lock_act);
 }
 
 void start_login_sequence(DFBInputEvent *evt)
@@ -850,11 +815,11 @@ int handle_keyboard_event(DFBInputEvent *evt)
 		{
 			case DO_POWEROFF:
 			case DO_REBOOT:
-				begin_shutdown_sequence (action);
+				begin_shutdown_sequence (action, events);
 				break;
 			case DO_KILL: /* we kill out parent - the true qingy - then commit suicide */
-				kill(getppid(), SIGINT);
-				kill(getpid(),  SIGINT);
+				close_framebuffer_mode();
+				exit(EXIT_RESPAWN);
 				break;
 			case DO_SCREEN_SAVER:
 				ascii_code            = 0;
@@ -878,7 +843,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 					reset_screen(&evt);
 					break;
 				}
-				begin_shutdown_sequence (DO_SLEEP);
+				begin_shutdown_sequence (DO_SLEEP, events);
 				break;
 			case DO_NEXT_TTY:
 				return (current_tty + 1);
@@ -945,8 +910,9 @@ int handle_keyboard_event(DFBInputEvent *evt)
 	    }
 			else
 	    {
-	      username->KeyEvent(username, ascii_code, modifier, 1);
-	      set_user_session(username->text);
+				pthread_mutex_lock(&(username->lock));
+				set_user_session(username->text);
+				pthread_mutex_unlock(&(username->lock));
 	    }
 		}
 
@@ -969,15 +935,11 @@ int handle_keyboard_event(DFBInputEvent *evt)
 					username->SetFocus(username, 1);
 				}
 	    }
-			else password->KeyEvent(password, ascii_code, modifier, 1);
 		}
 
 		/* session events */
 		if (session->hasfocus && allow_tabbing)
 		{
-			if (ascii_code == RETURN)     session->KeyEvent(session, SELECT);
-			if (ascii_code == ARROW_UP)   session->KeyEvent(session, UP);
-			if (ascii_code == ARROW_DOWN) session->KeyEvent(session, DOWN);
 			if (ascii_code == TAB)
 	    {
 	      allow_tabbing = 0;
@@ -1060,11 +1022,11 @@ int create_windows()
 		switch (window->type)
 		{
 			case LOGIN:
-				username = TextBox_Create(layer, font, window->text_color, window->cursor_color, &window_desc);
+				username = TextBox_Create(layer, dfb, font, window->text_color, window->cursor_color, &window_desc);
 				if (!username) return 0;
 				break;
 			case PASSWORD:
-				password = TextBox_Create(layer, font, window->text_color, window->cursor_color, &window_desc);
+				password = TextBox_Create(layer, dfb, font, window->text_color, window->cursor_color, &window_desc);
 				if (!password) return 0;
 				break;
 			case LABEL:
@@ -1112,10 +1074,9 @@ int create_windows()
 	      }
 				image1 = StrApp((char **)NULL, theme_dir, window->content, "_normal.png",    (char *)NULL);
 				image2 = StrApp((char **)NULL, theme_dir, window->content, "_mouseover.png", (char *)NULL);
-				buttons->button = Button_Create(image1, image2, window_desc.posx, window_desc.posy, layer, primary, dfb, x_ratio, y_ratio);
+				buttons->button = Button_Create(image1, image2, window_desc.posx, window_desc.posy, button_click, layer, primary, dfb, x_ratio, y_ratio);
 				if (!buttons->button) return 0;			
 				buttons->next = NULL;
-				buttons->button->MouseOver(buttons->button, 0);
 				free(image1); free(image2);
 				if (!window->command)
 					buttons->button->action = DO_NOTHING;
@@ -1131,7 +1092,7 @@ int create_windows()
 			case COMBO:
 				if (window->type == COMBO && !strcmp(window->command, "sessions"))
 				{
-					session = ComboBox_Create(layer, font, window->text_color, &window_desc, screen_width, screen_height);
+					session = ComboBox_Create(layer, dfb, font, window->text_color, &window_desc, screen_width, screen_height);
 					if (!session) return 0;
 				}
 				break;
@@ -1302,7 +1263,6 @@ int main (int argc, char *argv[])
   screen_saver_kind    = screensaver_name;
   screen_saver_surface = primary;
   screen_saver_dfb     = dfb;
-  screen_saver_events  = events;
 #endif
 
   /* we go on for ever... or until the user does something in particular */
@@ -1310,7 +1270,7 @@ int main (int argc, char *argv[])
 	{
 #ifdef USE_SCREEN_SAVERS
 		if (!screensaver_countdown)
-			screensaver_countdown = screensaver_timeout * 120;		
+			screensaver_countdown = screensaver_timeout * 120;
 #endif
       
 		/* we wait for an input event... */
@@ -1318,64 +1278,82 @@ int main (int argc, char *argv[])
 		if (!screensaver_active) events->WaitForEventWithTimeout(events, 0, 500);
 		else
 		{
-			primary->SetFont  (primary, font_large);
-			primary->SetColor (primary, other_text_color.R, other_text_color.G, other_text_color.B, other_text_color.A);
-			activate_screen_saver();
+			if (!pthread_mutex_trylock(&lock_ss))
+			{
+	      clear_screen();
+	      primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
+	      primary->Flip  (primary, NULL, DSFLIP_BLIT);
+				primary->SetFont  (primary, font_large);
+				primary->SetColor (primary, other_text_color.R, other_text_color.G, other_text_color.B, other_text_color.A);
+				activate_screen_saver(events);
+				pthread_mutex_unlock(&lock_ss);
+			}
+			else
+				screensaver_active = 0;
 		}
 #else  /* don't want screensavers */
 		events->WaitForEventWithTimeout(events, 0, 500);
 #endif /* screensaver stuff */
-		
-		if (events->HasEvent(events) == DFB_OK)
-		{ /* ...got that! */
+
+		if (events->HasEvent(events) == DFB_OK) /* ...got that! */
+		{
+			int do_action = 1;
+
 			events->GetEvent (events, DFB_EVENT (&evt));
 #ifdef USE_SCREEN_SAVERS
 			screensaver_countdown = screensaver_timeout * 120;			
 			if (screensaver_active)
-	    {
-	      screensaver_active = 0;
-	      reset_screen(&evt);
-	    }
+			{
+				screensaver_active = 0;
+				reset_screen(&evt);
+			}
 #endif
-			switch (evt.type)
-	    {
-				case DIET_AXISMOTION:
-				case DIET_BUTTONPRESS:
-				case DIET_BUTTONRELEASE:
-					handle_mouse_event (&evt);
-					break;
-				case DIET_KEYPRESS:
-					returnstatus = handle_keyboard_event(&evt);
-					break;
-				default: /* we do nothing here */
-					break;
-	    }
+
+			/* we perform our action only if allowed to */
+			pthread_mutex_lock(&lock_act);
+			if (thread_action)
+				do_action = 0;
+			else
+				thread_action = 1;
+			pthread_mutex_unlock(&lock_act);
+
+			if (do_action)
+			{
+				switch (evt.type)
+				{
+					case DIET_AXISMOTION:
+					case DIET_BUTTONPRESS:
+					case DIET_BUTTONRELEASE:
+						handle_mouse_event (&evt);
+						pthread_mutex_lock(&lock_act);
+						thread_action=0;
+						pthread_mutex_unlock(&lock_act);
+						break;
+					case DIET_KEYPRESS:
+						returnstatus = handle_keyboard_event(&evt);
+						break;
+					default: /* we do nothing here */
+						break;
+				}
+
+				pthread_mutex_lock(&lock_act);
+				thread_action = 0;
+				pthread_mutex_unlock(&lock_act);
+			}
 		}
 		else
-		{ /* Let there be a flashing cursor! */
-			static int flashing_cursor = 0;
-
+		{
 #ifdef USE_SCREEN_SAVERS	  
-			if (!screensaver_active)
-	    {
-	      if (username->hasfocus) username->KeyEvent(username, REDRAW, NONE, flashing_cursor);
-	      if (password->hasfocus) password->KeyEvent(password, REDRAW, NONE, flashing_cursor);
-	      flashing_cursor = !flashing_cursor;
-	      if (use_screensaver) screensaver_countdown--;
-	    }
+
+			if (!screensaver_active && use_screensaver)
+				screensaver_countdown--;
+
 			if (!screensaver_countdown)
-	    {
 	      screensaver_active = 1;
-	      clear_screen();
-	      primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-	      primary->Flip  (primary, NULL, DSFLIP_BLIT);
-	    }
-#else  /* don't want screensavers */
-			if (username->hasfocus) username->KeyEvent(username, REDRAW, NONE, flashing_cursor);
-			if (password->hasfocus) password->KeyEvent(password, REDRAW, NONE, flashing_cursor);
-			flashing_cursor = !flashing_cursor;
+
 #endif /* screensaver stuff */
 		}
+
 	}
 
   close_framebuffer_mode ();

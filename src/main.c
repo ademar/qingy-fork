@@ -356,6 +356,11 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 			/* We won't get here unless there was a failure starting user session */
 			fprintf(stderr, "\nLogin failed, reverting to text mode!\n");			
 			/* Fall trough */
+		case EXIT_RESPAWN:
+			if (username) memset(username, '\0', sizeof(username));
+      if (password) memset(password, '\0', sizeof(password));
+			exit(EXIT_SUCCESS);
+			break;
 		case EXIT_TEXT_MODE:
 			if (username) memset(username, '\0', sizeof(username));
       if (password) memset(password, '\0', sizeof(password));

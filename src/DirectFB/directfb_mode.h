@@ -27,6 +27,7 @@
 
 
 /* constants that we make use of */
+#define EXIT_RESPAWN      251
 #define EXIT_SLEEP        252
 #define EXIT_SHUTDOWN_R   253
 #define EXIT_SHUTDOWN_H   254

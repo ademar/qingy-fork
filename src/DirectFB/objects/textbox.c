@@ -2,7 +2,7 @@
                           textbox.c  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2005 by Noberasco Michele
+    copyright            : (C) 2003-2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
  ***************************************************************************/
 
@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 #include <directfb.h>
 #include <directfb_keynames.h>
 
@@ -165,12 +166,19 @@ void DrawCursor(TextBox *thiz)
 	if (free_text) free(text);
 }
 
-void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int modifier, int draw_cursor)
+void keyEvent(TextBox *thiz, int ascii_code, int modifier, int draw_cursor, int lock)
 {
-	char *buffer = thiz->text;
+	char *buffer;
 	int length;
-	int *position = &thiz->position;
-	IDirectFBSurface *window_surface= thiz->surface;
+	int *position;
+	IDirectFBSurface *window_surface;
+
+	if (lock)
+		pthread_mutex_lock(&(thiz->lock));
+
+	buffer         =  thiz->text;
+	position       = &thiz->position;
+	window_surface =  thiz->surface;
 
 	if (!buffer)
 	{
@@ -195,26 +203,39 @@ void TextBox_KeyEvent(TextBox *thiz, int ascii_code, int modifier, int draw_curs
 		else window_surface->DrawString (window_surface, buffer, -1, 0, 0, DSTF_LEFT|DSTF_TOP);
 		window_surface->Flip(window_surface, NULL, 0);
 	}
+
+	if (lock)
+		pthread_mutex_unlock(&(thiz->lock));
 }
 
 void TextBox_SetText(TextBox *thiz, char *text)
 {
-	if (!thiz || !text) return;
+	if (!thiz || !text)        return;
 	if (strlen(text) >= MAX-1) return;
+
+	pthread_mutex_lock(&(thiz->lock));
+
 	if (!thiz->text) thiz->text = (char *) calloc(MAX, sizeof(char));
 	strcpy(thiz->text, text);
 	thiz->position = strlen(thiz->text);
-	if (thiz->hasfocus) TextBox_KeyEvent(thiz, REDRAW, NONE, 1);
-	else TextBox_KeyEvent(thiz, REDRAW, NONE, 0);
+	if (thiz->hasfocus) keyEvent(thiz, REDRAW, NONE, 1, 0);
+	else keyEvent(thiz, REDRAW, NONE, 0, 0);
+
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
 void TextBox_ClearText(TextBox *thiz)
 {
 	if (!thiz) return;
+
+	pthread_mutex_lock(&(thiz->lock));
+
 	if (thiz->text) memset(thiz->text, '\0', sizeof(thiz->text));
 	thiz->position = 0;
-	if (thiz->hasfocus) TextBox_KeyEvent(thiz, REDRAW, NONE, 1);
-	else TextBox_KeyEvent(thiz, REDRAW, NONE, 0);
+	if (thiz->hasfocus) keyEvent(thiz, REDRAW, NONE, 1, 0);
+	else keyEvent(thiz, REDRAW, NONE, 0, 0);
+
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
 void TextBox_SetTextColor(TextBox *thiz, color_t *text_color)
@@ -222,11 +243,15 @@ void TextBox_SetTextColor(TextBox *thiz, color_t *text_color)
 	if (!thiz)       return;
 	if (!text_color) return;
 
+	pthread_mutex_lock(&(thiz->lock));
+
 	thiz->text_color.R = text_color->R;
 	thiz->text_color.G = text_color->G;
 	thiz->text_color.B = text_color->B;
 	thiz->text_color.A = text_color->A;
-	thiz->surface->SetColor (thiz->surface, text_color->R, text_color->G, text_color->B, text_color->A);	
+	thiz->surface->SetColor (thiz->surface, text_color->R, text_color->G, text_color->B, text_color->A);
+
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
 void TextBox_SetCursorColor(TextBox *thiz, color_t *cursor_color)
@@ -234,15 +259,21 @@ void TextBox_SetCursorColor(TextBox *thiz, color_t *cursor_color)
 	if (!thiz)       return;
 	if (!cursor_color) return;
 
+	pthread_mutex_lock(&(thiz->lock));
+
 	thiz->cursor_color.R = cursor_color->R;
 	thiz->cursor_color.G = cursor_color->G;
 	thiz->cursor_color.B = cursor_color->B;
 	thiz->cursor_color.A = cursor_color->A;
+
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
 void TextBox_SetFocus(TextBox *thiz, int focus)
 {
 	if (!thiz) return;
+
+	pthread_mutex_lock(&(thiz->lock));
 
 	if (focus)
 	{
@@ -251,37 +282,109 @@ void TextBox_SetFocus(TextBox *thiz, int focus)
 		thiz->window->SetOpacity(thiz->window, selected_window_opacity);
 		if (!thiz->text) thiz->position = 0;
 		else thiz->position = strlen(thiz->text);
-		TextBox_KeyEvent(thiz, REDRAW, NONE, 1);
+		keyEvent(thiz, REDRAW, NONE, 1, 0);
+		pthread_mutex_unlock(&(thiz->lock));
 		return;
 	}
 
 	thiz->hasfocus = 0;
 	thiz->window->SetOpacity(thiz->window, window_opacity);
-	TextBox_KeyEvent(thiz, REDRAW, NONE, 0);
+	keyEvent(thiz, REDRAW, NONE, 0, 0);
+	pthread_mutex_unlock(&(thiz->lock));
 	return;
 }
 
 void TextBox_Hide(TextBox *thiz)
 {
+	pthread_mutex_lock(&(thiz->lock));
 	thiz->window->SetOpacity(thiz->window, 0x00);
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
 void TextBox_Show(TextBox *thiz)
 {
+	pthread_mutex_lock(&(thiz->lock));
 	if (thiz->hasfocus) thiz->window->SetOpacity(thiz->window, selected_window_opacity);
 	else thiz->window->SetOpacity(thiz->window, window_opacity);
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
 void TextBox_Destroy(TextBox *thiz)
 {
 	if (!thiz) return;
+	pthread_mutex_lock(&(thiz->lock));
 	if (thiz->text) free(thiz->text);	
 	if (thiz->surface) thiz->surface->Release (thiz->surface);
 	if (thiz->window) thiz->window->Release (thiz->window);
 	free(thiz);
 }
 
-TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, color_t *text_color, color_t *cursor_color, DFBWindowDescription *window_desc)
+static int *textbox_cursor_thread(TextBox *thiz)
+{
+	int flashing_cursor = 1;
+	struct timespec t;
+
+	t.tv_sec  = 0;
+	t.tv_nsec = 500000000;
+
+	while (1)
+	{
+		pthread_mutex_lock(&(thiz->lock));
+		if (thiz->hasfocus) keyEvent(thiz, REDRAW, NONE, flashing_cursor, 0);
+		flashing_cursor = !flashing_cursor;
+		pthread_mutex_unlock(&(thiz->lock));
+		nanosleep(&t, NULL);
+	}
+}
+
+static int *textbox_thread(TextBox *thiz)
+{
+	DFBInputEvent evt;
+	pthread_t thread_id;
+
+	/* create our flashing cursor thread */
+	pthread_create(&(thread_id), NULL, (void *) textbox_cursor_thread, thiz);
+
+	while (1)
+	{
+		thiz->events->WaitForEvent(thiz->events);
+		thiz->events->GetEvent (thiz->events, DFB_EVENT (&evt));
+
+		switch (evt.type)
+		{
+			case DIET_KEYPRESS:
+			{
+				struct DFBKeySymbolName *symbol_name;
+				modifiers modifier;
+				actions   action;
+				int       ascii_code;
+
+				pthread_mutex_lock(&(thiz->lock));
+
+				if (thiz->hasfocus)
+				{
+					modifier   = modifier_is_pressed(&evt);
+					ascii_code = (int)evt.key_symbol;
+					symbol_name = bsearch (&(evt.key_symbol), keynames, 
+												 sizeof (keynames) / sizeof (keynames[0]) - 1,
+												 sizeof (keynames[0]), compare_symbol);
+
+					action = search_keybindings(modifier, ascii_code);
+
+					if (action == DO_NOTHING)
+						if (symbol_name)
+							keyEvent(thiz, ascii_code, modifier, 1, 0);
+				}
+
+				pthread_mutex_unlock(&(thiz->lock));
+			}
+			default: /* we do nothing here */
+				break;
+		}
+	}
+}
+
+TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFB *dfb, IDirectFBFont *font, color_t *text_color, color_t *cursor_color, DFBWindowDescription *window_desc)
 {
 	TextBox *newbox = NULL;
 
@@ -305,7 +408,6 @@ TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, color
 	newbox->cursor_color.A = cursor_color->A;
 	newbox->window         = NULL;
 	newbox->surface        = NULL;
-	newbox->KeyEvent       = TextBox_KeyEvent;
 	newbox->SetFocus       = TextBox_SetFocus;
 	newbox->SetText        = TextBox_SetText;
 	newbox->ClearText      = TextBox_ClearText;
@@ -321,6 +423,10 @@ TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, color
 	newbox->surface->SetFont (newbox->surface, font);
 	newbox->surface->SetColor (newbox->surface, newbox->text_color.R, newbox->text_color.G, newbox->text_color.B, newbox->text_color.A);
 	newbox->window->RaiseToTop(newbox->window);
+
+	dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &(newbox->events));
+	pthread_mutex_init(&(newbox->lock), NULL);
+	pthread_create(&(newbox->thread_id), NULL, (void *) textbox_thread, newbox);
 
 	return newbox;
 }

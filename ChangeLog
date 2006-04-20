@@ -1,3 +1,36 @@
+2006-04-12  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/directfb_mode.c (handle_keyboard_event),
+	* src/DirectFB/directfb_mode.h (EXIT_RESPAWN),
+	* src/main.c (start_up):
+	Fixed "kill qingy" keybinding behaviour. Now it actually
+	quits qingy, instead of locking up your machine ;-).
+
+2006-04-11  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/directfb_mode.c,
+	* src/DirectFB/objects/textbox.h,
+	* src/DirectFB/objects/textbox.c:
+	Text boxes got their own thread, too. Well, two threads each,
+	actually: one for input events and one dedicated to updating the
+	flashing cursor...
+
+	* src/DirectFB/directfb_mode.c,:
+	* src/DirectFB/objects/screen_saver.h (activate_screen_saver),
+	* src/DirectFB/objects/screen_saver.c (activate_screen_saver):
+	Fixed thread syncronization for buttons. Now qingy GUI should behave
+	exactly like before going multithread.
+
+2006-04-10  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/directfb_mode.c,
+	* src/DirectFB/objects/button.c,
+	* src/DirectFB/objects/button.h:
+	Gave buttons their own governing thread.
+	Added locks throughout the code so that actions
+	cannot be berformed by button threads and main
+	thread at the same time...
+
 2006-04-05  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/directfb_mode.c,

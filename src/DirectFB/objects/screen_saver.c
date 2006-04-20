@@ -78,7 +78,7 @@ char** il2cc(struct _screensaver_options *options)
   return tbl;
 }
 
-void activate_screen_saver(void)
+void activate_screen_saver(IDirectFBEventBuffer *events)
 {
   void* handle;
   char* ssv_name = NULL;
@@ -90,12 +90,12 @@ void activate_screen_saver(void)
   void (*do_screen_saver)(Q_screen_t);
 
   if (!screen_saver_surface) return;
-  if (!screen_saver_events)  return;
+  if (!events)               return;
   
   screen_saver_surface->GetSize(screen_saver_surface, &(screenEnv.screen_width), &(screenEnv.screen_height));
   screenEnv.surface             = screen_saver_surface;
   screenEnv.dfb                 = screen_saver_dfb;
-  screenEnv.screen_saver_events = screen_saver_events;
+  screenEnv.screen_saver_events = events;
   screenEnv.params              = il2cc(screensaver_options);
 	screenEnv.silent              = silent;
 	screenEnv.data_dir            = screensavers_dir;
