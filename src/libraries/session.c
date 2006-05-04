@@ -970,3 +970,57 @@ void start_session(char *username, char *session)
 	sleep(3);
   exit(EXIT_FAILURE);
 }
+
+void sort_sessions(char **sessions, int n_items)
+{
+	int i          = 0;
+	int x_sessions = 0;
+
+	if (!sessions)    return;
+	if (!(*sessions)) return;
+	if (!n_items)     return;
+
+	/* We divide X and text sessions ... */
+	for (; i<(n_items-1); i++)
+	{
+		int j = i + 1;
+		for (; j<n_items; j++)
+			if (!strncmp(sessions[i], "Text: ", 6))
+				if (strncmp(sessions[j], "Text: ", 6))
+				{
+					char *swap = sessions[i];
+					sessions[i] = sessions[j];
+					sessions[j] = swap;
+					break;
+				}
+
+		if (strncmp(sessions[i], "Text: ", 6))
+			x_sessions++;
+	}
+
+	/* ... we sort X sessions ... */
+	for (i=0; i<(x_sessions-1); i++)
+	{
+		int j = i + 1;
+		for (; j<x_sessions; j++)
+			if (strcasecmp(sessions[i], sessions[j]) > 0)
+			{
+				char *swap = sessions[i];
+				sessions[i] = sessions[j];
+				sessions[j] = swap;
+			}
+	}
+
+	/* ... and text ones */
+	for (i=x_sessions; i<(n_items-1); i++)
+	{
+		int j = i + 1;
+		for (; j<n_items; j++)
+			if (strcasecmp(sessions[i], sessions[j]) > 0)
+			{
+				char *swap = sessions[i];
+				sessions[i] = sessions[j];
+				sessions[j] = swap;
+			}
+	}
+}

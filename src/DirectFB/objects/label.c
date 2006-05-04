@@ -68,55 +68,75 @@ static void Plot(Label *thiz)
 	thiz->surface->Flip(thiz->surface, NULL, 0);
 }
 
+void Label_SetClickCallBack(Label *thiz, void *callback)
+{
+	if (!thiz) return;
+
+	pthread_mutex_lock(&(thiz->lock));
+
+	thiz->click_callback = callback;
+
+	pthread_mutex_unlock(&(thiz->lock));
+}
+
 void Label_ClearText(Label *thiz)
 {
 	if (!thiz) return;
+
+	pthread_mutex_lock(&(thiz->lock));
+
 	free(thiz->text);
 	Plot(thiz);
+
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
-static int *label_thread(Label *thiz)
-{
-	while (1)
-	{
-		char *message = assemble_message(thiz->content, thiz->command);
-		thiz->SetText(thiz, message);
-		free(message);
-		sleep(thiz->polltime);
-	}
-}
-
-void Label_SetAction(Label *thiz, int polltime, char *content, char *command)
-{
-	if (!thiz) return;
-
-	thiz->polltime = polltime;
-	thiz->content  = strdup(content);
-	thiz->command  = strdup(command);
-
-	if (!polltime)
-	{
-		char *message = assemble_message(thiz->content, thiz->command);
-		thiz->SetText(thiz, message);
-		free(message);
-		return;
-	}
-
-	pthread_create(&(thiz->thread_id), NULL, (void *) label_thread, thiz);
-}
-
-void Label_SetText(Label *thiz, char *text)
+static void setText(Label *thiz, char *text)
 {
 	if (!thiz || !text) return;
+
 	free(thiz->text);
 	thiz->text = strdup(text);
 	Plot(thiz);
 }
 
+void Label_SetAction(Label *thiz, int polltime, char *content, char *command)
+{
+	char *message;
+
+	if (!thiz) return;
+
+	pthread_mutex_lock(&(thiz->lock));
+
+	thiz->polltime = polltime;
+	thiz->content  = strdup(content);
+	thiz->command  = strdup(command);
+
+	message = assemble_message(thiz->content, thiz->command);
+	setText(thiz, message);
+	free(message);
+
+	pthread_mutex_unlock(&(thiz->lock));
+}
+
+void Label_SetText(Label *thiz, char *text)
+{
+	if (!thiz || !text) return;
+
+	pthread_mutex_lock(&(thiz->lock));
+
+	setText(thiz, text);
+
+	pthread_mutex_unlock(&(thiz->lock));
+}
+
 void Label_SetTextOrientation(Label *thiz, int orientation)
 {
 	if (!thiz) return;
+
+	pthread_mutex_lock(&(thiz->lock));
 	thiz->text_orientation = orientation;
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
 void Label_SetTextColor(Label *thiz, color_t *text_color)
@@ -124,14 +144,16 @@ void Label_SetTextColor(Label *thiz, color_t *text_color)
 	if (!thiz)       return;
 	if (!text_color) return;
 
+	pthread_mutex_lock(&(thiz->lock));
 	thiz->text_color.R = text_color->R;
 	thiz->text_color.G = text_color->G;
 	thiz->text_color.B = text_color->B;
 	thiz->text_color.A = text_color->A;
 	thiz->surface->SetColor (thiz->surface, text_color->R, text_color->G, text_color->B, text_color->A);	
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
-void Label_SetFocus(Label *thiz, int focus)
+static void setFocus(Label *thiz, int focus)
 {
 	if (!thiz) return;
 
@@ -145,30 +167,136 @@ void Label_SetFocus(Label *thiz, int focus)
 
 	thiz->hasfocus = 0;
 	thiz->window->SetOpacity(thiz->window, window_opacity);
-	return;
+}
+
+void Label_SetFocus(Label *thiz, int focus)
+{
+	if (!thiz) return;
+
+	pthread_mutex_lock(&(thiz->lock));
+	setFocus(thiz, focus);
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
 void Label_Hide(Label *thiz)
 {
+	if (!thiz) return;
+
+	pthread_mutex_lock(&(thiz->lock));
+	thiz->ishidden = 1;
 	thiz->window->SetOpacity(thiz->window, 0x00);
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
 void Label_Show(Label *thiz)
 {
+	if (!thiz) return;
+
+	pthread_mutex_lock(&(thiz->lock));
+	thiz->ishidden = 0;
 	if (thiz->hasfocus) thiz->window->SetOpacity(thiz->window, selected_window_opacity);
 	else thiz->window->SetOpacity(thiz->window, window_opacity);
+	pthread_mutex_unlock(&(thiz->lock));
 }
 
 void Label_Destroy(Label *thiz)
 {
 	if (!thiz) return;
-	if (thiz->text) free(thiz->text);
-	if (thiz->surface) thiz->surface->Release (thiz->surface);
-	if (thiz->window) thiz->window->Release (thiz->window);
-	free(thiz);
+
+	pthread_cancel(thiz->events_thread);
+	pthread_cancel(thiz->update_thread);
+/* 	pthread_mutex_lock(&(thiz->lock)); */
+
+/* 	if (thiz->text)    free(thiz->text); */
+/* 	if (thiz->content) free(thiz->content); */
+/* 	if (thiz->command) free(thiz->command); */
+/* 	if (thiz->surface) thiz->surface->Release(thiz->surface); */
+/* 	if (thiz->window)  thiz->window->Release (thiz->window); */
+/* 	if (thiz->events)  thiz->events->Release (thiz->events); */
+/* 	free(thiz); */
 }
 
-Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, color_t *text_color, DFBWindowDescription *window_desc)
+static int *label_update_thread(Label *thiz)
+{
+	char *message;
+
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,   NULL);
+	pthread_setcanceltype (PTHREAD_CANCEL_DEFERRED, NULL);
+
+	while (1)
+	{
+		int seconds = 1;
+
+		pthread_testcancel();
+		pthread_mutex_lock(&(thiz->lock));
+
+		if (thiz->content && thiz->polltime)
+		{
+			message = assemble_message(thiz->content, thiz->command);
+			setText(thiz, message);
+			free(message);
+		}
+
+		if (thiz->polltime)
+			seconds = thiz->polltime;
+
+		pthread_mutex_unlock(&(thiz->lock));
+
+		sleep(seconds);
+	}
+}
+
+int mouse_over_label(Label *thiz)
+{
+	int mouse_x, mouse_y;
+
+	thiz->layer->GetCursorPosition (thiz->layer, &mouse_x, &mouse_y);
+
+	if ( ((mouse_x >= (int)thiz->xpos) && (mouse_x <= ((int)thiz->xpos + (int)thiz->width)))  &&
+			 ((mouse_y >= (int)thiz->ypos) && (mouse_y <= ((int)thiz->ypos + (int)thiz->height)))  )
+		return 1;
+
+	return 0;
+}
+
+static int *label_events_thread(Label *thiz)
+{
+	DFBInputEvent evt;
+
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,   NULL);
+	pthread_setcanceltype (PTHREAD_CANCEL_DEFERRED, NULL);
+
+	while (1)
+	{
+		pthread_testcancel();
+		thiz->events->WaitForEvent(thiz->events);
+		thiz->events->GetEvent (thiz->events, DFB_EVENT (&evt));
+
+		switch (evt.type)
+		{
+			case DIET_BUTTONPRESS:
+			{
+				pthread_mutex_lock(&(thiz->lock));
+				
+				if (!(thiz->ishidden))
+					if (mouse_over_label(thiz))
+						if (thiz->click_callback)
+						{
+							thiz->click_callback(thiz);
+							setFocus(thiz, 1);
+						}
+
+				pthread_mutex_unlock(&(thiz->lock));
+
+				break;
+			}
+			default: /* we do nothing here */
+				break;
+		}
+	}
+}
+
+Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFB *dfb, IDirectFBFont *font, color_t *text_color, DFBWindowDescription *window_desc)
 {
 	Label *newlabel = NULL;
 
@@ -179,6 +307,7 @@ Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, color_t *
 	newlabel->width              = window_desc->width;
 	newlabel->height             = window_desc->height;
 	newlabel->hasfocus           = 0;
+	newlabel->ishidden           = 0;
 	newlabel->text_orientation   = LEFT;
 	newlabel->window             = NULL;
 	newlabel->surface            = NULL;
@@ -190,12 +319,19 @@ Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, color_t *
 	newlabel->SetTextColor       = Label_SetTextColor;
 	newlabel->SetText            = Label_SetText;
 	newlabel->SetTextOrientation = Label_SetTextOrientation;
+	newlabel->SetClickCallBack   = Label_SetClickCallBack;
+	newlabel->click_callback     = NULL;
 	newlabel->ClearText          = Label_ClearText;
 	newlabel->Hide               = Label_Hide;
 	newlabel->Show               = Label_Show;
 	newlabel->Destroy            = Label_Destroy;
 	newlabel->SetAction          = Label_SetAction;
-	newlabel->thread_id          = 0;
+	newlabel->events_thread      = 0;
+	newlabel->update_thread      = 0;
+	newlabel->layer              = layer;
+	newlabel->content            = NULL;
+	newlabel->command            = NULL;
+	newlabel->polltime           = 0;
 
 	if (layer->CreateWindow (layer, window_desc, &(newlabel->window)) != DFB_OK) return NULL;
 	newlabel->window->SetOpacity(newlabel->window, 0x00 );
@@ -205,6 +341,11 @@ Label *Label_Create(IDirectFBDisplayLayer *layer, IDirectFBFont *font, color_t *
 	newlabel->surface->SetFont (newlabel->surface, font);
 	newlabel->surface->SetColor (newlabel->surface, newlabel->text_color.R, newlabel->text_color.G, newlabel->text_color.B, newlabel->text_color.A);
 	newlabel->window->RaiseToTop(newlabel->window);
+
+	dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &(newlabel->events));
+	pthread_mutex_init(&(newlabel->lock), NULL);
+	pthread_create(&(newlabel->update_thread), NULL, (void *) label_update_thread, newlabel);
+	pthread_create(&(newlabel->events_thread), NULL, (void *) label_events_thread, newlabel);
 
 	return newlabel;
 }

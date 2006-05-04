@@ -2,7 +2,7 @@
                          combobox.h  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2005 by Noberasco Michele
+    copyright            : (C) 2003-2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
  ***************************************************************************/
 
@@ -59,17 +59,19 @@ typedef struct _ComboBox
 	IDirectFBSurface      *surface;
 	int                    mouse;     /* 1 if mouse is over combobox, 0 otherwise */
 	void                  *extraData; /* internal use only                        */
+	void (*sortfunc)      (char **items, int n_items);
 
-	/* methods */
-	void (*SetTextColor)(struct _ComboBox *thiz, color_t *text_color);
-	void (*SetFocus)    (struct _ComboBox *thiz, int      focus     );
-	void (*AddItem)     (struct _ComboBox *thiz, char    *item      );
-	void (*SelectItem)  (struct _ComboBox *thiz, char    *selection );
-	void (*SortItems)   (struct _ComboBox *thiz);
-	void (*ClearItems)  (struct _ComboBox *thiz);
-	void (*Hide)        (struct _ComboBox *thiz);
-	void (*Show)        (struct _ComboBox *thiz);
-	void (*Destroy)     (struct _ComboBox *thiz);
+	/* public methods */
+	void (*SetTextColor)   (struct _ComboBox *thiz, color_t *text_color);
+	void (*SetFocus)       (struct _ComboBox *thiz, int      focus     );
+	void (*AddItem)        (struct _ComboBox *thiz, char    *item      );
+	void (*SelectItem)     (struct _ComboBox *thiz, char    *selection );
+	void (*SetSortFunction)(struct _ComboBox *thiz, void    *sortfunc  );
+	void (*SortItems)      (struct _ComboBox *thiz);
+	void (*ClearItems)     (struct _ComboBox *thiz);
+	void (*Hide)           (struct _ComboBox *thiz);
+	void (*Show)           (struct _ComboBox *thiz);
+	void (*Destroy)        (struct _ComboBox *thiz);
 
 } ComboBox;
 

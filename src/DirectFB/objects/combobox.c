@@ -2,7 +2,7 @@
                          combobox.c  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2005 by Noberasco Michele
+    copyright            : (C) 2003-2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
 ***************************************************************************/
 
@@ -49,72 +49,34 @@
 
 typedef struct _DropDown
 {
-	IDirectFBDisplayLayer *layer;         /* don't tell our constructor we remember this  */
-	int                    n_items;       /* n. of items displayed in the drop-down menu  */
-	int                    first_item;    /* index of first item that should be displayed */
-  char                  *selected;      /* selected item                                */
-	int                    screen_width;  /* screen X resolution                          */
-	int                    screen_height; /* screen Y resolution                          */
-	int                    orig_y;        /* y position of the combobox before unfolding  */
-	int                    direction;     /* y position of the combobox before unfolding  */
-	int                    scrollbar;
+	int   n_items;       /* n. of items displayed in the drop-down menu  */
+	int   first_item;    /* index of first item that should be displayed */
+  char *selected;      /* selected item                                */
+	int   screen_width;  /* screen X resolution                          */
+	int   screen_height; /* screen Y resolution                          */
+	int   orig_y;        /* y position of the combobox before unfolding  */
+	int   direction;     /* y position of the combobox before unfolding  */
+	int   scrollbar;
 
 } DropDown;
 
 
 static void click(ComboBox *);
 
+
+void ComboBox_SetSortFunction(ComboBox *thiz, void *sortfunc)
+{
+	pthread_mutex_lock(&(thiz->lock));
+  thiz->sortfunc = sortfunc;
+	pthread_mutex_unlock(&(thiz->lock));
+}
+
 void ComboBox_SortItems(ComboBox *thiz)
 {
-	int i          = 0;
-	int x_sessions = 0;
+	if (!thiz) return;
 
 	pthread_mutex_lock(&(thiz->lock));
-
-	/* We divide X and text sessions ... */
-	for (; i<(thiz->n_items-1); i++)
-	{
-		int j = i + 1;
-		for (; j<thiz->n_items; j++)
-			if (!strncmp(thiz->items[i], "Text: ", 6))
-				if (strncmp(thiz->items[j], "Text: ", 6))
-				{
-					char *swap = thiz->items[i];
-					thiz->items[i] = thiz->items[j];
-					thiz->items[j] = swap;
-					break;
-				}
-
-		if (strncmp(thiz->items[i], "Text: ", 6))
-			x_sessions++;
-	}
-
-	/* ... we sort X sessions ... */
-	for (i=0; i<(x_sessions-1); i++)
-	{
-		int j = i + 1;
-		for (; j<x_sessions; j++)
-			if (strcasecmp(thiz->items[i], thiz->items[j]) > 0)
-			{
-				char *swap = thiz->items[i];
-				thiz->items[i] = thiz->items[j];
-				thiz->items[j] = swap;
-			}
-	}
-
-	/* ... and text ones */
-	for (i=x_sessions; i<(thiz->n_items-1); i++)
-	{
-		int j = i + 1;
-		for (; j<thiz->n_items; j++)
-			if (strcasecmp(thiz->items[i], thiz->items[j]) > 0)
-			{
-				char *swap = thiz->items[i];
-				thiz->items[i] = thiz->items[j];
-				thiz->items[j] = swap;
-			}
-	}
-
+	thiz->sortfunc(thiz->items, thiz->n_items);
 	pthread_mutex_unlock(&(thiz->lock));
 }
 
@@ -213,7 +175,7 @@ static void mouseOver(ComboBox *thiz, int status)
 		int       mouse_y;
 
 		thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x77);
-		dropDown->layer->GetCursorPosition(dropDown->layer, &mouse_x, &mouse_y);
+		thiz->layer->GetCursorPosition(thiz->layer, &mouse_x, &mouse_y);
 
 		/* draw lateral scrollbar if needed */
 		dropDown->scrollbar = 0;
@@ -333,6 +295,19 @@ static void setHeightNYpos(ComboBox *thiz, int n_items)
 	thiz->window->Resize(thiz->window, thiz->width, thiz->height);
 }
 
+int mouse_over_combobox(ComboBox *thiz)
+{
+	int mouse_x, mouse_y;
+
+	thiz->layer->GetCursorPosition (thiz->layer, &mouse_x, &mouse_y);
+
+	if ( ((mouse_x >= (int)thiz->xpos) && (mouse_x <= ((int)thiz->xpos + (int)thiz->width)))  &&
+			 ((mouse_y >= (int)thiz->ypos) && (mouse_y <= ((int)thiz->ypos + (int)thiz->height)))  )
+		return 1;
+
+	return 0;
+}
+
 static void selectItem(ComboBox *thiz, char *selection, int lock)
 {
 	if (!thiz)      return;
@@ -343,6 +318,7 @@ static void selectItem(ComboBox *thiz, char *selection, int lock)
 	thiz->selected = selection;
 	plotEvent(thiz, 0);
 	setWidth(thiz, selection);
+	thiz->mouse = mouse_over_combobox(thiz);
 	mouseOver(thiz, thiz->mouse);
 
 	if (lock) pthread_mutex_unlock(&(thiz->lock));
@@ -594,7 +570,7 @@ static void click(ComboBox *thiz)
 		int       mouse_y;
 
 		if (!dropDown) return;
-		dropDown->layer->GetCursorPosition(dropDown->layer, &mouse_x, &mouse_y);
+		thiz->layer->GetCursorPosition(thiz->layer, &mouse_x, &mouse_y);
 
 		/* let's see wether this is a scrollbar click */
 		if ( thiz->n_items > dropDown->n_items                                &&
@@ -723,26 +699,9 @@ void ComboBox_Destroy(ComboBox *thiz)
   free(thiz);
 }
 
-int mouse_over_combobox(ComboBox *thiz)
-{
-	int mouse_x, mouse_y;
-
-	thiz->layer->GetCursorPosition (thiz->layer, &mouse_x, &mouse_y);
-
-	if ( ((mouse_x >= (int)thiz->xpos) && (mouse_x <= ((int)thiz->xpos + (int)thiz->width)))  &&
-			 ((mouse_y >= (int)thiz->ypos) && (mouse_y <= ((int)thiz->ypos + (int)thiz->height)))  )
-		return 1;
-
-	return 0;
-}
-
 static int *combobox_thread(ComboBox *thiz)
 {
 	DFBInputEvent evt;
-	//pthread_t thread_id;
-
-	/* create our flashing cursor thread */
-	//pthread_create(&(thread_id), NULL, (void *) textbox_cursor_thread, thiz);
 
 	while (1)
 	{
@@ -827,35 +786,35 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFB *dfb, IDirectF
   ComboBox *newbox = NULL;
 
   newbox = (ComboBox *) calloc(1, sizeof(ComboBox));
-	newbox->n_items      = 0;
-  newbox->items        = NULL;
-  newbox->selected     = NULL;
-  newbox->xpos         = (unsigned int) window_desc->posx;
-  newbox->ypos         = (unsigned int) window_desc->posy;
-  newbox->width        = window_desc->width;
-  newbox->height       = window_desc->height;
-  newbox->hasfocus     = 0;
-  newbox->isclicked    = 0;
-  newbox->position     = 0;
-	newbox->mouse        = 0;
-  newbox->window       = NULL;
-  newbox->surface      = NULL;
-	newbox->text_color.R = text_color->R;
-	newbox->text_color.G = text_color->G;
-	newbox->text_color.B = text_color->B;
-	newbox->text_color.A = text_color->A;
-	newbox->SetTextColor = ComboBox_SetTextColor;
-  newbox->SetFocus     = ComboBox_SetFocus;
-  newbox->AddItem      = ComboBox_AddItem;
-	newbox->SortItems    = ComboBox_SortItems;
-  newbox->ClearItems   = ComboBox_ClearItems;
-	newbox->SelectItem   = ComboBox_SelectItem;
-  newbox->Hide         = ComboBox_Hide;
-  newbox->Show         = ComboBox_Show;
-  newbox->Destroy      = ComboBox_Destroy;
+	newbox->n_items         = 0;
+  newbox->items           = NULL;
+  newbox->selected        = NULL;
+  newbox->xpos            = (unsigned int) window_desc->posx;
+  newbox->ypos            = (unsigned int) window_desc->posy;
+  newbox->width           = window_desc->width;
+  newbox->height          = window_desc->height;
+  newbox->hasfocus        = 0;
+  newbox->isclicked       = 0;
+  newbox->position        = 0;
+	newbox->mouse           = 0;
+  newbox->window          = NULL;
+  newbox->surface         = NULL;
+	newbox->text_color.R    = text_color->R;
+	newbox->text_color.G    = text_color->G;
+	newbox->text_color.B    = text_color->B;
+	newbox->text_color.A    = text_color->A;
+	newbox->SetTextColor    = ComboBox_SetTextColor;
+  newbox->SetFocus        = ComboBox_SetFocus;
+  newbox->AddItem         = ComboBox_AddItem;
+	newbox->SetSortFunction = ComboBox_SetSortFunction;
+	newbox->SortItems       = ComboBox_SortItems;
+  newbox->ClearItems      = ComboBox_ClearItems;
+	newbox->SelectItem      = ComboBox_SelectItem;
+  newbox->Hide            = ComboBox_Hide;
+  newbox->Show            = ComboBox_Show;
+  newbox->Destroy         = ComboBox_Destroy;
 
 	DropDown *dropDown      = (DropDown *) calloc(1, sizeof(DropDown));
-	dropDown->layer         = layer;
 	dropDown->screen_width  = screen_width;
 	dropDown->screen_height = screen_height;
 	newbox->extraData       = dropDown;

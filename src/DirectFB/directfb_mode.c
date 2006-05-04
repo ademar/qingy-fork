@@ -2,7 +2,7 @@
                       directfb_mode.c  -  description
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2005 by Noberasco Michele
+    copyright            : (C) 2003-2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
 ***************************************************************************/
 
@@ -115,9 +115,6 @@ int                   font_smaller_height;
 int                   font_small_height;
 int                   font_normal_height;
 int                   font_large_height;
-int                   username_area_mouse   = 0; /* sensible areas for mouse cursor to be in */
-int                   password_area_mouse   = 0;
-int                   session_area_mouse    = 0;
 #ifdef USE_SCREEN_SAVERS
 int                   screensaver_active    = 0; /* screensaver stuff */
 int                   screensaver_countdown = 0;
@@ -222,17 +219,17 @@ void close_framebuffer_mode (void)
 	 * all stuff, and is much quicker at the job than us...
 	 */
 
-/*   /\* destroy all labels *\/ */
-/*   while (Labels) */
-/* 	{ */
-/* 		Label_list *temp = Labels; */
-/* 		Labels = Labels->next; */
-/* 		if (temp->label) temp->label->Destroy(temp->label); */
-/* 		temp->next = NULL; */
+  /* destroy all labels */
+  while (Labels)
+	{
+		Label_list *temp = Labels;
+		Labels = Labels->next;
+		if (temp->label) temp->label->Destroy(temp->label);
+		temp->next = NULL;
 /* 		free(temp->content); */
 /* 		free(temp->command); */
-/* 		free(temp); */
-/* 	} */
+		free(temp);
+	}
 
 /*   /\* destroy all buttons *\/ */
 /*   while (Buttons) */
@@ -247,18 +244,18 @@ void close_framebuffer_mode (void)
 /* 	/\* background image *\/ */
 /*   if (panel_image) panel_image->Release (panel_image); */
 
-/* 	/\* the silly messages that appear when you have your CAPS LOCK down *\/ */
-/*   if (lock_key_statusA) lock_key_statusA->Destroy(lock_key_statusA); */
-/*   if (lock_key_statusB) lock_key_statusB->Destroy(lock_key_statusB); */
-/*   if (lock_key_statusC) lock_key_statusC->Destroy(lock_key_statusC); */
-/*   if (lock_key_statusD) lock_key_statusD->Destroy(lock_key_statusD); */
+	/* the silly messages that appear when you have your CAPS LOCK down */
+  if (lock_key_statusA) lock_key_statusA->Destroy(lock_key_statusA);
+  if (lock_key_statusB) lock_key_statusB->Destroy(lock_key_statusB);
+  if (lock_key_statusC) lock_key_statusC->Destroy(lock_key_statusC);
+  if (lock_key_statusD) lock_key_statusD->Destroy(lock_key_statusD);
 
-/* 	/\* data input *\/ */
-/*   if (username) username->Destroy(username); /\* nice: suicide *\/ */
-/*   if (password) password->Destroy(password); */
+	/* data input */
+  if (username) username->Destroy(username); /* nice: suicide */
+  if (password) password->Destroy(password);
 /*   if (session)  session->Destroy (session); */
 
-/* 	/\* fonts *\/ */
+	/* fonts */
 /*   if (font_tiny)    font_tiny->Release    (font_tiny); */
 /*   if (font_smaller) font_smaller->Release (font_smaller); */
 /*   if (font_small)   font_small->Release   (font_small); */
@@ -277,84 +274,13 @@ void close_framebuffer_mode (void)
 /* 		devices = next; */
 /* 	} */
 
-	if (dfb) dfb->Release (dfb);
+	if (dfb)     dfb->Release     (dfb);
 }
 
 void DirectFB_Error()
 {
   fprintf(stderr, "Unrecoverable error: reverting to text mode!\n"); /* dammit! */
 	close_framebuffer_mode();
-}
-
-/* mouse movement in textboxes and comboboxes area */
-void handle_text_combo_boxes(int *mouse_x, int *mouse_y)
-{
-	while (1)
-	{
-		/* mouse over username area */
-		if ( (*mouse_x >= (int) username->xpos) && (*mouse_x <= (int) username->xpos + (int) username->width) )
-			if ( (*mouse_y >= (int) username->ypos) && (*mouse_y <= (int) username->ypos + (int) username->height) )
-			{
-				username_area_mouse = 1;
-				break;
-			}
-  
-		/* mouse over password area */
-		if ( (*mouse_x >= (int) password->xpos) && (*mouse_x <= (int) password->xpos + (int) password->width) )
-			if ( (*mouse_y >= (int) password->ypos) && (*mouse_y <= (int) password->ypos + (int) password->height) )
-			{
-				password_area_mouse = 1;
-				break;
-			}
-  
-		break;
-	}
-}
-
-/* mouse movement in labels area */
-void handle_labels(int *mouse_x, int *mouse_y)
-{
-	if (session->isclicked) return;
-
-  /* mouse over username area */
-  if (username_label)
-    if ( (*mouse_x >= (int) username_label->xpos) && (*mouse_x <= (int) username_label->xpos + (int) username_label->width) )
-      if ( (*mouse_y >= (int) username_label->ypos) && (*mouse_y <= (int) username_label->ypos + (int) username_label->height) )
-			{
-				username_area_mouse = 1;
-				return;
-			}
-  
-  /* mouse over password area */
-  if (password_label)
-    if ( (*mouse_x >= (int) password_label->xpos) && (*mouse_x <= (int) password_label->xpos + (int) password_label->width) )
-      if ( (*mouse_y >= (int) password_label->ypos) && (*mouse_y <= (int) password_label->ypos + (int) password_label->height) )
-			{
-				password_area_mouse = 1;
-				return;
-			}
-  
-  /* mouse over session area */
-  if (session_label)
-    if ( (*mouse_x >= (int) session_label->xpos) && (*mouse_x <= (int) session_label->xpos + (int) session_label->width) )
-      if ( (*mouse_y >= (int) session_label->ypos) && (*mouse_y <= (int) session_label->ypos + (int) session_label->height) )
-			{
-				session_area_mouse = 1;
-				return;
-			}
-}
-
-void handle_mouse_movement (void)
-{
-  int mouse_x, mouse_y;
-  
-  username_area_mouse = 0;
-  password_area_mouse = 0;
-  session_area_mouse  = 0;
-
-  layer->GetCursorPosition (layer, &mouse_x, &mouse_y);
-  handle_text_combo_boxes(&mouse_x, &mouse_y);
-  handle_labels(&mouse_x, &mouse_y);
 }
 
 void show_lock_key_status(DFBInputEvent *evt)
@@ -401,7 +327,6 @@ void reset_screen(DFBInputEvent *evt)
   password->Show(password);
   session->Show(session);
   show_lock_key_status(evt);
-  handle_mouse_movement();
   layer->EnableCursor (layer, 1);
 }
 
@@ -573,76 +498,62 @@ void do_ctrl_alt_del(DFBInputEvent *evt)
   free(action);
 }
 
-void handle_mouse_event (DFBInputEvent *evt)
+/* callback function to handle label clicks */
+void label_click(Label *label)
 {
-/*   static Button *button = NULL; */
-  static int status = 0;
+	if (!label)          return;
+	if (label->hasfocus) return;
 
-  if (evt->type == DIET_AXISMOTION)
-	{ /* we check wether there is movement on Z axis, aka mouse wheel */
-		if (evt->axis != DIAI_Z)
-			handle_mouse_movement();
+	if (label == username_label)
+	{	/* username area has been clicked! */
+		username->SetFocus(username, 1);
+		password->SetFocus(password, 0);
+		if (password_label) password_label->SetFocus(password_label, 0);
+		session->SetFocus(session, 0);
+		if (session_label) session_label->SetFocus(session_label, 0);
 	}
-  else
-	{	/* mouse button press or release */
-		if (left_mouse_button_down (evt))
-		{ /*
-			 * left mouse button is down:
-			 * we check wether mouse pointer is over a specific area
-			 */
-			if (username_area_mouse) status = 1;
-			if (password_area_mouse) status = 2;
-			if (session_area_mouse)  status = 3;
 
-			if (session->mouse)
-			{
-	      username->SetFocus(username, 0);
-	      if (username_label) username_label->SetFocus(username_label, 0);
-	      password->SetFocus(password, 0);
-	      if (password_label) password_label->SetFocus(password_label, 0);
-	      session->SetFocus(session, 1);
-	      if (session_label) session_label->SetFocus(session_label, 1);
-			}
-		}
-		else
-		{	/* 
-			 * left mouse button is up:
-			 * if it was on a specific area when down we check if it is still there
-			 */
-			if (username_area_mouse && status == 1)
-	    {	/* username area has been clicked! */
-	      username->SetFocus(username, 1);
-	      if (username_label) username_label->SetFocus(username_label, 1);
-	      password->SetFocus(password, 0);
-	      if (password_label) password_label->SetFocus(password_label, 0);
-	      session->SetFocus(session, 0);
-	      if (session_label) session_label->SetFocus(session_label, 0);
-	    }
-			if (password_area_mouse && status == 2)
-	    {	/* password area has been clicked! */
-	      username->SetFocus(username, 0);
-	      if (username_label) username_label->SetFocus(username_label, 0);
-	      password->SetFocus(password, 1);
-	      if (password_label) password_label->SetFocus(password_label, 1);
-	      session->SetFocus(session, 0);
-	      if (session_label) session_label->SetFocus(session_label, 0);
-	    }
-			if (session_area_mouse && status == 3)
-	    {	/* session area has been clicked! */
-	      username->SetFocus(username, 0);
-	      if (username_label) username_label->SetFocus(username_label, 0);
-	      password->SetFocus(password, 0);
-	      if (password_label) password_label->SetFocus(password_label, 0);
+	if (label == password_label)
+	{	/* password area has been clicked! */
+		username->SetFocus(username, 0);
+		if (username_label) username_label->SetFocus(username_label, 0);
+		password->SetFocus(password, 1);
+		session->SetFocus(session, 0);
+		if (session_label) session_label->SetFocus(session_label, 0);
+	}
 
-				if (!session->isclicked)
-				{
-					session->SetFocus(session, 1);
-				}
+	if (label == session_label)
+	{	/* session area has been clicked! */
+		username->SetFocus(username, 0);
+		if (username_label) username_label->SetFocus(username_label, 0);
+		password->SetFocus(password, 0);
+		if (password_label) password_label->SetFocus(password_label, 0);
+		session->SetFocus(session, 1);
+	}
+}
 
-	      if (session_label) session_label->SetFocus(session_label, 1);
-	    }
-			status = 0;		/* we reset click status because button went up */
-		}
+/* callback function to handle textbox clicks */
+void textbox_click(TextBox *textbox)
+{
+	if (!textbox)          return;
+	if (textbox->hasfocus) return;
+
+	if (textbox == username)
+	{	/* username area has been clicked! */
+		if (username_label) username_label->SetFocus(username_label, 1);
+		password->SetFocus(password, 0);
+		if (password_label) password_label->SetFocus(password_label, 0);
+		session->SetFocus(session, 0);
+		if (session_label) session_label->SetFocus(session_label, 0);
+	}
+
+	if (textbox == password)
+	{	/* password area has been clicked! */
+		username->SetFocus(username, 0);
+		if (username_label) username_label->SetFocus(username_label, 0);
+		if (password_label) password_label->SetFocus(password_label, 1);
+		session->SetFocus(session, 0);
+		if (session_label) session_label->SetFocus(session_label, 0);
 	}
 }
 
@@ -767,7 +678,7 @@ void start_login_sequence(DFBInputEvent *evt)
 
 			close_framebuffer_mode();
 			exit(EXIT_SUCCESS);
-			break; /* not really necessary here */
+			break;
 
 		case 0: /* login failure */
 			message = StrApp((char**)NULL, "Login failed!", (char*)NULL);
@@ -957,12 +868,6 @@ int handle_keyboard_event(DFBInputEvent *evt)
 				}
 	    }
 		}
-
-		/* just in case we resized a combobox and
-		 * the mouse cursor is no longer on top of it
-		 */
-		if (!session->isclicked)
-			handle_mouse_movement();
 	}
 
   return returnstatus;
@@ -1024,10 +929,12 @@ int create_windows()
 			case LOGIN:
 				username = TextBox_Create(layer, dfb, font, window->text_color, window->cursor_color, &window_desc);
 				if (!username) return 0;
+				username->SetClickCallBack(username, textbox_click);
 				break;
 			case PASSWORD:
 				password = TextBox_Create(layer, dfb, font, window->text_color, window->cursor_color, &window_desc);
 				if (!password) return 0;
+				password->SetClickCallBack(password, textbox_click);
 				break;
 			case LABEL:
 			{
@@ -1043,7 +950,7 @@ int create_windows()
 					labels->next = (Label_list *) calloc(1, sizeof(Label_list));
 					labels = labels->next;
 	      }
-				labels->label = Label_Create(layer, font, window->text_color, &window_desc);
+				labels->label = Label_Create(layer, dfb, font, window->text_color, &window_desc);
 				if (!labels->label) return 0;			
 				labels->label->SetTextOrientation(labels->label, window->text_orientation);
 				labels->label->SetAction(labels->label, window->polltime, window->content, window->command);
@@ -1054,6 +961,7 @@ int create_windows()
 					if (!strcmp(window->linkto, "login"))    username_label = labels->label;
 					if (!strcmp(window->linkto, "password")) password_label = labels->label;
 					if (!strcmp(window->linkto, "session"))  session_label  = labels->label;
+					labels->label->SetClickCallBack(labels->label, label_click);
 	      }
 				break;
 			}
@@ -1094,6 +1002,7 @@ int create_windows()
 				{
 					session = ComboBox_Create(layer, dfb, font, window->text_color, &window_desc, screen_width, screen_height);
 					if (!session) return 0;
+					session->SetSortFunction(session, sort_sessions);
 				}
 				break;
 			default:
@@ -1110,14 +1019,14 @@ int create_windows()
   window_desc.posy   = screen_height - (font_small_height);
   window_desc.width  = width;
   window_desc.height = font_small_height;
-  lock_key_statusA = Label_Create(layer, font_small, &other_text_color, &window_desc);
+  lock_key_statusA = Label_Create(layer, dfb, font_small, &other_text_color, &window_desc);
   if (!lock_key_statusA) return 0;
   lock_key_statusA->SetFocus(lock_key_statusA, 1);
   lock_key_statusA->Hide(lock_key_statusA);  
 	lock_key_statusA->SetTextOrientation(lock_key_statusA, CENTERBOTTOM);
   lock_key_statusA->SetText(lock_key_statusA, message);
   window_desc.posy = 0;
-  lock_key_statusB = Label_Create(layer, font_small, &other_text_color, &window_desc);
+  lock_key_statusB = Label_Create(layer, dfb, font_small, &other_text_color, &window_desc);
   if (!lock_key_statusB) return 0;
   lock_key_statusB->SetFocus(lock_key_statusB, 1);
   lock_key_statusB->Hide(lock_key_statusB);
@@ -1125,14 +1034,14 @@ int create_windows()
   lock_key_statusB->SetText(lock_key_statusB, message);
   window_desc.posx = screen_width - width;
   window_desc.height = 2*font_small_height;
-  lock_key_statusC = Label_Create(layer, font_small, &other_text_color, &window_desc);
+  lock_key_statusC = Label_Create(layer, dfb, font_small, &other_text_color, &window_desc);
   if (!lock_key_statusC) return 0;
   lock_key_statusC->SetFocus(lock_key_statusC, 1);
   lock_key_statusC->Hide(lock_key_statusC);
 	lock_key_statusC->SetTextOrientation(lock_key_statusC, RIGHT);
   lock_key_statusC->SetText(lock_key_statusC, message);
   window_desc.posy = screen_height - (font_small_height);
-  lock_key_statusD = Label_Create(layer, font_small, &other_text_color, &window_desc);
+  lock_key_statusD = Label_Create(layer, dfb, font_small, &other_text_color, &window_desc);
   if (!lock_key_statusD) return 0;
   lock_key_statusD->SetFocus(lock_key_statusD, 1);
   lock_key_statusD->Hide(lock_key_statusD);
@@ -1321,14 +1230,6 @@ int main (int argc, char *argv[])
 			{
 				switch (evt.type)
 				{
-					case DIET_AXISMOTION:
-					case DIET_BUTTONPRESS:
-					case DIET_BUTTONRELEASE:
-						handle_mouse_event (&evt);
-						pthread_mutex_lock(&lock_act);
-						thread_action=0;
-						pthread_mutex_unlock(&lock_act);
-						break;
 					case DIET_KEYPRESS:
 						returnstatus = handle_keyboard_event(&evt);
 						break;

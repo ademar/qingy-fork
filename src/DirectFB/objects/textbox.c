@@ -269,11 +269,9 @@ void TextBox_SetCursorColor(TextBox *thiz, color_t *cursor_color)
 	pthread_mutex_unlock(&(thiz->lock));
 }
 
-void TextBox_SetFocus(TextBox *thiz, int focus)
+static void setFocus(TextBox *thiz, int focus)
 {
 	if (!thiz) return;
-
-	pthread_mutex_lock(&(thiz->lock));
 
 	if (focus)
 	{
@@ -283,16 +281,34 @@ void TextBox_SetFocus(TextBox *thiz, int focus)
 		if (!thiz->text) thiz->position = 0;
 		else thiz->position = strlen(thiz->text);
 		keyEvent(thiz, REDRAW, NONE, 1, 0);
-		pthread_mutex_unlock(&(thiz->lock));
 		return;
 	}
 
 	thiz->hasfocus = 0;
 	thiz->window->SetOpacity(thiz->window, window_opacity);
 	keyEvent(thiz, REDRAW, NONE, 0, 0);
-	pthread_mutex_unlock(&(thiz->lock));
-	return;
 }
+
+void TextBox_SetFocus(TextBox *thiz, int focus)
+{
+	if (!thiz) return;
+
+	pthread_mutex_lock(&(thiz->lock));
+	setFocus(thiz, focus);
+	pthread_mutex_unlock(&(thiz->lock));
+}
+
+void TextBox_SetClickCallBack(TextBox *thiz, void *callback)
+{
+	if (!thiz) return;
+
+	pthread_mutex_lock(&(thiz->lock));
+
+	thiz->click_callback = callback;
+
+	pthread_mutex_unlock(&(thiz->lock));
+}
+
 
 void TextBox_Hide(TextBox *thiz)
 {
@@ -312,11 +328,15 @@ void TextBox_Show(TextBox *thiz)
 void TextBox_Destroy(TextBox *thiz)
 {
 	if (!thiz) return;
-	pthread_mutex_lock(&(thiz->lock));
-	if (thiz->text) free(thiz->text);	
-	if (thiz->surface) thiz->surface->Release (thiz->surface);
-	if (thiz->window) thiz->window->Release (thiz->window);
-	free(thiz);
+
+	pthread_cancel(thiz->events_thread);
+	pthread_cancel(thiz->cursor_thread);
+
+/* 	pthread_mutex_lock(&(thiz->lock)); */
+/* 	if (thiz->text) free(thiz->text);	 */
+/* 	if (thiz->surface) thiz->surface->Release (thiz->surface); */
+/* 	if (thiz->window) thiz->window->Release (thiz->window); */
+/* 	free(thiz); */
 }
 
 static int *textbox_cursor_thread(TextBox *thiz)
@@ -327,8 +347,12 @@ static int *textbox_cursor_thread(TextBox *thiz)
 	t.tv_sec  = 0;
 	t.tv_nsec = 500000000;
 
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,   NULL);
+	pthread_setcanceltype (PTHREAD_CANCEL_DEFERRED, NULL);
+
 	while (1)
 	{
+		pthread_testcancel();
 		pthread_mutex_lock(&(thiz->lock));
 		if (thiz->hasfocus) keyEvent(thiz, REDRAW, NONE, flashing_cursor, 0);
 		flashing_cursor = !flashing_cursor;
@@ -337,21 +361,53 @@ static int *textbox_cursor_thread(TextBox *thiz)
 	}
 }
 
+int mouse_over_textbox(TextBox *thiz)
+{
+	int mouse_x, mouse_y;
+
+	thiz->layer->GetCursorPosition (thiz->layer, &mouse_x, &mouse_y);
+
+	if ( ((mouse_x >= (int)thiz->xpos) && (mouse_x <= ((int)thiz->xpos + (int)thiz->width)))  &&
+			 ((mouse_y >= (int)thiz->ypos) && (mouse_y <= ((int)thiz->ypos + (int)thiz->height)))  )
+		return 1;
+
+	return 0;
+}
+
 static int *textbox_thread(TextBox *thiz)
 {
 	DFBInputEvent evt;
-	pthread_t thread_id;
 
 	/* create our flashing cursor thread */
-	pthread_create(&(thread_id), NULL, (void *) textbox_cursor_thread, thiz);
+	pthread_create(&(thiz->cursor_thread), NULL, (void *) textbox_cursor_thread, thiz);
+
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,   NULL);
+	pthread_setcanceltype (PTHREAD_CANCEL_DEFERRED, NULL);
 
 	while (1)
 	{
+		pthread_testcancel();
 		thiz->events->WaitForEvent(thiz->events);
 		thiz->events->GetEvent (thiz->events, DFB_EVENT (&evt));
 
 		switch (evt.type)
 		{
+			case DIET_BUTTONPRESS:
+			{
+				pthread_mutex_lock(&(thiz->lock));
+				
+				if (!(thiz->ishidden))
+					if (mouse_over_textbox(thiz))
+						if (thiz->click_callback)
+						{
+							thiz->click_callback(thiz);
+							setFocus(thiz, 1);
+						}
+
+				pthread_mutex_unlock(&(thiz->lock));
+
+				break;
+			}
 			case DIET_KEYPRESS:
 			{
 				struct DFBKeySymbolName *symbol_name;
@@ -389,31 +445,35 @@ TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFB *dfb, IDirectFBF
 	TextBox *newbox = NULL;
 
 	newbox = (TextBox *) calloc(1, sizeof(TextBox));
-	newbox->text           = NULL;
-	newbox->xpos           = (unsigned int) window_desc->posx;
-	newbox->ypos           = (unsigned int) window_desc->posy;
-	newbox->width          = window_desc->width;
-	newbox->height         = window_desc->height;
-	newbox->hasfocus       = 0;
-	newbox->mask_text      = 0;
-	newbox->hide_text      = 0;
-	newbox->position       = 0;
-	newbox->text_color.R   = text_color->R;
-	newbox->text_color.G   = text_color->G;
-	newbox->text_color.B   = text_color->B;
-	newbox->text_color.A   = text_color->A;
-	newbox->cursor_color.R = cursor_color->R;
-	newbox->cursor_color.G = cursor_color->G;
-	newbox->cursor_color.B = cursor_color->B;
-	newbox->cursor_color.A = cursor_color->A;
-	newbox->window         = NULL;
-	newbox->surface        = NULL;
-	newbox->SetFocus       = TextBox_SetFocus;
-	newbox->SetText        = TextBox_SetText;
-	newbox->ClearText      = TextBox_ClearText;
-	newbox->Hide           = TextBox_Hide;
-	newbox->Show           = TextBox_Show;
-	newbox->Destroy        = TextBox_Destroy;
+	newbox->text             = NULL;
+	newbox->xpos             = (unsigned int) window_desc->posx;
+	newbox->ypos             = (unsigned int) window_desc->posy;
+	newbox->width            = window_desc->width;
+	newbox->height           = window_desc->height;
+	newbox->hasfocus         = 0;
+	newbox->ishidden         = 0;
+	newbox->mask_text        = 0;
+	newbox->hide_text        = 0;
+	newbox->position         = 0;
+	newbox->text_color.R     = text_color->R;
+	newbox->text_color.G     = text_color->G;
+	newbox->text_color.B     = text_color->B;
+	newbox->text_color.A     = text_color->A;
+	newbox->cursor_color.R   = cursor_color->R;
+	newbox->cursor_color.G   = cursor_color->G;
+	newbox->cursor_color.B   = cursor_color->B;
+	newbox->cursor_color.A   = cursor_color->A;
+	newbox->window           = NULL;
+	newbox->surface          = NULL;
+	newbox->SetFocus         = TextBox_SetFocus;
+	newbox->SetText          = TextBox_SetText;
+	newbox->ClearText        = TextBox_ClearText;
+	newbox->Hide             = TextBox_Hide;
+	newbox->Show             = TextBox_Show;
+	newbox->Destroy          = TextBox_Destroy;
+	newbox->SetClickCallBack = TextBox_SetClickCallBack;
+	newbox->layer            = layer;
+	newbox->click_callback   = NULL;
 
 	if (layer->CreateWindow(layer, window_desc, &(newbox->window)) != DFB_OK) return NULL;
 	newbox->window->SetOpacity(newbox->window, 0x00);
@@ -426,7 +486,7 @@ TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFB *dfb, IDirectFBF
 
 	dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &(newbox->events));
 	pthread_mutex_init(&(newbox->lock), NULL);
-	pthread_create(&(newbox->thread_id), NULL, (void *) textbox_thread, newbox);
+	pthread_create(&(newbox->events_thread), NULL, (void *) textbox_thread, newbox);
 
 	return newbox;
 }

@@ -16,6 +16,8 @@ SUPPORT FOR CUSTOMIZING the "logging in..." and such like messages (in theme).
 
 [GUI]
 
+- Add a combo box to select between X server layouts.
+
 - Make applets possible... A mix of shared modules and window managing :P
   Maybe we could even port wmaker dockapps... just a dream of mine ;-)
 
@@ -40,7 +42,7 @@ SUPPORT FOR CUSTOMIZING the "logging in..." and such like messages (in theme).
 		...
 	}
 	window {
-		if = pluto
+		id = pluto
 		mouseOver.linkTo = "pippo"
   }
 

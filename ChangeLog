@@ -1,4 +1,35 @@
+2006-04-21  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/directfb_mode.c:
+	Code clean ups due to previuos work. Hehe, this file
+	got significantly smaller in size, as well as being
+	of a cleaner design now ;-)
+	
+	* src/DirectFB/objects/textbox.c,
+	* src/DirectFB/objects/textbox.h,
+	* src/DirectFB/directfb_mode.c:
+	Gave text boxes support for a callback function when they get clicked.
+	This way I removed textbox clicks logic from event loop in main qingy thread.
+
+	* src/DirectFB/objects/label.c,
+	* src/DirectFB/objects/label.h: 
+	Just gave labels a second thread that runs a callback function when
+	they get clicked. This way I removed label clicks logic from event loop
+	in main qingy thread.
+
 2006-04-20  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/objects/combobox.c (selectItem):
+	Fixed mouseover status detection when choosing sessions
+	using UP and DOWN arrows...
+	
+	* src/DirectFB/directfb_mode.c (create_windows),
+	* src/DirectFB/objects/combobox.c,
+	* src/DirectFB/objects/combobox.h, 
+	* src/libraries/session.c,
+	* src/libraries/session.h:
+	Just made combobox accept an arbitrary sort function, so that it
+	is no longer tied to session management.
 
 	* src/libraries/misc.c:
 	Manually define HOST_NAME_MAX (to 64) if it is not defined externally.

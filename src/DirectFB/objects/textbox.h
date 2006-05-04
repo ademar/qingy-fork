@@ -44,20 +44,24 @@
 typedef struct _TextBox
 {
   /* properties */
-	pthread_t thread_id;
+	pthread_t events_thread;
+	pthread_t cursor_thread;
 	IDirectFBEventBuffer *events;
+	IDirectFBDisplayLayer *layer;
   char *text;
   color_t text_color;
   color_t cursor_color;
   unsigned int xpos, ypos;
   unsigned int width, height;
   int hasfocus;
+	int ishidden;
   int mask_text;
   int hide_text;
   int position;
   IDirectFBWindow	*window;
   IDirectFBSurface *surface;
 	pthread_mutex_t lock;
+	void (*click_callback)(struct _TextBox *thiz);
 
   /* methods */
   void (*SetFocus)(struct _TextBox *thiz, int focus);
@@ -65,6 +69,7 @@ typedef struct _TextBox
   void (*SetCursorColor)(struct _TextBox *thiz, color_t *cursor_color);
   void (*SetText)(struct _TextBox *thiz, char *text);
   void (*ClearText)(struct _TextBox *thiz);
+	void (*SetClickCallBack)  (struct _TextBox *thiz, void *callback);
   void (*Hide)(struct _TextBox *thiz);
   void (*Show)(struct _TextBox *thiz);
   void (*Destroy)(struct _TextBox *thiz);

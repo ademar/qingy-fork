@@ -2,7 +2,7 @@
                          session.h  -  description
                             -------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2005 by Noberasco Michele
+    copyright            : (C) 2003-2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
  ***************************************************************************/
 
@@ -38,3 +38,6 @@ int check_password(char *username, char *password);
 
 /* Start the session of your choice */
 void start_session(char *username, char *session);
+
+/* sort sessions */
+void sort_sessions(char **sessions, int n_items);
