@@ -1,3 +1,17 @@
+2006-05-05  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/objects/textbox.c,
+	* src/DirectFB/objects/textbox.h,
+	* src/DirectFB/objects/combobox.c, 
+	* src/DirectFB/objects/combobox.h,
+	* src/DirectFB/objects/button.c,
+	* src/DirectFB/objects/button.h,	
+	* src/DirectFB/objects/label.c,
+	* src/DirectFB/objects/label.h,
+	* src/DirectFB/directfb_mode.c:
+	Added thread shutdown code for graphic objects. This should
+	help to prevent qingy crashes on GUI shutdown...
+
 2006-04-21  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/directfb_mode.c:

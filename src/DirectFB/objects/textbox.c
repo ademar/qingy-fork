@@ -43,7 +43,7 @@
 #include "misc.h"
 #include "utils.h"
 
-int insert_char(char *buffer, int *length, int *position, char c)
+static int insert_char(char *buffer, int *length, int *position, char c)
 {
 	int i;
 
@@ -56,7 +56,7 @@ int insert_char(char *buffer, int *length, int *position, char c)
 	return 1;
 }
 
-int delete_left_char(char *buffer, int *length, int *position)
+static int delete_left_char(char *buffer, int *length, int *position)
 {
 	int i;
 
@@ -67,7 +67,7 @@ int delete_left_char(char *buffer, int *length, int *position)
 	return 1;
 }
 
-int delete_right_char(char *buffer, int *length, int *position)
+static int delete_right_char(char *buffer, int *length, int *position)
 {
  	int i;
 
@@ -78,7 +78,7 @@ int delete_right_char(char *buffer, int *length, int *position)
 	return 1;
 }
 
-int parse_input(int *input, char *buffer, int modifier, int *length, int *position)
+static int parse_input(int *input, char *buffer, int modifier, int *length, int *position)
 {
 	if (modifier == CONTROL)
 		switch (*input)
@@ -122,7 +122,7 @@ int parse_input(int *input, char *buffer, int modifier, int *length, int *positi
 	return 0;
 }
 
-void DrawCursor(TextBox *thiz)
+static void DrawCursor(TextBox *thiz)
 {
 	static IDirectFBFont *font = NULL;
 	IDirectFBSurface *where;
@@ -166,7 +166,7 @@ void DrawCursor(TextBox *thiz)
 	if (free_text) free(text);
 }
 
-void keyEvent(TextBox *thiz, int ascii_code, int modifier, int draw_cursor, int lock)
+static void keyEvent(TextBox *thiz, int ascii_code, int modifier, int draw_cursor, int lock)
 {
 	char *buffer;
 	int length;
@@ -303,12 +303,23 @@ void TextBox_SetClickCallBack(TextBox *thiz, void *callback)
 	if (!thiz) return;
 
 	pthread_mutex_lock(&(thiz->lock));
-
 	thiz->click_callback = callback;
-
 	pthread_mutex_unlock(&(thiz->lock));
 }
 
+void TextBox_HideText(TextBox *thiz, int hide)
+{
+	pthread_mutex_lock(&(thiz->lock));
+	thiz->hide_text = hide;
+	pthread_mutex_unlock(&(thiz->lock));
+}
+
+void TextBox_MaskText(TextBox *thiz, int mask)
+{
+	pthread_mutex_lock(&(thiz->lock));
+	thiz->mask_text = mask;
+	pthread_mutex_unlock(&(thiz->lock));
+}
 
 void TextBox_Hide(TextBox *thiz)
 {
@@ -332,11 +343,15 @@ void TextBox_Destroy(TextBox *thiz)
 	pthread_cancel(thiz->events_thread);
 	pthread_cancel(thiz->cursor_thread);
 
-/* 	pthread_mutex_lock(&(thiz->lock)); */
-/* 	if (thiz->text) free(thiz->text);	 */
-/* 	if (thiz->surface) thiz->surface->Release (thiz->surface); */
-/* 	if (thiz->window) thiz->window->Release (thiz->window); */
-/* 	free(thiz); */
+	if (thiz->text)
+	{
+		/* we overwrite memory before freeing it, since it might contain a password... */
+		memset(thiz->text, '\0', sizeof(thiz->text));
+		free(thiz->text);
+	}
+	if (thiz->surface) thiz->surface->Release (thiz->surface);
+	if (thiz->window)  thiz->window->Release  (thiz->window);
+	free(thiz);
 }
 
 static int *textbox_cursor_thread(TextBox *thiz)
@@ -361,7 +376,7 @@ static int *textbox_cursor_thread(TextBox *thiz)
 	}
 }
 
-int mouse_over_textbox(TextBox *thiz)
+static int mouse_over_textbox(TextBox *thiz)
 {
 	int mouse_x, mouse_y;
 
@@ -468,6 +483,8 @@ TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFB *dfb, IDirectFBF
 	newbox->SetFocus         = TextBox_SetFocus;
 	newbox->SetText          = TextBox_SetText;
 	newbox->ClearText        = TextBox_ClearText;
+	newbox->HideText         = TextBox_HideText;
+	newbox->MaskText         = TextBox_MaskText;
 	newbox->Hide             = TextBox_Hide;
 	newbox->Show             = TextBox_Show;
 	newbox->Destroy          = TextBox_Destroy;

@@ -205,15 +205,10 @@ void Label_Destroy(Label *thiz)
 
 	pthread_cancel(thiz->events_thread);
 	pthread_cancel(thiz->update_thread);
-/* 	pthread_mutex_lock(&(thiz->lock)); */
 
-/* 	if (thiz->text)    free(thiz->text); */
-/* 	if (thiz->content) free(thiz->content); */
-/* 	if (thiz->command) free(thiz->command); */
-/* 	if (thiz->surface) thiz->surface->Release(thiz->surface); */
-/* 	if (thiz->window)  thiz->window->Release (thiz->window); */
-/* 	if (thiz->events)  thiz->events->Release (thiz->events); */
-/* 	free(thiz); */
+	if (thiz->surface) thiz->surface->Release(thiz->surface);
+	if (thiz->window)  thiz->window->Release (thiz->window);
+	free(thiz);
 }
 
 static int *label_update_thread(Label *thiz)

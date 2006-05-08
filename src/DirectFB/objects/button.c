@@ -58,27 +58,30 @@ static void mouseOver(Button *thiz, int status)
 void Button_Show(Button *thiz)
 {
 	if (!thiz || !thiz->window) return;
+
 	thiz->window->SetOpacity(thiz->window, button_opacity);
 }
 
 void Button_Hide(Button *thiz)
 {
 	if (!thiz || !thiz->window) return;
+
 	thiz->window->SetOpacity(thiz->window, 0x00);
 }
 
-void Button_Destroy(Button *button)
+void Button_Destroy(Button *thiz)
 {
-	if (!button) return;
-	if (button->normal) button->normal->Release (button->normal);
-	if (button->mouseover) button->mouseover->Release (button->mouseover);
-	if (button->surface) button->surface->Release (button->surface);
-	if (button->window) button->window->Release (button->window);
+	if (!thiz) return;
 
-	free (button);
+	if (thiz->normal)    thiz->normal->Release    (thiz->normal);
+	if (thiz->mouseover) thiz->mouseover->Release (thiz->mouseover);
+	if (thiz->surface)   thiz->surface->Release   (thiz->surface);
+	if (thiz->window)    thiz->window->Release    (thiz->window);
+
+	free (thiz);
 }
 
-IDirectFBSurface *load_image_int(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb, int db, int x, int y, float x_ratio, float y_ratio)
+static IDirectFBSurface *load_image_int(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb, int db, int x, int y, float x_ratio, float y_ratio)
 {
 	IDirectFBImageProvider *provider;
 	IDirectFBSurface *tmp = NULL;
@@ -251,8 +254,7 @@ Button *Button_Create(const char *normal, const char *mouseover, int xpos, int y
 	but->layer = layer;
 
 	dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &(but->events));
-
-	pthread_create(&(but->thread_id), NULL, (void *) button_thread, but);
+	pthread_create(&(but->events_thread), NULL, (void *) button_thread, but);
 
 	return but;
 }

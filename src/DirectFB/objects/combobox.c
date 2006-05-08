@@ -690,7 +690,7 @@ void ComboBox_Destroy(ComboBox *thiz)
 {
   if (!thiz) return;
 
-	pthread_mutex_lock(&(thiz->lock));
+	pthread_cancel(thiz->events_thread);
 
   ComboBox_ClearItems(thiz);
   if (thiz->surface) thiz->surface->Release (thiz->surface);
@@ -703,8 +703,13 @@ static int *combobox_thread(ComboBox *thiz)
 {
 	DFBInputEvent evt;
 
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,   NULL);
+	pthread_setcanceltype (PTHREAD_CANCEL_DEFERRED, NULL);
+
 	while (1)
 	{
+		pthread_testcancel();
+
 		thiz->events->WaitForEvent(thiz->events);
 		thiz->events->GetEvent (thiz->events, DFB_EVENT (&evt));
 
@@ -831,7 +836,7 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFB *dfb, IDirectF
 
 	dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &(newbox->events));
 	pthread_mutex_init(&(newbox->lock), NULL);
-	pthread_create(&(newbox->thread_id), NULL, (void *) combobox_thread, newbox);
+	pthread_create(&(newbox->events_thread), NULL, (void *) combobox_thread, newbox);
 
   return newbox;
 }

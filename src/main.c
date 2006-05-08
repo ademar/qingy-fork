@@ -75,6 +75,8 @@ FILE *fp_toGUI           = NULL;
 int   auth_ok            = 0;
 
 
+int my_returnstatus = QINGY_FAILURE;
+
 
 void authenticate_user(int signum)
 {
@@ -112,6 +114,18 @@ void authenticate_user(int signum)
 
 	/* re-enable signal catching */
 	signal(signum, authenticate_user);
+}
+
+void read_action(int signum)
+{
+
+	/* temporarily disable signal catching */
+	signal(signum, SIG_IGN);
+
+	fscanf(fp_fromGUI, "%d", &my_returnstatus);
+
+	/* re-enable signal catching */
+	signal(signum, read_action);
 }
 
 void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
@@ -268,6 +282,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 					 * (try to) authenticate a user
 					 */
 					signal(SIGUSR1, authenticate_user);
+					signal(SIGUSR2, read_action);
 
 					/* it is now safe to open our fifo to read auth data */
 					fp_fromGUI = fopen(fromGUI, "r");
@@ -276,34 +291,32 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 					while (1)
 					{
 						waitpid(pid, &returnstatus, 0);
-						if (WIFEXITED(returnstatus))
+						if (WIFEXITED(returnstatus) || WIFSIGNALED(returnstatus))
 							break;
 					}
 
 					/* we no longer need the signal handler */
 					signal(SIGUSR1, SIG_DFL);
+					signal(SIGUSR2, SIG_DFL);
 
 					break;
 			}
 
-			free(toGUI);
-			free(fromGUI);
-
 			if (WIFEXITED(returnstatus))
 				returnstatus = WEXITSTATUS(returnstatus);
+			else if (WIFSIGNALED(returnstatus))
+			{
+				returnstatus = my_returnstatus;
+			}
 			else
 				returnstatus = QINGY_FAILURE;
 
-			/* break the cycle if we are sure we don't have to read authentication data... */
-			if (returnstatus != QINGY_FAILURE )
-			{
-				fclose(fp_fromGUI);
-				fclose(fp_toGUI);
-				break;
-			}
-
 			fclose(fp_fromGUI);
 			fclose(fp_toGUI);
+
+			/* break the cycle if we are sure we don't have to read authentication data... */
+			if (returnstatus != QINGY_FAILURE )
+				break;
 
 			/* if we have authentication data we can break the cycle */
 			if (username && password && session)
@@ -316,6 +329,8 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 			else sleep(1);
 		}
 
+		free(toGUI);
+		free(fromGUI);
 		free(gui_argv[--j]);
 		free(gui_argv[--j]);
 		free(gui_argv);

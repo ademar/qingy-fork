@@ -35,7 +35,7 @@
 typedef struct _Button
 {
 	/* properties */
-	pthread_t thread_id;
+	pthread_t events_thread;
 	IDirectFBEventBuffer *events;
 	IDirectFBDisplayLayer *layer;
 	IDirectFBWindow  *window;    /* window that will contain the button 				*/

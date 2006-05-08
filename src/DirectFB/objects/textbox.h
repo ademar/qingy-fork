@@ -69,6 +69,8 @@ typedef struct _TextBox
   void (*SetCursorColor)(struct _TextBox *thiz, color_t *cursor_color);
   void (*SetText)(struct _TextBox *thiz, char *text);
   void (*ClearText)(struct _TextBox *thiz);
+	void (*HideText)(struct _TextBox *thiz, int hide);
+	void (*MaskText)(struct _TextBox *thiz, int mask);
 	void (*SetClickCallBack)  (struct _TextBox *thiz, void *callback);
   void (*Hide)(struct _TextBox *thiz);
   void (*Show)(struct _TextBox *thiz);

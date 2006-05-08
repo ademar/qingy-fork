@@ -130,12 +130,6 @@ void safe_exit(int exitstatus)
 {
 #undef exit
 
-  /* we overwrite memory areas containing sensitive information */
-	if (username) if (username->text)
-		memset(username->text, '\0', sizeof(username->text));
-	if (password) if (password->text)
-		memset(password->text, '\0', sizeof(password->text));
-
   unlock_tty_switching();
   exit(exitstatus);
 
@@ -205,19 +199,17 @@ void set_user_session(char *user)
 				session->SelectItem(session, session->items[i]);
 }
 
-void close_framebuffer_mode (void)
+void close_framebuffer_mode (int exit_status)
 {
-	/*
-	 * Once, all DirectFB interfaces were shut
-	 * down gracefully here. Now no longer:
-	 * DirectFB has not been nice to us recently,
-	 * so we are not being nice to it any more!
-	 *
-	 * DIE, you BASTARD, DIE! :-P
-	 *
-	 * Seriously, this way DirectFB takes care of deallocating
-	 * all stuff, and is much quicker at the job than us...
-	 */
+	/* write our exit status */
+	fprintf(stdout, "%d\n", exit_status);
+	fflush(stdout);
+	kill (ppid, SIGUSR2);
+
+	/* data input */
+  if (username) username->Destroy(username); /* nice: suicide */
+  if (password) password->Destroy(password);
+  if (session)  session->Destroy (session);
 
   /* destroy all labels */
   while (Labels)
@@ -226,23 +218,21 @@ void close_framebuffer_mode (void)
 		Labels = Labels->next;
 		if (temp->label) temp->label->Destroy(temp->label);
 		temp->next = NULL;
-/* 		free(temp->content); */
-/* 		free(temp->command); */
 		free(temp);
 	}
 
-/*   /\* destroy all buttons *\/ */
-/*   while (Buttons) */
-/* 	{ */
-/* 		Button_list *temp = Buttons; */
-/* 		Buttons = Buttons->next; */
-/* 		if (temp->button) temp->button->Destroy(temp->button); */
-/* 		temp->next = NULL; */
-/* 		free(temp); */
-/* 	} */
+  /* destroy all buttons */
+  while (Buttons)
+	{
+		Button_list *temp = Buttons;
+		Buttons = Buttons->next;
+		if (temp->button) temp->button->Destroy(temp->button);
+		temp->next = NULL;
+		free(temp);
+	}
 
-/* 	/\* background image *\/ */
-/*   if (panel_image) panel_image->Release (panel_image); */
+	/* background image */
+  if (panel_image) panel_image->Release (panel_image);
 
 	/* the silly messages that appear when you have your CAPS LOCK down */
   if (lock_key_statusA) lock_key_statusA->Destroy(lock_key_statusA);
@@ -250,37 +240,32 @@ void close_framebuffer_mode (void)
   if (lock_key_statusC) lock_key_statusC->Destroy(lock_key_statusC);
   if (lock_key_statusD) lock_key_statusD->Destroy(lock_key_statusD);
 
-	/* data input */
-  if (username) username->Destroy(username); /* nice: suicide */
-  if (password) password->Destroy(password);
-/*   if (session)  session->Destroy (session); */
-
 	/* fonts */
-/*   if (font_tiny)    font_tiny->Release    (font_tiny); */
-/*   if (font_smaller) font_smaller->Release (font_smaller); */
-/*   if (font_small)   font_small->Release   (font_small); */
-/*   if (font_normal)  font_normal->Release  (font_normal); */
-/*   if (font_large)   font_large->Release   (font_large); */
+  if (font_tiny)    font_tiny->Release    (font_tiny);
+  if (font_smaller) font_smaller->Release (font_smaller);
+  if (font_small)   font_small->Release   (font_small);
+  if (font_normal)  font_normal->Release  (font_normal);
+  if (font_large)   font_large->Release   (font_large);
 
 	/* core DirectFB stuff */
   if (primary) primary->Release (primary);
   if (events)  events->Release  (events);
   if (layer)   layer->Release   (layer);
 
-/*   while (devices) */
-/* 	{ */
-/* 		DeviceInfo *next = devices->next; */
-/* 		free (devices); */
-/* 		devices = next; */
-/* 	} */
+  while (devices)
+	{
+		DeviceInfo *next = devices->next;
+		free (devices);
+		devices = next;
+	}
 
-	if (dfb)     dfb->Release     (dfb);
+	if (dfb) dfb->Release (dfb);
 }
 
 void DirectFB_Error()
 {
   fprintf(stderr, "Unrecoverable error: reverting to text mode!\n"); /* dammit! */
-	close_framebuffer_mode();
+	close_framebuffer_mode(QINGY_FAILURE);
 }
 
 void show_lock_key_status(DFBInputEvent *evt)
@@ -446,10 +431,9 @@ void begin_shutdown_sequence (actions action, IDirectFBEventBuffer *events)
 	}
   if (no_shutdown_screen || (action == DO_SLEEP))
 	{
-		close_framebuffer_mode ();
-		if (action == DO_POWEROFF) exit(EXIT_SHUTDOWN_H);
-		if (action == DO_REBOOT)   exit(EXIT_SHUTDOWN_R);
-		if (action == DO_SLEEP)    exit(EXIT_SLEEP);
+		if (action == DO_POWEROFF) {close_framebuffer_mode (EXIT_SHUTDOWN_H); exit(EXIT_SHUTDOWN_H); }
+		if (action == DO_REBOOT)   {close_framebuffer_mode (EXIT_SHUTDOWN_R); exit(EXIT_SHUTDOWN_R); }
+		if (action == DO_SLEEP)    {close_framebuffer_mode (EXIT_SLEEP); exit(EXIT_SLEEP); }
 	}
   else
 	{
@@ -477,7 +461,7 @@ void begin_shutdown_sequence (actions action, IDirectFBEventBuffer *events)
   
   /* we should never get here unless call to /sbin/shutdown fails */
   fprintf (stderr, "\nfatal error: unable to exec \"/sbin/shutdown\"!\n");
-  if (!no_shutdown_screen) close_framebuffer_mode ();
+  if (!no_shutdown_screen) close_framebuffer_mode (QINGY_FAILURE);
   exit (QINGY_FAILURE);
 }
 
@@ -672,11 +656,7 @@ void start_login_sequence(DFBInputEvent *evt)
 			sleep(1);
 			if (free_temp) free(temp);
 
-			/* we overwrite memory areas containing sensitive information */
-			memset(username->text, '\0', sizeof(username->text));
-			memset(password->text, '\0', sizeof(password->text));
-
-			close_framebuffer_mode();
+			close_framebuffer_mode(EXIT_SUCCESS);
 			exit(EXIT_SUCCESS);
 			break;
 
@@ -729,7 +709,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 				begin_shutdown_sequence (action, events);
 				break;
 			case DO_KILL: /* we kill out parent - the true qingy - then commit suicide */
-				close_framebuffer_mode();
+				close_framebuffer_mode(EXIT_RESPAWN);
 				exit(EXIT_RESPAWN);
 				break;
 			case DO_SCREEN_SAVER:
@@ -1141,8 +1121,8 @@ int main (int argc, char *argv[])
 		DirectFB_Error();
 		return QINGY_FAILURE;
 	}
-  if (!hide_password) password->mask_text = 1;
-  else password->hide_text = 1;
+  if (!hide_password) password->MaskText(password, 1);
+  else password->HideText(password, 1);
   load_sessions(session);
   if (lastuser)
 	{
@@ -1257,9 +1237,7 @@ int main (int argc, char *argv[])
 
 	}
 
-  close_framebuffer_mode ();
-  exit(returnstatus);
-
-	/* just to make gcc happy */
+  close_framebuffer_mode (returnstatus);
+	unlock_tty_switching();
 	return returnstatus;
 }

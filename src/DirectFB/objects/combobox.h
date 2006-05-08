@@ -40,7 +40,7 @@
 typedef struct _ComboBox
 {
 	/* properties */
-	pthread_t              thread_id;
+	pthread_t              events_thread;
 	IDirectFBEventBuffer  *events;
 	IDirectFBDisplayLayer *layer;
 	pthread_mutex_t        lock;
