@@ -73,9 +73,7 @@ char *session            = NULL;
 FILE *fp_fromGUI         = NULL;
 FILE *fp_toGUI           = NULL;
 int   auth_ok            = 0;
-
-
-int my_returnstatus = QINGY_FAILURE;
+int   gui_retval         = QINGY_FAILURE;
 
 
 void authenticate_user(int signum)
@@ -122,7 +120,7 @@ void read_action(int signum)
 	/* temporarily disable signal catching */
 	signal(signum, SIG_IGN);
 
-	fscanf(fp_fromGUI, "%d", &my_returnstatus);
+	fscanf(fp_fromGUI, "%d", &gui_retval);
 
 	/* re-enable signal catching */
 	signal(signum, read_action);
@@ -279,9 +277,11 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 
 				default: /* parent */
 					/* install handler so that our GUI can signal us to
-					 * (try to) authenticate a user
+					 * (try to) authenticate a user...
 					 */
 					signal(SIGUSR1, authenticate_user);
+
+					/* ...and another to get GUI exit status */
 					signal(SIGUSR2, read_action);
 
 					/* it is now safe to open our fifo to read auth data */
@@ -295,19 +295,15 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 							break;
 					}
 
-					/* we no longer need the signal handler */
+					/* we no longer need the signal handlers */
 					signal(SIGUSR1, SIG_DFL);
 					signal(SIGUSR2, SIG_DFL);
 
 					break;
 			}
 
-			if (WIFEXITED(returnstatus))
-				returnstatus = WEXITSTATUS(returnstatus);
-			else if (WIFSIGNALED(returnstatus))
-			{
-				returnstatus = my_returnstatus;
-			}
+			if (WIFEXITED(returnstatus) || WIFSIGNALED(returnstatus))
+				returnstatus = gui_retval;
 			else
 				returnstatus = QINGY_FAILURE;
 

@@ -431,9 +431,10 @@ void begin_shutdown_sequence (actions action, IDirectFBEventBuffer *events)
 	}
   if (no_shutdown_screen || (action == DO_SLEEP))
 	{
-		if (action == DO_POWEROFF) {close_framebuffer_mode (EXIT_SHUTDOWN_H); exit(EXIT_SHUTDOWN_H); }
-		if (action == DO_REBOOT)   {close_framebuffer_mode (EXIT_SHUTDOWN_R); exit(EXIT_SHUTDOWN_R); }
-		if (action == DO_SLEEP)    {close_framebuffer_mode (EXIT_SLEEP); exit(EXIT_SLEEP); }
+		if (action == DO_POWEROFF) close_framebuffer_mode (EXIT_SHUTDOWN_H);
+		if (action == DO_REBOOT)   close_framebuffer_mode (EXIT_SHUTDOWN_R);
+		if (action == DO_SLEEP)    close_framebuffer_mode (EXIT_SLEEP);
+		exit(EXIT_SUCCESS);
 	}
   else
 	{
@@ -710,7 +711,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 				break;
 			case DO_KILL: /* we kill out parent - the true qingy - then commit suicide */
 				close_framebuffer_mode(EXIT_RESPAWN);
-				exit(EXIT_RESPAWN);
+				exit(EXIT_SUCCESS);
 				break;
 			case DO_SCREEN_SAVER:
 				ascii_code            = 0;
@@ -1239,5 +1240,5 @@ int main (int argc, char *argv[])
 
   close_framebuffer_mode (returnstatus);
 	unlock_tty_switching();
-	return returnstatus;
+	return EXIT_SUCCESS;
 }

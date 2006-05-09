@@ -1,3 +1,13 @@
+2006-05-08  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* dont_remember_all_the_files:
+	Finished adding thread shutdown code.
+	
+	* src/DirectFB/directfb_mode.c,
+	* src/main.c: 
+	Fixed bug that made main qingy process hang if its gui terminated abnormally, when
+	DirectFB is shutting down and gets an invalid address somewhere inside its bowels.
+
 2006-05-05  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/objects/textbox.c,

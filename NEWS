@@ -1,5 +1,12 @@
 qingy SVN-0.8.0-SVN:
-- Multithreaded qingy.
+- Made qingy multithreaded. Now every graphic element on screen has one or more threads
+  that handle draws and input events independently. This greatly reduces code complexity
+  as well as improving maintainability. Also, it paves the road for adding some more
+  elements to qingy GUI, like an 'X profile' combo, or a 'host to connect to' one.
+- Fixed bug that made main qingy process hang if its gui terminated abnormally, when
+  DirectFB is shutting down and gets an invalid address somewhere inside its bowels.
+  This made qingy lock up using 100% CPU power. Fortunately this happened in text mode
+  so that it was possible to kill the process and go on...
 - Fixed "kill qingy" keybinding behaviour. Now it actually
   quits qingy, instead of locking up your machine ;-).
 
