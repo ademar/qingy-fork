@@ -50,9 +50,18 @@ static void mouseOver(Button *thiz, int status)
 	thiz->mouseOver = status;
 
 	thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
-	if (status) thiz->surface->Blit(thiz->surface, thiz->mouseover, NULL, 0, 0);
-	else thiz->surface->Blit(thiz->surface, thiz->normal, NULL, 0, 0);
-	thiz->surface->Flip(thiz->surface, NULL, 0);
+
+	if (status)
+	{
+		thiz->surface->Blit(thiz->surface, thiz->mouseover, NULL, 0, 0);
+		thiz->surface->Flip(thiz->surface, NULL, 0);
+	}
+	else
+	{
+		thiz->surface->Blit(thiz->surface, thiz->normal, NULL, 0, 0);
+		thiz->surface->Flip(thiz->surface, NULL, 0);
+	}
+	
 }
 
 void Button_Show(Button *thiz)

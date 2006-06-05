@@ -139,7 +139,7 @@ static void DrawCursor(TextBox *thiz)
 		int length = strlen(thiz->text);
 		text = (char *) calloc(length+1, sizeof(char));
 		text[length] = '\0';
-		for(length--; length>=0; length--) text[length] = '*';
+		memset(text, '*', length);
 		free_text = 1;
 	}
 	else if (thiz->hide_text)
@@ -195,7 +195,7 @@ static void keyEvent(TextBox *thiz, int ascii_code, int modifier, int draw_curso
 		{
 			char *tmp = (char *) calloc(length+1, sizeof(char));			
 			tmp[length] = '\0';
-			for(length--; length>=0; length--) tmp[length] = '*';
+			memset(tmp, '*', length);
 			window_surface->DrawString (window_surface, tmp, -1, 0, 0, DSTF_LEFT|DSTF_TOP);
 			free(tmp);
 		}
