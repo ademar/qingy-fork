@@ -183,6 +183,13 @@ idle_timeout            return IDLE_TIMEOUT_TOK;
 idle_action             return IDLE_ACTION_TOK;
 logout                  return LOGOUT_TOK;
 lock                    return LOCK_TOK;
+log_level               return LOG_LEVEL_TOK;
+debug                   return DEBUG_TOK;
+error                   return ERROR_TOK;
+log_facilities          return LOG_FACILITIES_TOK;
+console                 return CONSOLE_TOK;
+file                    return FILE_TOK;
+syslog                  return SYSLOG_TOK;
 
 
 "#"[^\n]*"\n" ;			/* skip comments */

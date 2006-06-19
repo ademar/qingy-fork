@@ -1,3 +1,6 @@
+qingy SVN-0.8.1-SVN:
+- Logging.
+
 qingy 0.8.0 (05 Jun 2006):
 - Made qingy GUI multithreaded. Now every graphic element on screen has
   one or more threads that handle draws and input events independently.

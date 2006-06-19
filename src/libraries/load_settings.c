@@ -62,6 +62,7 @@
 #include "misc.h"
 #include "vt.h"
 #include "keybindings.h"
+#include "logger.h"
 
 
 extern FILE* yyin;
@@ -80,8 +81,10 @@ void initialize_variables(void)
 	autologin_password      = NULL;
 	autologin_session       = NULL;
 	screensavers_dir        = NULL;
+	log_facilities          = LOG_NONE;
 	dfb_interface           = StrApp((char**)NULL, SBINDIR, "qingy-DirectFB", (char*)NULL);
 	tmp_files_dir           = strdup("/var/lib/misc");
+	max_loglevel            = ERROR;
   background              = NULL;
 	themes_dir              = NULL;
   theme_dir               = NULL;
@@ -872,6 +875,19 @@ int load_settings(void)
 
 	if (!silent)
 		fprintf(stderr, "Session locking is%s enabled.\n", (lock_sessions) ? "" : " NOT");
+
+	if (!log_facilities)
+	{
+		log_facilities = LOG_CONSOLE;
+	}
+	if (!silent)
+	{
+		fprintf(stderr, "The following logging facilities will be used: ");
+		fprintf(stderr, "%s", (log_facilities & LOG_FILE) ? "FILE " : "");
+		fprintf(stderr, "%s", (log_facilities & LOG_SYSLOG) ? "SYSLOG " : "");
+		fprintf(stderr, "%s", (log_facilities & LOG_CONSOLE) ? "CONSOLE " : "");
+		fprintf(stderr, "\n");
+	}
 
   return 1;
 }

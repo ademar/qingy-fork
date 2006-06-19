@@ -31,6 +31,7 @@
 
 #include "memmgmt.h"
 #include "load_settings.h"
+#include "logger.h"
 #include "misc.h"
 #include "keybindings.h"
   
@@ -137,6 +138,9 @@ static window_t wind =
 /* session timeout tokens */
 %token IDLE_TIMEOUT_TOK IDLE_ACTION_TOK LOGOUT_TOK LOCK_TOK
 
+/* loggging cababilities */
+%token LOG_LEVEL_TOK DEBUG_TOK ERROR_TOK LOG_FACILITIES_TOK CONSOLE_TOK FILE_TOK SYSLOG_TOK
+
 
 /* typed tokens: */
 %token <ival>  ANUM_T 		/* int */
@@ -167,6 +171,7 @@ config: /* nothing */
 | config idle_timeout
 | config idle_action
 | config gui_retries
+| config logging
 | config sleep
 | config theme { TTY_CHECK_COND got_theme=set_theme_result; }
 | config shutdown
@@ -200,6 +205,7 @@ config_tty: /* nothing */
 | config_tty idle_timeout
 | config_tty idle_action
 | config_tty gui_retries
+| config_tty logging
 | config_tty sleep
 | config_tty theme { TTY_CHECK_COND got_theme=set_theme_result; }
 | config_tty shutdown
@@ -229,13 +235,31 @@ password: PASSWORD_TOK '=' QUOTSTR_T
 	}
 
 session: SESSION_TOK '=' QUOTSTR_T { TTY_CHECK_COND autologin_session = strdup($3); }
-| SESSION_TOK '=' LAST_SESSION_TOK { TTY_CHECK_COND autologin_session = strdup("LAST"); }
+|        SESSION_TOK '=' LAST_SESSION_TOK { TTY_CHECK_COND autologin_session = strdup("LAST"); }
 
 dfb_interface: DFB_INTERFACE_TOK '=' QUOTSTR_T
 	{
 	  if(in_theme) yyerror("Setting 'qingy_DirectFB' is not allowed in theme file.");
 	  TTY_CHECK_COND { if (dfb_interface) free(dfb_interface); dfb_interface = strdup($3); }
 	}
+
+/* logging support */
+logging: LOG_LEVEL_TOK      '=' loglevels
+|        LOG_FACILITIES_TOK '=' logfacilities
+;
+
+loglevels: DEBUG_TOK { TTY_CHECK_COND max_loglevel = DEBUG; }
+|          ERROR_TOK { TTY_CHECK_COND max_loglevel = ERROR; }
+;
+
+logfacilities: logfacility
+|              logfacility ',' logfacilities
+;
+
+logfacility: CONSOLE_TOK { TTY_CHECK_COND log_facilities |= LOG_CONSOLE; }
+|            FILE_TOK    { TTY_CHECK_COND log_facilities |= LOG_FILE;    }
+|            SYSLOG_TOK  { TTY_CHECK_COND log_facilities |= LOG_SYSLOG;  }
+;
 
 /* sleep cupport */
 sleep: SLEEP_TOK '=' QUOTSTR_T

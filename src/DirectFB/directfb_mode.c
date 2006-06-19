@@ -50,6 +50,7 @@
 #include "misc.h"
 #include "session.h"
 #include "load_settings.h"
+#include "logger.h"
 #include "keybindings.h"
 
 /* my custom DirectFB stuff */
@@ -1100,11 +1101,13 @@ int main (int argc, char *argv[])
   layer->EnableCursor (layer, 0);
   sdsc.flags = DSDESC_CAPS;
   sdsc.caps  = DSCAPS_PRIMARY | DSCAPS_FLIPPING;
+
   if (dfb->CreateSurface( dfb, &sdsc, &primary ) != DFB_OK)
 	{
 		DirectFB_Error();
 		return QINGY_FAILURE;
 	}
+
   primary->GetSize(primary, &screen_width, &screen_height);
 
 	if (screen_width  != theme_xres) x_ratio = (float)screen_width/(float)theme_xres;
@@ -1115,6 +1118,7 @@ int main (int argc, char *argv[])
 		DirectFB_Error();
 		return QINGY_FAILURE;
 	}
+
   Draw_Background_Image(1);
 
   if (!create_windows())
@@ -1122,6 +1126,7 @@ int main (int argc, char *argv[])
 		DirectFB_Error();
 		return QINGY_FAILURE;
 	}
+
   if (!hide_password) password->MaskText(password, 1);
   else password->HideText(password, 1);
   load_sessions(session);

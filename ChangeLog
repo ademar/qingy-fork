@@ -1,3 +1,18 @@
+2006-06-16  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in:
+	Tagged version as 0.8.1...
+
+	* media/qingy-mode.el,
+	* src/libraries/load_settings.c,
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l,
+	* src/libraries/logger.c,
+	* src/libraries/logger.h, 
+	* src/libraries/Makefile.am: 
+	Adding support for a logging infrastructure more powerful
+	than the previous stderr output.
+
 2006-05-12  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/objects/textbox.c:
