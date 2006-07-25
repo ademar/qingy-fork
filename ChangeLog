@@ -1,3 +1,11 @@
+2006-07-17  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/misc.h,
+	* src/libraries/misc.c (to_upper),
+	* src/DirectFB/objects/combobox.c (combobox_thread): 
+	Allow user to select a session by typing the first char of its name.
+	Code courteously provided by Brian Carter <briancarter32@sbcglobal.net>
+
 2006-06-16  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* configure.in:

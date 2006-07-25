@@ -1,8 +1,8 @@
 /***************************************************************************
-                           misc.c  -  description
+                          logger.c  -  description
                             --------------------
-    begin                : Apr 10 2003
-    copyright            : (C) 2003-2006 by Noberasco Michele
+    begin                : Jun 09 2006
+    copyright            : (C) 2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
  ***************************************************************************/
 
@@ -24,58 +24,46 @@
  *   59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.              *
  *                                                                         *
  ***************************************************************************/
- 
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#include "qingy_constants.h"
+#include <stdio.h>
+#include "logger.h"
 
-/* Computes the integer part of the base 10 log */
-int int_log10(int n);
+void log_file(log_levels loglevel, char *message)
+{
+	static FILE *fp = NULL;
 
-/* Converts an unsigned integer to a string */
-char *int_to_str(int n);
+	if (!fp)
+	{
+		fp = fopen(LOG_FILE_NAME, "a");
+		if (!fp)
+		{
+			fprintf(stderr, "Could not open log file '%s'...\n", LOG_FILE_NAME);
+			return;
+		}
+	}
 
-/* make given string lowercase */
-void to_lower(char *string);
+	fprintf(fp, "%s\n", message);
+}
 
-/* make given char uppercase */
-char to_upper(char c);
+void log_syslog(log_levels loglevel, char *message)
+{
+}
 
-/* append any number of strings to dst */
-char *StrApp(char **dst, ...);
+void writelog(log_levels loglevel, char *message)
+{
+	if (!message) return;
+	if (loglevel > max_loglevel) return;
 
-/* like strncpy, but the result is null-terminated */
-void xstrncpy(char *dest, const char *src, size_t n);
+	if (log_facilities & LOG_CONSOLE)
+		fprintf(stderr, "%s\n", message);
 
-/* I couldn'd think of an intelligent explanation for this */
-void ClearScreen(void);
+	if (log_facilities & LOG_FILE)
+		log_file(loglevel, message);
 
-/* get <user> home directory */
-char *get_home_dir(char *user);
-
-/* Prints a welcome message */
-char *print_welcome_message(char *preamble, char *postamble);
-
-/* checks wether <what> is a directory */
-int is_a_directory(char *what);
-
-/* function name says it all ;-P */
-char *get_file_owner(char *file);
-
-/* Get system uptime */
-int get_system_uptime();
-
-/* session idle time, in minutes */
-int get_session_idle_time(char *tty, time_t *start_time, int is_x_session, int x_offset);
-
-/* guess what :-) */
-void execute_script(char *script);
-
-/* other stuff */
-char *assemble_message(char *content, char *command);
-void text_mode();
-void Error(int fatal);
-char *get_resolution(char *resolution);
-void PrintUsage();
+	if (log_facilities & LOG_SYSLOG)
+		log_syslog(loglevel, message);
+}

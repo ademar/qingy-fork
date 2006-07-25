@@ -118,6 +118,15 @@ void to_lower(char *string)
 }
 
 
+char to_upper(char c)
+{
+	if (c >= 97 && c <= 122)
+		return c - 32;
+
+	return c;
+}
+
+
 void ClearScreen(void)
 {
 	setupterm((char *) 0, STDOUT_FILENO, (int *) 0);

@@ -1,8 +1,8 @@
 /***************************************************************************
-                           misc.c  -  description
+                          logger.h  -  description
                             --------------------
-    begin                : Apr 10 2003
-    copyright            : (C) 2003-2006 by Noberasco Michele
+    begin                : Jun 09 2006
+    copyright            : (C) 2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
  ***************************************************************************/
 
@@ -25,57 +25,28 @@
  *                                                                         *
  ***************************************************************************/
  
+#ifndef LOGGER_H
+#define LOGGER_H
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#include "qingy_constants.h"
+#define LOG_FILE_NAME "/var/log/qingy.log"
 
-/* Computes the integer part of the base 10 log */
-int int_log10(int n);
+#define LOG_NONE    000
+#define LOG_FILE    001
+#define LOG_SYSLOG  010
+#define LOG_CONSOLE 100
+int log_facilities;
 
-/* Converts an unsigned integer to a string */
-char *int_to_str(int n);
+typedef enum
+{
+	ERROR=0,
+	DEBUG
+} log_levels;
+log_levels max_loglevel;
 
-/* make given string lowercase */
-void to_lower(char *string);
+void writelog(log_levels loglevel, char *message);
 
-/* make given char uppercase */
-char to_upper(char c);
-
-/* append any number of strings to dst */
-char *StrApp(char **dst, ...);
-
-/* like strncpy, but the result is null-terminated */
-void xstrncpy(char *dest, const char *src, size_t n);
-
-/* I couldn'd think of an intelligent explanation for this */
-void ClearScreen(void);
-
-/* get <user> home directory */
-char *get_home_dir(char *user);
-
-/* Prints a welcome message */
-char *print_welcome_message(char *preamble, char *postamble);
-
-/* checks wether <what> is a directory */
-int is_a_directory(char *what);
-
-/* function name says it all ;-P */
-char *get_file_owner(char *file);
-
-/* Get system uptime */
-int get_system_uptime();
-
-/* session idle time, in minutes */
-int get_session_idle_time(char *tty, time_t *start_time, int is_x_session, int x_offset);
-
-/* guess what :-) */
-void execute_script(char *script);
-
-/* other stuff */
-char *assemble_message(char *content, char *command);
-void text_mode();
-void Error(int fatal);
-char *get_resolution(char *resolution);
-void PrintUsage();
+#endif

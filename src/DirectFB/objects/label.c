@@ -65,6 +65,7 @@ static void Plot(Label *thiz)
 				thiz->surface->DrawString (thiz->surface, thiz->text, -1, thiz->width/2, thiz->height+1, DSTF_CENTER|DSTF_BOTTOM );
 				break;
 		}
+
 	thiz->surface->Flip(thiz->surface, NULL, 0);
 }
 
@@ -107,15 +108,12 @@ void Label_SetAction(Label *thiz, int polltime, char *content, char *command)
 	if (!thiz) return;
 
 	pthread_mutex_lock(&(thiz->lock));
-
 	thiz->polltime = polltime;
 	thiz->content  = strdup(content);
 	thiz->command  = strdup(command);
-
 	message = assemble_message(thiz->content, thiz->command);
 	setText(thiz, message);
 	free(message);
-
 	pthread_mutex_unlock(&(thiz->lock));
 }
 

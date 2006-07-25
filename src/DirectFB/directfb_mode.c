@@ -880,12 +880,14 @@ int create_windows()
 
   window_desc.flags = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
   window_desc.caps  = DWCAPS_ALPHACHANNEL;
+
   while (window)
 	{
 		window_desc.posx   = window->x      * screen_width  / theme_xres;
 		window_desc.posy   = window->y      * screen_height / theme_yres;
 		window_desc.width  = window->width  * screen_width  / theme_xres;
 		window_desc.height = window->height * screen_height / theme_yres;	
+
 		switch(window->text_size)
 		{
 			case TINY:
@@ -905,6 +907,7 @@ int create_windows()
 				font = font_large;
 				break;
 		}
+
 		/* what kind of window are we going to create? */
 		switch (window->type)
 		{
@@ -932,12 +935,14 @@ int create_windows()
 					labels->next = (Label_list *) calloc(1, sizeof(Label_list));
 					labels = labels->next;
 	      }
+
 				labels->label = Label_Create(layer, dfb, font, window->text_color, &window_desc);
 				if (!labels->label) return 0;			
 				labels->label->SetTextOrientation(labels->label, window->text_orientation);
 				labels->label->SetAction(labels->label, window->polltime, window->content, window->command);
 				labels->label->SetFocus(labels->label, 0);
 				labels->next = NULL;
+
 				if (window->linkto)
 	      {
 					if (!strcmp(window->linkto, "login"))    username_label = labels->label;

@@ -770,11 +770,60 @@ static int *combobox_thread(ComboBox *thiz)
 
 					if (action == DO_NOTHING)
 						if (symbol_name)
-						{
-							if (ascii_code == RETURN)     keyEvent(thiz, SELECT);
-							if (ascii_code == ARROW_UP)   keyEvent(thiz, UP);
-							if (ascii_code == ARROW_DOWN) keyEvent(thiz, DOWN);
-						}
+							switch (ascii_code)
+							{
+								case RETURN:
+									keyEvent(thiz, SELECT);
+									break;
+								case ARROW_UP:
+									keyEvent(thiz, UP);
+									break;
+								case ARROW_DOWN:
+									keyEvent(thiz, DOWN);
+									break;
+								default:
+									/* if user is typing a char, we allow him to select a session by typing the first char of its name */
+									if (ascii_code >= 32 && ascii_code <= 127 && !thiz->isclicked)
+									{
+										int done  = 0;
+										int found = 0;
+										int i;
+
+										ascii_code = to_upper (ascii_code);
+										if (to_upper (thiz->selected[0]) == ascii_code)
+										{
+											for (i=0; i<thiz->n_items; i++)
+											{
+												if (thiz->items[i] == thiz->selected)
+												{
+													found = 1;
+													continue;
+												}
+												if (found)
+												{
+													if (to_upper (thiz->items[i][0]) == ascii_code)
+													{
+														selectItem (thiz, thiz->items[i], 0);
+														done = 1;
+														break;
+													}
+												}
+											}
+										}
+										if (!done)
+										{
+											for (i = 0; i < thiz->n_items; i++)
+											{
+												if (to_upper (thiz->items[i][0]) == ascii_code)
+												{
+													selectItem (thiz, thiz->items[i], 0);
+													break;
+												}
+											}
+										}
+									}
+									break;
+							}
 				}
 
 				pthread_mutex_unlock(&(thiz->lock));
