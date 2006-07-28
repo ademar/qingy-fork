@@ -34,6 +34,7 @@
 
 #include "load_settings.h"
 #include "misc.h"
+#include "logger.h"
 
 #define MAX_STR_CONST 256
 
@@ -198,7 +199,7 @@ syslog                  return SYSLOG_TOK;
 [0-9]+	   {  sscanf(yytext, "%i", &(yylval.ival)); return ANUM_T;}	
 
  /* colors */
-"\["[0-9a-fA-F]{8}"\]" { sscanf(yytext, "[%x]", (unsigned int *)yylval.color); return COLOR_T;}
+"\["[ \t]*[0-9a-fA-F]{8}[ \t]*"\]" { sscanf(yytext, "[%x]", (unsigned int *)yylval.color); return COLOR_T;}
 
 [ \n\t] ; 			/* skip blanks */
 
@@ -237,7 +238,7 @@ int set_theme(char *theme)
 	free(file);
   if (!fp)
 	{
-		if (!silent) fprintf(stderr, "load_settings: theme '%s' does not exist in directory '%s'.\n", theme, theme_dir);
+		WRITELOG(ERROR, "Theme '%s' does not exist in directory '%s'.\n", theme, theme_dir);
 		return 0;
 	}
 	settings_buf=YY_CURRENT_BUFFER;

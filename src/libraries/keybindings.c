@@ -35,6 +35,7 @@
 #include "keybindings.h"
 #include "memmgmt.h"
 #include "load_settings.h"
+#include "logger.h"
 #include "misc.h"
 
 typedef struct _keybinding
@@ -183,8 +184,7 @@ int add_to_keybindings(actions action, char *string)
 	new_keybinding->key      = key;
 	new_keybinding->next     = NULL;
 
-	if (!silent)
-		fprintf(stderr, "added keybinding: '%s%s' will %s...\n", print_modifier(modifier), print_key(key), print_action(action));
+	WRITELOG(DEBUG, "added keybinding: '%s%s' will %s...\n", print_modifier(modifier), print_key(key), print_action(action));
 
 	return 1;
 }

@@ -64,6 +64,7 @@
 #include "directfb_mode.h"
 #include "load_settings.h"
 #include "session.h"
+#include "logger.h"
 
 
 char *autologin_filename = NULL;
@@ -136,7 +137,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 	int    fd;
 
   /* We clear the screen */
-  if (silent) ClearScreen();
+  if (max_loglevel == ERROR) ClearScreen();
 
 	if (!do_autologin)
 	{
@@ -144,15 +145,19 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		load_settings();
 
 		/* should we perform a text-mode login? */
-		if (text_mode_login) text_mode();
+		if (text_mode_login)
+		{
+			free(fromGUI);
+			free(toGUI);
+			text_mode();
+		}
 
 		/* display native theme resolution */
-		if (!silent)
-			fprintf(stderr, "Native theme resolution is '%dx%d'\n", theme_xres, theme_yres);
+		WRITELOG(DEBUG, "Native theme resolution is '%dx%d'\n", theme_xres, theme_yres);
 
 		/* get resolution of console framebuffer */
 		if (!resolution) resolution = get_fb_resolution( (fb_device) ? fb_device : "/dev/fb0" );
-		if (!silent && resolution) fprintf(stderr, "framebuffer resolution is '%s'.\n", resolution);
+		if (resolution) WRITELOG(DEBUG, "Framebuffer resolution is '%s'.\n", resolution);
 
 		/* Set up command line for our interface */
 		gui_argv = (char **) calloc(argc+3, sizeof(char *));
@@ -161,7 +166,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 			gui_argv[j] = argv[j];
 
 		gui_argv[j] = StrApp((char**)NULL, "--dfb:vt-switch,no-vt-switching,bg-none,no-hardware", (char*)NULL);
-		if (silent) StrApp(&(gui_argv[j]), ",quiet", (char*)NULL);
+		if (max_loglevel == ERROR) StrApp(&(gui_argv[j]), ",quiet", (char*)NULL);
 		if (fb_device)
 		{
 			StrApp(&(gui_argv[j]), ",fbdev=", fb_device,  (char*)NULL);
@@ -185,8 +190,9 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		fd = mkstemp(fromGUI);
 		if (fd == -1)
 		{
-			fprintf(stderr, "%s: fatal error: could not create temporary file!\n", argv[0]);
+			writelog(ERROR, "Could not create temporary file!\n");
 			free(fromGUI);
+			free(toGUI);
 			text_mode();
 		}
 
@@ -199,8 +205,9 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		/* let's create a nice FIFO to receive user auth data */
 		if (mkfifo(fromGUI, S_IRUSR|S_IWUSR))
 		{
-			fprintf(stderr, "%s: fatal error: could not create temporary file!\n", argv[0]);
+			writelog(ERROR, "Could not create temporary file!\n");
 			free(fromGUI);
+			free(toGUI);
 			text_mode();
 		}
 
@@ -208,18 +215,22 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		fd = mkstemp(toGUI);
 		if (fd == -1)
 		{
-			fprintf(stderr, "%s: fatal error: could not create temporary file!\n", argv[0]);
-			exit(EXIT_FAILURE);
+			writelog(ERROR, "Could not create temporary file!\n");
+			free(fromGUI);
+			free(toGUI);
+			text_mode();
 		}
 		if (chmod(toGUI, S_IRUSR|S_IWUSR))
 		{
-			fprintf(stderr, "%s: fatal error: cannot chmod() file '%s'!\n", argv[0], toGUI);
-			exit(EXIT_FAILURE);
+			WRITELOG(ERROR, "Cannot chmod() file '%s'!\n", toGUI);
+			free(fromGUI);
+			free(toGUI);
+			text_mode();
 		}
 		fp_toGUI = fdopen(fd, "w");
 		if (!fp_toGUI)
 		{
-			fprintf(stderr, "%s: fatal error: unable to open temporary file '%s'!\n", argv[0], toGUI);
+			WRITELOG(ERROR, "Unable to open temporary file '%s'!\n", toGUI);
 			free(fromGUI);
 			free(toGUI);
 			text_mode();
@@ -240,7 +251,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 			switch ((int)pid)
 			{
 				case -1:
-					fprintf(stderr, "%s: fatal error: fork() failed!\n", argv[0]);
+					writelog(ERROR, "fork() failed!\n");
 					fclose(fp_toGUI);
 					unlink(fromGUI);
 					unlink(toGUI);
@@ -252,7 +263,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 					/* we set up the standard input for our GUI... */
 					if (!freopen(toGUI, "r", stdin))
 					{
-						fprintf(stderr, "%s: fatal error: unable to redirect standard input!\n", argv[0]);
+						writelog(ERROR, "Unable to redirect standard input!\n");
 						exit(EXIT_FAILURE);
 					}
 
@@ -262,7 +273,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 					/* ... then the standard output */
 					if (!freopen(fromGUI, "w", stdout))
 					{
-						fprintf(stderr, "%s: fatal error: unable to redirect standard output!\n", argv[0]);
+						writelog(ERROR, "Unable to redirect standard output!\n");
 						exit(EXIT_FAILURE);
 					}
 					/* remove comm file so that noone will tamper */
@@ -272,7 +283,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 					execve(gui_argv[0], gui_argv, NULL);
 
 					/* we should never get here unless the execve failed */
-					fprintf(stderr, "%s: fatal error: unable to execute %s!\n", argv[0], gui_argv[0]);
+					WRITELOG(ERROR, "Unable to execute %s!\n", gui_argv[0]);
 					exit(EXIT_FAILURE);
 
 				default: /* parent */
@@ -365,7 +376,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 				start_session(username, session);
 			}
 			/* We won't get here unless there was a failure starting user session */
-			fprintf(stderr, "\nLogin failed, reverting to text mode!\n");			
+			writelog(ERROR, "Login failed, reverting to text mode!\n");			
 			/* Fall trough */
 		case EXIT_RESPAWN:
 			if (username) memset(username, '\0', sizeof(username));
@@ -391,7 +402,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 			if (username) memset(username, '\0', sizeof(username));
       if (password) memset(password, '\0', sizeof(password));
 			if (sleep_cmd) execl (sleep_cmd, sleep_cmd, (char*)NULL);
-			fprintf(stderr, "\nfatal error: could not execute sleep command!\n");
+			writelog(ERROR, "Could not execute sleep command!\n");
 			exit(EXIT_FAILURE);
 			break;
 		default: /* user wants to switch to another tty ... */
@@ -399,14 +410,14 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
       if (password) memset(password, '\0', sizeof(password));
 			if (!set_active_tty(returnstatus))
 			{
-				fprintf(stderr, "\nfatal error: unable to change active tty!\n");
+				writelog(ERROR, "Unable to change active tty!\n");
 				exit(EXIT_FAILURE);
 			}
 			exit(EXIT_SUCCESS); /* init will restart us in listen mode */
 	}
 
   /* We should never get here */
-  fprintf(stderr, "\nGo tell my creator that his brains went pop!\n");
+  writelog(ERROR, "Go tell my creator that his brains went pop!\n");
   /* NOTE (paolino): I never got here, but still your brains are gone pop! */
   exit(EXIT_FAILURE);
 }
@@ -427,7 +438,7 @@ int check_autologin(int our_tty_number)
 	/* Sanity checks */
 	if (!autologin_username || !autologin_password || !autologin_session)
 	{
-		fprintf(stderr, "\nAutologin disabled: insuffucient user data!\n");
+		writelog(ERROR, "Autologin disabled: insuffucient user data!\n");
 		return 0;
 	}
 	if (!strcmp(autologin_session, "LAST"))
@@ -436,7 +447,7 @@ int check_autologin(int our_tty_number)
 		autologin_session = get_last_session(autologin_username);
 		if (!autologin_session)
 		{
-			fprintf(stderr, "\nAutologin disabled: could not get last session of user %s!\n", autologin_username);
+			WRITELOG(ERROR, "Autologin disabled: could not get last session of user %s!\n", autologin_username);
 			return 0;			
 		}
 	}
@@ -500,8 +511,8 @@ int main(int argc, char *argv[])
 	/* generate (openssl) or restore (all others) public/private keys */
 	if (!generate_keys())
 	{
-		fprintf(stderr, "\n\nqingy: key pair does not exist!\n");
-		fprintf(stderr, "Make sure you run qingy-keygen to generate it\n\n");
+		writelog(ERROR, "Key pair does not exist!\n");
+		writelog(ERROR, "Make sure you run qingy-keygen to generate it\n");
 		text_mode();
 	}
 #endif
@@ -518,7 +529,7 @@ int main(int argc, char *argv[])
 		user_tty_number = get_active_tty();
 		if (user_tty_number == -1)
 		{
-			fprintf(stderr, "\nfatal error: cannot get active tty number!\n");
+			writelog(ERROR, "Cannot get active tty number!\n");
 			return EXIT_FAILURE;
 		}
 		if (user_tty_number == our_tty_number) start_up(argc, argv, our_tty_number, 0);
@@ -526,7 +537,7 @@ int main(int argc, char *argv[])
 	}
 
   /* We should never get here */
-  fprintf(stderr, "\nGo tell my creator not to smoke that stuff, next time...\n");
+  writelog(ERROR, "Go tell my creator not to smoke that stuff, next time...\n");
   /* NOTE (paolino): indeed! */
   
   return EXIT_FAILURE;

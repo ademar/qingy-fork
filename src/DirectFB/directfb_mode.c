@@ -265,7 +265,10 @@ void close_framebuffer_mode (int exit_status)
 
 void DirectFB_Error()
 {
-  fprintf(stderr, "Unrecoverable error: reverting to text mode!\n"); /* dammit! */
+  writelog(ERROR, "Unrecoverable DirectFB error: reverting to text mode!\n"); /* dammit! */
+  writelog(ERROR, "This usually means that you have an issue with DirectFB, not with qingy...\n");
+  writelog(ERROR, "Most likely you don't have your console framebuffer properly set up.\n");
+  writelog(ERROR, "Please turn on DEBUG log level in qingy to see exactly why DirectFB is letting you down.\n");
 	close_framebuffer_mode(QINGY_FAILURE);
 }
 
@@ -462,7 +465,7 @@ void begin_shutdown_sequence (actions action, IDirectFBEventBuffer *events)
 	}
   
   /* we should never get here unless call to /sbin/shutdown fails */
-  fprintf (stderr, "\nfatal error: unable to exec \"/sbin/shutdown\"!\n");
+  writelog(ERROR, "Unable to exec \"/sbin/shutdown\"!\n");
   if (!no_shutdown_screen) close_framebuffer_mode (QINGY_FAILURE);
   exit (QINGY_FAILURE);
 }
@@ -701,8 +704,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 	action = search_keybindings(modifier, ascii_code);
 	if (action != DO_NOTHING)
 	{
-		if (!silent)
-			fprintf(stderr, "You pressed '%s%s' and I will now %s...\n", print_modifier(modifier), print_key(ascii_code), print_action(action));
+		WRITELOG(DEBUG, "You pressed '%s%s' and I will now %s...\n", print_modifier(modifier), print_key(ascii_code), print_action(action));
 		
 		switch (action)
 		{
@@ -1085,14 +1087,14 @@ int main (int argc, char *argv[])
 	ppid = atoi(argv[argc-1]);
 
   /* we initialize directfb */
-  if (silent) stderr_disable();
+  if (max_loglevel == ERROR) stderr_disable();
 	result = DirectFBInit (&argc, &argv);
   if (result == DFB_OK) result = DirectFBSetOption("session","-1");
   if (result == DFB_OK) result = DirectFBCreate (&dfb);
   if (result == DFB_OK) result = dfb->EnumInputDevices (dfb, enum_input_device, &devices);
   if (result == DFB_OK) result = dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &events);
   if (result == DFB_OK) result = dfb->GetDisplayLayer (dfb, DLID_PRIMARY, &layer);
-	if (silent) stderr_enable(&current_tty);
+	if (max_loglevel == ERROR) stderr_enable(&current_tty);
 
   /* any errors so far? */
 	if (result != DFB_OK)

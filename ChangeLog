@@ -1,10 +1,21 @@
+2006-07-27  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* lotsa_files_have_been_changed:
+	Removed '--verbose' command line argument as it is now superseded by
+	the new logging capabilities. Logging now works, still have to write
+	to logs DirectFB stderr output.
+
+	* src/libraries/scan_settings.l:
+	Fixed bug in recognition of colors in the form of [ RRGGBBAA ] with
+	whitespace inside the square brackets.
+
 2006-07-17  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/misc.h,
 	* src/libraries/misc.c (to_upper),
 	* src/DirectFB/objects/combobox.c (combobox_thread): 
 	Allow user to select a session by typing the first char of its name.
-	Code courteously provided by Brian Carter <briancarter32@sbcglobal.net>
+	Code courteously provided by Brian Carter <spakov@users.sourceforge.net>
 
 2006-06-16  Michele Noberasco  <michele.noberasco@tiscali.it>
 

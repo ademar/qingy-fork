@@ -43,13 +43,14 @@
 #include "misc.h"
 #include "qingy_constants.h"
 #include "load_settings.h"
+#include "logger.h"
 
 
 #define CHECK1(x)                                                                         \
   error = x;                                                                              \
 	if (error)                                                                              \
 	{                                                                                       \
-		fprintf (stderr, "Failure: %s/%s\n", gcry_strsource (error), gcry_strerror (error));  \
+		WRITELOG(ERROR, "Failure: %s/%s\n", gcry_strsource (error), gcry_strerror (error)); \
 		sleep(2);                                                                             \
 		exit(EXIT_FAILURE);													                                          \
 	}
@@ -58,7 +59,7 @@
 	x;                                                                              \
 	if (!temp)                                                                      \
 	{                                                                               \
-		fprintf(stderr, "qingy: failure: something is wrong with your libgcrypt!\n"); \
+		writelog(ERROR, "Something is wrong with your libgcrypt!\n"); \
 		sleep(2);                                                                     \
 		exit(EXIT_FAILURE);                                                           \
 	}
@@ -68,7 +69,7 @@
 	if (error)                                                                              \
 	{                                                                                       \
 		if (!exit_on_failure) return 0;                                                       \
-		fprintf (stderr, "Failure: %s/%s\n", gcry_strsource (error), gcry_strerror (error));  \
+		WRITELOG(ERROR, "Failure: %s/%s\n", gcry_strsource (error), gcry_strerror (error));  \
 		sleep(2);                                                                             \
 		exit(EXIT_FAILURE);													                                          \
 	}
@@ -106,7 +107,7 @@ static void dump_data(FILE *fp, char *tagname, char *buf, size_t len)
 	written = fwrite(buf, sizeof(char), len, fp);
 	if (written != len)
 	{
-		fprintf(stderr, "qingy: error writing public key to file\n");
+		writelog(ERROR, "Error writing public key to file\n");
 		sleep(2);
 		exit(EXIT_FAILURE);
 	}
@@ -416,7 +417,7 @@ static int int_restore_public_key(FILE *fp, int exit_on_failure)
 	if (!buflen)
 	{
 		if (!exit_on_failure) return 0;
-		fprintf(stderr, "qingy: failure: could not retrieve public key\n");
+		writelog(ERROR, "Failure: could not retrieve public key\n");
 		sleep(3);
 		exit(EXIT_FAILURE);
 	}
@@ -569,7 +570,7 @@ int int_generate_keys(int try_to_restore, int fail_if_restore_fail)
 	fp = fopen(public_key_file, "w");
 	if (!fp)
 	{
-		fprintf(stderr, "qingy: failure: could not open file %s to save public key!\n", public_key_file);
+		WRITELOG(ERROR, "Could not open file %s to save public key!\n", public_key_file);
 		sleep(2);
 		exit(EXIT_FAILURE);
 	}
@@ -581,7 +582,7 @@ int int_generate_keys(int try_to_restore, int fail_if_restore_fail)
 	fp = fopen(private_key_file, "w");
 	if (!fp)
 	{
-		fprintf(stderr, "qingy: failure: could not open file %s to save private key!\n", private_key_file);
+		WRITELOG(ERROR, "Could not open file %s to save private key!\n", private_key_file);
 		sleep(2);
 		exit(EXIT_FAILURE);
 	}

@@ -87,6 +87,7 @@
 #include "misc.h"
 #include "load_settings.h"
 #include "tty_guardian.h"
+#include "logger.h"
 
 #define UNKNOWN_USER            0
 #define WRONG_PASSWORD          1
@@ -569,7 +570,7 @@ void setEnvironment(struct passwd *pwd, int is_x_session)
 		unsetenv("DISPLAY");
 
 	/* finally clear the screen */
-	if (silent) ClearScreen();
+	if (max_loglevel == ERROR) ClearScreen();
 }
 
 void restore_tty_ownership(void)

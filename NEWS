@@ -1,7 +1,11 @@
 qingy SVN-0.8.1-SVN:
+- Because of the following, removed '--verbose' command line argument.
 - Logging.
 - Allow user to select a session by typing the first char of its name.
-  Code courteously provided by Brian Carter.
+  Subsequent presses of the same key will bring up any other session names
+  that start with the same char, if any exists. Code kindly provided by
+  Brian Carter <spakov@users.sourceforge.net>.
+- Other small bug fixes.
 
 qingy 0.8.0 (05 Jun 2006):
 - Made qingy GUI multithreaded. Now every graphic element on screen has

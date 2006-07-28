@@ -34,10 +34,10 @@
 
 #define LOG_FILE_NAME "/var/log/qingy.log"
 
-#define LOG_NONE    000
-#define LOG_FILE    001
-#define LOG_SYSLOG  010
-#define LOG_CONSOLE 100
+#define LOG_NONE       000
+#define LOG_TO_FILE    001
+#define LOG_TO_SYSLOG  010
+#define LOG_TO_CONSOLE 100
 int log_facilities;
 
 typedef enum
@@ -46,6 +46,15 @@ typedef enum
 	DEBUG
 } log_levels;
 log_levels max_loglevel;
+
+#define LOGLEVEL(level) (level == ERROR) ? "ERROR" : "DEBUG"
+
+#define WRITELOG(loglevel, args...)	\
+{                                   \
+  char buf[512];                    \
+  snprintf(buf, 512, args);         \
+  writelog(loglevel, buf);          \
+}
 
 void writelog(log_levels loglevel, char *message);
 

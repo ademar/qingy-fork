@@ -36,6 +36,7 @@
 #include <openssl/bn.h>
 
 #include "qingy_constants.h"
+#include "logger.h"
 
 
 static RSA *rsa = NULL;
@@ -54,7 +55,7 @@ void encrypt_item(FILE *fp, char *item)
 	status = RSA_public_encrypt(strlen(item), item, encrypted, rsa, RSA_PKCS1_OAEP_PADDING);
 	if (status == -1)
 	{
-		fprintf(stderr, "qingy: fatal error: RSA_public_encrypt() failed!\n");
+		writelog(ERROR, "RSA_public_encrypt() failed!\n");
 		exit(QINGY_FAILURE);
 	}
 	fwrite(encrypted, sizeof(char), RSA_size(rsa), fp);
@@ -105,7 +106,7 @@ void save_public_key(FILE *fp)
 	temp = BN_bn2hex(rsa->n);
 	if (!temp)
 	{
-		fprintf(stderr, "qingy: fatal error: unable to write public key to file!\n");
+		writelog(ERROR, "Unable to write public key to file!\n");
 		abort();
 	}
 	fprintf(fp, "%s\n", temp);
@@ -115,7 +116,7 @@ void save_public_key(FILE *fp)
 	temp = BN_bn2hex(rsa->e);
 	if (!temp)
 	{
-		fprintf(stderr, "qingy: fatal error: unable to write public key to file!\n");
+		writelog(ERROR, "Unable to write public key to file!\n");
 		abort();
 	}
 	fprintf(fp, "%s\n", temp);
@@ -133,33 +134,33 @@ void restore_public_key(FILE *fp)
 	rsa = RSA_new();
 	if (!rsa)
 	{
-		fprintf(stderr, "qingy: fatal error: unable to restore public key from file!\n");
+		writelog(ERROR, "Unable to restore public key from file!\n");
 		exit(QINGY_FAILURE);
 	}
 
 	/* we load the public key which we will use to encrypt out data: public modulus... */
 	if (getline(&temp, &len, fp) == -1)
 	{
-		fprintf(stderr, "qingy: fatal error: unable to restore public key from file!\n");
+		writelog(ERROR, "Unable to restore public key from file!\n");
 		exit(QINGY_FAILURE);
 	}
 	temp[strlen(temp)-1] = '\0';
 	if (!BN_hex2bn(&(rsa->n), temp))
 	{
-		fprintf(stderr, "qingy: fatal error: unable to restore public key from file!\n");
+		writelog(ERROR, "Unable to restore public key from file!\n");
 		exit(QINGY_FAILURE);
 	}
 
 	/* ...and exponent */
 	if (getline(&temp, &len, fp) == -1)
 	{
-		fprintf(stderr, "qingy: fatal error: unable to restore public key from file!\n");
+		writelog(ERROR, "Unable to restore public key from file!\n");
 		exit(QINGY_FAILURE);
 	}
 	temp[strlen(temp)-1] = '\0';
 	if (!BN_hex2bn(&(rsa->e), temp))
 	{
-		fprintf(stderr, "qingy: fatal error: unable to restore public key from file!\n");
+		writelog(ERROR, "Unable to restore public key from file!\n");
 		exit(QINGY_FAILURE);
 	}
 	free(temp);

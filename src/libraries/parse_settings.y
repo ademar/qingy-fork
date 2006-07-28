@@ -256,9 +256,9 @@ logfacilities: logfacility
 |              logfacility ',' logfacilities
 ;
 
-logfacility: CONSOLE_TOK { TTY_CHECK_COND log_facilities |= LOG_CONSOLE; }
-|            FILE_TOK    { TTY_CHECK_COND log_facilities |= LOG_FILE;    }
-|            SYSLOG_TOK  { TTY_CHECK_COND log_facilities |= LOG_SYSLOG;  }
+logfacility: CONSOLE_TOK { TTY_CHECK_COND log_facilities |= LOG_TO_CONSOLE; }
+|            FILE_TOK    { TTY_CHECK_COND log_facilities |= LOG_TO_FILE;    }
+|            SYSLOG_TOK  { TTY_CHECK_COND log_facilities |= LOG_TO_SYSLOG;  }
 ;
 
 /* sleep cupport */
@@ -375,7 +375,6 @@ shutdown: SHUTDOWN_TOK '=' EVERYONE_TOK
 	}
 | SHUTDOWN_TOK '=' ONLY_ROOT_TOK
 	{
-	  fprintf(stderr,"c)INTHEME: %d\n", in_theme);
 	  if (in_theme) yyerror("Setting 'shutdown_policy' is not allowed in theme file.");
 	  TTY_CHECK_COND shutdown_policy = ROOT;
 	}
@@ -468,7 +467,6 @@ colorprop: DEFAULT_TXT_COL_TOK '=' COLOR_T
 	{ 
 		TTY_CHECK_COND
 		{
-			if (!silent) fprintf(stderr, "Setting default color to %d\n", *($3));	  
 			default_text_color.R=$3[3]; default_text_color.G=$3[2]; 
 			default_text_color.B=$3[1]; default_text_color.A=$3[0];
 		}

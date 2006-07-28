@@ -71,6 +71,7 @@
 #include "vt.h"
 #include "session.h"
 #include "tty_guardian.h"
+#include "logger.h"
 
 
 #ifndef HOST_NAME_MAX
@@ -371,8 +372,6 @@ void PrintUsage()
   printf("\tDo not display last user name.\n\n");
   printf("\t-d, --disable-lastuser\n");
   printf("\tDo not remember last user name.\n\n");
-  printf("\t-v, --verbose\n");
-  printf("\tDisplay some diagnostic messages on stderr.\n\n");
   printf("\t-n, --no-shutdown-screen\n");
   printf("\tClose DirectFB mode before shutting down.\n");
   printf("\tThis way you will see system shutdown messages.\n\n");
@@ -394,7 +393,7 @@ void parse_etc_issue(void)
 	int             c;
 	struct utsname  uts;
 
-	if (!silent) printf("\n");
+	if (max_loglevel >= DEBUG) printf("\n");
 
 	(void) uname(&uts);
 	(void) write(1, "\r\n", 2);			/* start a new line */

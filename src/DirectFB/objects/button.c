@@ -40,6 +40,7 @@
 #include "button.h"
 #include "load_settings.h"
 #include "misc.h"
+#include "logger.h"
 
 static void mouseOver(Button *thiz, int status)
 {
@@ -100,14 +101,14 @@ static IDirectFBSurface *load_image_int(const char *filename, IDirectFBSurface *
 
 	if (access(filename, R_OK))
 	{
-		if (!silent) fprintf (stderr, "Cannot load image: file '%s' does not exist!\n", filename);
+		WRITELOG(ERROR, "Cannot load image: file '%s' does not exist!\n", filename);
 		return NULL;
 	}
 
 	err = dfb->CreateImageProvider (dfb, filename, &provider);
 	if (err != DFB_OK)
 	{
-		if (!silent) fprintf (stderr, "Couldn't load image from file '%s': %s\n", filename, DirectFBErrorString (err));
+		WRITELOG(ERROR, "Couldn't load image from file '%s': %s\n", filename, DirectFBErrorString (err));
 		return NULL;
 	}
 

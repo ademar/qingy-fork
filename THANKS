@@ -9,6 +9,6 @@
 - Paolo Gianrossi <paolino.gnu@disi.unige.it> who gave
   light, amongst other things, to the great
   config file parser we now have
-- Brian Carter <briancarter32@sbcglobal.net>
+- Brian Carter <spakov@users.sourceforge.net>
   who provided tode to select a session by typing the first char
   of its name.

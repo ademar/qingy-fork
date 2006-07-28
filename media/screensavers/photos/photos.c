@@ -41,6 +41,7 @@
 
 #include <memmgmt.h>
 #include <misc.h>
+#include <logger.h>
 
 #include "wildcards.h"
 
@@ -73,7 +74,7 @@ static char **images;
 		temp = (char **) realloc(images, max*sizeof(char *));                    \
 		if (!temp)                                                               \
 		{                                                                        \
-			fprintf(stderr, "screen_saver: memory allocation failure!\n");         \
+			writelog(ERROR, "Memory allocation failure!\n");                       \
 			abort();                                                               \
 		}                                                                        \
 		images = temp;                                                           \
@@ -101,7 +102,7 @@ int is_image(char *filename)
 	return 0;
 }
 
-int load_images_list(char **params, int silent)
+int load_images_list(char **params)
 {
 	int n_images = 0;
 	int max      = 0;
@@ -115,7 +116,7 @@ int load_images_list(char **params, int silent)
 
 		while ((param=expand_path(params[i])))
 		{
-			if (!silent) fprintf(stderr, "Loading files from '%s': ", param);
+			WRITELOG(DEBUG, "Loading files from '%s': ", param);
 			path = opendir(param);
 			if (!path)
 			{
@@ -134,7 +135,7 @@ int load_images_list(char **params, int silent)
 					add_image(StrApp((char**)NULL, param, ((*(param+strlen(param)-1) != '/') ? "/" : ""), entry->d_name, (char*)NULL));
 			}
 			closedir(path);
-			if (!silent) fprintf(stderr, "%d images so far...\n", n_images);
+			WRITELOG(DEBUG, "%d images so far...\n", n_images);
 		}
   }
 
@@ -169,7 +170,7 @@ void screen_saver_entry(Q_screen_t env)
 		env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0xFF);
 		env.surface->DrawString (env.surface, "Loading images list...", -1, env.screen_width / 2, env.screen_height / 2, DSTF_CENTER);
 		env.surface->Flip (env.surface, NULL, DSFLIP_BLIT);
-		n_images = load_images_list(env.params, env.silent);
+		n_images = load_images_list(env.params);
 		epoch = time(NULL);
 		localtime_r(&epoch, &curr_time);
 		srand(curr_time.tm_sec);

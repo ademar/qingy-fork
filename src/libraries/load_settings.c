@@ -81,7 +81,7 @@ void initialize_variables(void)
 	autologin_password      = NULL;
 	autologin_session       = NULL;
 	screensavers_dir        = NULL;
-	log_facilities          = LOG_NONE;
+	log_facilities          = LOG_TO_CONSOLE;
 	dfb_interface           = StrApp((char**)NULL, SBINDIR, "qingy-DirectFB", (char*)NULL);
 	tmp_files_dir           = strdup("/var/lib/misc");
 	max_loglevel            = ERROR;
@@ -109,7 +109,6 @@ void initialize_variables(void)
   disable_last_user       = 0;
   hide_last_user          = 0;
   hide_password           = 0;
-  silent                  = 1;
 	text_mode_login         = 0;
 	clear_background        = 0;
   shutdown_policy         = EVERYONE;
@@ -178,7 +177,7 @@ void add_to_options(char *option)
   
   temp->option = strdup(option);
   temp->next = NULL;
-  if (!silent) fprintf(stderr, "Added '%s' to screen saver options...\n", option);
+  WRITELOG(DEBUG, "Added '%s' to screen saver options...\n", option);
 #else  /* no screensaver support */
 	if (option) {} /* only to avoid compiler warnings */
 #endif
@@ -199,7 +198,7 @@ char *get_random_theme()
 	{		
     /* perror("Qingy error"); */
 		/* This is not a qingy error ;-P */
-		fprintf(stderr, "qingy: get_random_theme(): cannot open directory \"%s\"!\n", my_themes_dir);
+		WRITELOG(ERROR, "Cannot open themes directory (%s)!\n", my_themes_dir);
 		free(my_themes_dir);
     return strdup("default");
   }
@@ -249,11 +248,8 @@ char *get_random_theme()
 
 void yyerror(char *error)
 {
-  if (!silent)
-	{
-		fprintf(stderr, "qingy: error in configuration file %s:\n", file_error);
-		fprintf(stderr, "       %s.\n", error);
-	}
+	WRITELOG(ERROR, "Error in configuration file %s:\n", file_error);
+	WRITELOG(ERROR, "%s.\n", error);
   free(x_sessions_directory);
   free(text_sessions_directory);
   free(xinit);
@@ -775,7 +771,7 @@ int check_windows_sanity()
 					got_session = 1;
 					break;
 				}
-				fprintf(stderr, "Invalid combo window: forbidden command '%s'.\n", temp->command);
+				WRITELOG(ERROR, "Invalid combo window: forbidden command '%s'.\n", temp->command);
 				return 0;
 			case BUTTON:
 				if (temp->content)
@@ -786,9 +782,9 @@ int check_windows_sanity()
 					if (!strcmp(temp->command, "sleep"      )) break;
 					if (!strcmp(temp->command, "screensaver")) break;
 				}
-				fprintf(stderr, "Invalid button: command must be one of the following:\n");
-				fprintf(stderr, "halt, reboot, sleep, screensaver\n");
-				fprintf(stderr, "And content must point to button images\n");
+				writelog(ERROR, "Invalid button: command must be one of the following:\n");
+				writelog(ERROR, "halt, reboot, sleep, screensaver\n");
+				writelog(ERROR, "And content must point to button images\n");
 				return 0;
 			case LABEL:
 				break;
@@ -830,21 +826,23 @@ int load_settings(void)
 
   file_error = NULL;
 
+	if (!log_facilities)
+	{
+		log_facilities = LOG_TO_CONSOLE;
+	}
+
 	/* complain if tmp_files_dir does not exist (or is not a directory) */
 	if (!stat(tmp_files_dir, &status))
 	{
 		if (!S_ISDIR(status.st_mode))
 		{
-			fprintf(stderr, "qingy: load_settings: fatal error: the temp files directory you chose,\n");
-			fprintf(stderr, "(%s), is not a directory!\n", tmp_files_dir);
+			WRITELOG(ERROR, "The temp files directory you chose (%s), is not a directory!\n", tmp_files_dir);
 			return 0;
 		}
 	}
 	else
 	{
-		fprintf(stderr, "qingy: load_settings: fatal error: cannot access temp files directory\n");
-		fprintf(stderr, "(%s): ", tmp_files_dir);
-		perror(NULL);
+		WRITELOG(ERROR, "Cannot access temp files directory (%s): %s\n", tmp_files_dir, strerror(errno));
 		return 0;
 	}
 
@@ -856,38 +854,29 @@ int load_settings(void)
 			!screensavers_dir        ||
 			!themes_dir)
 	{
-		fprintf(stderr, "qingy: load_settings: warning: you left some variables undefined\n");
-		fprintf(stderr, "in settings file, anomalies may occur!\n");
+		writelog(ERROR, "You left some variables undefined in settings file!\n");
+		return 0;
 	}
 
-  if (!got_theme)
+  if (!got_theme && !text_mode_login)
 	{
-		fprintf(stderr, "qingy: load_settings: cannot proceed without a theme!\n");
+		writelog(ERROR, "Cannot proceed to graphic mode without a theme!\n");
 		return 0;
 	}
 
   if (!check_windows_sanity())
 	{
-		fprintf(stderr, "qingy: load_settings: Error in windows configuration:\n");
-		fprintf(stderr, "make sure you set up at least login password and session windows!\n");
+		writelog(ERROR, "Error in windows configuration: make sure you set up at least login, password and session windows!\n");
 		return 0;
 	}
 
-	if (!silent)
-		fprintf(stderr, "Session locking is%s enabled.\n", (lock_sessions) ? "" : " NOT");
+	writelog(DEBUG, "The following logging facilities will be used: ");
+	WRITELOG(DEBUG, "%s", (log_facilities & LOG_TO_FILE) ? "FILE " : "");
+	WRITELOG(DEBUG, "%s", (log_facilities & LOG_TO_SYSLOG) ? "SYSLOG " : "");
+	WRITELOG(DEBUG, "%s", (log_facilities & LOG_TO_CONSOLE) ? "CONSOLE " : "");
+	writelog(DEBUG, "\n");
 
-	if (!log_facilities)
-	{
-		log_facilities = LOG_CONSOLE;
-	}
-	if (!silent)
-	{
-		fprintf(stderr, "The following logging facilities will be used: ");
-		fprintf(stderr, "%s", (log_facilities & LOG_FILE) ? "FILE " : "");
-		fprintf(stderr, "%s", (log_facilities & LOG_SYSLOG) ? "SYSLOG " : "");
-		fprintf(stderr, "%s", (log_facilities & LOG_CONSOLE) ? "CONSOLE " : "");
-		fprintf(stderr, "\n");
-	}
+	WRITELOG(DEBUG, "Session locking is%s enabled.\n", (lock_sessions) ? "" : " NOT");
 
   return 1;
 }
@@ -904,7 +893,6 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 		{"hide-password",           no_argument,       NULL, 'p'},
 		{"hide-lastuser",           no_argument,       NULL, 'l'},
 		{"disable-lastuser",        no_argument,       NULL, 'd'},
-		{"verbose",                 no_argument,       NULL, 'v'},
 		{"no-shutdown-screen",      no_argument,       NULL, 'n'},
 		{"screensaver",             required_argument, NULL, 's'},
 		{"help",                    no_argument,       NULL, 'h'},
@@ -963,9 +951,6 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 				break;
 			case 'd': /* disable lastuder */
 				disable_last_user = 1;
-				break;
-			case 'v': /* verbose */
-				silent = 0;
 				break;
 			case 'n': /* no shutdown screen */
 				no_shutdown_screen = 1;

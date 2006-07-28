@@ -45,6 +45,7 @@
 #include "misc.h"
 #include "screen_saver.h"
 #include "screensaver_module.h"
+#include "logger.h"
 
 char** il2cc(struct _screensaver_options *options)
 {
@@ -97,14 +98,12 @@ void activate_screen_saver(IDirectFBEventBuffer *events)
   screenEnv.dfb                 = screen_saver_dfb;
   screenEnv.screen_saver_events = events;
   screenEnv.params              = il2cc(screensaver_options);
-	screenEnv.silent              = silent;
 	screenEnv.data_dir            = screensavers_dir;
 
   /* get what screensaver we want and load it */
   ssv_name = StrApp((char **)NULL, screensavers_dir, "/", screen_saver_kind, ".qss", (char*)NULL);
 
-	if (!silent)
-		fprintf(stderr, "Trying to open screen saver \"%s\"\n", ssv_name);
+	WRITELOG(DEBUG, "Trying to open screen saver \"%s\"\n", ssv_name);
 
   handle   = dlopen(ssv_name, RTLD_NOW); 
   if (!handle)

@@ -30,11 +30,22 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
+#include <syslog.h>
+#include <time.h>
+#include "memmgmt.h"
 #include "logger.h"
+#include "misc.h"
+#include "load_settings.h"
 
 void log_file(log_levels loglevel, char *message)
 {
 	static FILE *fp = NULL;
+	time_t seconds;
+	struct tm curtime;
+	char date[16];
+	static char *buf = NULL;
+	char *tmp;
 
 	if (!fp)
 	{
@@ -46,11 +57,60 @@ void log_file(log_levels loglevel, char *message)
 		}
 	}
 
-	fprintf(fp, "%s\n", message);
+  /* write logs one line at a time */
+  StrApp(&buf, message, (char*)NULL);
+	
+	if (strchr(buf, '\n'))
+	{
+		tmp = strtok(buf, "\n");
+		while(tmp)
+		{
+			time(&seconds);
+			localtime_r(&seconds, &curtime);
+			strftime(date, sizeof(date), "%b %d %H:%M:%S", &curtime);
+
+			fprintf(fp, "%s, qingy on tty%d, [%s] %s\n", date, current_tty, LOGLEVEL(loglevel), tmp);
+			fflush(fp);
+
+			tmp = strtok(NULL, "\n");
+		}
+
+		free(buf); buf = NULL;
+	}
+
 }
 
 void log_syslog(log_levels loglevel, char *message)
 {
+	static char *buf  = NULL;
+	static char msg[16];
+	static int gotmsg = 0;
+	char *tmp;
+	int myloglevel = (loglevel == ERROR) ? LOG_ERR : LOG_DEBUG;
+
+	if (!gotmsg)
+	{
+		snprintf(msg, sizeof(msg), "qingy(tty%d)", current_tty);
+		gotmsg = 1;
+	}
+	openlog(msg, LOG_PID, LOG_USER);
+
+  /* write logs one line at a time */
+  StrApp(&buf, message, (char*)NULL);
+	
+	if (strchr(buf, '\n'))
+	{
+		tmp = strtok(buf, "\n");
+		while(tmp)
+		{
+			syslog(myloglevel, "%s\n", tmp);
+			tmp = strtok(NULL, "\n");
+		}
+
+		free(buf); buf = NULL;
+	}
+
+	closelog();
 }
 
 void writelog(log_levels loglevel, char *message)
@@ -58,12 +118,12 @@ void writelog(log_levels loglevel, char *message)
 	if (!message) return;
 	if (loglevel > max_loglevel) return;
 
-	if (log_facilities & LOG_CONSOLE)
-		fprintf(stderr, "%s\n", message);
+	if (log_facilities & LOG_TO_CONSOLE)
+		fprintf(stderr, "%s", message);
 
-	if (log_facilities & LOG_FILE)
+	if (log_facilities & LOG_TO_FILE)
 		log_file(loglevel, message);
 
-	if (log_facilities & LOG_SYSLOG)
+	if (log_facilities & LOG_TO_SYSLOG)
 		log_syslog(loglevel, message);
 }
