@@ -58,4 +58,7 @@ log_levels max_loglevel;
 
 void writelog(log_levels loglevel, char *message);
 
+void log_stderr();
+void dontlog_stderr();
+
 #endif

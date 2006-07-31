@@ -260,7 +260,10 @@ void close_framebuffer_mode (int exit_status)
 		devices = next;
 	}
 
+	/* disable bogus error messages on DirectFB exit */
+  stderr_disable();
 	if (dfb) dfb->Release (dfb);
+	stderr_enable(&current_tty);
 }
 
 void DirectFB_Error()
@@ -1088,13 +1091,13 @@ int main (int argc, char *argv[])
 
   /* we initialize directfb */
   if (max_loglevel == ERROR) stderr_disable();
+	else log_stderr();
 	result = DirectFBInit (&argc, &argv);
   if (result == DFB_OK) result = DirectFBSetOption("session","-1");
   if (result == DFB_OK) result = DirectFBCreate (&dfb);
   if (result == DFB_OK) result = dfb->EnumInputDevices (dfb, enum_input_device, &devices);
   if (result == DFB_OK) result = dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &events);
   if (result == DFB_OK) result = dfb->GetDisplayLayer (dfb, DLID_PRIMARY, &layer);
-	if (max_loglevel == ERROR) stderr_enable(&current_tty);
 
   /* any errors so far? */
 	if (result != DFB_OK)
@@ -1133,6 +1136,9 @@ int main (int argc, char *argv[])
 		DirectFB_Error();
 		return QINGY_FAILURE;
 	}
+
+	if (max_loglevel == ERROR) stderr_enable(&current_tty);
+	else dontlog_stderr();
 
   if (!hide_password) password->MaskText(password, 1);
   else password->HideText(password, 1);

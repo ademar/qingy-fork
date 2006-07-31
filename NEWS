@@ -1,6 +1,12 @@
 qingy SVN-0.8.1-SVN:
 - Because of the following, removed '--verbose' command line argument.
-- Logging.
+- Added extensive logging capabilities. Now you have the option of having
+  qingy log its messages to one (or more) of console, log file, syslog.
+  Default is console only. Also, you can specify the log verbosity, it being
+  one of ERROR (default, only log errors) or DEBUG (all messages will be logged).
+  This should help out those people on which qingy dies with a black screen
+  and an unresponsive machine (other than ssh), so that they should now be able
+  to see why it is failing on them.
 - Allow user to select a session by typing the first char of its name.
   Subsequent presses of the same key will bring up any other session names
   that start with the same char, if any exists. Code kindly provided by

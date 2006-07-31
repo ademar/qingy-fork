@@ -107,7 +107,7 @@ extern char **environ;
 		{                                                                                 \
 			FILE *fp = fopen(filename, "w");                                                \
 			if (!fp)                                                                        \
-				fprintf(stderr, "session: unable to create session file \"%s\"\n", filename); \
+				WRITELOG(ERROR, "Unable to create session file \"%s\"\n", filename);          \
 			else                                                                            \
 			{                                                                               \
 				fprintf(fp, session_script_content);                                          \
@@ -213,7 +213,7 @@ char *get_sessions(void)
 				if (createdir)
 					if (mkdir(dirname, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) == -1)
 					{
-						fprintf(stderr, "session: unable to create directory \"%s\"\n", dirname);
+						WRITELOG(ERROR, "Unable to create directory \"%s\"\n", dirname);
 						populatedir = 0;
 					}
 
@@ -238,7 +238,7 @@ char *get_sessions(void)
       dir= opendir(dirname);
       if (!dir)
 			{				
-				fprintf(stderr, "session: unable to open directory \"%s\"\n", dirname);
+				WRITELOG(ERROR, "Unable to open directory \"%s\"\n", dirname);
 				if (dirname == x_sessions_directory)
 				{
 					dirname = text_sessions_directory;
@@ -723,7 +723,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   proc_id = fork();
   if (proc_id == -1)
 	{
-		fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
+		writelog(ERROR, "Cannot issue fork() command!\n");
 		free(args[0]); free(args[1]); free(args[2]); free(args[3]);
 		exit(EXIT_FAILURE);
 	}
@@ -746,7 +746,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 		execve(pw->pw_shell, args, environ);
       
 		/* execve should never return! */
-		fprintf(stderr, "session: fatal error: cannot start your session: %s!\n", strerror(errno));
+		WRITELOG(ERROR, "Cannot start your session: %s!\n", strerror(errno));
 		exit(0);
 	}
   set_last_user(username);
@@ -861,7 +861,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   proc_id = fork();
   if (proc_id == -1)
 	{
-		fprintf(stderr, "session: fatal error: cannot issue fork() command!\n");
+		writelog(ERROR, "Cannot issue fork() command!\n");
 		free(args[0]); free(args[1]); free(args[2]); free(args[3]);
 		exit(EXIT_FAILURE);
 	}
@@ -892,7 +892,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 		execve(pw->pw_shell, args, environ);
       
 		/* execve should never return! */
-		fprintf(stderr, "session: fatal error: cannot start your session: %s!\n", strerror(errno));
+		WRITELOG(ERROR, "Cannot start your session: %s!\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
@@ -967,7 +967,7 @@ void start_session(char *username, char *session)
   else Graph_Login(pwd, session, username);
   
   /* we don't get here unless we couldn't start user session */
-  fprintf(stderr, "Couldn't login user '%s'!\n", username);
+  WRITELOG(ERROR, "Couldn't login user '%s'!\n", username);
 	sleep(3);
   exit(EXIT_FAILURE);
 }

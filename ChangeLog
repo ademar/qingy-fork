@@ -1,3 +1,10 @@
+2006-07-31  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* lotsa_files_have_been_changed:
+	Completed logging infrastructure. Also, now every debug and error message
+	is now routed through the logging facility. All is left to do in add
+	some more diagnostics in sentitive code areas.
+
 2006-07-27  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* lotsa_files_have_been_changed:

@@ -81,7 +81,7 @@ void initialize_variables(void)
 	autologin_password      = NULL;
 	autologin_session       = NULL;
 	screensavers_dir        = NULL;
-	log_facilities          = LOG_TO_CONSOLE;
+	log_facilities          = LOG_NONE;
 	dfb_interface           = StrApp((char**)NULL, SBINDIR, "qingy-DirectFB", (char*)NULL);
 	tmp_files_dir           = strdup("/var/lib/misc");
 	max_loglevel            = ERROR;

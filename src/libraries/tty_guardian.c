@@ -47,6 +47,7 @@
 #include "vt.h"
 #include "session.h"
 #include "load_settings.h"
+#include "logger.h"
 
 #define WAIT_N_RETURN                   \
 {                                       \
@@ -54,10 +55,10 @@
 	return;                               \
 }
 
-#define ABORT_N_RETURN                                                                 \
-{                                                                                      \
-	fprintf(stderr, "%s: fatal error: cannot set terminal attributes!\n", program_name); \
-	return NULL;                                                                         \
+#define ABORT_N_RETURN                                  \
+{                                                       \
+	writelog(ERROR, "Cannot set terminal attributes!\n"); \
+	return NULL;                                         \
 }
 
 #ifndef TCSASOFT
@@ -119,7 +120,7 @@ char *has_controlling_processes(int tty)
 
 	if (!dir)
 	{
-		fprintf(stderr, "program_name: tty guardian feature needs /proc filesystem support!\n");
+		writelog(ERROR, "tty guardian feature needs /proc filesystem support!\n");
 		sleep(5);
 		abort();
 	}
@@ -359,7 +360,7 @@ void ttyWatchDog(char *dog_master, int fence)
 	where_is_intruder = get_active_tty();
 	if (where_is_intruder == -1)
 	{
-		fprintf(stderr, "\ntty guardian: serious issue: cannot get active tty number!\n");
+		writelog(ERROR, "Cannot get active tty number!\n");
 		return;
 	}
 	if (where_is_intruder != where_was_intruder)
@@ -427,6 +428,7 @@ void watch_over_session(pid_t proc_id, char *username, int session_vt, int is_x_
 					case ST_LOCK:
 					{
 						fprintf(stderr, "lock your session...\n");
+						fflush(stderr);
 						sleep(1);
 						bark = 1;
 						break;
@@ -434,6 +436,7 @@ void watch_over_session(pid_t proc_id, char *username, int session_vt, int is_x_
 					case ST_LOGOUT:
 					{
 						fprintf(stderr, "log out your session (pid %d)...\n", proc_id);
+						fflush(stderr);
 						sleep(1);
 
 						/* when X quits, it changes vt back to the tty it was started from...
@@ -454,6 +457,7 @@ void watch_over_session(pid_t proc_id, char *username, int session_vt, int is_x_
 							 * to change the video card mode at the same time...
 							 */
 							fprintf(stderr, "qingy will be restarted in 10 seconds...\n");
+							fflush(stderr);
 							sleep(10);
 							unlock_tty_switching();
 						}

@@ -111,6 +111,7 @@ AM_PATH_LISPDIR
 	LIBRARIES_ERROR_MESSAGE="One or more function libraries that are necessary to compile this program are missing on this system. Cannot continue."
 	AC_CHECK_LIB(crypt, crypt, ,[AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])] , )
 	AC_CHECK_LIB(dl, dlopen, ,[AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])] , )
+	AC_CHECK_LIB(pthread, pthread_create, ,[AC_MSG_ERROR([$LIBRARIES_ERROR_MESSAGE])] , )
 	AC_CHECK_FUNC(getdomainname, [AC_DEFINE(HAVE_getdomainname, 1, [Define if we have function getdomainname])],)
 # End check functions
 

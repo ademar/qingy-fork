@@ -30,13 +30,19 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
 #include <time.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "memmgmt.h"
 #include "logger.h"
 #include "misc.h"
 #include "load_settings.h"
+#include "vt.h"
 
 void log_file(log_levels loglevel, char *message)
 {
@@ -93,6 +99,7 @@ void log_syslog(log_levels loglevel, char *message)
 		snprintf(msg, sizeof(msg), "qingy(tty%d)", current_tty);
 		gotmsg = 1;
 	}
+
 	openlog(msg, LOG_PID, LOG_USER);
 
   /* write logs one line at a time */
@@ -126,4 +133,73 @@ void writelog(log_levels loglevel, char *message)
 
 	if (log_facilities & LOG_TO_SYSLOG)
 		log_syslog(loglevel, message);
+}
+
+void file_logger_thread(char *filename)
+{
+	FILE   *fp    = fopen(filename, "r");
+	char   *buf   = NULL;
+	size_t  len   = 0;
+
+	if (!fp)
+	{
+		writelog(ERROR, "Unable to hook to main thread's stderr!\n");
+		abort();
+	}
+
+	/* we remove it so that noone will tamper */
+	unlink(filename);
+
+	while (1)
+	{
+		fflush(NULL);
+
+		while (getline(&buf, &len, fp) != -1)
+			writelog(DEBUG, buf);
+
+		sleep(1);
+	}
+}
+
+void log_stderr(void)
+{
+	pthread_t  log_thread;
+	char      *filename   = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
+	int        fd;
+
+	fd = mkstemp(filename);
+	if (fd == -1)
+	{
+		writelog(ERROR, "Could not create temporary file!\n");
+		abort();
+	}
+
+	/* set file mode to 600 */
+	if (chmod(filename, S_IRUSR|S_IWUSR))
+	{
+		writelog(ERROR, "Cannot chmod() file!\n");
+		abort();		
+	}
+
+	if (!freopen(filename, "w", stderr))
+	{
+		writelog(ERROR, "Unable to redirect stderr!\n");
+		abort();
+	}
+
+	/* close the file descriptor as we have no need for it */
+	close(fd);
+	
+	/* spawn our stderr logger thread */
+	if (pthread_create(&log_thread, NULL, (void*)(&file_logger_thread), filename))
+	{
+		writelog(ERROR, "Failed to create stderr log writer thread!\n");
+		abort();
+	}
+}
+
+void dontlog_stderr()
+{
+	stderr_disable();
+	stderr_enable(&current_tty);
 }

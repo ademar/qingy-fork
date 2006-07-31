@@ -67,7 +67,7 @@ char** il2cc(struct _screensaver_options *options)
 			temp = (char **) realloc(tbl, (max+1)*sizeof(char *));
 			if (!temp)
 	    {
-	      fprintf(stderr, "screen_saver: memory allocation failure!\n");
+	      writelog(ERROR, "Memory allocation failure!\n");
 	      abort();
 	    }
 			tbl = temp;

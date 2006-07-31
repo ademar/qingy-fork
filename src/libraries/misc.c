@@ -252,13 +252,13 @@ int get_x_idle_time(int x_offset)
 
 		if (!display)
 		{
-			fprintf(stderr, "cannot open display\n");
+			writelog(ERROR, "Cannot connect to X-Windows server!\n");
 			return 0;
 		}
 
 		if (!XScreenSaverQueryExtension(display, &event_base, &error_base))
 		{
-			fprintf(stderr, "no XScreenSaver extension!\n");
+			writelog(ERROR, "No XScreenSaver extension!\n");
 			return 0;
 		}
 
@@ -560,14 +560,16 @@ void text_mode()
 
 		if (getline(&username, &len, stdin) == -1)
 		{
-			fprintf(stderr, "\nCould not read user name... aborting!\n");
+			fprintf(stdout, "\nCould not read user name... aborting!\n");
+			fflush(stdout);
 			sleep(3);
 			exit(EXIT_FAILURE);
 		}
 
 		if (!username)
 		{
-			fprintf(stderr, "\nInvalid user name!\n\n");
+			fprintf(stdout, "\nInvalid user name!\n\n");
+			fflush(stdout);
 		}
 
 		if (username)
@@ -576,7 +578,8 @@ void text_mode()
 
 			if (len < 2)
 			{
-				fprintf(stderr, "\nInvalid user name!\n\n");
+				fprintf(stdout, "\nInvalid user name!\n\n");
+				fflush(stdout);
 				free(username);
 				username=NULL;
 			}
@@ -597,7 +600,8 @@ void text_mode()
 
 	if (!check_password(username, password))
 	{
-		fprintf(stderr, "\nLogin failed!\n");
+		fprintf(stdout, "\nLogin failed!\n");
+		fflush(stdout);
 		sleep(3);
 		exit(EXIT_SUCCESS);
 	}
@@ -628,8 +632,8 @@ void Error(int fatal)
    */
 	while (--countdown)
 	{
-		fprintf(stderr, "%s will be restarted automatically in %d seconds\r", program_name, countdown);
-		fflush(stderr);
+		fprintf(stdout, "%s will be restarted automatically in %d seconds\r", program_name, countdown);
+		fflush(stdout);
 		sleep(1);
 	}
   exit(EXIT_FAILURE);
@@ -675,19 +679,19 @@ void execute_script(char *script)
 
 	if (access(script, X_OK))
 	{
-		fprintf(stderr, "qingy: could not execute your user defined command '%s'!\n", script);
+		WRITELOG(ERROR, "Could not execute your user defined command '%s'!\n", script);
 		return;
 	}
 
 	switch ((int)fork())
 	{
 		case -1: /* error */
-			fprintf(stderr, "qingy: fatal error: cannot issue fork() command!\n");
+			writelog(ERROR, "Cannot issue fork() command!\n");
 			sleep(2);
 			exit(EXIT_FAILURE);
 		case 0: /* child */
 			execve(script, NULL, NULL);
-			fprintf(stderr, "qingy: could not execute your user defined command '%s'!\n", script);
+			WRITELOG(ERROR, "qingy: could not execute your user defined command '%s'!\n", script);
 			sleep(4);
 		default: /* parent */
 			wait(NULL);

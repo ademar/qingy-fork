@@ -31,6 +31,18 @@ settings: Makefile
 	@echo "# Parameter we should pass to the X server" >> settings
 	@echo "x_args = \"-nolisten tcp\"" >> settings
 	@echo "" >> settings
+	@echo "# How verbose should qingy be?" >> settings
+	@echo "# Possible values are debug, error" >> settings
+	@echo "# Default value is error" >> settings
+	@echo "log_level = error" >> settings
+	@echo "" >> settings
+	@echo "# Where should qingy messages be logged?" >> settings
+	@echo "# Values can be one or more of the following:" >> settings
+	@echo "# console, file, syslog" >> settings
+	@echo "# Default value is console" >> settings
+	@echo "# log_facilities = console, file" >> settings
+	@echo "log_facilities = console" >> settings
+	@echo "" >> settings
 	@echo "# Offset to search for an available X server number." >> settings
 	@echo "# This number affects the DISPLAY env variable." >> settings
 	@echo "# Default is 1, setting it to 0 will make buggy OpenGL implementations" >> settings

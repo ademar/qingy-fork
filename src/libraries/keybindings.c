@@ -139,13 +139,13 @@ int check_dupe_keybinding(actions action, modifiers modifier, int key)
 	{
 		if (action   == my_keybinding->action      )
 		{
-			fprintf(stderr, "Cannot add keybinding: action \"%s\" already defined!\n", print_action(action));
+			WRITELOG(ERROR, "Cannot add keybinding: action \"%s\" already defined!\n", print_action(action));
 			return 0;
 		}
 		if (modifier == my_keybinding->modifier &&
 				key      == my_keybinding->key         )
 		{
-			fprintf(stderr, "Cannot add keybinding: key combination '%s%s' already defined!\n", print_modifier(modifier), print_key(key));
+			WRITELOG(ERROR, "Cannot add keybinding: key combination '%s%s' already defined!\n", print_modifier(modifier), print_key(key));
 			return 0;
 		}
 	}

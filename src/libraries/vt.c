@@ -46,6 +46,7 @@
 #include "vt.h"
 #include "load_settings.h"
 #include "misc.h"
+#include "logger.h"
 
 static int is_a_console(int fd)
 {
@@ -85,7 +86,7 @@ int getfd()
     if (is_a_console(fd))
       return fd;
   
-  fprintf(stderr, "Couldnt get a file descriptor referring to the console\n");
+  writelog(ERROR, "Couldnt get a file descriptor referring to the console\n");
   
   return -1;	/* total failure */
 }
@@ -219,18 +220,18 @@ char *get_fb_resolution(char *fb_device)
 	fb = open(fb_device, O_RDWR);
 	if (fb == -1)
 	{
-		fprintf(stderr, "Warning: cannot get console framebuffer resolution!\n");
+		writelog(ERROR, "Cannot get console framebuffer resolution!\n");
 		return NULL;
 	}
 	if (ioctl(fb, FBIOGET_VSCREENINFO, &fb_var) == -1)
 	{
 		close(fb);
-		fprintf(stderr, "Warning: cannot get console framebuffer resolution!\n");
+		writelog(ERROR, "Cannot get console framebuffer resolution!\n");
 		return NULL;
 	}
 	if (close(fb) == -1)
 	{	/* I don't see why this should fail, though */
-		fprintf(stderr, "qingy: fatal error: I won't use your system because it sucks!\n");
+		writelog(ERROR, "I won't use your system because it sucks!\n");
 		abort();	
 	}
 
@@ -249,7 +250,7 @@ int is_tty_available(int tty)
 
 	if (ioctl(fd, VT_GETSTATE, &vtstat) < 0)
 	{
-		fprintf(stderr, "%s: fatal error: VT_GETSTATE failed\n", program_name);
+		writelog(ERROR, "VT_GETSTATE failed\n");
 		exit(EXIT_FAILURE);
 	}
 	close(fd);
