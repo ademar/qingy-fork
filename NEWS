@@ -1,4 +1,4 @@
-qingy SVN-0.8.1-SVN:
+qingy SVN-0.9.0-SVN:
 - Because of the following, removed '--verbose' command line argument.
 - Added extensive logging capabilities. Now you have the option of having
   qingy log its messages to one (or more) of console, log file, syslog.
@@ -7,10 +7,11 @@ qingy SVN-0.8.1-SVN:
   This should help out those people on which qingy dies with a black screen
   and an unresponsive machine (other than ssh), so that they should now be able
   to see why it is failing on them.
-- Allow user to select a session by typing the first char of its name.
-  Subsequent presses of the same key will bring up any other session names
-  that start with the same char, if any exists. Code kindly provided by
-  Brian Carter <spakov@users.sourceforge.net>.
+- Allow user (in graphic mode) to select a session by typing the first char
+  of its name. Subsequent presses of the same key will bring up any other
+  session names that start with the same char, if any exists.
+  Code kindly provided by Brian Carter <spakov@users.sourceforge.net>.
+- Added support for selecting desired session during text mode login.
 - Other small bug fixes.
 
 qingy 0.8.0 (05 Jun 2006):

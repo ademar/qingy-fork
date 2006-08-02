@@ -131,7 +131,7 @@ char to_upper(char c)
 void ClearScreen(void)
 {
 	setupterm((char *) 0, STDOUT_FILENO, (int *) 0);
-	tputs(clear_screen, 1, putchar);
+	tputs(clear_screen, lines > 0 ? lines : 1, putchar);
 }
 
 
@@ -537,9 +537,14 @@ void parse_etc_issue(void)
 
 void text_mode()
 {
-	char           *username = NULL;
-	char           *password = NULL;
-	size_t          len      = 0;
+	char           *username   = NULL;
+	char           *password   = NULL;
+	size_t          len        = 0;
+	int             n_sessions = 0;
+	int             selected   = -999;
+	char          **sessions;
+	char            session;
+
 #ifdef __linux__
 	char            hn[HOST_NAME_MAX+1];
 
@@ -610,7 +615,52 @@ void text_mode()
 	memset(password, '\0', sizeof(password));
 	free(password);
 
-	start_session(username, "Text: Console");
+	sessions    = (char **)calloc(1, sizeof(char *));
+	sessions[0] = get_sessions();
+
+	while (sessions[n_sessions])
+	{
+		n_sessions++;
+		sessions = (char **)realloc(sessions, (n_sessions+1)*sizeof(char*));
+		sessions[n_sessions] = get_sessions();
+	}
+
+	initscr();
+	cbreak();
+
+	while(1)
+	{
+		n_sessions = 0;
+		session    = 'a';
+
+		erase();
+
+		if (selected != -999)
+			printw("Invalid choice '%c': please select a valid session...\n\n", (char)selected+'a');
+		else
+			printw("Welcome, %s, please select a session...\n\n", username);
+
+		while (sessions[n_sessions])
+			printw("(%c) %s\n", session++, sessions[n_sessions++]);
+
+		printw("\nYour choice (just press ENTER for a text console): ");
+
+		session = getch();
+
+		if ((int)session == 10)
+			selected = 0;
+		else
+			selected = (int)(session-'a');
+
+		if (selected >= 0 && selected <= (n_sessions-1))
+			break;
+	}
+	
+	erase();
+	refresh();
+	reset_shell_mode();
+
+	start_session(username, sessions[selected]);
 }
 
 void Error(int fatal)

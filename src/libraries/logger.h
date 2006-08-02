@@ -39,6 +39,7 @@
 #define LOG_TO_SYSLOG  010
 #define LOG_TO_CONSOLE 100
 int log_facilities;
+int log_facilities_tty;
 
 typedef enum
 {

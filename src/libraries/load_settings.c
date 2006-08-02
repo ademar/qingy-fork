@@ -82,6 +82,7 @@ void initialize_variables(void)
 	autologin_session       = NULL;
 	screensavers_dir        = NULL;
 	log_facilities          = LOG_NONE;
+	log_facilities_tty      = LOG_NONE;
 	dfb_interface           = StrApp((char**)NULL, SBINDIR, "qingy-DirectFB", (char*)NULL);
 	tmp_files_dir           = strdup("/var/lib/misc");
 	max_loglevel            = ERROR;
@@ -826,10 +827,16 @@ int load_settings(void)
 
   file_error = NULL;
 
+	if ( (log_facilities_tty & LOG_TO_FILE) || (log_facilities_tty & LOG_TO_SYSLOG) || (log_facilities_tty & LOG_TO_CONSOLE) )
+		log_facilities = log_facilities_tty;
+
 	if (!log_facilities)
 	{
 		log_facilities = LOG_TO_CONSOLE;
 	}
+
+	if (!(log_facilities & LOG_TO_CONSOLE))
+		ClearScreen();
 
 	/* complain if tmp_files_dir does not exist (or is not a directory) */
 	if (!stat(tmp_files_dir, &status))

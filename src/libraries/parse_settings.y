@@ -205,7 +205,7 @@ config_tty: /* nothing */
 | config_tty idle_timeout
 | config_tty idle_action
 | config_tty gui_retries
-| config_tty logging
+| config_tty logging_tty
 | config_tty sleep
 | config_tty theme { TTY_CHECK_COND got_theme=set_theme_result; }
 | config_tty shutdown
@@ -248,6 +248,10 @@ logging: LOG_LEVEL_TOK      '=' loglevels
 |        LOG_FACILITIES_TOK '=' logfacilities
 ;
 
+logging_tty: LOG_LEVEL_TOK      '=' loglevels
+|            LOG_FACILITIES_TOK '=' logfacilities_tty
+;
+
 loglevels: DEBUG_TOK { TTY_CHECK_COND max_loglevel = DEBUG; }
 |          ERROR_TOK { TTY_CHECK_COND max_loglevel = ERROR; }
 ;
@@ -256,9 +260,18 @@ logfacilities: logfacility
 |              logfacility ',' logfacilities
 ;
 
+logfacilities_tty: logfacility_tty
+|                  logfacility_tty ',' logfacilities_tty
+;
+
 logfacility: CONSOLE_TOK { TTY_CHECK_COND log_facilities |= LOG_TO_CONSOLE; }
 |            FILE_TOK    { TTY_CHECK_COND log_facilities |= LOG_TO_FILE;    }
 |            SYSLOG_TOK  { TTY_CHECK_COND log_facilities |= LOG_TO_SYSLOG;  }
+;
+
+logfacility_tty: CONSOLE_TOK { TTY_CHECK_COND log_facilities_tty |= LOG_TO_CONSOLE; }
+|                FILE_TOK    { TTY_CHECK_COND log_facilities_tty |= LOG_TO_FILE;    }
+|                SYSLOG_TOK  { TTY_CHECK_COND log_facilities_tty |= LOG_TO_SYSLOG;  }
 ;
 
 /* sleep cupport */

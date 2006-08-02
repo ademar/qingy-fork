@@ -1,3 +1,14 @@
+2006-08-02  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/parse_settings.y:
+	Fixed log facilities parsing in case of mixed global / per tty settings.
+
+	* configure.in: 
+	Tagged version as 0.9.0...
+
+	* src/libraries/misc.c (text_mode):
+	Added support for selecting desired session during text mode login.
+
 2006-07-31  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* lotsa_files_have_been_changed:
