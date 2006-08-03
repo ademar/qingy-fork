@@ -265,7 +265,7 @@ AM_PATH_LISPDIR
 # End gpm locking stuff
 
 # Wether we should disable X server support
-	AC_ARG_ENABLE(x, AC_HELP_STRING([--enable-x-support],
+	AC_ARG_ENABLE(x-support, AC_HELP_STRING([--enable-x-support],
 	[enable support for X server (default is yes)]),, [enable_x_support=yes])
 	if test "$enable_x_support" == "yes"; then
 		XLIBS=""
@@ -402,5 +402,6 @@ Configuration:
   Screen savers support:      ${enable_screen_savers}
   gpm locking support:        ${enable_gpm_lock} ${gpm_lock_extra_info}
   Crypto support:             ${enable_crypto}
+  X support:                  ${enable_x_support}
   Libs:                       ${LIBS}
 "

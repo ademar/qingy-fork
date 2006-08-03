@@ -1,4 +1,16 @@
+2006-08-03  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/misc.c (text_mode):
+	Made text mode login remember latest session just like graphic login.
+
 2006-08-02  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in,
+	* src/libraries/misc.c,
+	* src/libraries/session.c (get_sessions):
+	Made ./configure option 'enable-x-support' actually work. Thus disabling
+	it will make qingy actually compile and work without X installed.
+	It will also make X sessions unavailable (even if X is installed)...
 
 	* src/libraries/parse_settings.y:
 	Fixed log facilities parsing in case of mixed global / per tty settings.

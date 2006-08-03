@@ -38,8 +38,8 @@ It allows the user to log in and start the session of his choice
 (*)  Provided it has ben converted to the structure of qingy 0.6.0 and higher,
      which adds the ability to specify the native resolution of the theme,
      instead of defaulting to 800x600...
-(**) Useful if you don't care about fancy graphics but would like session locking,
-     session timeout, or auto log-in.
+(**) Useful if you don't care about fancy graphics but *do* care about
+     session choice, locking, timeout or auto log-in.
 
 
 
@@ -55,7 +55,7 @@ It allows the user to log in and start the session of his choice
   respectively, poweroff and reboot
 - The above can also be obtained via <ALT-P> and <ALT-R>
 - Press <ENTER> to log in
-- Press <ESC> two times to deactivate DirectFB and get a text login
+- Press <CTRL-ESC> to deactivate DirectFB and get a text login
 - Press <ALT-Fn> (or <CTRL-ALT-Fn>) to switch to the nth tty(**)
 - If you log into, say, WindowMaker, and then change VT,
   WM will wait for you to switch back to the previous VT
@@ -70,10 +70,13 @@ It allows the user to log in and start the session of his choice
 \----------------/
 Output of 'qingy -h':
 
-qingy version 0.5.0
+qingy version 0.9.0
 
 usage: ginqy <ttyname> [options]
 Options:
+        -t, --text-mode
+        Perform a text-mode login prompt (no graphics).
+
         -f <device>, --fb-device <device>
         Use <device> as framebuffer device.
 
@@ -86,9 +89,6 @@ Options:
         -d, --disable-lastuser
         Do not remember last user name.
 
-        -v, --verbose
-        Display some diagnostic messages on stderr.
-
         -n, --no-shutdown-screen
         Close DirectFB mode before shutting down.
         This way you will see system shutdown messages.
@@ -99,6 +99,9 @@ Options:
 
         -r <xres>x<yres>, --resolution <xres>x<yres>
         Do not detect framebuffer resolution, use this one instead.
+
+        -h, --help
+        Print this help message.
 
 
 /----------------\

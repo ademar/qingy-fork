@@ -1,7 +1,6 @@
 [FIXES]
 
 
-SYSLOG/LOGFILE SUPPORT
 TIMED RELOGIN
 SUPPORT FOR CUSTOMIZING the "logging in..." and such like messages (in theme).
 

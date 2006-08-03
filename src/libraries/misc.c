@@ -45,8 +45,11 @@
 #include <sys/stat.h>
 #include <sys/utsname.h>
 #include <sys/wait.h>
+
+#ifdef USE_X
 #include <X11/Xlib.h>
 #include <X11/extensions/scrnsaver.h>
+#endif /* USE_X */
 
 #if HAVE_DIRENT_H
 # include <dirent.h>
@@ -232,6 +235,7 @@ char *get_file_owner(char *file)
 }
 
 
+#ifdef USE_X
 int get_x_idle_time(int x_offset)
 {
 	static XScreenSaverInfo *xinfo     = NULL;
@@ -270,6 +274,7 @@ int get_x_idle_time(int x_offset)
 
 	return idle_time;
 }
+#endif /* USE_X */
 
 /* session idle time, in minutes */
 int get_session_idle_time(char *tty, time_t *start_time, int is_x_session, int x_offset)
@@ -282,8 +287,10 @@ int get_session_idle_time(char *tty, time_t *start_time, int is_x_session, int x
 	if (((curr_time - *start_time)/60) < idle_timeout)
 		return 0;
 
+#ifdef USE_X
 	if (is_x_session)
 		return get_x_idle_time(x_offset);
+#endif /* USE_X */
 
 	/* return if we cannot get tty stats */
 	if (stat(tty, &tty_stat))
@@ -537,13 +544,14 @@ void parse_etc_issue(void)
 
 void text_mode()
 {
-	char           *username   = NULL;
-	char           *password   = NULL;
-	size_t          len        = 0;
-	int             n_sessions = 0;
+	char           *username   =  NULL;
+	char           *password   =  NULL;
+	size_t          len        =  0;
+	int             n_sessions =  0;
 	int             selected   = -999;
+	char            session    =  0;
 	char          **sessions;
-	char            session;
+	char           *last_session;
 
 #ifdef __linux__
 	char            hn[HOST_NAME_MAX+1];
@@ -615,16 +623,35 @@ void text_mode()
 	memset(password, '\0', sizeof(password));
 	free(password);
 
+	/* get available sessions */
 	sessions    = (char **)calloc(1, sizeof(char *));
 	sessions[0] = get_sessions();
-
 	while (sessions[n_sessions])
 	{
 		n_sessions++;
 		sessions = (char **)realloc(sessions, (n_sessions+1)*sizeof(char*));
 		sessions[n_sessions] = get_sessions();
 	}
+	sort_sessions(sessions, n_sessions);
 
+	/* get latest session if available */
+	last_session = get_last_session(username);
+	if (!last_session)
+		last_session = strdup("Text: Console");
+	else
+	{
+		for (; session<n_sessions; session++)
+			if (!strcmp(sessions[(int)session], last_session))
+				break;
+
+		if (session == n_sessions)
+		{
+			free(last_session);
+			last_session = strdup("Text: Console");
+		}
+	}
+
+	/* present sessions list and ask user to choose */
 	initscr();
 	cbreak();
 
@@ -643,12 +670,18 @@ void text_mode()
 		while (sessions[n_sessions])
 			printw("(%c) %s\n", session++, sessions[n_sessions++]);
 
-		printw("\nYour choice (just press ENTER for a text console): ");
+		printw("\nYour choice (just press ENTER for '%s'): ", last_session);
 
 		session = getch();
 
+		/* if user just pressed enter, select latest session */
 		if ((int)session == 10)
-			selected = 0;
+		{
+			selected=n_sessions;
+			while (selected)
+				if (!strcmp(sessions[--selected], last_session))
+					break;
+		}
 		else
 			selected = (int)(session-'a');
 
@@ -659,6 +692,7 @@ void text_mode()
 	erase();
 	refresh();
 	reset_shell_mode();
+	free(last_session);
 
 	start_session(username, sessions[selected]);
 }

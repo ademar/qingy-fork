@@ -192,12 +192,17 @@ char *get_sessions(void)
   static char   *dirname = NULL;
   static int     status  = 0;
   
+#ifdef USE_X
   if (!dirname) dirname = x_sessions_directory;
+#else
+  if (!dirname) dirname = text_sessions_directory;
+#endif /* USE_X */
   
   switch (status)
 	{
     case 0:
 #ifdef fedora
+#ifdef USE_X
 			{
 				struct stat dirstat;
 				int         createdir   = 0;
@@ -228,12 +233,17 @@ char *get_sessions(void)
 					CHECK_SESSION("/usr/bin/startkde", "/Kde", "/usr/bin/startkde\n");
 				}
 			}
-#endif
+#endif /* USE_X */
+#endif /* fedora */
       status = 1;
       return strdup("Text: Console");
     case 1:
       status = 2;
+#ifdef USE_X
       return strdup("Your .xsession");
+#else
+			return get_sessions();
+#endif /* USE_X */
     case 2:
       dir= opendir(dirname);
       if (!dir)
