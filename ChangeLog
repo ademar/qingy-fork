@@ -1,3 +1,23 @@
+2006-08-04  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/directfb_mode.c:
+	Fixed a bug that sometimes made qingy GUI hang on exit.
+
+	* src/DirectFB/directfb_mode.h [removed],
+	* src/libraries/load_settings.c,
+	* src/qingy_constants.h,
+	* media/Makefile.am,
+	* src/Makefile.am,
+	* src/main.c,
+	* configure.in:
+	Made DirectFB support optional. This means that you can compile and run
+	qingy on systems that do not have DirectFB installed. You will not get
+	a graphic login, but will be presented a choice of sessions and will
+	have access to qingy advanced features like session locking or timeout.
+
+	* configure.in:
+	Tagged version as 0.9.1...
+
 2006-08-03  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/misc.c (text_mode):

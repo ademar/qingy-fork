@@ -61,7 +61,6 @@
 #include "memmgmt.h"
 #include "vt.h"
 #include "misc.h"
-#include "directfb_mode.h"
 #include "load_settings.h"
 #include "session.h"
 #include "logger.h"

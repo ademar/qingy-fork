@@ -1,8 +1,14 @@
 ## Makefile.am for qingy/src
 
-SUBDIRS = libraries DirectFB
+DIST_SUBDIRS  = libraries DirectFB
+SUBDIRS       = libraries
 
-INCLUDES  = -I.. -Ilibraries -IDirectFB
+INCLUDES      = -I.. -Ilibraries
+
+if USE_DIRECTFB
+SUBDIRS      += DirectFB
+INCLUDES     += -IDirectFB
+endif
 
 sbin_PROGRAMS   = qingy
 qingy_SOURCES   =        \
@@ -20,7 +26,7 @@ endif
 
 
 
-EXTRA_qingy_SOURCES =           \
+EXTRA_qingy_SOURCES =    \
     libgcrypt-keygen.c
 
 

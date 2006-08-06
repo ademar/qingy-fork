@@ -1,6 +1,11 @@
 ## Makefile.am for qingy/media
 
-SUBDIRS = default gpm-lock sessions pam screensavers
+DIST_SUBDIRS  = default gpm-lock sessions pam screensavers
+SUBDIRS       = default gpm-lock sessions pam
+
+if USE_DIRECTFB
+SUBDIRS      += screensavers
+endif
 
 if WANT_EMACS_STUFF
 lisp_LISP  = qingy-mode.el

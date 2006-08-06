@@ -1,4 +1,11 @@
-qingy SVN-0.9.0-SVN:
+qingy SVN-0.9.1-SVN:
+- Fixed a bug that sometimes made qingy GUI hang on exit.
+- Made DirectFB support optional. This means that you can compile and run
+  qingy on systems that do not have DirectFB installed. You will not get
+  a graphic login, but will be presented a choice of sessions and will
+  have access to qingy advanced features like session locking or timeout.
+
+qingy 0.9.0 (03 Aug 2006):
 - Because of the following, removed '--verbose' command line argument.
 - Added extensive logging capabilities. Now you have the option of having
   qingy log its messages to one (or more) of console, log file, syslog.

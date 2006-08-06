@@ -865,6 +865,11 @@ int load_settings(void)
 		return 0;
 	}
 
+#ifndef USE_DIRECTFB
+	/* disable graphic mode login if DirectFB is not enabled */
+	text_mode_login = 1;
+#endif
+
   if (!got_theme && !text_mode_login)
 	{
 		writelog(ERROR, "Cannot proceed to graphic mode without a theme!\n");
