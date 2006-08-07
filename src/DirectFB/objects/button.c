@@ -36,7 +36,6 @@
 #include <pthread.h>
 
 #include "memmgmt.h"
-#include "directfb_mode.h"
 #include "button.h"
 #include "load_settings.h"
 #include "misc.h"

@@ -54,7 +54,6 @@
 #include "keybindings.h"
 
 /* my custom DirectFB stuff */
-#include "directfb_mode.h"
 #include "button.h"
 #include "utils.h"
 #include "textbox.h"

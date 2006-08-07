@@ -39,7 +39,6 @@
 #include "memmgmt.h"
 #include "load_settings.h"
 #include "textbox.h"
-#include "directfb_mode.h"
 #include "misc.h"
 #include "utils.h"
 
