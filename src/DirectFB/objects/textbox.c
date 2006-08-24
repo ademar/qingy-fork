@@ -41,6 +41,7 @@
 #include "textbox.h"
 #include "misc.h"
 #include "utils.h"
+#include "logger.h"
 
 static int insert_char(char *buffer, int *length, int *position, char c)
 {
@@ -340,17 +341,20 @@ void TextBox_Destroy(TextBox *thiz)
 	if (!thiz) return;
 
 	pthread_cancel(thiz->events_thread);
+	pthread_join(thiz->events_thread, NULL);
+
 	pthread_cancel(thiz->cursor_thread);
+	pthread_join(thiz->cursor_thread, NULL);
 
 	if (thiz->text)
 	{
 		/* we overwrite memory before freeing it, since it might contain a password... */
 		memset(thiz->text, '\0', sizeof(thiz->text));
-		free(thiz->text);
+/* 		free(thiz->text); */
 	}
-	if (thiz->surface) thiz->surface->Release (thiz->surface);
-	if (thiz->window)  thiz->window->Release  (thiz->window);
-	free(thiz);
+/* 	if (thiz->surface) thiz->surface->Release (thiz->surface); */
+/* 	if (thiz->window)  thiz->window->Release  (thiz->window); */
+/* 	free(thiz); */
 }
 
 static int *textbox_cursor_thread(TextBox *thiz)
@@ -358,6 +362,7 @@ static int *textbox_cursor_thread(TextBox *thiz)
 	int flashing_cursor = 1;
 	struct timespec t;
 
+	/* a split second delay for each cursor blink */
 	t.tv_sec  = 0;
 	t.tv_nsec = 500000000;
 
@@ -401,55 +406,59 @@ static int *textbox_thread(TextBox *thiz)
 	while (1)
 	{
 		pthread_testcancel();
-		thiz->events->WaitForEvent(thiz->events);
-		thiz->events->GetEvent (thiz->events, DFB_EVENT (&evt));
 
-		switch (evt.type)
+		thiz->events->WaitForEventWithTimeout (thiz->events, 0, 100);
+		while (thiz->events->HasEvent(thiz->events) == DFB_OK)
 		{
-			case DIET_BUTTONPRESS:
+			thiz->events->GetEvent (thiz->events, DFB_EVENT (&evt));
+
+			switch (evt.type)
 			{
-				pthread_mutex_lock(&(thiz->lock));
-				
-				if (!(thiz->ishidden))
-					if (mouse_over_textbox(thiz))
-						if (thiz->click_callback)
-						{
-							thiz->click_callback(thiz);
-							setFocus(thiz, 1);
-						}
-
-				pthread_mutex_unlock(&(thiz->lock));
-
-				break;
-			}
-			case DIET_KEYPRESS:
-			{
-				struct DFBKeySymbolName *symbol_name;
-				modifiers modifier;
-				actions   action;
-				int       ascii_code;
-
-				pthread_mutex_lock(&(thiz->lock));
-
-				if (thiz->hasfocus)
+				case DIET_BUTTONPRESS:
 				{
-					modifier   = modifier_is_pressed(&evt);
-					ascii_code = (int)evt.key_symbol;
-					symbol_name = bsearch (&(evt.key_symbol), keynames, 
-												 sizeof (keynames) / sizeof (keynames[0]) - 1,
-												 sizeof (keynames[0]), compare_symbol);
+					pthread_mutex_lock(&(thiz->lock));
+				
+					if (!(thiz->ishidden))
+						if (mouse_over_textbox(thiz))
+							if (thiz->click_callback)
+							{
+								thiz->click_callback(thiz);
+								setFocus(thiz, 1);
+							}
 
-					action = search_keybindings(modifier, ascii_code);
+					pthread_mutex_unlock(&(thiz->lock));
 
-					if (action == DO_NOTHING)
-						if (symbol_name)
-							keyEvent(thiz, ascii_code, modifier, 1, 0);
+					break;
 				}
+				case DIET_KEYPRESS:
+				{
+					struct DFBKeySymbolName *symbol_name;
+					modifiers modifier;
+					actions   action;
+					int       ascii_code;
 
-				pthread_mutex_unlock(&(thiz->lock));
+					pthread_mutex_lock(&(thiz->lock));
+
+					if (thiz->hasfocus)
+					{
+						modifier   = modifier_is_pressed(&evt);
+						ascii_code = (int)evt.key_symbol;
+						symbol_name = bsearch (&(evt.key_symbol), keynames, 
+						                sizeof (keynames) / sizeof (keynames[0]) - 1,
+						                sizeof (keynames[0]), compare_symbol);
+
+						action = search_keybindings(modifier, ascii_code);
+
+						if (action == DO_NOTHING)
+							if (symbol_name)
+								keyEvent(thiz, ascii_code, modifier, 1, 0);
+					}
+
+					pthread_mutex_unlock(&(thiz->lock));
+				}
+				default: /* we do nothing here */
+					break;
 			}
-			default: /* we do nothing here */
-				break;
 		}
 	}
 }

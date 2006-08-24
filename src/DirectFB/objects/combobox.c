@@ -40,6 +40,7 @@
 #include "load_settings.h"
 #include "combobox.h"
 #include "misc.h"
+#include "logger.h"
 #include "utils.h"
 
 
@@ -690,12 +691,13 @@ void ComboBox_Destroy(ComboBox *thiz)
   if (!thiz) return;
 
 	pthread_cancel(thiz->events_thread);
+	pthread_join(thiz->events_thread, NULL);
 
-  ComboBox_ClearItems(thiz);
-  if (thiz->surface) thiz->surface->Release (thiz->surface);
-  if (thiz->window)  thiz->window->Release (thiz->window);
-	if (thiz->extraData) free(thiz->extraData);
-  free(thiz);
+/*   ComboBox_ClearItems(thiz); */
+/*   if (thiz->surface) thiz->surface->Release (thiz->surface); */
+/*   if (thiz->window)  thiz->window->Release (thiz->window); */
+/* 	if (thiz->extraData) free(thiz->extraData); */
+/*   free(thiz); */
 }
 
 static int *combobox_thread(ComboBox *thiz)
@@ -709,127 +711,130 @@ static int *combobox_thread(ComboBox *thiz)
 	{
 		pthread_testcancel();
 
-		thiz->events->WaitForEvent(thiz->events);
-		thiz->events->GetEvent (thiz->events, DFB_EVENT (&evt));
-
-		switch (evt.type)
+		thiz->events->WaitForEventWithTimeout (thiz->events, 0, 100);
+		while (thiz->events->HasEvent(thiz->events) == DFB_OK)
 		{
-			case DIET_AXISMOTION:
+			thiz->events->GetEvent (thiz->events, DFB_EVENT (&evt));
+
+			switch (evt.type)
 			{
-				pthread_mutex_lock(&(thiz->lock));
-				if (mouse_over_combobox(thiz))
+				case DIET_AXISMOTION:
 				{
-					if (evt.axis == DIAI_Z)
+					pthread_mutex_lock(&(thiz->lock));
+					if (mouse_over_combobox(thiz))
 					{
-						if (evt.axisrel == MOUSE_WHEEL_UP)
-							keyEvent(thiz, UP);
+						if (evt.axis == DIAI_Z)
+						{
+							if (evt.axisrel == MOUSE_WHEEL_UP)
+								keyEvent(thiz, UP);
 			
-						if (evt.axisrel == MOUSE_WHEEL_DOWN)
-							keyEvent(thiz, DOWN);
+							if (evt.axisrel == MOUSE_WHEEL_DOWN)
+								keyEvent(thiz, DOWN);
+						}
+						mouseOver(thiz, 1);
 					}
-					mouseOver(thiz, 1);
+					else
+						mouseOver(thiz, 0);
+					pthread_mutex_unlock(&(thiz->lock));
+
+					break;
 				}
-				else
-					mouseOver(thiz, 0);
-				pthread_mutex_unlock(&(thiz->lock));
-
-				break;
-			}
-			case DIET_BUTTONPRESS:
-			case DIET_BUTTONRELEASE:
-			{
-				pthread_mutex_lock(&(thiz->lock));
-				if (mouse_over_combobox(thiz))
+				case DIET_BUTTONPRESS:
+				case DIET_BUTTONRELEASE:
 				{
-					setFocus(thiz, 1, 0);
-					click(thiz);
+					pthread_mutex_lock(&(thiz->lock));
+					if (mouse_over_combobox(thiz))
+					{
+						setFocus(thiz, 1, 0);
+						click(thiz);
+					}
+					pthread_mutex_unlock(&(thiz->lock));
+
+					break;
 				}
-				pthread_mutex_unlock(&(thiz->lock));
-
-				break;
-			}
-			case DIET_KEYPRESS:
-			{
-				struct DFBKeySymbolName *symbol_name;
-				modifiers modifier;
-				actions   action;
-				int       ascii_code;
-
-				pthread_mutex_lock(&(thiz->lock));
-
-				if (thiz->hasfocus)
+				case DIET_KEYPRESS:
 				{
-					modifier   = modifier_is_pressed(&evt);
-					ascii_code = (int)evt.key_symbol;
-					symbol_name = bsearch (&(evt.key_symbol), keynames, 
-												 sizeof (keynames) / sizeof (keynames[0]) - 1,
-												 sizeof (keynames[0]), compare_symbol);
+					struct DFBKeySymbolName *symbol_name;
+					modifiers modifier;
+					actions   action;
+					int       ascii_code;
 
-					action = search_keybindings(modifier, ascii_code);
+					pthread_mutex_lock(&(thiz->lock));
 
-					if (action == DO_NOTHING)
-						if (symbol_name)
-							switch (ascii_code)
-							{
-								case RETURN:
-									keyEvent(thiz, SELECT);
-									break;
-								case ARROW_UP:
-									keyEvent(thiz, UP);
-									break;
-								case ARROW_DOWN:
-									keyEvent(thiz, DOWN);
-									break;
-								default:
-									/* if user is typing a char, we allow him to select a session by typing the first char of its name */
-									if (ascii_code >= 32 && ascii_code <= 127 && !thiz->isclicked)
-									{
-										int done  = 0;
-										int found = 0;
-										int i;
+					if (thiz->hasfocus)
+					{
+						modifier   = modifier_is_pressed(&evt);
+						ascii_code = (int)evt.key_symbol;
+						symbol_name = bsearch (&(evt.key_symbol), keynames, 
+																	 sizeof (keynames) / sizeof (keynames[0]) - 1,
+																	 sizeof (keynames[0]), compare_symbol);
 
-										ascii_code = to_upper (ascii_code);
-										if (to_upper (thiz->selected[0]) == ascii_code)
+						action = search_keybindings(modifier, ascii_code);
+
+						if (action == DO_NOTHING)
+							if (symbol_name)
+								switch (ascii_code)
+								{
+									case RETURN:
+										keyEvent(thiz, SELECT);
+										break;
+									case ARROW_UP:
+										keyEvent(thiz, UP);
+										break;
+									case ARROW_DOWN:
+										keyEvent(thiz, DOWN);
+										break;
+									default:
+										/* if user is typing a char, we allow him to select a session by typing the first char of its name */
+										if (ascii_code >= 32 && ascii_code <= 127 && !thiz->isclicked)
 										{
-											for (i=0; i<thiz->n_items; i++)
+											int done  = 0;
+											int found = 0;
+											int i;
+
+											ascii_code = to_upper (ascii_code);
+											if (to_upper (thiz->selected[0]) == ascii_code)
 											{
-												if (thiz->items[i] == thiz->selected)
+												for (i=0; i<thiz->n_items; i++)
 												{
-													found = 1;
-													continue;
+													if (thiz->items[i] == thiz->selected)
+													{
+														found = 1;
+														continue;
+													}
+													if (found)
+													{
+														if (to_upper (thiz->items[i][0]) == ascii_code)
+														{
+															selectItem (thiz, thiz->items[i], 0);
+															done = 1;
+															break;
+														}
+													}
 												}
-												if (found)
+											}
+											if (!done)
+											{
+												for (i = 0; i < thiz->n_items; i++)
 												{
 													if (to_upper (thiz->items[i][0]) == ascii_code)
 													{
 														selectItem (thiz, thiz->items[i], 0);
-														done = 1;
 														break;
 													}
 												}
 											}
 										}
-										if (!done)
-										{
-											for (i = 0; i < thiz->n_items; i++)
-											{
-												if (to_upper (thiz->items[i][0]) == ascii_code)
-												{
-													selectItem (thiz, thiz->items[i], 0);
-													break;
-												}
-											}
-										}
-									}
-									break;
-							}
-				}
+										break;
+								}
+					}
 
-				pthread_mutex_unlock(&(thiz->lock));
-				break;
+					pthread_mutex_unlock(&(thiz->lock));
+					break;
+				}
+				default: /* we do nothing here */
+					break;
 			}
-			default: /* we do nothing here */
-				break;
 		}
 	}
 }

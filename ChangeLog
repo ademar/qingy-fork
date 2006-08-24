@@ -1,3 +1,34 @@
+2006-08-24  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/default/*:
+	Argh, all graphics in default there were currupt!
+	This probably was caused by the switch to svn...
+	Fixed it by recovering the files from an older
+	qingy tarball.
+
+2006-08-22  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/directfb_mode.c (close_framebuffer_mode),
+	* src/DirectFB/objects/label.c,
+	* src/DirectFB/objects/textbox.c,
+	* src/DirectFB/objects/combobox.c,
+	* src/DirectFB/objects/button.c:
+	Fixed (again) the shutdown hang issue. It still
+	presents itself from time to time, but I suspent that it
+	has much to do with DirectFB and little with qingy :-/
+	Will have to add some more debug info to test.
+
+2006-08-21  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/objects/label.c,
+	* src/DirectFB/objects/textbox.c,
+	* src/DirectFB/objects/combobox.c,
+	* src/DirectFB/objects/button.c:
+	Fixed button thread cancellation...
+
+	* src/DirectFB/directfb_mode.c:
+	Qingy still sometimes hang on exit :-(
+
 2006-08-04  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/directfb_mode.c:

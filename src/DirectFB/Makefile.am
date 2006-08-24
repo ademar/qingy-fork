@@ -12,7 +12,7 @@ qingy_DirectFB_SOURCES =                                           \
     objects/combobox.c       objects/combobox.h                    \
     objects/utils.c          objects/utils.h                       \
     objects/screen_saver.c   objects/screen_saver.h                \
-    directfb_mode.c          directfb_mode.h
+    directfb_mode.c
 
 if !WANT_STATIC
 qingy_DirectFB_LDADD   = ../libraries/libqingy.la @DIRECTFB_LIBS@

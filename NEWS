@@ -1,4 +1,7 @@
-qingy SVN-0.9.1-SVN:
+qingy 0.9.1 (24 Aug 2006):
+- Argh, all graphics in default there were currupt! This probably was caused
+  by the switch to svn... Fixed it by recovering the files from an older
+  qingy tarball.
 - Fixed a bug that sometimes made qingy GUI hang on exit.
 - Made DirectFB support optional. This means that you can compile and run
   qingy on systems that do not have DirectFB installed. You will not get

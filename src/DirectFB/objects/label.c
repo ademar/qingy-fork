@@ -40,6 +40,7 @@
 #include "load_settings.h"
 #include "label.h"
 #include "misc.h"
+#include "logger.h"
 
 
 static void Plot(Label *thiz)
@@ -201,11 +202,14 @@ void Label_Destroy(Label *thiz)
 	if (!thiz) return;
 
 	pthread_cancel(thiz->events_thread);
-	pthread_cancel(thiz->update_thread);
+	pthread_join(thiz->events_thread, NULL);
 
-	if (thiz->surface) thiz->surface->Release(thiz->surface);
-	if (thiz->window)  thiz->window->Release (thiz->window);
-	free(thiz);
+	pthread_cancel(thiz->update_thread);
+	pthread_join(thiz->update_thread, NULL);
+
+/* 	if (thiz->surface) thiz->surface->Release(thiz->surface); */
+/* 	if (thiz->window)  thiz->window->Release (thiz->window); */
+/* 	free(thiz); */
 }
 
 static int *label_update_thread(Label *thiz)
@@ -220,6 +224,7 @@ static int *label_update_thread(Label *thiz)
 		int seconds = 1;
 
 		pthread_testcancel();
+
 		pthread_mutex_lock(&(thiz->lock));
 
 		if (thiz->content && thiz->polltime)
@@ -261,29 +266,33 @@ static int *label_events_thread(Label *thiz)
 	while (1)
 	{
 		pthread_testcancel();
-		thiz->events->WaitForEvent(thiz->events);
-		thiz->events->GetEvent (thiz->events, DFB_EVENT (&evt));
 
-		switch (evt.type)
+		thiz->events->WaitForEventWithTimeout (thiz->events, 0, 100);
+		while (thiz->events->HasEvent(thiz->events) == DFB_OK)
 		{
-			case DIET_BUTTONPRESS:
+			thiz->events->GetEvent (thiz->events, DFB_EVENT (&evt));
+
+			switch (evt.type)
 			{
-				pthread_mutex_lock(&(thiz->lock));
+				case DIET_BUTTONPRESS:
+				{
+					pthread_mutex_lock(&(thiz->lock));
 				
-				if (!(thiz->ishidden))
-					if (mouse_over_label(thiz))
-						if (thiz->click_callback)
-						{
-							thiz->click_callback(thiz);
-							setFocus(thiz, 1);
-						}
+					if (!(thiz->ishidden))
+						if (mouse_over_label(thiz))
+							if (thiz->click_callback)
+							{
+								thiz->click_callback(thiz);
+								setFocus(thiz, 1);
+							}
 
-				pthread_mutex_unlock(&(thiz->lock));
+					pthread_mutex_unlock(&(thiz->lock));
 
-				break;
+					break;
+				}
+				default: /* we do nothing here */
+					break;
 			}
-			default: /* we do nothing here */
-				break;
 		}
 	}
 }

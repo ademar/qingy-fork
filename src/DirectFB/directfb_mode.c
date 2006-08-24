@@ -206,6 +206,43 @@ void close_framebuffer_mode (int exit_status)
 	fflush(stdout);
 	kill (ppid, SIGUSR2);
 
+	/* since we are shutting down, there is no point in deallocating all stuff nicely, as
+	 * it is only a waste of time and CPU cycles. However, we *do* call the Destroy function
+	 * of every object that has an assiciated thread, so that there is no thread that tries
+	 * to access DirectFB stuff when it is being shut down...
+	 */
+
+	/* data input */
+  if (username) username->Destroy(username); /* nice: suicide */
+  if (password) password->Destroy(password);
+  if (session)  session->Destroy (session);
+
+  /* destroy all labels */
+  while (Labels)
+	{
+		Label_list *temp = Labels;
+		Labels = Labels->next;
+		if (temp->label) temp->label->Destroy(temp->label);
+		temp->next = NULL;
+		free(temp);
+	}
+
+  /* destroy all buttons */
+  while (Buttons)
+	{
+		Button_list *temp = Buttons;
+		Buttons = Buttons->next;
+		if (temp->button) temp->button->Destroy(temp->button);
+		temp->next = NULL;
+		free(temp);
+	}
+
+	/* the silly messages that appear when you have your CAPS LOCK down */
+  if (lock_key_statusA) lock_key_statusA->Destroy(lock_key_statusA);
+  if (lock_key_statusB) lock_key_statusB->Destroy(lock_key_statusB);
+  if (lock_key_statusC) lock_key_statusC->Destroy(lock_key_statusC);
+  if (lock_key_statusD) lock_key_statusD->Destroy(lock_key_statusD);
+
 	/* disable bogus error messages on DirectFB exit */
   stderr_disable();
 	if (dfb) dfb->Release (dfb);

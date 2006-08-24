@@ -82,12 +82,15 @@ void Button_Destroy(Button *thiz)
 {
 	if (!thiz) return;
 
-	if (thiz->normal)    thiz->normal->Release    (thiz->normal);
-	if (thiz->mouseover) thiz->mouseover->Release (thiz->mouseover);
-	if (thiz->surface)   thiz->surface->Release   (thiz->surface);
-	if (thiz->window)    thiz->window->Release    (thiz->window);
+	pthread_cancel(thiz->events_thread);
+	pthread_join(thiz->events_thread, NULL);
 
-	free (thiz);
+/* 	if (thiz->normal)    thiz->normal->Release    (thiz->normal); */
+/* 	if (thiz->mouseover) thiz->mouseover->Release (thiz->mouseover); */
+/* 	if (thiz->surface)   thiz->surface->Release   (thiz->surface); */
+/* 	if (thiz->window)    thiz->window->Release    (thiz->window); */
+
+/* 	free (thiz); */
 }
 
 static IDirectFBSurface *load_image_int(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb, int db, int x, int y, float x_ratio, float y_ratio)
@@ -170,44 +173,52 @@ static int *button_thread(Button *thiz)
 	DFBInputEvent evt;
 	int status = 0;
 
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,   NULL);
+	pthread_setcanceltype (PTHREAD_CANCEL_DEFERRED, NULL);
+
 	while (1)
 	{
-		thiz->events->WaitForEvent(thiz->events);
-		thiz->events->GetEvent (thiz->events, DFB_EVENT (&evt));
-		switch (evt.type)
+		pthread_testcancel();
+
+		thiz->events->WaitForEventWithTimeout (thiz->events, 0, 100);
+		while (thiz->events->HasEvent(thiz->events) == DFB_OK)
 		{
-			case DIET_AXISMOTION:
+			thiz->events->GetEvent (thiz->events, DFB_EVENT (&evt));
+			switch (evt.type)
 			{
-				if (mouse_over_button(thiz))
-					mouseOver(thiz, 1);
-				else
-					mouseOver(thiz, 0);
-
-				break;
-			}
-			case DIET_BUTTONPRESS:
-			{
-				if (thiz->mouseOver)
-					status=1;
-				else
-					status=0;
-
-				break;
-			}
-			case DIET_BUTTONRELEASE:
-			{
-				if (thiz->mouseOver && status)
+				case DIET_AXISMOTION:
 				{
-					status = 0;
-					thiz->callback(thiz);
-				}
-				else
-					status = 0;
+					if (mouse_over_button(thiz))
+						mouseOver(thiz, 1);
+					else
+						mouseOver(thiz, 0);
 
-				break;
+					break;
+				}
+				case DIET_BUTTONPRESS:
+				{
+					if (thiz->mouseOver)
+						status=1;
+					else
+						status=0;
+
+					break;
+				}
+				case DIET_BUTTONRELEASE:
+				{
+					if (thiz->mouseOver && status)
+					{
+						status = 0;
+						thiz->callback(thiz);
+					}
+					else
+						status = 0;
+
+					break;
+				}
+				default: /* we do nothing here */
+					break;
 			}
-			default: /* we do nothing here */
-				break;
 		}
 	}
 }
