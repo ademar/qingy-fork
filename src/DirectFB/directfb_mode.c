@@ -212,41 +212,58 @@ void close_framebuffer_mode (int exit_status)
 	 * to access DirectFB stuff when it is being shut down...
 	 */
 
-	/* data input */
-  if (username) username->Destroy(username); /* nice: suicide */
-  if (password) password->Destroy(password);
-  if (session)  session->Destroy (session);
+/* 	writelog(DEBUG,"starting\n"); */
 
-  /* destroy all labels */
-  while (Labels)
-	{
-		Label_list *temp = Labels;
-		Labels = Labels->next;
-		if (temp->label) temp->label->Destroy(temp->label);
-		temp->next = NULL;
-		free(temp);
-	}
+/* 	/\* data input *\/ */
+/*   if (username) username->Destroy(username); /\* nice: suicide *\/ */
 
-  /* destroy all buttons */
-  while (Buttons)
-	{
-		Button_list *temp = Buttons;
-		Buttons = Buttons->next;
-		if (temp->button) temp->button->Destroy(temp->button);
-		temp->next = NULL;
-		free(temp);
-	}
+/* 	writelog(DEBUG,"username done\n"); */
 
-	/* the silly messages that appear when you have your CAPS LOCK down */
-  if (lock_key_statusA) lock_key_statusA->Destroy(lock_key_statusA);
-  if (lock_key_statusB) lock_key_statusB->Destroy(lock_key_statusB);
-  if (lock_key_statusC) lock_key_statusC->Destroy(lock_key_statusC);
-  if (lock_key_statusD) lock_key_statusD->Destroy(lock_key_statusD);
+/*   if (password) password->Destroy(password); */
+/* 	writelog(DEBUG,"password done\n"); */
+/*   if (session)  session->Destroy (session); */
+/* 	writelog(DEBUG,"session done\n"); */
+
+/*   /\* destroy all labels *\/ */
+/*   while (Labels) */
+/* 	{ */
+/* 		Label_list *temp = Labels; */
+/* 		Labels = Labels->next; */
+/* 		if (temp->label) temp->label->Destroy(temp->label); */
+/* 		temp->next = NULL; */
+/* 		free(temp); */
+/* 	} */
+
+/* 	writelog(DEBUG,"labels done\n"); */
+
+/*   /\* destroy all buttons *\/ */
+/*   while (Buttons) */
+/* 	{ */
+/* 		Button_list *temp = Buttons; */
+/* 		Buttons = Buttons->next; */
+/* 		if (temp->button) temp->button->Destroy(temp->button); */
+/* 		temp->next = NULL; */
+/* 		free(temp); */
+/* 	} */
+
+/* 	writelog(DEBUG,"buttons done\n"); */
+
+/* 	/\* the silly messages that appear when you have your CAPS LOCK down *\/ */
+/*   if (lock_key_statusA) lock_key_statusA->Destroy(lock_key_statusA); */
+/*   if (lock_key_statusB) lock_key_statusB->Destroy(lock_key_statusB); */
+/*   if (lock_key_statusC) lock_key_statusC->Destroy(lock_key_statusC); */
+/*   if (lock_key_statusD) lock_key_statusD->Destroy(lock_key_statusD); */
+
+/* 	writelog(DEBUG,"CAPS locks done\n"); */
+
+/* 	writelog(DEBUG,"All done\n"); */
 
 	/* disable bogus error messages on DirectFB exit */
   stderr_disable();
 	if (dfb) dfb->Release (dfb);
 	stderr_enable(&current_tty);
+
+/* 	writelog(DEBUG,"DFB went down\n"); */
 }
 
 void DirectFB_Error()

@@ -8,8 +8,6 @@ SUPPORT FOR CUSTOMIZING the "logging in..." and such like messages (in theme).
 
 - Some command line options should migrate to config file...
 
-- extend the --verbose option to virtually report all that can be reported ;-)
-
 
 
 

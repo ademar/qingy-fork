@@ -1,3 +1,12 @@
+2006-08-29  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in:
+	Tagged version as 0.9.2...
+
+	* src/main.c (start_up),
+	* src/DirectFB/directfb_mode.c (close_framebuffer_mode): 
+	Another try at solving the shutdown hang issue.
+
 2006-08-24  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* media/default/*:

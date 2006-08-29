@@ -242,7 +242,10 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		fflush(fp_toGUI);
 #endif
 
+		writelog(DEBUG, "firing up GUI\n");
+
 		/* let's go! */
+		retries=0;
 		for (i=0; i<=retries; i++)
 		{
 			pid_t pid = fork(); /* let's spawn a child, that will fire up our GUI and make it write to our temp file */
@@ -319,6 +322,8 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 
 			fclose(fp_fromGUI);
 			fclose(fp_toGUI);
+
+		writelog(DEBUG, "returned from GUI\n");
 
 			/* break the cycle if we are sure we don't have to read authentication data... */
 			if (returnstatus != QINGY_FAILURE )
