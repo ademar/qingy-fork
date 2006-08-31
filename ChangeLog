@@ -1,3 +1,14 @@
+2006-08-31  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/qingy-mode.el:
+	Fixed typo that made some variables not to be highlighted correctly.
+
+	* src/DirectFB/directfb_mode.c (handle_keyboard_event):
+	Fixed shift-tabbing from username to session...
+
+	* media/qingy-mode.el:
+	Fixed typo.
+
 2006-08-29  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* configure.in:

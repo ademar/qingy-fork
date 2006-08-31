@@ -63,7 +63,7 @@
 	 '("\\(e\\(?:rror\\)\\)" . font-lock-constant-face)
 	 '("\\(f\\(?:ile\\)\\)" . font-lock-constant-face)
 	 '("\\(s\\(?:yslog\\)\\)" . font-lock-constant-face)
-   '("\\(content\\||default_\\(?:\\(?:cursor\\|text\\)_color\\)\\|linkto\\|text_orientation\\)" . font-lock-variable-name-face)
+   '("\\(content\\|default_\\(?:\\(?:cursor\\|text\\)_color\\)\\|linkto\\|text_orientation\\)" . font-lock-variable-name-face)
    '("\\(b\\(?:ackground\\|utton_opacity\\)\\|cursor_color\\|font\\|text_color\\|other_text_color\\|\\(?:selected_\\)?window_opacity\\)" . font-lock-variable-name-face)
    '("\\(center\\|\\(?:lef\\|righ\\)t\\)" . font-lock-constant-face)
    '("\\(yes\\|no\\|NULL\\|global\\)" . font-lock-constant-face)

@@ -1,5 +1,9 @@
 qingy SVN-0.9.2-SVN:
-- Another try at solving the shutdown hang issue.
+- Yet another try at solving the shutdown hang issues.
+  Maybe the right one? :-)
+- Fixed shift-tabbing from username to session.
+- Fixed typo that made some variables not to be highlighted correctly
+  in qingy emacs mode.
 
 qingy 0.9.1 (24 Aug 2006):
 - Argh, all graphics in default there were currupt! This probably was caused

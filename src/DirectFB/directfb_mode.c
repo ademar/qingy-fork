@@ -803,7 +803,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 	      else
 				{
 					if (session_label) session_label->SetFocus(session_label, 1);
-					session->SetFocus(session, 0);
+					session->SetFocus(session, 1);
 				}
 	    }
 			else
@@ -955,6 +955,10 @@ int create_windows()
 					if (!strcmp(window->linkto, "session"))  session_label  = labels->label;
 					labels->label->SetClickCallBack(labels->label, label_click);
 	      }
+				else
+				{
+					labels->label->window->SetOpacity(labels->label->window, selected_window_opacity);
+				}
 				break;
 			}
 			case BUTTON:
