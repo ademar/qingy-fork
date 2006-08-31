@@ -700,7 +700,7 @@ void ComboBox_Destroy(ComboBox *thiz)
 /*   free(thiz); */
 }
 
-static int *combobox_thread(ComboBox *thiz)
+static void combobox_thread(ComboBox *thiz)
 {
 	DFBInputEvent evt;
 

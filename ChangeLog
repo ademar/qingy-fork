@@ -1,5 +1,11 @@
 2006-08-31  Michele Noberasco  <michele.noberasco@tiscali.it>
 
+	* src/DirectFB/objects/button.c,
+	* src/DirectFB/objects/textbox.c,
+	* src/DirectFB/objects/combobox.c,
+	* src/DirectFB/objects/label.c:
+	Small changes to make these compile without warnings with gcc 4.
+
 	* media/qingy-mode.el:
 	Fixed typo that made some variables not to be highlighted correctly.
 

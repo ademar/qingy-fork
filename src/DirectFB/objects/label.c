@@ -212,7 +212,7 @@ void Label_Destroy(Label *thiz)
 /* 	free(thiz); */
 }
 
-static int *label_update_thread(Label *thiz)
+static void label_update_thread(Label *thiz)
 {
 	char *message;
 
@@ -256,7 +256,7 @@ int mouse_over_label(Label *thiz)
 	return 0;
 }
 
-static int *label_events_thread(Label *thiz)
+static void label_events_thread(Label *thiz)
 {
 	DFBInputEvent evt;
 

@@ -357,7 +357,7 @@ void TextBox_Destroy(TextBox *thiz)
 /* 	free(thiz); */
 }
 
-static int *textbox_cursor_thread(TextBox *thiz)
+static void textbox_cursor_thread(TextBox *thiz)
 {
 	int flashing_cursor = 1;
 	struct timespec t;
@@ -393,7 +393,7 @@ static int mouse_over_textbox(TextBox *thiz)
 	return 0;
 }
 
-static int *textbox_thread(TextBox *thiz)
+static void textbox_thread(TextBox *thiz)
 {
 	DFBInputEvent evt;
 

@@ -168,7 +168,7 @@ static int mouse_over_button(Button *thiz)
 	return 0;
 }
 
-static int *button_thread(Button *thiz)
+static void button_thread(Button *thiz)
 {
 	DFBInputEvent evt;
 	int status = 0;
