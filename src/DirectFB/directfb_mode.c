@@ -212,58 +212,16 @@ void close_framebuffer_mode (int exit_status)
 	 * to access DirectFB stuff when it is being shut down...
 	 */
 
-/* 	writelog(DEBUG,"starting\n"); */
-
-/* 	/\* data input *\/ */
-/*   if (username) username->Destroy(username); /\* nice: suicide *\/ */
-
-/* 	writelog(DEBUG,"username done\n"); */
-
-/*   if (password) password->Destroy(password); */
-/* 	writelog(DEBUG,"password done\n"); */
-/*   if (session)  session->Destroy (session); */
-/* 	writelog(DEBUG,"session done\n"); */
-
-/*   /\* destroy all labels *\/ */
-/*   while (Labels) */
-/* 	{ */
-/* 		Label_list *temp = Labels; */
-/* 		Labels = Labels->next; */
-/* 		if (temp->label) temp->label->Destroy(temp->label); */
-/* 		temp->next = NULL; */
-/* 		free(temp); */
-/* 	} */
-
-/* 	writelog(DEBUG,"labels done\n"); */
-
-/*   /\* destroy all buttons *\/ */
-/*   while (Buttons) */
-/* 	{ */
-/* 		Button_list *temp = Buttons; */
-/* 		Buttons = Buttons->next; */
-/* 		if (temp->button) temp->button->Destroy(temp->button); */
-/* 		temp->next = NULL; */
-/* 		free(temp); */
-/* 	} */
-
-/* 	writelog(DEBUG,"buttons done\n"); */
-
-/* 	/\* the silly messages that appear when you have your CAPS LOCK down *\/ */
-/*   if (lock_key_statusA) lock_key_statusA->Destroy(lock_key_statusA); */
-/*   if (lock_key_statusB) lock_key_statusB->Destroy(lock_key_statusB); */
-/*   if (lock_key_statusC) lock_key_statusC->Destroy(lock_key_statusC); */
-/*   if (lock_key_statusD) lock_key_statusD->Destroy(lock_key_statusD); */
-
-/* 	writelog(DEBUG,"CAPS locks done\n"); */
-
-/* 	writelog(DEBUG,"All done\n"); */
+	writelog(DEBUG,"Starting GUI shutdown...\n");
 
 	/* disable bogus error messages on DirectFB exit */
   stderr_disable();
 	if (dfb) dfb->Release (dfb);
 	stderr_enable(&current_tty);
 
-/* 	writelog(DEBUG,"DFB went down\n"); */
+	unlock_tty_switching();
+
+	writelog(DEBUG,"GUI shutdown complete\n");
 }
 
 void DirectFB_Error()
@@ -272,7 +230,7 @@ void DirectFB_Error()
   writelog(ERROR, "This usually means that you have an issue with DirectFB, not with qingy...\n");
   writelog(ERROR, "Most likely you don't have your console framebuffer properly set up.\n");
   writelog(ERROR, "Please turn on DEBUG log level in qingy to see exactly why DirectFB is letting you down.\n");
-	close_framebuffer_mode(QINGY_FAILURE);
+	close_framebuffer_mode(GUI_FAILURE);
 }
 
 void show_lock_key_status(DFBInputEvent *evt)
@@ -469,8 +427,8 @@ void begin_shutdown_sequence (actions action, IDirectFBEventBuffer *events)
   
   /* we should never get here unless call to /sbin/shutdown fails */
   writelog(ERROR, "Unable to exec \"/sbin/shutdown\"!\n");
-  if (!no_shutdown_screen) close_framebuffer_mode (QINGY_FAILURE);
-  exit (QINGY_FAILURE);
+  if (!no_shutdown_screen) close_framebuffer_mode (GUI_FAILURE);
+  exit (GUI_FAILURE);
 }
 
 void do_ctrl_alt_del(DFBInputEvent *evt)
@@ -942,7 +900,7 @@ int create_windows()
 	      }
 
 				labels->label = Label_Create(layer, dfb, font, window->text_color, &window_desc);
-				if (!labels->label) return 0;			
+				if (!labels->label) return 0;
 				labels->label->SetTextOrientation(labels->label, window->text_orientation);
 				labels->label->SetAction(labels->label, window->polltime, window->content, window->command);
 				labels->label->SetFocus(labels->label, 0);
@@ -959,6 +917,7 @@ int create_windows()
 				{
 					labels->label->window->SetOpacity(labels->label->window, selected_window_opacity);
 				}
+
 				break;
 			}
 			case BUTTON:
@@ -979,7 +938,7 @@ int create_windows()
 				image1 = StrApp((char **)NULL, theme_dir, window->content, "_normal.png",    (char *)NULL);
 				image2 = StrApp((char **)NULL, theme_dir, window->content, "_mouseover.png", (char *)NULL);
 				buttons->button = Button_Create(image1, image2, window_desc.posx, window_desc.posy, button_click, layer, primary, dfb, x_ratio, y_ratio);
-				if (!buttons->button) return 0;			
+				if (!buttons->button) return 0;
 				buttons->next = NULL;
 				free(image1); free(image2);
 				if (!window->command)
@@ -1072,6 +1031,30 @@ int set_font_sizes ()
   return 1;
 }
 
+DFBScreenCallback provva (DFBScreenID screen_id, DFBScreenDescription desc, void *callbackdata)
+{
+	IDirectFBScreen *screen;
+	static int i=0;
+
+	WRITELOG(DEBUG, "there are %d screens...\n", ++i);
+
+	if (dfb->GetScreen(dfb, screen_id, &screen) != DFB_OK)
+	{
+		writelog(DEBUG, "Could not get screen instance...\n");
+	}
+	
+/*
+	DSPM_STANDBY
+	DSPM_SUSPEND
+*/
+
+	screen->SetPowerMode(screen, DSPM_OFF);
+
+	sleep(5);
+
+	screen->SetPowerMode(screen, DSPM_ON);
+}
+
 int main (int argc, char *argv[])
 {
   int returnstatus = -1;        /* return value of this function...         */
@@ -1083,7 +1066,7 @@ int main (int argc, char *argv[])
   /* load settings from file */
 	initialize_variables();
 	current_tty = ParseCMDLine(argc, argv, 0);
-	if (!load_settings()) return QINGY_FAILURE;
+	if (!load_settings()) return GUI_FAILURE;
   if (!disable_last_user) lastuser = get_last_user();
 
 #ifdef WANT_CRYPTO
@@ -1107,7 +1090,7 @@ int main (int argc, char *argv[])
 	if (result != DFB_OK)
 	{
 		DirectFB_Error();
-		return QINGY_FAILURE;
+		return GUI_FAILURE;
 	}
 
   /* more initialization */
@@ -1119,7 +1102,7 @@ int main (int argc, char *argv[])
   if (dfb->CreateSurface( dfb, &sdsc, &primary ) != DFB_OK)
 	{
 		DirectFB_Error();
-		return QINGY_FAILURE;
+		return GUI_FAILURE;
 	}
 
   primary->GetSize(primary, &screen_width, &screen_height);
@@ -1130,7 +1113,7 @@ int main (int argc, char *argv[])
   if (!set_font_sizes ())
 	{
 		DirectFB_Error();
-		return QINGY_FAILURE;
+		return GUI_FAILURE;
 	}
 
   Draw_Background_Image(1);
@@ -1138,7 +1121,7 @@ int main (int argc, char *argv[])
   if (!create_windows())
 	{
 		DirectFB_Error();
-		return QINGY_FAILURE;
+		return GUI_FAILURE;
 	}
 
 	if (max_loglevel == ERROR) stderr_enable(&current_tty);
@@ -1176,6 +1159,8 @@ int main (int argc, char *argv[])
   screen_saver_surface = primary;
   screen_saver_dfb     = dfb;
 #endif
+
+	dfb->EnumScreens(dfb, provva, NULL);
 
   /* we go on for ever... or until the user does something in particular */
   while (returnstatus == -1)
@@ -1261,6 +1246,5 @@ int main (int argc, char *argv[])
 	}
 
   close_framebuffer_mode (returnstatus);
-	unlock_tty_switching();
 	return EXIT_SUCCESS;
 }

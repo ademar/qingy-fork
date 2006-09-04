@@ -6,7 +6,7 @@
 #define QINGY_CONST_H
 
 #define MAX 256
-#define QINGY_FAILURE -1
+#define GUI_FAILURE -1
 
 #define EXIT_RESPAWN      251
 #define EXIT_SLEEP        252

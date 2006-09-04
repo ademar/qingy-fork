@@ -119,7 +119,6 @@ void initialize_variables(void)
 	idle_timeout            = 0;
 	got_theme               = 0;
 	lock_sessions           = 0;
-	retries                 = 0;
 	theme_xres              = 800;
 	theme_yres              = 600;
 #ifdef USE_SCREEN_SAVERS
@@ -912,6 +911,10 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 	};
   char *tty;
   int our_tty_number;
+
+	program_name   = argv[0];
+	if ((tty = strrchr(argv[0], '/'))) /* we are recycling tty as a temp var here */
+		program_name = ++tty;
 
 	if (!paranoia)
 		opterr = 0;

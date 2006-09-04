@@ -73,7 +73,7 @@ char *session            = NULL;
 FILE *fp_fromGUI         = NULL;
 FILE *fp_toGUI           = NULL;
 int   auth_ok            = 0;
-int   gui_retval         = QINGY_FAILURE;
+int   gui_retval         = GUI_FAILURE;
 
 
 void authenticate_user(int signum)
@@ -128,12 +128,13 @@ void read_action(int signum)
 
 void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 {
-  int    i,j;
-	int    returnstatus = QINGY_FAILURE;
+  int    i;
+	int    returnstatus = GUI_FAILURE;
 	char **gui_argv     = NULL;
 	char  *toGUI        = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
 	char  *fromGUI      = strdup(toGUI);
 	int    fd;
+	pid_t  pid;
 
   /* We clear the screen */
   if (max_loglevel == ERROR) ClearScreen();
@@ -161,23 +162,23 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		/* Set up command line for our interface */
 		gui_argv = (char **) calloc(argc+3, sizeof(char *));
 		gui_argv[0] = dfb_interface;
-		for (j=1; j<argc; j++)
-			gui_argv[j] = argv[j];
+		for (i=1; i<argc; i++)
+			gui_argv[i] = argv[i];
 
-		gui_argv[j] = StrApp((char**)NULL, "--dfb:vt-switch,no-vt-switching,bg-none,no-hardware", (char*)NULL);
-		if (max_loglevel == ERROR) StrApp(&(gui_argv[j]), ",quiet", (char*)NULL);
+		gui_argv[i] = StrApp((char**)NULL, "--dfb:vt-switch,no-vt-switching,bg-none,no-hardware", (char*)NULL);
+		if (max_loglevel == ERROR) StrApp(&(gui_argv[i]), ",quiet", (char*)NULL);
 		if (fb_device)
 		{
-			StrApp(&(gui_argv[j]), ",fbdev=", fb_device,  (char*)NULL);
+			StrApp(&(gui_argv[i]), ",fbdev=", fb_device,  (char*)NULL);
 			free(fb_device);
 		}
 		if (resolution)
 		{
-			StrApp(&(gui_argv[j]), ",mode=",  resolution, (char*)NULL);
+			StrApp(&(gui_argv[i]), ",mode=",  resolution, (char*)NULL);
 			free(resolution);
 		}
-		gui_argv[++j] = int_to_str(getpid());
-		gui_argv[++j] = NULL;
+		gui_argv[++i] = int_to_str(getpid());
+		gui_argv[++i] = NULL;
 
 		/* should we execute some script before switching to graphic mode? */
 		if (pre_gui_script)
@@ -245,105 +246,108 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		writelog(DEBUG, "firing up GUI\n");
 
 		/* let's go! */
-		retries=0;
-		for (i=0; i<=retries; i++)
+		pid = fork(); /* let's spawn a child, that will fire up our GUI and make it write to our temp file */
+
+		switch ((int)pid)
 		{
-			pid_t pid = fork(); /* let's spawn a child, that will fire up our GUI and make it write to our temp file */
+			case -1:
+				writelog(ERROR, "fork() failed!\n");
+				fclose(fp_toGUI);
+				unlink(fromGUI);
+				unlink(toGUI);
+				free(toGUI);
+				free(fromGUI);
+				text_mode();
 
-			switch ((int)pid)
-			{
-				case -1:
-					writelog(ERROR, "fork() failed!\n");
-					fclose(fp_toGUI);
-					unlink(fromGUI);
-					unlink(toGUI);
-					free(toGUI);
-					free(fromGUI);
-					text_mode();
-
-				case 0: /* child */
-					/* we set up the standard input for our GUI... */
-					if (!freopen(toGUI, "r", stdin))
-					{
-						writelog(ERROR, "Unable to redirect standard input!\n");
-						exit(EXIT_FAILURE);
-					}
-
-					/* once set up, we unlink() it so that noone else will tamper */
-					unlink(toGUI);
-
-					/* ... then the standard output */
-					if (!freopen(fromGUI, "w", stdout))
-					{
-						writelog(ERROR, "Unable to redirect standard output!\n");
-						exit(EXIT_FAILURE);
-					}
-					/* remove comm file so that noone will tamper */
-					unlink(fromGUI);
-
-					/* OK, let's fire up the GUI */
-					execve(gui_argv[0], gui_argv, NULL);
-
-					/* we should never get here unless the execve failed */
-					WRITELOG(ERROR, "Unable to execute %s!\n", gui_argv[0]);
+			case 0: /* child */
+				/* we set up the standard input for our GUI... */
+				if (!freopen(toGUI, "r", stdin))
+				{
+					writelog(ERROR, "Unable to redirect standard input!\n");
 					exit(EXIT_FAILURE);
+				}
 
-				default: /* parent */
-					/* install handler so that our GUI can signal us to
-					 * (try to) authenticate a user...
-					 */
-					signal(SIGUSR1, authenticate_user);
+				/* once set up, we unlink() it so that noone else will tamper */
+				unlink(toGUI);
 
-					/* ...and another to get GUI exit status */
-					signal(SIGUSR2, read_action);
+				/* ... then the standard output */
+				if (!freopen(fromGUI, "w", stdout))
+				{
+					writelog(ERROR, "Unable to redirect standard output!\n");
+					exit(EXIT_FAILURE);
+				}
+				/* remove comm file so that noone will tamper */
+				unlink(fromGUI);
 
-					/* it is now safe to open our fifo to read auth data */
-					fp_fromGUI = fopen(fromGUI, "r");
+				/* OK, let's fire up the GUI */
+				execve(gui_argv[0], gui_argv, NULL);
 
-					/* we wait for our child to exit */
-					while (1)
-					{
-						waitpid(pid, &returnstatus, 0);
-						if (WIFEXITED(returnstatus) || WIFSIGNALED(returnstatus))
-							break;
-					}
+				/* we should never get here unless the execve failed */
+				WRITELOG(ERROR, "Unable to execute %s!\n", gui_argv[0]);
+				exit(EXIT_FAILURE);
 
-					/* we no longer need the signal handlers */
-					signal(SIGUSR1, SIG_DFL);
-					signal(SIGUSR2, SIG_DFL);
+			default: /* parent */
+				/* install handler so that our GUI can signal us to
+				 * (try to) authenticate a user...
+				 */
+				signal(SIGUSR1, authenticate_user);
 
-					break;
-			}
+				/* ...and another to get GUI exit status */
+				signal(SIGUSR2, read_action);
 
-			if (WIFEXITED(returnstatus) || WIFSIGNALED(returnstatus))
-				returnstatus = gui_retval;
-			else
-				returnstatus = QINGY_FAILURE;
+				/* it is now safe to open our fifo to read auth data */
+				fp_fromGUI = fopen(fromGUI, "r");
 
-			fclose(fp_fromGUI);
-			fclose(fp_toGUI);
+				/* we wait for our child to exit */
+				while (1)
+				{
+					waitpid(pid, &returnstatus, 0);
+					if (WIFEXITED(returnstatus) || WIFSIGNALED(returnstatus))
+						break;
+				}
 
-		writelog(DEBUG, "returned from GUI\n");
+				/* we no longer need the signal handlers */
+				signal(SIGUSR1, SIG_DFL);
+				signal(SIGUSR2, SIG_DFL);
 
-			/* break the cycle if we are sure we don't have to read authentication data... */
-			if (returnstatus != QINGY_FAILURE )
 				break;
+		}
 
-			/* if we have authentication data we can break the cycle */
+		if (WIFEXITED(returnstatus) || WIFSIGNALED(returnstatus))
+		{
+			returnstatus = gui_retval;
+			writelog(DEBUG, "GUI returned successfully\n");
+		}
+		else
+		{
+			returnstatus = GUI_FAILURE;
+			writelog(DEBUG, "GUI returned with error\n");
+		}
+
+		fclose(fp_fromGUI);
+		fclose(fp_toGUI);
+
+		/* if we have authentication data we can proceed with authentication even if our GUI failed */
+		if (returnstatus == GUI_FAILURE && gui_retval == EXIT_SUCCESS)
+		{
 			if (username && password && session)
 			{
 				returnstatus = EXIT_SUCCESS;
-				break;
+				writelog(DEBUG, "GUI failed but auth data present: attempting to log in user\n");
 			}
-
-			if (i == retries) returnstatus = EXIT_TEXT_MODE;
-			else sleep(1);
+			else
+			{
+				returnstatus = EXIT_TEXT_MODE;
+				writelog(DEBUG, "GUI failed and no auth data present: reverting to text mode\n");
+			}
 		}
+		else
+			returnstatus = gui_retval;
 
 		free(toGUI);
 		free(fromGUI);
-		free(gui_argv[--j]);
-		free(gui_argv[--j]);
+		free(gui_argv[--i]);
+		free(gui_argv[--i]);
 		free(gui_argv);
 
 		/* should we execute some script after returning from graphic mode? */
@@ -484,7 +488,6 @@ int main(int argc, char *argv[])
   int user_tty_number;
   int our_tty_number;
   struct timespec delay;
-	char *ptr;
 
   /* We set up a delay of 0.5 seconds */
   delay.tv_sec  = 0;
@@ -498,9 +501,6 @@ int main(int argc, char *argv[])
   
   /* We set up some default values */
   initialize_variables();
-	program_name   = argv[0];
-	if ((ptr = strrchr(argv[0], '/')))
-		program_name = ++ptr;
   our_tty_number = ParseCMDLine(argc, argv, 1);
 	current_tty    = our_tty_number;
   

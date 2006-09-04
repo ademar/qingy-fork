@@ -122,10 +122,6 @@ endif
 	@echo "#idle_timeout = 30" >> settings
 	@echo "#idle_action  = lock" >> settings
 	@echo "" >> settings
-	@echo "# How many times should we retry to fire app qingy interface" >> settings
-	@echo "# before reverting to text mode? Default is 0..." >> settings
-	@echo "#retries = 1" >> settings
-	@echo "" >> settings
 	@echo "# these options are valid only if qingy is started from tty3" >> settings
 	@echo "#tty = 3" >> settings
 	@echo "#{" >> settings

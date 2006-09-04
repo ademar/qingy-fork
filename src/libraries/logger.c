@@ -75,7 +75,7 @@ void log_file(log_levels loglevel, char *message)
 			localtime_r(&seconds, &curtime);
 			strftime(date, sizeof(date), "%b %d %H:%M:%S", &curtime);
 
-			fprintf(fp, "%s, qingy on tty%d, [%s] %s\n", date, current_tty, LOGLEVEL(loglevel), tmp);
+			fprintf(fp, "%s, %s on tty%d, [%s] %s\n", date, program_name, current_tty, LOGLEVEL(loglevel), tmp);
 			fflush(fp);
 
 			tmp = strtok(NULL, "\n");
@@ -96,7 +96,7 @@ void log_syslog(log_levels loglevel, char *message)
 
 	if (!gotmsg)
 	{
-		snprintf(msg, sizeof(msg), "qingy(tty%d)", current_tty);
+		snprintf(msg, sizeof(msg), "%s(tty%d)", program_name, current_tty);
 		gotmsg = 1;
 	}
 

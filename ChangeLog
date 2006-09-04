@@ -1,3 +1,21 @@
+2006-09-04  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/main.c:
+	Clean ups.
+
+	* src/libraries/load_settings.c (ParseCMDLine),
+	* src/main.c (main),
+	* src/libraries/logger.c (log_file):
+	Always save program name, and use it in logger facilities
+	to distinguish between qingy and its GUI.
+
+	* src/libraries/load_settings.h,
+	* src/libraries/load_settings.c (initialize_variables),
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l,
+	* media/Makefile.am (settings):
+	Removed 'retries' entry from settings file.
+
 2006-08-31  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/objects/button.c,

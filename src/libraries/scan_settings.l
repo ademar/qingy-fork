@@ -152,7 +152,6 @@ lock_sessions           return LOCK_SESSIONS_TOK;
 screensavers_dir        return SCRSVRS_DIR_TOK;
 themes_dir              return THEMES_DIR_TOK;
 qingy_DirectFB          return DFB_INTERFACE_TOK;
-retries                 return RETRIES_TOK;
 x_args                  return X_ARGS_TOK;
 NULL                    return NULL_TOK;
 autologin               return AUTOLOGIN_TOK;

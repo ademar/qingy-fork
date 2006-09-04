@@ -80,7 +80,7 @@ static window_t wind =
 /* settings only lvals */
 %token SCREENSAVER_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK 
 %token SHUTDOWN_TOK TTY_TOK SCRSVRS_DIR_TOK THEMES_DIR_TOK X_SERVER_TOK
-%token DFB_INTERFACE_TOK RETRIES_TOK X_ARGS_TOK TEMP_FILES_DIR_TOK
+%token DFB_INTERFACE_TOK X_ARGS_TOK TEMP_FILES_DIR_TOK
 
 /* windows && theme blocks */
 %token THEME_TOK WINDOW_TOK 
@@ -170,7 +170,6 @@ config: /* nothing */
 | config x_args
 | config idle_timeout
 | config idle_action
-| config gui_retries
 | config logging
 | config sleep
 | config theme { TTY_CHECK_COND got_theme=set_theme_result; }
@@ -204,7 +203,6 @@ config_tty: /* nothing */
 | config_tty x_args
 | config_tty idle_timeout
 | config_tty idle_action
-| config_tty gui_retries
 | config_tty logging_tty
 | config_tty sleep
 | config_tty theme { TTY_CHECK_COND got_theme=set_theme_result; }
@@ -364,13 +362,6 @@ x_args: X_ARGS_TOK '=' QUOTSTR_T
 	{
 	  if(in_theme) yyerror("Setting 'x_args' is not allowed in theme file");
 	  TTY_CHECK_COND x_args = strdup($3);
-	};
-
-/* gui retries value.  Note that it cannot be in theme file..  */
-gui_retries: RETRIES_TOK '=' ANUM_T
-	{
-	  if(in_theme) yyerror("Setting 'retries' is not allowed in theme file");
-	  TTY_CHECK_COND retries = $3;
 	};
 
 /* Offset the search for an available X server should start with  */
