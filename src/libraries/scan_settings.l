@@ -149,6 +149,7 @@ no                      return NO_TOK;
 clear_background        return CLEAR_BACKGROUND_TOK;
 tty                     return TTY_TOK;
 lock_sessions           return LOCK_SESSIONS_TOK;
+screensaver_timeout     return SCRSVR_TIMEOUT_TOK;
 screensavers_dir        return SCRSVRS_DIR_TOK;
 themes_dir              return THEMES_DIR_TOK;
 qingy_DirectFB          return DFB_INTERFACE_TOK;
@@ -195,7 +196,7 @@ syslog                  return SYSLOG_TOK;
 "#"[^\n]*"\n" ;			/* skip comments */
 
  /* numbers */
-[0-9]+	   {  sscanf(yytext, "%i", &(yylval.ival)); return ANUM_T;}	
+[\-0-9]+	   {  sscanf(yytext, "%i", &(yylval.ival)); return ANUM_T;}	
 
  /* colors */
 "\["[ \t]*[0-9a-fA-F]{8}[ \t]*"\]" { sscanf(yytext, "[%x]", (unsigned int *)yylval.color); return COLOR_T;}

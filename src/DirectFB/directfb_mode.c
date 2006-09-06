@@ -93,6 +93,7 @@ IDirectFBSurface      *primary;                   /* surface of the primary laye
 IDirectFBSurface      *panel_image        = NULL; /* background image                          */
 IDirectFBEventBuffer  *events;                    /* all input events will be stored here      */
 DeviceInfo            *devices            = NULL; /* the list of all input devices             */
+IDirectFBScreen      **screens            = NULL;
 IDirectFBFont         *font_tiny;                 /* fonts                                     */
 IDirectFBFont         *font_smaller;  
 IDirectFBFont         *font_small;
@@ -1031,28 +1032,51 @@ int set_font_sizes ()
   return 1;
 }
 
-DFBScreenCallback provva (DFBScreenID screen_id, DFBScreenDescription desc, void *callbackdata)
+DFBEnumerationResult getScreens (DFBScreenID screen_id, DFBScreenDescription desc, void *callbackdata)
 {
-	IDirectFBScreen *screen;
 	static int i=0;
 
-	WRITELOG(DEBUG, "there are %d screens...\n", ++i);
+	/* just to make gcc happy */
+	if (callbackdata) {}
 
-	if (dfb->GetScreen(dfb, screen_id, &screen) != DFB_OK)
+	if (!i)
+		screens = (IDirectFBScreen **) calloc(2, sizeof(IDirectFBScreen *));
+	else
 	{
-		writelog(DEBUG, "Could not get screen instance...\n");
+		IDirectFBScreen **temp = (IDirectFBScreen **) realloc(screens, (i+2)*sizeof(IDirectFBScreen *));
+		if (!temp)
+		{
+			writelog(ERROR, "Memory allocation failure!\n");
+			abort();
+		}
+		screens = temp;
 	}
-	
+
+	if (dfb->GetScreen(dfb, screen_id, &(screens[i])) != DFB_OK)
+		writelog(DEBUG, "Could not get screen instance...\n");
+	else
+	{
+		WRITELOG(DEBUG, "Found new screen (%d so far): %s, ", ++i, desc.name);
+		if (desc.caps & DSCCAPS_POWER_MANAGEMENT)
+			writelog(DEBUG, "has power management support\n");
+		else
+		{
+			writelog(DEBUG, "has no power management support\n");
+			i--;
+		}
+	}
+
+	screens[i] = NULL;
+
+/* 	screens[i]->SetPowerMode(screens[i], DSPM_OFF); */
+/* 	sleep(5); */
+/* 	screens[i]->SetPowerMode(screens[i], DSPM_ON); */
 /*
 	DSPM_STANDBY
 	DSPM_SUSPEND
 */
 
-	screen->SetPowerMode(screen, DSPM_OFF);
-
-	sleep(5);
-
-	screen->SetPowerMode(screen, DSPM_ON);
+	return DFB_OK;
 }
 
 int main (int argc, char *argv[])
@@ -1107,6 +1131,9 @@ int main (int argc, char *argv[])
 
   primary->GetSize(primary, &screen_width, &screen_height);
 
+	/* get available screens and their power management capabilities */
+	dfb->EnumScreens(dfb, getScreens, NULL);
+
 	if (screen_width  != theme_xres) x_ratio = (float)screen_width/(float)theme_xres;
 	if (screen_height != theme_yres) y_ratio = (float)screen_height/(float)theme_yres;
 
@@ -1159,8 +1186,6 @@ int main (int argc, char *argv[])
   screen_saver_surface = primary;
   screen_saver_dfb     = dfb;
 #endif
-
-	dfb->EnumScreens(dfb, provva, NULL);
 
   /* we go on for ever... or until the user does something in particular */
   while (returnstatus == -1)
@@ -1237,7 +1262,7 @@ int main (int argc, char *argv[])
 			if (!screensaver_active && use_screensaver)
 				screensaver_countdown--;
 
-			if (!screensaver_countdown)
+			if (!screensaver_countdown && use_screensaver)
 	      screensaver_active = 1;
 
 #endif /* screensaver stuff */

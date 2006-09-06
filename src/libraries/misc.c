@@ -382,9 +382,6 @@ void PrintUsage()
   printf("\t-n, --no-shutdown-screen\n");
   printf("\tClose DirectFB mode before shutting down.\n");
   printf("\tThis way you will see system shutdown messages.\n\n");
-  printf("\t-s <timeout>, --screensaver <timeout>\n");
-  printf("\tActivate screensaver after <timeout> minutes (default is 5).\n");
-  printf("\tA value of 0 disables screensaver completely.\n\n");
 	printf("\t-r <xres>x<yres>, --resolution <xres>x<yres>\n");
 	printf("\tDo not detect framebuffer resolution, use this one instead.\n\n");
 	printf("\t-h, --help\n");

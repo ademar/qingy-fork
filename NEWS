@@ -3,6 +3,9 @@ qingy SVN-0.9.2-SVN:
   Maybe the right one this time? :-)
 - Fixed shift-tabbing from username to session.
 - Removed 'retries' entry from settings file.
+- Removed --screensaver command line arg, moved it to settings file.
+- Fixed a bug that made screen saver pop up immediately when user chose
+  to disable it by setting a timeout of 0.
 - Small logger improvements; log more events in debug mode.
 - Fixed typo that made some variables not to be highlighted correctly
   in qingy emacs mode.

@@ -896,7 +896,7 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 {
 	extern char *optarg;
 	extern int optind, opterr, optopt;
-	const char optstring[] = "-tf:pldvns:rh";
+	const char optstring[] = "-tf:pldnrh";
 	const struct option longopts[] =
 	{
 		{"text-mode",               no_argument,       NULL, 't'},
@@ -905,7 +905,7 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 		{"hide-lastuser",           no_argument,       NULL, 'l'},
 		{"disable-lastuser",        no_argument,       NULL, 'd'},
 		{"no-shutdown-screen",      no_argument,       NULL, 'n'},
-		{"screensaver",             required_argument, NULL, 's'},
+		{"resolution",              required_argument, NULL, 'r'},
 		{"help",                    no_argument,       NULL, 'h'},
 		{0, 0, 0, 0}
 	};
@@ -970,25 +970,25 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 			case 'n': /* no shutdown screen */
 				no_shutdown_screen = 1;
 				break;
-			case 's': /* screen_saver */
-			{
-				int temp = atoi(optarg);
-				if (paranoia && temp < 0)
-				{
-					Switch_TTY;
-					ClearScreen();
-					fprintf(stderr, "%s: invalid screen saver timeout: fall back to text mode.\n", program_name);
-					Error(0);
-				}
-				if (!temp)
-				{
-					use_screensaver = 0;
-					break;
-				}
-				use_screensaver = 1;
-				screensaver_timeout = temp;
-				break;
-			}
+/* 			case 's': /\* screen_saver *\/ */
+/* 			{ */
+/* 				int temp = atoi(optarg); */
+/* 				if (paranoia && temp < 0) */
+/* 				{ */
+/* 					Switch_TTY; */
+/* 					ClearScreen(); */
+/* 					fprintf(stderr, "%s: invalid screen saver timeout: fall back to text mode.\n", program_name); */
+/* 					Error(0); */
+/* 				} */
+/* 				if (!temp) */
+/* 				{ */
+/* 					use_screensaver = 0; */
+/* 					break; */
+/* 				} */
+/* 				use_screensaver = 1; */
+/* 				screensaver_timeout = temp; */
+/* 				break; */
+/* 			} */
 			case 'r': /* use this framebuffer resolution */
 				if (paranoia) resolution = get_resolution(optarg);
 				break;

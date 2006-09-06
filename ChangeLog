@@ -1,3 +1,18 @@
+2006-09-06  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/directfb_mode.c (main),
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l,
+	* src/libraries/load_settings.c (ParseCMDLine),
+	* src/libraries/misc.c (PrintUsage),
+	* media/Makefile.am (settings),
+	* media/qingy-mode.el:
+	Removed --screensaver command line arg, moved it
+	to settings file. Fixed a bug that made screen saver
+	pop up immediately when user chose to disable it by
+	setting a timeout of 0. Allowed config file parser
+	to recognize negative numbers.
+
 2006-09-04  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/main.c:

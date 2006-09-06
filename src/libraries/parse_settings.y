@@ -78,7 +78,7 @@ static window_t wind =
 }
 
 /* settings only lvals */
-%token SCREENSAVER_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK 
+%token SCREENSAVER_TOK SCRSVRS_DIR_TOK SCRSVR_TIMEOUT_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK 
 %token SHUTDOWN_TOK TTY_TOK SCRSVRS_DIR_TOK THEMES_DIR_TOK X_SERVER_TOK
 %token DFB_INTERFACE_TOK X_ARGS_TOK TEMP_FILES_DIR_TOK
 
@@ -155,6 +155,7 @@ config: /* nothing */
 | config last_user
 | config last_session
 | config lck_sess
+| config scrsvr_timeout
 | config scrsvrs_dir
 | config themes_dir
 | config temp_dir
@@ -188,6 +189,7 @@ config_tty: /* nothing */
 | config_tty last_user
 | config_tty last_session
 | config_tty lck_sess
+| config_tty scrsvr_timeout
 | config_tty scrsvrs_dir
 | config_tty themes_dir
 | config_tty temp_dir
@@ -283,6 +285,29 @@ sleep: SLEEP_TOK '=' QUOTSTR_T
 lck_sess: LOCK_SESSIONS_TOK '=' YES_TOK { TTY_CHECK_COND lock_sessions = 1; }
 |         LOCK_SESSIONS_TOK '=' NO_TOK  { TTY_CHECK_COND lock_sessions = 0; }
 ;
+
+/* How much time should we wait befire firing up the screen saver */
+scrsvr_timeout: SCRSVR_TIMEOUT_TOK '=' ANUM_T
+	{
+		if(in_theme) yyerror("Setting 'screensaver_timeout' is not allowed in theme file");
+		if ($3 < 0)
+		{
+			writelog(ERROR, "Invalid screen saver timeout: screensaver will be disabled.\n");
+			use_screensaver     = 0;
+			screensaver_timeout = 0;
+		}
+		else
+		{
+			screensaver_timeout = $3;
+			WRITELOG(DEBUG, "You chose a screen saver timeout of %d minute%s", screensaver_timeout, screensaver_timeout ? "" : "s");
+			if ($3 == 0)
+			{
+				use_screensaver = 0;
+				writelog(DEBUG, ", thus disabling them");
+			}
+			writelog(DEBUG, ".\n");
+		}
+	}
 
 /* where are located the screen savers? */
 scrsvrs_dir: SCRSVRS_DIR_TOK '=' QUOTSTR_T
