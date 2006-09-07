@@ -84,6 +84,7 @@ void activate_screen_saver(IDirectFBEventBuffer *events)
   void* handle;
   char* ssv_name = NULL;
   char* error;
+	char* old_program_name = program_name;
   
   Q_screen_t screenEnv;
   
@@ -128,7 +129,9 @@ void activate_screen_saver(IDirectFBEventBuffer *events)
     return;
   }
 
+	program_name = screen_saver_kind;
   (*do_screen_saver)(screenEnv);
+	program_name = old_program_name;
   free(screenEnv.params);
     
   dlclose(handle);

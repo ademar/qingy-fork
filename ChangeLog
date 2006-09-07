@@ -1,4 +1,21 @@
+2006-09-07  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/misc.c (ClearScreen):
+	Fixed an obscure bug that happens when the TERM env variable
+	is not set (might happen). In this case I set it temporarily
+	to 'linux' and unset it afterwards.
+
+	* src/main.c (start_up):
+	Fixed error that made qingy respawn indefinitely if its GUI
+	failed horribly, instead of reverting to text mode.
+
 2006-09-06  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/parse_settings.y:
+	Fixed typo.
+
+	* src/DirectFB/objects/screen_saver.c (activate_screen_saver):
+	Made screen savers pass correctly their name to the logger facilities.
 
 	* src/DirectFB/directfb_mode.c (main),
 	* src/libraries/parse_settings.y,

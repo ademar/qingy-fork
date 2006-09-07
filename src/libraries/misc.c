@@ -133,8 +133,19 @@ char to_upper(char c)
 
 void ClearScreen(void)
 {
+	char unset = 0;
+
+	if (!getenv("TERM"))
+	{
+		setenv("TERM", "linux", 0);
+		unset = 1;
+	}
+
 	setupterm((char *) 0, STDOUT_FILENO, (int *) 0);
 	tputs(clear_screen, lines > 0 ? lines : 1, putchar);
+
+	if (unset)
+		unsetenv("TERM");
 }
 
 

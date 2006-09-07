@@ -313,7 +313,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 				break;
 		}
 
-		if (WIFEXITED(returnstatus) || WIFSIGNALED(returnstatus))
+		if ((WIFEXITED(returnstatus) || WIFSIGNALED(returnstatus)) && gui_retval != GUI_FAILURE)
 		{
 			returnstatus = gui_retval;
 			writelog(DEBUG, "GUI returned successfully\n");
@@ -328,9 +328,9 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		fclose(fp_toGUI);
 
 		/* if we have authentication data we can proceed with authentication even if our GUI failed */
-		if (returnstatus == GUI_FAILURE && gui_retval == EXIT_SUCCESS)
+		if (returnstatus == GUI_FAILURE)
 		{
-			if (username && password && session)
+			if (gui_retval == EXIT_SUCCESS && username && password && session)
 			{
 				returnstatus = EXIT_SUCCESS;
 				writelog(DEBUG, "GUI failed but auth data present: attempting to log in user\n");
