@@ -59,6 +59,7 @@
 #include "textbox.h"
 #include "combobox.h"
 #include "label.h"
+#include "pm.h"
 
 #ifdef USE_SCREEN_SAVERS
 #include "screen_saver.h"
@@ -93,7 +94,6 @@ IDirectFBSurface      *primary;                   /* surface of the primary laye
 IDirectFBSurface      *panel_image        = NULL; /* background image                          */
 IDirectFBEventBuffer  *events;                    /* all input events will be stored here      */
 DeviceInfo            *devices            = NULL; /* the list of all input devices             */
-IDirectFBScreen      **screens            = NULL;
 IDirectFBFont         *font_tiny;                 /* fonts                                     */
 IDirectFBFont         *font_smaller;  
 IDirectFBFont         *font_small;
@@ -1032,53 +1032,6 @@ int set_font_sizes ()
   return 1;
 }
 
-DFBEnumerationResult getScreens (DFBScreenID screen_id, DFBScreenDescription desc, void *callbackdata)
-{
-	static int i=0;
-
-	/* just to make gcc happy */
-	if (callbackdata) {}
-
-	if (!i)
-		screens = (IDirectFBScreen **) calloc(2, sizeof(IDirectFBScreen *));
-	else
-	{
-		IDirectFBScreen **temp = (IDirectFBScreen **) realloc(screens, (i+2)*sizeof(IDirectFBScreen *));
-		if (!temp)
-		{
-			writelog(ERROR, "Memory allocation failure!\n");
-			abort();
-		}
-		screens = temp;
-	}
-
-	if (dfb->GetScreen(dfb, screen_id, &(screens[i])) != DFB_OK)
-		writelog(DEBUG, "Could not get screen instance...\n");
-	else
-	{
-		WRITELOG(DEBUG, "Found new screen (%d so far): %s, ", ++i, desc.name);
-		if (desc.caps & DSCCAPS_POWER_MANAGEMENT)
-			writelog(DEBUG, "has power management support\n");
-		else
-		{
-			writelog(DEBUG, "has no power management support\n");
-			i--;
-		}
-	}
-
-	screens[i] = NULL;
-
-/* 	screens[i]->SetPowerMode(screens[i], DSPM_OFF); */
-/* 	sleep(5); */
-/* 	screens[i]->SetPowerMode(screens[i], DSPM_ON); */
-/*
-	DSPM_STANDBY
-	DSPM_SUSPEND
-*/
-
-	return DFB_OK;
-}
-
 int main (int argc, char *argv[])
 {
   int returnstatus = -1;        /* return value of this function...         */
@@ -1086,6 +1039,7 @@ int main (int argc, char *argv[])
   DFBInputEvent evt;            /* generic input events will be stored here */
   DFBResult result;             /* we store eventual errors here            */
   char *lastuser=NULL;          /* latest user who logged in                */
+	pthread_t pm_thread;
 
   /* load settings from file */
 	initialize_variables();
@@ -1130,9 +1084,6 @@ int main (int argc, char *argv[])
 	}
 
   primary->GetSize(primary, &screen_width, &screen_height);
-
-	/* get available screens and their power management capabilities */
-	dfb->EnumScreens(dfb, getScreens, NULL);
 
 	if (screen_width  != theme_xres) x_ratio = (float)screen_width/(float)theme_xres;
 	if (screen_height != theme_yres) y_ratio = (float)screen_height/(float)theme_yres;
@@ -1180,6 +1131,11 @@ int main (int argc, char *argv[])
 
   layer->EnableCursor (layer, 1);
 
+	if (use_screen_power_management)
+	{
+		pthread_create(&pm_thread, NULL, (void *) screen_pm_thread, dfb);
+	}
+
 #ifdef USE_SCREEN_SAVERS
   /* initialize screen saver stuff */
   screen_saver_kind    = screensaver_name;
@@ -1194,7 +1150,7 @@ int main (int argc, char *argv[])
 		if (!screensaver_countdown)
 			screensaver_countdown = screensaver_timeout * 120;
 #endif
-      
+
 		/* we wait for an input event... */
 #ifdef USE_SCREEN_SAVERS
 		if (!screensaver_active) events->WaitForEventWithTimeout(events, 0, 500);

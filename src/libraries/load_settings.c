@@ -128,6 +128,8 @@ void initialize_variables(void)
 	screensaver_timeout     = 0;
 	use_screensaver         = 0;
 #endif
+	use_screen_power_management     = 0;
+	screen_power_management_timeout = 0;
 }
 
 void set_default_paths(void)

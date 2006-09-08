@@ -78,7 +78,7 @@ static window_t wind =
 }
 
 /* settings only lvals */
-%token SCREENSAVER_TOK SCRSVRS_DIR_TOK SCRSVR_TIMEOUT_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK 
+%token SCREENSAVER_TOK SCRSVRS_DIR_TOK SCRSVR_TIMEOUT_TOK SCRN_POWER_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK 
 %token SHUTDOWN_TOK TTY_TOK SCRSVRS_DIR_TOK THEMES_DIR_TOK X_SERVER_TOK
 %token DFB_INTERFACE_TOK X_ARGS_TOK TEMP_FILES_DIR_TOK
 
@@ -156,6 +156,7 @@ config: /* nothing */
 | config last_session
 | config lck_sess
 | config scrsvr_timeout
+| config scrpvr_timeout
 | config scrsvrs_dir
 | config themes_dir
 | config temp_dir
@@ -190,6 +191,7 @@ config_tty: /* nothing */
 | config_tty last_session
 | config_tty lck_sess
 | config_tty scrsvr_timeout
+| config_tty scrpvr_timeout
 | config_tty scrsvrs_dir
 | config_tty themes_dir
 | config_tty temp_dir
@@ -306,6 +308,33 @@ scrsvr_timeout: SCRSVR_TIMEOUT_TOK '=' ANUM_T
 				{
 					use_screensaver = 0;
 					writelog(DEBUG, ", thus disabling them");
+				}
+				writelog(DEBUG, ".\n");
+			}
+		}
+	}
+
+/* How much time should we wait befire the screen enters power management mode */
+scrpvr_timeout: SCRN_POWER_TOK '=' ANUM_T
+	{
+		if(in_theme) yyerror("Setting 'screen_powersaving_timeout' is not allowed in theme file");
+		TTY_CHECK_COND
+		{
+			if ($3 < 0)
+			{
+				writelog(ERROR, "Invalid screen power management timeout: feature will be disabled.\n");
+				use_screen_power_management     = 0;
+				screen_power_management_timeout = 0;
+			}
+			else
+			{
+				use_screen_power_management     = 1;
+				screen_power_management_timeout = $3;
+				WRITELOG(DEBUG, "You chose a screen power management timeout of %d minute%s", screen_power_management_timeout, (screen_power_management_timeout == 1) ? "" : "s");
+				if ($3 == 0)
+				{
+					use_screen_power_management = 0;
+					writelog(DEBUG, ", thus disabling the feature");
 				}
 				writelog(DEBUG, ".\n");
 			}

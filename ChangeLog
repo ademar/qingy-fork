@@ -1,4 +1,17 @@
+2006-09-08  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/directfb_mode.c,
+	* src/DirectFB/pm.h,
+	* src/DirectFB/pm.c:
+	Completed support for screen power management.
+
 2006-09-07  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/qingy-mode.el,
+	* src/libraries/scan_settings.l,
+	* src/libraries/load_settings.h,
+	* src/libraries/load_settings.c (initialize_variables): 
+	Working on screen power management support.
 
 	* src/libraries/misc.c (ClearScreen):
 	Fixed an obscure bug that happens when the TERM env variable

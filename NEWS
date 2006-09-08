@@ -4,6 +4,8 @@ qingy SVN-0.9.2-SVN:
 - Fixed shift-tabbing from username to session.
 - Removed 'retries' entry from settings file.
 - Removed --screensaver command line arg, moved it to settings file.
+- Added support for screen power management, now the screen(s) will be
+  powered off after a given timeout.
 - Fixed a bug that made screen saver pop up immediately when user chose
   to disable it by setting a timeout of 0.
 - Small logger improvements; log more events in debug mode.

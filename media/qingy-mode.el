@@ -48,7 +48,7 @@
    '("\\(lastsession\\|none\\|logout\\)" . font-lock-constant-face)
    '("\\(t\\(?:hemes_dir\\|ext_sessions\\|emp_files_dir\\|ext_mode\\)\\)" . font-lock-variable-name-face)
 	 '("\\(x\\(?:_sessions\\|_args\\|init\\|_server_offset\\|_server\\)\\)" . font-lock-variable-name-face)
-   '("\\(c\\(?:lear_background\\)\\|l\\(?:ock_sessions\\)\\|s\\(?:creensavers_dir\\|creensaver_timeout\\|creensaver\\|hutdown_policy\\|ession\\)\\)" . font-lock-variable-name-face)
+   '("\\(c\\(?:lear_background\\)\\|l\\(?:ock_sessions\\)\\|s\\(?:creensavers_dir\\|creen_powersaving_timeout\\|creensaver_timeout\\|creensaver\\|hutdown_policy\\|ession\\)\\)" . font-lock-variable-name-face)
 	 '("\\(k\\(?:ill\\)\\)" . font-lock-variable-name-face)
 	 '("\\(n\\(?:ative_resolution\\|ext_tty\\)\\)" . font-lock-variable-name-face)
 	 '("\\(p\\(?:assword\\|rev_tty\\|oweroff\\|re_gui_script\\|ost_gui_script\\)\\)" . font-lock-variable-name-face)

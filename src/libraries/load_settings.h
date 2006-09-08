@@ -39,6 +39,8 @@ int disable_last_user;
 int no_shutdown_screen;
 int use_screensaver;
 int screensaver_timeout;
+int use_screen_power_management;
+int screen_power_management_timeout;
 int clear_background;
 int current_tty;
 int lock_sessions;

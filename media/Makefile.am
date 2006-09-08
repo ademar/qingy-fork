@@ -73,6 +73,10 @@ if WANT_SCREEN_SAVERS
 	@echo "# A value of 0 disables screensaver completely." >> settings
 	@echo "screensaver_timeout = 5" >> settings
 	@echo "" >> settings
+	@echo "# How much should we wait (in minutes) before the screen enters power saving mode?" >> settings
+	@echo "# A value of 0 disables the feature" >> settings
+	@echo "screen_powersaving_timeout = 30" >> settings
+	@echo "" >> settings
 	@echo "#screensaver \"pixel\"" >> settings
 	@echo "screensaver \"running_time\"#=\"%H:%S:%M\"" >> settings
 	@echo "" >> settings
