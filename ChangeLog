@@ -1,3 +1,8 @@
+2006-09-12  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/directfb_mode.c:
+	Fixed caps lock status display when returning from screensaver.
+
 2006-09-08  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* ChangeLog,

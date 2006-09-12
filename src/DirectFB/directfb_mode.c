@@ -231,7 +231,12 @@ void DirectFB_Error()
 
 void show_lock_key_status(DFBInputEvent *evt)
 {
-  if (lock_is_pressed(evt) == CAPSLOCK)
+	static int status = 0;
+
+	if (evt)
+		status = (lock_is_pressed(evt) == CAPSLOCK) ? 1 : 0;
+
+  if (status)
 	{ /* CAPS lock is active */
 		lock_key_statusA->Show(lock_key_statusA);
 		lock_key_statusB->Show(lock_key_statusB);
@@ -272,7 +277,12 @@ void reset_screen(DFBInputEvent *evt)
   username->Show(username);
   password->Show(password);
   session->Show(session);
-  show_lock_key_status(evt);
+
+	if (evt->type == DIET_KEYPRESS || evt->type == DIET_KEYRELEASE)
+		show_lock_key_status(evt);
+	else
+		show_lock_key_status(NULL);
+
   layer->EnableCursor (layer, 1);
 }
 
