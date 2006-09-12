@@ -1,7 +1,7 @@
 /***************************************************************************
-                            pm.h  -  description
+                      directfb_mode.h  -  description
                             --------------------
-    begin                : Sep 08 2006
+    begin                : Sep 11 2006
     copyright            : (C) 2006 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
 ***************************************************************************/
@@ -25,12 +25,9 @@
  *                                                                         *
  ***************************************************************************/
 
-/* thread to manage screen power management */
-void screen_pm_thread(IDirectFB *dfb);
 
-#ifdef USE_SCREEN_SAVERS
+/* this redraws the login screen */
+void reset_screen(DFBInputEvent *evt);
 
-/* manage screen savers */
-void do_ss(IDirectFB *dfb, IDirectFBSurface *surface, IDirectFBFont *font, int wait);
-
-#endif /* USE_SCREEN_SAVERS */
+/* this clears the screen */
+void clear_screen(void);

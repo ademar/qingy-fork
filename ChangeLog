@@ -1,5 +1,30 @@
 2006-09-08  Michele Noberasco  <michele.noberasco@tiscali.it>
 
+	* ChangeLog,
+	* src/DirectFB/pm.h,
+	* src/DirectFB/directfb_mode.c,
+	* src/DirectFB/objects/screen_saver.h,
+	* src/DirectFB/Makefile.am,
+	* src/DirectFB/directfb_mode.h,
+	* src/DirectFB/pm.c,
+	* src/libraries/parse_settings.y:
+	Moved screen saver stuff to a dedicated thread.
+
+	* src/DirectFB/directfb_mode.c,
+	* src/DirectFB/pm.h,
+	* src/DirectFB/pm.c:
+	Beginning work to move screen saver related code to a dedicated thread.
+
+	* src/libraries/parse_settings.y:
+	Small clean-up.
+
+	* src/DirectFB/directfb_mode.c (close_framebuffer_mode):
+	Hehe, trying to shut down DirectFB mode without de-initializing
+	it at all. It appears to be working ;-)
+
+	* media/screensavers/matrix/matr.ttf:
+	Fixed corrupt font file.
+
 	* src/DirectFB/directfb_mode.c,
 	* src/DirectFB/pm.h,
 	* src/DirectFB/pm.c:

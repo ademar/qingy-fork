@@ -30,11 +30,11 @@
 #endif
 
 /* which screen saver do you want to run? */
-char*  screen_saver_kind;
+char *screen_saver_kind;
 /* Guess what ;-P */
-IDirectFB * screen_saver_dfb;
+IDirectFB *screen_saver_dfb;
 /* surface to run the screen saver into */
-IDirectFBSurface * screen_saver_surface;  
+IDirectFBSurface *screen_saver_surface;  
 
 /* screensaver stops when there is an input event... */  
 void activate_screen_saver(IDirectFBEventBuffer *screen_saver_events);

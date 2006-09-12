@@ -25,17 +25,37 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <directfb.h>
+#include <pthread.h>
 
 #include "memmgmt.h"
 #include "load_settings.h"
 #include "logger.h"
+#include "directfb_mode.h"
+#include "pm.h"
+
+#ifdef USE_SCREEN_SAVERS
+#include "screen_saver.h"
+typedef struct _ss_data
+{
+	char             *ss_name;
+	IDirectFB        *ss_dfb;
+	IDirectFBSurface *ss_surface;
+	IDirectFBFont    *ss_font;
+	pthread_mutex_t  *ss_lock;
+	int               ss_timeout;
+} ss_data;
+#endif
 
 IDirectFB *dfb;
 
-DFBEnumerationResult getScreens (DFBScreenID screen_id, DFBScreenDescription desc, void *callbackdata)
+static DFBEnumerationResult getScreens (DFBScreenID screen_id, DFBScreenDescription desc, void *callbackdata)
 {
 	IDirectFBScreen ***screens = (IDirectFBScreen ***)callbackdata;
 	static int i=0;
@@ -80,6 +100,7 @@ void screen_pm_thread(IDirectFB *directfb)
 {
 	IDirectFBScreen      **screens = NULL;
 	IDirectFBEventBuffer  *events;
+	int                    timeout = screen_power_management_timeout * 60;
 	int                    status  = 0;
 
 	if (!directfb) return;
@@ -96,7 +117,6 @@ void screen_pm_thread(IDirectFB *directfb)
 	{
 		int i;
 		int hasevents=0;
-		int timeout=screen_power_management_timeout*60;
 
 		events->WaitForEventWithTimeout (events, timeout, 0);
 		while (events->HasEvent(events) == DFB_OK)
@@ -125,6 +145,101 @@ void screen_pm_thread(IDirectFB *directfb)
 		}
 
 	}
-/* 	DSPM_STANDBY */
-/* 	DSPM_SUSPEND */
 }
+
+#ifdef USE_SCREEN_SAVERS
+static void screen_saver_thread(ss_data *data)
+{
+	IDirectFBEventBuffer  *events;
+	int                    timeout = data->ss_timeout * 60;
+
+	if (!data) return;
+
+	screen_saver_kind    = data->ss_name;
+	screen_saver_surface = data->ss_surface;
+	screen_saver_dfb     = data->ss_dfb;
+
+	/* get an input event buffer */
+	data->ss_dfb->CreateInputEventBuffer (data->ss_dfb, DICAPS_ALL, DFB_TRUE, &events);
+
+	while (1)
+	{
+		int hasevents=0;
+
+		events->WaitForEventWithTimeout (events, timeout, 0);
+		while (events->HasEvent(events) == DFB_OK)
+		{
+			hasevents = 1;
+			events->Reset(events);
+		}
+
+		if (!hasevents)
+		{
+			if (!pthread_mutex_trylock(data->ss_lock))
+			{
+				DFBInputEvent evt;
+
+	      clear_screen();
+	      data->ss_surface->Clear    (data->ss_surface, 0x00, 0x00, 0x00, 0xFF);
+	      data->ss_surface->Flip     (data->ss_surface, NULL, DSFLIP_BLIT);
+				data->ss_surface->SetFont  (data->ss_surface, data->ss_font);
+				data->ss_surface->SetColor (data->ss_surface, other_text_color.R, other_text_color.G, other_text_color.B, other_text_color.A);
+				activate_screen_saver(events);
+
+				events->GetEvent (events, DFB_EVENT (&evt));
+				reset_screen(&evt);
+
+				pthread_mutex_unlock(data->ss_lock);
+			}
+		}
+	}
+}
+
+void do_ss(IDirectFB *dfb, IDirectFBSurface *surface, IDirectFBFont *font, int wait)
+{
+	pthread_t               ss_thread;
+	static pthread_mutex_t  lock;
+	ss_data                *data;
+	static int              i = 0;
+
+	if (!i)
+	{
+		pthread_mutex_init(&lock, NULL);
+		i = 1;
+	}
+
+	if (!wait)
+	{
+		if (!pthread_mutex_trylock(&lock))
+		{
+			IDirectFBEventBuffer *events;
+			DFBInputEvent         evt;
+
+			dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &events);
+
+			clear_screen();
+			surface->Clear    (surface, 0x00, 0x00, 0x00, 0xFF);
+			surface->Flip     (surface, NULL, DSFLIP_BLIT);
+			surface->SetFont  (surface, font);
+			surface->SetColor (surface, other_text_color.R, other_text_color.G, other_text_color.B, other_text_color.A);
+			activate_screen_saver(events);
+
+			events->GetEvent (events, DFB_EVENT (&evt));
+			reset_screen(&evt);
+
+			pthread_mutex_unlock(&lock);
+		}
+		return;
+	}
+
+	data = (ss_data*)calloc(1, sizeof(ss_data));
+	data->ss_name    = screensaver_name;
+	data->ss_surface = surface;
+	data->ss_dfb     = dfb;
+	data->ss_font    = font;
+	data->ss_timeout = screensaver_timeout;
+	data->ss_lock    = &lock;
+
+	pthread_create(&ss_thread, NULL, (void *) screen_saver_thread, data);
+}
+#endif

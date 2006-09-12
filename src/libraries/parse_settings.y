@@ -302,6 +302,7 @@ scrsvr_timeout: SCRSVR_TIMEOUT_TOK '=' ANUM_T
 			}
 			else
 			{
+				use_screensaver     = 1;
 				screensaver_timeout = $3;
 				WRITELOG(DEBUG, "You chose a screen saver timeout of %d minute%s", screensaver_timeout, (screensaver_timeout == 1) ? "" : "s");
 				if ($3 == 0)

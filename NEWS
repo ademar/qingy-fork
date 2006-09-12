@@ -11,7 +11,8 @@ qingy SVN-0.9.2-SVN:
 - Small logger improvements; log more events in debug mode.
 - Fixed bug that made qingy respawn indefinitely if one chooses syslog
   as the only logging facility.
-- Other small fixes and clean-ups.
+- Fixed corrupt matrix screensaver font file.
+- Other fixes and clean-ups.
 
 qingy 0.9.1 (24 Aug 2006):
 - Argh, all graphics in default there were currupt! This probably was caused

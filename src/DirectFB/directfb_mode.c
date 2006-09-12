@@ -61,10 +61,6 @@
 #include "label.h"
 #include "pm.h"
 
-#ifdef USE_SCREEN_SAVERS
-#include "screen_saver.h"
-#endif
-
 
 /* some super-structures */
 typedef struct label_t
@@ -98,7 +94,7 @@ IDirectFBFont         *font_tiny;                 /* fonts                      
 IDirectFBFont         *font_smaller;  
 IDirectFBFont         *font_small;
 IDirectFBFont         *font_normal;
-IDirectFBFont         *font_large;  
+IDirectFBFont         *font_large;
 TextBox               *username           = NULL; /* text boxes                                */
 TextBox               *password           = NULL;
 Label                 *username_label     = NULL; /* labels                                    */
@@ -125,7 +121,6 @@ float                 y_ratio               = 1; /* and y_ratio to match the act
 int                   ppid                  = 0; /* process id of out parent */
 int                   thread_action         = 0; /* whether one of our threads is doing anything significant */
 pthread_mutex_t       lock_act              = PTHREAD_MUTEX_INITIALIZER; /* action lock       */
-pthread_mutex_t       lock_ss               = PTHREAD_MUTEX_INITIALIZER; /* screen saver lock */
 
 void safe_exit(int exitstatus)
 {
@@ -217,8 +212,8 @@ void close_framebuffer_mode (int exit_status)
 
 	/* disable bogus error messages on DirectFB exit */
   stderr_disable();
-	if (dfb) dfb->Release (dfb);
-	stderr_enable(&current_tty);
+/* 	if (dfb) dfb->Release (dfb); */
+/* 	stderr_enable(&current_tty); */
 
 	unlock_tty_switching();
 
@@ -546,21 +541,7 @@ void button_click(Button *button)
 			break;
 		case DO_SCREEN_SAVER:
 #ifdef USE_SCREEN_SAVERS
-			if (!pthread_mutex_trylock(&lock_ss))
-			{
-				DFBInputEvent evt;
-				
-				clear_screen();
-				primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-				primary->Flip  (primary, NULL, DSFLIP_BLIT);
-				primary->SetFont  (primary, font_large);
-				primary->SetColor (primary, other_text_color.R, other_text_color.G, other_text_color.B, other_text_color.A);
-				activate_screen_saver(button->events);
-				screensaver_countdown = screensaver_timeout * 120;
-				events->GetEvent(events, DFB_EVENT (&evt));
-				reset_screen(&evt);
-				pthread_mutex_unlock(&lock_ss);
-			}
+			do_ss(dfb, primary, font_large, 0);
 #endif
 			break;
 		case DO_SLEEP:
@@ -679,13 +660,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 				exit(EXIT_SUCCESS);
 				break;
 			case DO_SCREEN_SAVER:
-				ascii_code            = 0;
-				modifier              = 0;
-				screensaver_countdown = 0;
-				screensaver_active    = 1;
-				clear_screen();
-				primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-				primary->Flip  (primary, NULL, DSFLIP_BLIT);
+				do_ss(dfb, primary, font_large, 0);
 				break;
 			case DO_SLEEP:
 				if (!sleep_cmd)
@@ -1137,55 +1112,21 @@ int main (int argc, char *argv[])
 	}
 
 #ifdef USE_SCREEN_SAVERS
-  /* initialize screen saver stuff */
-  screen_saver_kind    = screensaver_name;
-  screen_saver_surface = primary;
-  screen_saver_dfb     = dfb;
+	if (use_screensaver)
+		do_ss(dfb, primary, font_large, 1);
 #endif
 
   /* we go on for ever... or until the user does something in particular */
   while (returnstatus == -1)
 	{
-#ifdef USE_SCREEN_SAVERS
-		if (!screensaver_countdown)
-			screensaver_countdown = screensaver_timeout * 120;
-#endif
-
 		/* we wait for an input event... */
-#ifdef USE_SCREEN_SAVERS
-		if (!screensaver_active) events->WaitForEventWithTimeout(events, 0, 500);
-		else
-		{
-			if (!pthread_mutex_trylock(&lock_ss))
-			{
-	      clear_screen();
-	      primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
-	      primary->Flip  (primary, NULL, DSFLIP_BLIT);
-				primary->SetFont  (primary, font_large);
-				primary->SetColor (primary, other_text_color.R, other_text_color.G, other_text_color.B, other_text_color.A);
-				activate_screen_saver(events);
-				pthread_mutex_unlock(&lock_ss);
-			}
-			else
-				screensaver_active = 0;
-		}
-#else  /* don't want screensavers */
 		events->WaitForEventWithTimeout(events, 0, 500);
-#endif /* screensaver stuff */
 
 		if (events->HasEvent(events) == DFB_OK) /* ...got that! */
 		{
 			int do_action = 1;
 
 			events->GetEvent (events, DFB_EVENT (&evt));
-#ifdef USE_SCREEN_SAVERS
-			screensaver_countdown = screensaver_timeout * 120;			
-			if (screensaver_active)
-			{
-				screensaver_active = 0;
-				reset_screen(&evt);
-			}
-#endif
 
 			/* we perform our action only if allowed to */
 			pthread_mutex_lock(&lock_act);
@@ -1211,19 +1152,6 @@ int main (int argc, char *argv[])
 				pthread_mutex_unlock(&lock_act);
 			}
 		}
-		else
-		{
-#ifdef USE_SCREEN_SAVERS	  
-
-			if (!screensaver_active && use_screensaver)
-				screensaver_countdown--;
-
-			if (!screensaver_countdown && use_screensaver)
-	      screensaver_active = 1;
-
-#endif /* screensaver stuff */
-		}
-
 	}
 
   close_framebuffer_mode (returnstatus);
