@@ -289,11 +289,11 @@ AM_PATH_LISPDIR
 
 AC_DEFINE(Linux, 1, [Define if target platform is Linux])
 
-# Whether we should disable DirectFB. Check for DirectFB >= 0.9.18
+# Whether we should disable DirectFB. Check for DirectFB >= 0.9.24
 	AC_ARG_ENABLE(DirectFB-support, AC_HELP_STRING([--enable-DirectFB-support],
 	[enable support for DirectFB framebuffer graphics (default is yes)]),, [enable_DirectFB_support=yes])
 	if test "$enable_DirectFB_support" == "yes"; then
-		DFB_VERSION=0.9.18
+		DFB_VERSION=0.9.24
 		PKG_CHECK_MODULES(DIRECTFB, directfb >= $DFB_VERSION, ,
     	AC_MSG_ERROR([$DIRECTFB_PKG_ERRORS
 			*** DirectFB $DFB_VERSION or newer is required. The latest version

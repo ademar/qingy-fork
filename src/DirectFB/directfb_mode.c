@@ -203,9 +203,7 @@ void close_framebuffer_mode (int exit_status)
 	kill (ppid, SIGUSR2);
 
 	/* since we are shutting down, there is no point in deallocating all stuff nicely, as
-	 * it is only a waste of time and CPU cycles. However, we *do* call the Destroy function
-	 * of every object that has an associated thread, so that there is no thread that tries
-	 * to access DirectFB stuff when it is being shut down...
+	 * it is only a waste of time and CPU cycles.
 	 */
 
 	writelog(DEBUG,"Starting GUI shutdown...\n");
@@ -581,8 +579,8 @@ void button_click(Button *button)
 
 void start_login_sequence(DFBInputEvent *evt)
 {
-	int  result;
-  int  free_temp = 0;
+	int   result;
+  int   free_temp = 0;
   char *message;
   char *welcome_msg;
   char *temp;

@@ -1,5 +1,11 @@
 2006-09-12  Michele Noberasco  <michele.noberasco@tiscali.it>
 
+	* src/DirectFB/pm.c:
+	Small code clean ups.
+
+	* configure.in:
+	Made qingy depend on DirectFB >= 0.9.24...
+
 	* src/DirectFB/directfb_mode.c:
 	Fixed caps lock status display when returning from screensaver.
 

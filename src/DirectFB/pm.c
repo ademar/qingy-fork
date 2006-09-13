@@ -151,10 +151,11 @@ void screen_pm_thread(IDirectFB *directfb)
 static void screen_saver_thread(ss_data *data)
 {
 	IDirectFBEventBuffer  *events;
-	int                    timeout = data->ss_timeout * 60;
+	int                    timeout;
 
 	if (!data) return;
 
+	timeout              = data->ss_timeout * 60;
 	screen_saver_kind    = data->ss_name;
 	screen_saver_surface = data->ss_surface;
 	screen_saver_dfb     = data->ss_dfb;
@@ -164,17 +165,16 @@ static void screen_saver_thread(ss_data *data)
 
 	while (1)
 	{
-		int hasevents=0;
+		int hasevents = 0;
 
 		events->WaitForEventWithTimeout (events, timeout, 0);
-		while (events->HasEvent(events) == DFB_OK)
+		if (events->HasEvent(events) == DFB_OK)
 		{
 			hasevents = 1;
 			events->Reset(events);
 		}
 
 		if (!hasevents)
-		{
 			if (!pthread_mutex_trylock(data->ss_lock))
 			{
 				DFBInputEvent evt;
@@ -191,7 +191,6 @@ static void screen_saver_thread(ss_data *data)
 
 				pthread_mutex_unlock(data->ss_lock);
 			}
-		}
 	}
 }
 
