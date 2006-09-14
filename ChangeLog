@@ -1,3 +1,10 @@
+2006-09-14  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/session.c (restore_tty_ownership),
+	* src/libraries/misc.c,
+	* src/libraries/misc.h:
+	Added some code to properly retrieve the gid of a given group.
+
 2006-09-12  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/pm.c:

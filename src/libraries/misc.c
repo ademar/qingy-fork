@@ -32,6 +32,7 @@
 #include <ctype.h>
 #include <curses.h>
 #include <pwd.h>
+#include <grp.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -158,6 +159,18 @@ char *get_home_dir(char *user)
   if (!pwd) return NULL;  
   
   return strdup(pwd->pw_dir);
+}
+
+
+int get_group_id(char *group_name)
+{
+	struct group *grp;
+
+	if (!group_name) return -1;
+	grp = getgrnam(group_name);
+	if (!grp) return -1;
+
+	return (int)(grp->gr_gid);
 }
 
 

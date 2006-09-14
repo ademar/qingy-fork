@@ -55,6 +55,9 @@ void ClearScreen(void);
 /* get <user> home directory */
 char *get_home_dir(char *user);
 
+/* get id of a given group */
+int get_group_id(char *group_name);
+
 /* Prints a welcome message */
 char *print_welcome_message(char *preamble, char *postamble);
 

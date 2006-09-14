@@ -586,9 +586,16 @@ void setEnvironment(struct passwd *pwd, int is_x_session)
 void restore_tty_ownership(void)
 {
   char *our_tty_name = create_tty_name(current_vt);
-  
+	int   gid          = get_group_id("tty");
+
+	if (!gid)
+	{
+		writelog(ERROR, "Could not restore tty ownership to root:tty, as group tty does not exist\n");
+		return;
+	}
+
   /* Restore tty ownership to root:tty */
-  chown(our_tty_name, 0, 5);
+  chown(our_tty_name, 0, gid);
   free(our_tty_name);
 }
 
