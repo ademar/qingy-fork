@@ -240,7 +240,9 @@ int set_last_user(char *user);
 
 /* get/save last session used by <user> */
 char *get_last_session(char *user);
-void set_last_session(char *user, char *session, int tty);
+void set_last_session_user(char *user, char *session);
+void set_last_session_tty(char *session, int tty);
+void wipe_last_session_file(char *username);
 
 /* see if we know this guy... */
 char *get_welcome_msg(char *user);

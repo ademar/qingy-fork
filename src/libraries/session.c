@@ -756,8 +756,16 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 		LogEvent(pw, OPEN_SESSION);
 #endif
       
+		/* remove last session file from user home dir, as previous qingy versions
+			 created it with root ownership
+		*/
+		wipe_last_session_file(username);
+
     /* drop root privileges and set user enviroment */
 		switchUser(pw, 0);
+
+		/* save last session for this user */
+		set_last_session_user(username, session);
 
 		/* let's start the shell! */
 		execve(pw->pw_shell, args, environ);
@@ -767,7 +775,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 		exit(0);
 	}
   set_last_user(username);
-  set_last_session(username, session, current_vt);
+  set_last_session_tty(session, current_vt);
 
   watch_over_session(proc_id, username, current_vt, 0, 0);
 
@@ -895,7 +903,12 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 #else
 		LogEvent(pw, OPEN_SESSION);
 #endif
-      
+
+		/* remove last session file from user home dir, as previous qingy versions
+			 created it with root ownership
+		*/
+		wipe_last_session_file(username);
+
 		/* drop root privileges and set user enviroment */
 		switchUser(pw, 1);
 
@@ -904,6 +917,9 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	  freopen(ttyname, "w", stdout);
 		freopen(ttyname, "w", stderr);
 		free(ttyname);
+
+		/* save last session for this user */
+		set_last_session_user(username, session);
 
 		/* start X server and selected session! */
 		execve(pw->pw_shell, args, environ);
@@ -914,7 +930,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	}
 
   set_last_user(username);
-  set_last_session(username, session, current_vt);
+  set_last_session_tty(session, current_vt);
 
 	watch_over_session(proc_id, username, current_vt, 1, x_offset);
 

@@ -12,6 +12,8 @@ qingy SVN-0.9.2-SVN:
 - Fixed bug that made qingy respawn indefinitely if one chooses syslog
   as the only logging facility.
 - Fixed corrupt matrix screensaver font file.
+- Made last session files in user home dirs owned by the
+  respective users, and no longer by root...
 - Other fixes and clean-ups.
 - DirectFB version 0.9.24 (or higher) is now required ro run qingy.
 

@@ -1,3 +1,11 @@
+2006-09-15  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/load_settings.c,
+	* src/libraries/load_settings.h,
+	* src/libraries/session.c:
+	Made last session files in user home dirs owned by the
+	respective users, and no longer by root...
+	
 2006-09-14  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c (restore_tty_ownership),

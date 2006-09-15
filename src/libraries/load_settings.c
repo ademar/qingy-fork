@@ -442,7 +442,27 @@ char *get_last_session(char *user)
 	return result;
 }
 
-void set_last_session(char *user, char *session, int tty)
+void wipe_last_session_file(char *user)
+{
+	char *homedir = NULL;
+	char *filename;
+
+	if (!user) return;
+	homedir = get_home_dir(user);
+	if (!homedir) return;
+
+	filename = (char *) calloc(strlen(homedir)+8, sizeof(char));
+	strcpy(filename, homedir);
+	free(homedir);
+	if (filename[strlen(filename)-1] != '/') strcat(filename, "/");
+	strcat(filename, ".qingy");
+
+	unlink(filename);
+
+	free(filename);
+}
+
+void set_last_session_user(char *user, char *session)
 {
 	if (last_session_policy == LS_NONE) return;
   if (!session) return;
@@ -471,6 +491,12 @@ void set_last_session(char *user, char *session, int tty)
 			}
 		}
 	}
+}
+
+void set_last_session_tty(char *session, int tty)
+{
+	if (last_session_policy == LS_NONE) return;
+  if (!session) return;
 
 	/* we write last session in tty_last_session file */
 	if (tty)
