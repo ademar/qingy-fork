@@ -1,3 +1,14 @@
+2006-09-19  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* no_files_yet *
+	Since all methods of shutting DirectFB mode down sometimes fail, due
+	to the fact that DirectFB itself sometimes hangs somewhere in its
+	bowels when closing graphic mode, I managed to write a small utility
+	that perform a low-level reset of the console, thus effectively restoring
+	it into an usable state. I plan to add this code into qingy, to be called
+	when I shut down the DirectFB interface, if it fails to close graphic mode
+	after a certain timeout...
+
 2006-09-15  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/load_settings.c,
