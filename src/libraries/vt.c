@@ -34,6 +34,8 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <termios.h>
 #include <unistd.h>
 #include <linux/fb.h>
 #include <sys/ioctl.h>
@@ -69,7 +71,7 @@ static int open_a_console(char *fnam)
   return fd; 
 } 
 
-int getfd()
+static int getfd()
 {
   int fd;
 
@@ -259,4 +261,66 @@ int is_tty_available(int tty)
 	if (vtstat.v_state & (1 << tty)) return 0;
 
 	return 1;
+}
+
+static void restore_console(int fd, struct termios *termios_backup)
+{
+	ioctl(fd, KDSKBMODE, K_XLATE);
+	ioctl(fd, KDSETMODE, KD_TEXT);
+	write(fd, "\033[?25h\033[?0c", 11);
+
+	if (termios_backup)
+		tcsetattr(fd, TCSANOW, termios_backup);
+}
+
+static int zap_console(int fd, struct termios *termios_backup)
+{
+	struct termios t;
+	int            flags;
+	int            result = 0;
+	
+	if (tcgetattr(fd, &t) == -1)
+		writelog(ERROR, "Could not get console attributes\n");
+	else
+	{
+		memcpy(termios_backup, &t, sizeof(t));
+
+		t.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
+		t.c_lflag &= ~(ISIG|ICANON|ECHO);
+		t.c_cc[VTIME] = 0;
+		t.c_cc[VMIN] = 0;
+		tcsetattr(fd, TCSANOW, &t);
+
+		result = 1;
+	}
+
+	ioctl(fd, KDSKBMODE, K_MEDIUMRAW);
+	fcntl(fd, F_SETOWN, getpid());
+
+	flags = O_RDONLY | O_ASYNC | O_NONBLOCK;
+	fcntl(fd, F_SETFL, flags);
+
+	return result;
+}
+
+void reset_console(int dest_vt)
+{
+	struct termios termios_backup;
+	int have_backup;
+	int fd;
+
+	if ((fd = open("/dev/console", O_RDWR)) == -1)
+	{
+		writelog(ERROR, "Could not open /dev/console\n");
+	}
+		
+	have_backup = zap_console(fd, &termios_backup);
+
+	if (have_backup)
+		restore_console(fd, &termios_backup);
+	else
+		restore_console(fd, NULL);
+
+	unlock_tty_switching();
+	set_active_tty(dest_vt);
 }

@@ -663,7 +663,7 @@ int handle_keyboard_event(DFBInputEvent *evt)
 			case DO_REBOOT:
 				begin_shutdown_sequence (action, events);
 				break;
-			case DO_KILL: /* we kill out parent - the true qingy - then commit suicide */
+			case DO_KILL:
 				close_framebuffer_mode(EXIT_RESPAWN);
 				exit(EXIT_SUCCESS);
 				break;

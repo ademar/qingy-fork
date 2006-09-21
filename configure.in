@@ -99,7 +99,7 @@ AM_PATH_LISPDIR
 
 # Check for C headers
 	HEADERS="ctype.h fcntl.h grp.h lastlog.h paths.h pthread.h pwd.h stdio.h stdlib.h \
-	         signal.h string.h syslog.h time.h unistd.h linux/kd.h linux/vt.h         \
+	         signal.h string.h syslog.h termios.h time.h unistd.h linux/kd.h linux/vt.h         \
 	         sys/ioctl.h sys/types.h sys/stat.h sys/utsname.h sys/wait.h"
 	HEADERS_ERROR_MESSAGE="One or more system headers that are necessary to compile this program are missing on this system. Cannot continue."
 	AC_CHECK_HEADERS([$HEADERS],,[AC_MSG_ERROR([$HEADERS_ERROR_MESSAGE])],)

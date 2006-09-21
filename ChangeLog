@@ -1,13 +1,16 @@
-2006-09-19  Michele Noberasco  <michele.noberasco@tiscali.it>
+2006-09-20  Michele Noberasco  <michele.noberasco@tiscali.it>
 
-	* no_files_yet *
-	Since all methods of shutting DirectFB mode down sometimes fail, due
-	to the fact that DirectFB itself sometimes hangs somewhere in its
-	bowels when closing graphic mode, I managed to write a small utility
-	that perform a low-level reset of the console, thus effectively restoring
-	it into an usable state. I plan to add this code into qingy, to be called
-	when I shut down the DirectFB interface, if it fails to close graphic mode
-	after a certain timeout...
+	* src/main.c: 
+	* src/libraries/vt.h (reset_console): 
+	* src/libraries/vt.c (reset_console): 
+	* configure.in: 
+	Since shutting DirectFB mode down sometimes fail, due to the fact that
+	DirectFB itself may hang somewhere in its bowels when closing graphic mode,
+	I wrote some code that performs a low-level reset of the console,
+	thus effectively restoring it into an usable state. Now, when qingy shuts down
+	the DirectFB interface, if it fails to close graphic mode after a certain
+	timeout (5 seconds for now), it will kill the GUI, reset the console, and
+	go on as if nothing had happened :-)
 
 2006-09-15  Michele Noberasco  <michele.noberasco@tiscali.it>
 

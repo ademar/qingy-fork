@@ -72,4 +72,7 @@ void stderr_enable(int *vt);
 /* get console framebuffer resolution */
 char *get_fb_resolution(char *fb_device);
 
+/* reset framebuffer console if DirectFB hangs... */
+void reset_console(int dest_vt);
+
 #endif /* !CHVT_H */

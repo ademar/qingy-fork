@@ -66,6 +66,9 @@
 #include "logger.h"
 
 
+#define GUI_MAXWAITTIME 5 /* this is in seconds */
+
+
 char *autologin_filename = NULL;
 char *username           = NULL;
 char *password           = NULL;
@@ -74,6 +77,10 @@ FILE *fp_fromGUI         = NULL;
 FILE *fp_toGUI           = NULL;
 int   auth_ok            = 0;
 int   gui_retval         = GUI_FAILURE;
+int   got_action         = 0;
+pid_t gui_pid            = -1;
+int   killed_gui         = 0;
+
 
 
 void authenticate_user(int signum)
@@ -116,14 +123,16 @@ void authenticate_user(int signum)
 
 void read_action(int signum)
 {
-
 	/* temporarily disable signal catching */
 	signal(signum, SIG_IGN);
 
 	fscanf(fp_fromGUI, "%d", &gui_retval);
 
-	/* re-enable signal catching */
-	signal(signum, read_action);
+	got_action = 1;
+
+	WRITELOG(DEBUG, "Got action from GUI: waiting %d seconds for it to shut down...\n", GUI_MAXWAITTIME);
+
+	/* we catch this signal no longer */
 }
 
 void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
@@ -134,7 +143,6 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 	char  *toGUI        = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
 	char  *fromGUI      = strdup(toGUI);
 	int    fd;
-	pid_t  pid;
 
   /* We clear the screen */
   if (max_loglevel == ERROR) ClearScreen();
@@ -246,9 +254,9 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		writelog(DEBUG, "firing up GUI\n");
 
 		/* let's go! */
-		pid = fork(); /* let's spawn a child, that will fire up our GUI and make it write to our temp file */
+		gui_pid = fork(); /* let's spawn a child, that will fire up our GUI and make it write to our temp file */
 
-		switch ((int)pid)
+		switch ((int)gui_pid)
 		{
 			case -1:
 				writelog(ERROR, "fork() failed!\n");
@@ -287,6 +295,13 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 				exit(EXIT_FAILURE);
 
 			default: /* parent */
+			{
+				time_t start_time = 0;
+				struct timespec delay;
+
+				delay.tv_sec  = 0;
+				delay.tv_nsec = 100000000; /* that's 100M, or one tenth of a second */
+
 				/* install handler so that our GUI can signal us to
 				 * (try to) authenticate a user...
 				 */
@@ -301,9 +316,54 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 				/* we wait for our child to exit */
 				while (1)
 				{
-					waitpid(pid, &returnstatus, 0);
+					int retcode = waitpid(gui_pid, &returnstatus, WNOHANG);
+
+					/* if waitpid returns error, it means that the child process no longer exists */
+					if (retcode == -1)
+						break;
+
+					/* if the GUI already exited, we do nothing */
 					if (WIFEXITED(returnstatus) || WIFSIGNALED(returnstatus))
 						break;
+
+					if (got_action)
+					{	/* we got action from GUI, this means that it is going to shutdown
+						 * any moment from now. Unfortunately, it might hang in the process,
+						 * since shutting down DirectFB mode is always tricky...
+						 * Thus, we create a sentinel that gives our gui 5 seconds
+						 * to terminate, otherwise assumes it has hanged and kills it,
+						 * after resetting the console to get rid of DFB graphic mode.
+						 */
+						time_t curr_time;
+						int    diff_time;
+
+						if (!start_time) start_time = time(NULL);
+
+						curr_time = time(NULL);
+						diff_time = (int)(curr_time-start_time);
+
+						if (diff_time > GUI_MAXWAITTIME) /* we assume our GUI hanged */
+						{
+							int tty = get_available_tty();
+
+							WRITELOG(ERROR, "I have been waiting for the GUI to shut down for more than %d seconds: I will now kill it!\n", GUI_MAXWAITTIME);
+
+							if (tty == -1)
+							{
+								writelog(ERROR, "Could not get an unused tty\n");
+								tty = 12;
+							}
+							reset_console(tty);
+							writelog(DEBUG, "Done resetting console status...\n");
+							kill(gui_pid, 9);
+							writelog(DEBUG, "GUI killed...\n");
+							killed_gui = 1;
+							waitpid(gui_pid, &returnstatus, 0);
+							break;
+						}
+					}
+
+					nanosleep(&delay, NULL); /* wait a little before checking again */
 				}
 
 				/* we no longer need the signal handlers */
@@ -311,12 +371,14 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 				signal(SIGUSR2, SIG_DFL);
 
 				break;
+			}
 		}
 
 		if ((WIFEXITED(returnstatus) || WIFSIGNALED(returnstatus)) && gui_retval != GUI_FAILURE)
 		{
 			returnstatus = gui_retval;
-			writelog(DEBUG, "GUI returned successfully\n");
+			if (!killed_gui)
+				writelog(DEBUG, "GUI returned successfully\n");
 		}
 		else
 		{
