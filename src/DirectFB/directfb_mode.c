@@ -122,6 +122,7 @@ int                   ppid                  = 0; /* process id of out parent */
 int                   thread_action         = 0; /* whether one of our threads is doing anything significant */
 pthread_mutex_t       lock_act              = PTHREAD_MUTEX_INITIALIZER; /* action lock       */
 
+
 void safe_exit(int exitstatus)
 {
 #undef exit
@@ -882,14 +883,12 @@ int create_windows()
 					labels->next = (Label_list *) calloc(1, sizeof(Label_list));
 					labels = labels->next;
 	      }
-
 				labels->label = Label_Create(layer, dfb, font, window->text_color, &window_desc);
 				if (!labels->label) return 0;
 				labels->label->SetTextOrientation(labels->label, window->text_orientation);
 				labels->label->SetAction(labels->label, window->polltime, window->content, window->command);
 				labels->label->SetFocus(labels->label, 0);
 				labels->next = NULL;
-
 				if (window->linkto)
 	      {
 					if (!strcmp(window->linkto, "login"))    username_label = labels->label;
@@ -934,6 +933,7 @@ int create_windows()
 					if (!strcmp(window->command, "sleep"      )) buttons->button->action = DO_SLEEP;
 					if (!strcmp(window->command, "screensaver")) buttons->button->action = DO_SCREEN_SAVER;
 				}
+
 				break;
 			}
 			case COMBO:
@@ -943,6 +943,7 @@ int create_windows()
 					if (!session) return 0;
 					session->SetSortFunction(session, sort_sessions);
 				}
+
 				break;
 			default:
 				return 0;
@@ -1038,8 +1039,7 @@ int main (int argc, char *argv[])
 	ppid = atoi(argv[argc-1]);
 
   /* we initialize directfb */
-  if (max_loglevel == ERROR) stderr_disable();
-	else log_stderr();
+	log_stderr();
 	result = DirectFBInit (&argc, &argv);
   if (result == DFB_OK) result = DirectFBSetOption("session","-1");
   if (result == DFB_OK) result = DirectFBCreate (&dfb);
@@ -1084,9 +1084,6 @@ int main (int argc, char *argv[])
 		DirectFB_Error();
 		return GUI_FAILURE;
 	}
-
-	if (max_loglevel == ERROR) stderr_enable(&current_tty);
-	else dontlog_stderr();
 
   if (!hide_password) password->MaskText(password, 1);
   else password->HideText(password, 1);

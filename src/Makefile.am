@@ -10,18 +10,25 @@ SUBDIRS      += DirectFB
 INCLUDES     += -IDirectFB
 endif
 
-sbin_PROGRAMS   = qingy
+sbin_PROGRAMS   = qingy qingy-reset-console
 qingy_SOURCES   =        \
     qingy_constants.h    \
     main.c
 
+qingy_reset_console_SOURCES  =  \
+    reset-console.c
+
 
 if !WANT_STATIC
-qingy_LDADD     = libraries/libqingy.la
-qingy_LDFLAGS   = -rdynamic
+qingy_LDADD                   = libraries/libqingy.la
+qingy_LDFLAGS                 = -rdynamic
+qingy_reset_console_LDADD     = libraries/libqingy.la
+qingy_reset_console_LDFLAGS   = -rdynamic
 else
-qingy_LDADD     = libraries/libqingy_static.la
-qingy_LDFLAGS   = -static
+qingy_LDADD                   = libraries/libqingy_static.la
+qingy_LDFLAGS                 = -static
+qingy_reset_console_LDADD     = libraries/libqingy_static.la
+qingy_reset_console_LDFLAGS   = -static
 endif
 
 

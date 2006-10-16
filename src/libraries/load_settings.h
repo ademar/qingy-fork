@@ -62,6 +62,7 @@ char *background;
 char *theme_dir;
 char *themes_dir;
 char *dfb_interface;
+char *reset_console_utility;
 char *tmp_files_dir;
 char *sleep_cmd;
 char *pre_gui_script;

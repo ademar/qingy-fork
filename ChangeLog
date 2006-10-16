@@ -1,3 +1,40 @@
+2006-10-12  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/logger.c,
+	* src/DirectFB/directfb_mode.c,
+	* src/Makefile.am,
+	* src/reset-console.c,
+	* src/libraries/load_settings.c,
+	* src/libraries/load_settings.h, 
+	* src/main.c:
+	It works. I put it into an external util and now call
+	it everytime DirectFB mode should be shut down.
+	Didn't experience a single hang so far.
+
+	Fixed bug that made qingy GUI crash if console was
+	not chosen as a logging capability.
+
+2006-10-05  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/main.c (start_up):
+	My code to reset console does not always work reliably. Moving
+	it to an external utility and calling it in a different way
+	seems to help. It it keeps working I'll commit this...
+
+2006-10-03  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/session.c (get_sessions):
+	Added some code to get available X sessions for those
+	distros that do not save them...
+
+2006-09-20  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/directfb_mode.c,
+	* src/main.c,
+	* src/libraries/vt.c:
+	DirectFB mode still hangs from time to time... Now I'm trying to kill
+	qingy-DirectFB inconditionally after getting the action...
+
 2006-09-20  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/main.c: 

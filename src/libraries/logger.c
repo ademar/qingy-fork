@@ -155,7 +155,10 @@ void file_logger_thread(char *filename)
 		fflush(NULL);
 
 		while (getline(&buf, &len, fp) != -1)
-			writelog(DEBUG, buf);
+		{
+			if (max_loglevel != ERROR)
+				writelog(DEBUG, buf);
+		}
 
 		sleep(1);
 	}

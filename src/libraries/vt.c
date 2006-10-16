@@ -310,9 +310,7 @@ void reset_console(int dest_vt)
 	int fd;
 
 	if ((fd = open("/dev/console", O_RDWR)) == -1)
-	{
 		writelog(ERROR, "Could not open /dev/console\n");
-	}
 		
 	have_backup = zap_console(fd, &termios_backup);
 

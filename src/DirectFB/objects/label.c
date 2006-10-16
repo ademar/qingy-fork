@@ -46,7 +46,6 @@
 static void Plot(Label *thiz)
 {
 	if (!thiz || !thiz->surface) return;
-
 	thiz->surface->Clear (thiz->surface, 0x00, 0x00, 0x00, 0x00);
 
 	if (thiz->text)
@@ -95,7 +94,6 @@ void Label_ClearText(Label *thiz)
 static void setText(Label *thiz, char *text)
 {
 	if (!thiz || !text) return;
-
 	free(thiz->text);
 	thiz->text = strdup(text);
 	Plot(thiz);
@@ -122,9 +120,7 @@ void Label_SetText(Label *thiz, char *text)
 	if (!thiz || !text) return;
 
 	pthread_mutex_lock(&(thiz->lock));
-
 	setText(thiz, text);
-
 	pthread_mutex_unlock(&(thiz->lock));
 }
 

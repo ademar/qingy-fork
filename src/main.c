@@ -79,7 +79,6 @@ int   auth_ok            = 0;
 int   gui_retval         = GUI_FAILURE;
 int   got_action         = 0;
 pid_t gui_pid            = -1;
-int   killed_gui         = 0;
 
 
 
@@ -130,8 +129,6 @@ void read_action(int signum)
 
 	got_action = 1;
 
-	WRITELOG(DEBUG, "Got action from GUI: waiting %d seconds for it to shut down...\n", GUI_MAXWAITTIME);
-
 	/* we catch this signal no longer */
 }
 
@@ -144,13 +141,15 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 	char  *fromGUI      = strdup(toGUI);
 	int    fd;
 
-  /* We clear the screen */
-  if (max_loglevel == ERROR) ClearScreen();
-
 	if (!do_autologin)
 	{
 		/* parse settings file again, it may have been changed in the mean while */
 		load_settings();
+
+		/* We clear the screen, but using the external 'clear' command...
+		 * If we do this internally, ncurses will b0rk us later!
+		 */
+		if (max_loglevel == ERROR) system("clear");
 
 		/* should we perform a text-mode login? */
 		if (text_mode_login)
@@ -296,7 +295,6 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 
 			default: /* parent */
 			{
-				time_t start_time = 0;
 				struct timespec delay;
 
 				delay.tv_sec  = 0;
@@ -326,41 +324,17 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 					if (WIFEXITED(returnstatus) || WIFSIGNALED(returnstatus))
 						break;
 
+					/* if we got action from GUI, let's murder it and go on as if nothing had happened! */
 					if (got_action)
-					{	/* we got action from GUI, this means that it is going to shutdown
-						 * any moment from now. Unfortunately, it might hang in the process,
-						 * since shutting down DirectFB mode is always tricky...
-						 * Thus, we create a sentinel that gives our gui 5 seconds
-						 * to terminate, otherwise assumes it has hanged and kills it,
-						 * after resetting the console to get rid of DFB graphic mode.
-						 */
-						time_t curr_time;
-						int    diff_time;
+					{	
+						system(reset_console_utility);
+						kill(gui_pid, SIGQUIT);
+						nanosleep(&delay, NULL);
+						system(reset_console_utility);
+						Switch_TTY;
+						waitpid(gui_pid, &returnstatus, 0);
 
-						if (!start_time) start_time = time(NULL);
-
-						curr_time = time(NULL);
-						diff_time = (int)(curr_time-start_time);
-
-						if (diff_time > GUI_MAXWAITTIME) /* we assume our GUI hanged */
-						{
-							int tty = get_available_tty();
-
-							WRITELOG(ERROR, "I have been waiting for the GUI to shut down for more than %d seconds: I will now kill it!\n", GUI_MAXWAITTIME);
-
-							if (tty == -1)
-							{
-								writelog(ERROR, "Could not get an unused tty\n");
-								tty = 12;
-							}
-							reset_console(tty);
-							writelog(DEBUG, "Done resetting console status...\n");
-							kill(gui_pid, 9);
-							writelog(DEBUG, "GUI killed...\n");
-							killed_gui = 1;
-							waitpid(gui_pid, &returnstatus, 0);
-							break;
-						}
+						break;
 					}
 
 					nanosleep(&delay, NULL); /* wait a little before checking again */
@@ -375,16 +349,11 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		}
 
 		if ((WIFEXITED(returnstatus) || WIFSIGNALED(returnstatus)) && gui_retval != GUI_FAILURE)
-		{
 			returnstatus = gui_retval;
-			if (!killed_gui)
-				writelog(DEBUG, "GUI returned successfully\n");
-		}
 		else
-		{
 			returnstatus = GUI_FAILURE;
-			writelog(DEBUG, "GUI returned with error\n");
-		}
+
+		writelog(DEBUG, "GUI exited\n");
 
 		fclose(fp_fromGUI);
 		fclose(fp_toGUI);

@@ -84,6 +84,7 @@ void initialize_variables(void)
 	log_facilities          = LOG_NONE;
 	log_facilities_tty      = LOG_NONE;
 	dfb_interface           = StrApp((char**)NULL, SBINDIR, "qingy-DirectFB", (char*)NULL);
+	reset_console_utility   = StrApp((char**)NULL, SBINDIR, "qingy-reset-console", (char*)NULL);
 	tmp_files_dir           = strdup("/var/lib/misc");
 	max_loglevel            = ERROR;
   background              = NULL;
@@ -862,9 +863,6 @@ int load_settings(void)
 		log_facilities = LOG_TO_CONSOLE;
 	}
 
-	if (!(log_facilities & LOG_TO_CONSOLE))
-		ClearScreen();
-
 	/* complain if tmp_files_dir does not exist (or is not a directory) */
 	if (!stat(tmp_files_dir, &status))
 	{
@@ -998,25 +996,6 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 			case 'n': /* no shutdown screen */
 				no_shutdown_screen = 1;
 				break;
-/* 			case 's': /\* screen_saver *\/ */
-/* 			{ */
-/* 				int temp = atoi(optarg); */
-/* 				if (paranoia && temp < 0) */
-/* 				{ */
-/* 					Switch_TTY; */
-/* 					ClearScreen(); */
-/* 					fprintf(stderr, "%s: invalid screen saver timeout: fall back to text mode.\n", program_name); */
-/* 					Error(0); */
-/* 				} */
-/* 				if (!temp) */
-/* 				{ */
-/* 					use_screensaver = 0; */
-/* 					break; */
-/* 				} */
-/* 				use_screensaver = 1; */
-/* 				screensaver_timeout = temp; */
-/* 				break; */
-/* 			} */
 			case 'r': /* use this framebuffer resolution */
 				if (paranoia) resolution = get_resolution(optarg);
 				break;
@@ -1030,7 +1009,6 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 				if (paranoia)
 				{
 					Switch_TTY;
-					ClearScreen();
 					fprintf(stderr, "%s: error in command line options: fall back to text mode.\n", program_name);
 					Error(0);
 				}

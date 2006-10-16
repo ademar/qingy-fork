@@ -2,10 +2,9 @@ qingy SVN-0.9.2-SVN:
 - Since shutting DirectFB mode down sometimes fail, due to the fact that
   DirectFB itself may hang somewhere in its bowels when closing graphic mode,
   I wrote some code that performs a low-level reset of the console,
-  thus effectively restoring it into an usable state. Now, when qingy shuts down
-  the DirectFB interface, if it fails to close graphic mode after a certain
-  timeout (5 seconds for now), it will kill the GUI, reset the console, and
-  go on as if nothing had happened :-)
+  thus effectively restoring it into an usable state. Now, when qingy has to
+  shut down its GUI, it will kill it, reset the console, and go on
+  as if nothing had happened :-)
 - Fixed shift-tabbing from username to session.
 - Removed 'retries' entry from settings file.
 - Removed --screensaver command line arg, moved it to settings file.
@@ -16,11 +15,15 @@ qingy SVN-0.9.2-SVN:
 - Small logger improvements; log more events in debug mode.
 - Fixed bug that made qingy respawn indefinitely if one chooses syslog
   as the only logging facility.
+- Fixed bug that made qingy GUI crash if console was not chosen
+  as a logging capability.
 - Fixed corrupt matrix screensaver font file.
 - Made last session files in user home dirs owned by the
   respective users, and no longer by root...
+- Added some code to get available X sessions for those
+  distros that do not save them.
 - Other fixes and clean-ups.
-- DirectFB version 0.9.24 (or higher) is now required ro run qingy.
+- DirectFB version 0.9.24 (or higher) is now required to run qingy.
 
 qingy 0.9.1 (24 Aug 2006):
 - Argh, all graphics in default there were currupt! This probably was caused

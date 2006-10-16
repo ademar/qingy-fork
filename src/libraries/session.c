@@ -99,30 +99,6 @@
 int current_vt;
 extern char **environ;
 
-#define CHECK_SESSION(session_test, session_script, session_script_content)           \
-	filename = StrApp((char**)NULL, dirname, session_script, (char*)NULL);              \
-	if (!access(session_test, F_OK))                                                    \
-	{                                                                                   \
-		if (access(filename, F_OK))                                                       \
-		{                                                                                 \
-			FILE *fp = fopen(filename, "w");                                                \
-			if (!fp)                                                                        \
-				WRITELOG(ERROR, "Unable to create session file \"%s\"\n", filename);          \
-			else                                                                            \
-			{                                                                               \
-				fprintf(fp, session_script_content);                                          \
-				fclose(fp);                                                                   \
-			}                                                                               \
-		}                                                                                 \
-	}                                                                                   \
-	else                                                                                \
-	{                                                                                   \
-		if (!access(filename, F_OK))                                                      \
-			remove(filename);                                                               \
-	}                                                                                   \
-	free(filename);
-
-
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -201,7 +177,8 @@ char *get_sessions(void)
   switch (status)
 	{
     case 0:
-#ifdef fedora
+#ifndef gentoo
+#ifndef slackware
 #ifdef USE_X
 			{
 				struct stat dirstat;
@@ -212,7 +189,7 @@ char *get_sessions(void)
 					createdir = 1;
 
 				if (!createdir)
-					if (S_ISDIR(dirstat.st_mode))
+					if (!S_ISDIR(dirstat.st_mode))
 						createdir = 1;
 
 				if (createdir)
@@ -222,19 +199,68 @@ char *get_sessions(void)
 						populatedir = 0;
 					}
 
+				populatedir=1;
+
 				if (populatedir)
 				{
-					char *filename;
+					DIR *dir = opendir("/usr/share/xsessions");
+					if (dir)
+					{
+						struct dirent *direntry;
+						while (1)
+						{
+							char *filename;
+							FILE *fp;
 
-					/* have we got gnome? */
-					CHECK_SESSION("/usr/bin/gnome-session", "/Gnome", "/usr/bin/gnome-session\n");
+							if (!(direntry = readdir(dir))) break;
+							if (!strcmp(direntry->d_name, "." )) continue;
+							if (!strcmp(direntry->d_name, "..")) continue;
 
-					/* have we got kde? */
-					CHECK_SESSION("/usr/bin/startkde", "/Kde", "/usr/bin/startkde\n");
+							filename = StrApp((char**)NULL, "/usr/share/xsessions/", direntry->d_name, (char*)NULL);
+							fp = fopen(filename, "r");
+							free(filename);
+
+							if (fp)
+							{
+								char   *buf = NULL;
+								size_t  len = 0;
+								while (-1 != getline(&buf, &len, fp))
+								{
+									int offset = 0;
+									if (!strncmp(buf, "Exec=",    5)) offset = 5;
+									if (!strncmp(buf, "TryExec=", 8)) offset = 8;
+
+									if (offset)
+									{
+										char *content  = buf + offset;
+										char *extension= strstr(direntry->d_name, ".desktop");
+										char *filename = (extension) ? strndup(direntry->d_name, extension-direntry->d_name) : strdup(direntry->d_name);
+										char *pathname = StrApp((char**)NULL, dirname, "/", filename, (char*)NULL);
+										int   fd       = open(pathname, O_WRONLY|O_CREAT|O_TRUNC, S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
+										FILE *fileout  = fdopen(fd, "w");
+
+										free(filename);
+										free(pathname);
+
+										if (fileout)
+										{
+											fprintf(fileout, "%s\n", content);
+											fclose(fileout);
+										}
+										close(fd);
+										break;
+									}
+								}
+								fclose(fp);
+							}
+						}
+						closedir(dir);
+					}
 				}
 			}
 #endif /* USE_X */
-#endif /* fedora */
+#endif /* gentoo */
+#endif /* slackware */
       status = 1;
       return strdup("Text: Console");
     case 1:
@@ -578,9 +604,6 @@ void setEnvironment(struct passwd *pwd, int is_x_session)
 	/* We unset DISPLAY if this is not an X session... */
 	if (!is_x_session)
 		unsetenv("DISPLAY");
-
-	/* finally clear the screen */
-	if (max_loglevel == ERROR) ClearScreen();
 }
 
 void restore_tty_ownership(void)
