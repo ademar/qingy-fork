@@ -1,9 +1,9 @@
-qingy SVN-0.9.2-SVN:
-- Since shutting DirectFB mode down sometimes fail, due to the fact that
+qingy 0.9.2 (24 Oct 2006):
+- Since shutting DirectFB mode down sometimes fails, due to the fact that
   DirectFB itself may hang somewhere in its bowels when closing graphic mode,
   I wrote some code that performs a low-level reset of the console,
   thus effectively restoring it into an usable state. Now, when qingy has to
-  shut down its GUI, it will kill it, reset the console, and go on
+  shut down its GUI (and it hangs), it will kill it, reset the console, and go on
   as if nothing had happened :-)
 - Fixed shift-tabbing from username to session.
 - Removed 'retries' entry from settings file.
