@@ -80,7 +80,7 @@ static window_t wind =
 /* settings only lvals */
 %token SCREENSAVER_TOK SCRSVRS_DIR_TOK SCRSVR_TIMEOUT_TOK SCRN_POWER_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK 
 %token SHUTDOWN_TOK TTY_TOK SCRSVRS_DIR_TOK THEMES_DIR_TOK X_SERVER_TOK
-%token DFB_INTERFACE_TOK X_ARGS_TOK TEMP_FILES_DIR_TOK
+%token DFB_INTERFACE_TOK RESET_CONSOLE_TOK X_ARGS_TOK TEMP_FILES_DIR_TOK
 
 /* windows && theme blocks */
 %token THEME_TOK WINDOW_TOK 
@@ -165,6 +165,7 @@ config: /* nothing */
 | config x_serv_offset
 | config ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config dfb_interface
+| config reset_console
 | config xsessdir
 | config txtsessdir
 | config xinit
@@ -200,6 +201,7 @@ config_tty: /* nothing */
 | config_tty x_serv_offset
 | config_tty ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config_tty dfb_interface
+| config_tty reset_console
 | config_tty xsessdir
 | config_tty txtsessdir
 | config_tty xinit
@@ -243,6 +245,12 @@ dfb_interface: DFB_INTERFACE_TOK '=' QUOTSTR_T
 	{
 	  if(in_theme) yyerror("Setting 'qingy_DirectFB' is not allowed in theme file.");
 	  TTY_CHECK_COND { if (dfb_interface) free(dfb_interface); dfb_interface = strdup($3); }
+	}
+
+reset_console: RESET_CONSOLE_TOK '=' QUOTSTR_T
+	{
+	  if(in_theme) yyerror("Setting 'qingy_reset_console' is not allowed in theme file.");
+	  TTY_CHECK_COND { if (reset_console_utility) free(reset_console_utility); reset_console_utility = strdup($3); }
 	}
 
 /* logging support */

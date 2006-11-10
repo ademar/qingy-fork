@@ -1,5 +1,8 @@
 2006-10-24  Michele Noberasco  <michele.noberasco@tiscali.it>
 
+	* src/libraries/crypto_openssl.c:
+	Fixed qingy compilation in case user chooses openssl encryption.
+
 	* media/sessions/Makefile.am:
 	Made emacs session script to be installed only if emacs
 	stuff is enabled in ./configure

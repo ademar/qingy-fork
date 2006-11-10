@@ -52,7 +52,7 @@
 	 '("\\(k\\(?:ill\\)\\)" . font-lock-variable-name-face)
 	 '("\\(n\\(?:ative_resolution\\|ext_tty\\)\\)" . font-lock-variable-name-face)
 	 '("\\(p\\(?:assword\\|rev_tty\\|oweroff\\|re_gui_script\\|ost_gui_script\\)\\)" . font-lock-variable-name-face)
-	 '("\\(q\\(?:ingy_DirectFB\\)\\)" . font-lock-variable-name-face)
+	 '("\\(q\\(?:ingy_DirectFB\\|ingy_reset_console\\)\\)" . font-lock-variable-name-face)
 	 '("\\(r\\(?:elogin\\|eboot\\)\\)" . font-lock-variable-name-face)
 	 '("\\(s\\(?:leep\\)\\)" . font-lock-variable-name-face)
 	 '("\\(u\\(?:sername\\)\\)" . font-lock-variable-name-face)

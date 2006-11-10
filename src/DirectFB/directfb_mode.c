@@ -1038,14 +1038,17 @@ int main (int argc, char *argv[])
 	/* get the pid of our father process */
 	ppid = atoi(argv[argc-1]);
 
-  /* we initialize directfb */
 	log_stderr();
+
+  /* we initialize directfb */
 	result = DirectFBInit (&argc, &argv);
   if (result == DFB_OK) result = DirectFBSetOption("session","-1");
   if (result == DFB_OK) result = DirectFBCreate (&dfb);
   if (result == DFB_OK) result = dfb->EnumInputDevices (dfb, enum_input_device, &devices);
   if (result == DFB_OK) result = dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &events);
   if (result == DFB_OK) result = dfb->GetDisplayLayer (dfb, DLID_PRIMARY, &layer);
+
+	writelog(DEBUG, "dd\n");
 
   /* any errors so far? */
 	if (result != DFB_OK)
@@ -1054,17 +1057,23 @@ int main (int argc, char *argv[])
 		return GUI_FAILURE;
 	}
 
+	writelog(DEBUG, "ee\n");
+
   /* more initialization */
   layer->SetCooperativeLevel (layer, DLSCL_ADMINISTRATIVE);
   layer->EnableCursor (layer, 0);
   sdsc.flags = DSDESC_CAPS;
   sdsc.caps  = DSCAPS_PRIMARY | DSCAPS_FLIPPING;
 
+	writelog(DEBUG, "ff\n");
+
   if (dfb->CreateSurface( dfb, &sdsc, &primary ) != DFB_OK)
 	{
 		DirectFB_Error();
 		return GUI_FAILURE;
 	}
+
+	writelog(DEBUG, "gg\n");
 
   primary->GetSize(primary, &screen_width, &screen_height);
 
@@ -1077,13 +1086,19 @@ int main (int argc, char *argv[])
 		return GUI_FAILURE;
 	}
 
+	writelog(DEBUG, "hh\n");
+
   Draw_Background_Image(1);
+
+	writelog(DEBUG, "ii\n");
 
   if (!create_windows())
 	{
 		DirectFB_Error();
 		return GUI_FAILURE;
 	}
+
+	writelog(DEBUG, "jj\n");
 
   if (!hide_password) password->MaskText(password, 1);
   else password->HideText(password, 1);

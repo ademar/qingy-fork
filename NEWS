@@ -1,3 +1,6 @@
+qingy 0.9.3 (09 Nov 2006):
+- Fixed qingy compilation in case user chooses openssl encryption.
+
 qingy 0.9.2 (24 Oct 2006):
 - Since shutting DirectFB mode down sometimes fails, due to the fact that
   DirectFB itself may hang somewhere in its bowels when closing graphic mode,

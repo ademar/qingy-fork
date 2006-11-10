@@ -56,7 +56,7 @@ void encrypt_item(FILE *fp, char *item)
 	if (status == -1)
 	{
 		writelog(ERROR, "RSA_public_encrypt() failed!\n");
-		exit(QINGY_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 	fwrite(encrypted, sizeof(char), RSA_size(rsa), fp);
 	free(encrypted);
@@ -135,33 +135,33 @@ void restore_public_key(FILE *fp)
 	if (!rsa)
 	{
 		writelog(ERROR, "Unable to restore public key from file!\n");
-		exit(QINGY_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 
 	/* we load the public key which we will use to encrypt out data: public modulus... */
 	if (getline(&temp, &len, fp) == -1)
 	{
 		writelog(ERROR, "Unable to restore public key from file!\n");
-		exit(QINGY_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 	temp[strlen(temp)-1] = '\0';
 	if (!BN_hex2bn(&(rsa->n), temp))
 	{
 		writelog(ERROR, "Unable to restore public key from file!\n");
-		exit(QINGY_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 
 	/* ...and exponent */
 	if (getline(&temp, &len, fp) == -1)
 	{
 		writelog(ERROR, "Unable to restore public key from file!\n");
-		exit(QINGY_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 	temp[strlen(temp)-1] = '\0';
 	if (!BN_hex2bn(&(rsa->e), temp))
 	{
 		writelog(ERROR, "Unable to restore public key from file!\n");
-		exit(QINGY_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 	free(temp);
 }
