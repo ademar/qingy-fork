@@ -1,3 +1,7 @@
+qingy SVN-0.9.4-SVN:
+- Fixed zsh not being invocated as a login shell.
+- Updated qingy PAM file for Gentoo.
+
 qingy 0.9.3 (09 Nov 2006):
 - Fixed qingy compilation in case user chooses openssl encryption.
 

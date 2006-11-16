@@ -1,3 +1,16 @@
+2006-11-16  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/pam/gentoo/qingy:
+	Updated qingy PAM file for Gentoo.
+
+2006-11-10  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/session.c:
+	Fixed zsh not being invocated as a login shell.
+	
+	* configure.in: 
+	Tagged version as 0.9.4.
+
 2006-10-24  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/crypto_openssl.c:

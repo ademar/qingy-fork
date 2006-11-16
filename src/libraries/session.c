@@ -749,10 +749,8 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   int retval;
 #endif
   
-  args[count++] = shell_base_name(pw->pw_shell);
-
-	if (strcmp(args[0], "zsh"))
-		args[count++] = strdup("-login");
+  args[count++] = shell_base_name(pw->pw_shell); /* make it a shell */
+	args[count++] = strdup("-l"); /* make it a login shell */
 
 	if (!session || strcmp(session+6, "Console"))
 	{

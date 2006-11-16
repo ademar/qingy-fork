@@ -204,7 +204,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		}
 
 		/* sad thing having to call mkstemp just to have a reasonably secure unique file name,
-		 * yet I think it is better than callind tempnam...
+		 * yet I think it is better than calling tempnam...
 		 */
 		close(fd);
 		unlink(fromGUI);
