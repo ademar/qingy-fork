@@ -55,6 +55,7 @@
 	 '("\\(q\\(?:ingy_DirectFB\\|ingy_reset_console\\)\\)" . font-lock-variable-name-face)
 	 '("\\(r\\(?:elogin\\|eboot\\)\\)" . font-lock-variable-name-face)
 	 '("\\(s\\(?:leep\\)\\)" . font-lock-variable-name-face)
+	 '("\\(m\\(?:ouse_cursor\\)\\)" . font-lock-variable-name-face)
 	 '("\\(u\\(?:sername\\)\\)" . font-lock-variable-name-face)
 	 '("\\(u\\(?:ser\\)\\)" . font-lock-constant-face)
 	 '("\\(l\\(?:ock\\)\\)" . font-lock-constant-face)

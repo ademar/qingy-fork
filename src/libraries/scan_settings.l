@@ -193,6 +193,7 @@ log_facilities             return LOG_FACILITIES_TOK;
 console                    return CONSOLE_TOK;
 file                       return FILE_TOK;
 syslog                     return SYSLOG_TOK;
+mouse_cursor               return MOUSE_CURSOR_TOK;
 
 
 "#"[^\n]*"\n" ;			/* skip comments */

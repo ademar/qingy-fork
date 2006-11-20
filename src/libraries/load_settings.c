@@ -104,6 +104,7 @@ void initialize_variables(void)
 	resolution              = NULL;
 	pre_gui_script          = NULL;
 	post_gui_script         = NULL;
+	show_mouse_cursor       = 1;
 	x_server_offset         = 1;
 	do_autologin            = 0;
 	auto_relogin            = 0;

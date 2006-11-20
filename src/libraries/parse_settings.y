@@ -79,7 +79,7 @@ static window_t wind =
 
 /* settings only lvals */
 %token SCREENSAVER_TOK SCRSVRS_DIR_TOK SCRSVR_TIMEOUT_TOK SCRN_POWER_TOK XSESSION_DIR_TOK TXTSESSION_DIR_TOK XINIT_TOK 
-%token SHUTDOWN_TOK TTY_TOK SCRSVRS_DIR_TOK THEMES_DIR_TOK X_SERVER_TOK
+%token SHUTDOWN_TOK TTY_TOK THEMES_DIR_TOK X_SERVER_TOK
 %token DFB_INTERFACE_TOK RESET_CONSOLE_TOK X_ARGS_TOK TEMP_FILES_DIR_TOK
 
 /* windows && theme blocks */
@@ -141,6 +141,8 @@ static window_t wind =
 /* loggging cababilities */
 %token LOG_LEVEL_TOK DEBUG_TOK ERROR_TOK LOG_FACILITIES_TOK CONSOLE_TOK FILE_TOK SYSLOG_TOK
 
+/* mouse cursor stuff */
+%token MOUSE_CURSOR_TOK
 
 /* typed tokens: */
 %token <ival>  ANUM_T 		/* int */
@@ -530,6 +532,12 @@ themedefn: /* nothing */
 | themedefn CLEAR_BACKGROUND_TOK '=' YES_TOK { TTY_CHECK_COND {clear_background = 1; clear_background_is_set = 1;} }
 | themedefn CLEAR_BACKGROUND_TOK '=' NO_TOK  { TTY_CHECK_COND {clear_background = 0; clear_background_is_set = 1;} }
 | themedefn resolutionprop
+| themedefn mousecursorprop
+;
+
+/* mouse cursor properties */
+mousecursorprop: MOUSE_CURSOR_TOK '=' YES_TOK { show_mouse_cursor = 1; }
+| MOUSE_CURSOR_TOK '=' NO_TOK { show_mouse_cursor = 0; }
 ;
 
 /* color assignments */

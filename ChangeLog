@@ -1,3 +1,16 @@
+2006-11-20  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/directfb_mode.c,
+	* src/libraries/load_settings.h,
+	* src/libraries/load_settings.c (initialize_variables),
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l:
+	Adding support for mouse cursor setup in themes...
+	right now you can choose whether to display the
+	cursor by putting mouse_cursor = yes/no in main
+	section of config file. Default is to show
+	the cursor...
+
 2006-11-16  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* media/pam/gentoo/qingy:

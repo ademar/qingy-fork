@@ -106,6 +106,9 @@ color_t default_text_color;
 color_t default_cursor_color;
 color_t other_text_color;
 
+/* mouse cursor stuff... */
+int show_mouse_cursor;
+
 /* Shutdown permissions policy... */
 typedef enum 
 {

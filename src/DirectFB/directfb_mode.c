@@ -282,7 +282,7 @@ void reset_screen(DFBInputEvent *evt)
 	else
 		show_lock_key_status(NULL);
 
-  layer->EnableCursor (layer, 1);
+  layer->EnableCursor (layer, show_mouse_cursor);
 }
 
 /* this clears the screen */
@@ -1124,7 +1124,7 @@ int main (int argc, char *argv[])
   if (session_label) session_label->SetFocus(session_label, 0);
   session->SetFocus(session, 0);
 
-  layer->EnableCursor (layer, 1);
+  layer->EnableCursor (layer, show_mouse_cursor);
 
 	if (use_screen_power_management)
 	{
