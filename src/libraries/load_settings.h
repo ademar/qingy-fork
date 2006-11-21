@@ -106,8 +106,19 @@ color_t default_text_color;
 color_t default_cursor_color;
 color_t other_text_color;
 
-/* mouse cursor stuff... */
-int show_mouse_cursor;
+/* a mouse cursor structure */
+typedef struct _cursor
+{ 
+	int   enable;
+	char *path;
+  int   x_off;
+  int   y_off;
+	int   window_id;
+  struct _cursor *next;
+} cursor_t;
+
+cursor_t* cursorsList;
+cursor_t* cursor;
 
 /* Shutdown permissions policy... */
 typedef enum 
@@ -177,7 +188,7 @@ char* screensaver_name;
 
 typedef enum 
 {
-  UNKNOWN,
+  UNKNOWN=0,
   LABEL,
   BUTTON,
   LOGIN,
@@ -187,7 +198,7 @@ typedef enum
 
 typedef enum
 {
-	TINY,
+	TINY=0,
 	SMALLER,
   SMALL,
   MEDIUM,
@@ -204,7 +215,8 @@ text_orient_t;
 
 /* a window structure */
 typedef struct _window
-{  
+{ 
+	int id;
   int x;
   int y;
   int width;
@@ -218,12 +230,14 @@ typedef struct _window
   char *command;
   char *content;
   char *linkto;
+	cursor_t *cursor;
   struct _window *next;
 } window_t;
 
 window_t* windowsList;
 
 int add_window_to_list(window_t *w);
+int add_cursor_to_list(cursor_t *w);
 int get_win_type(const char* name);
 void destroy_windows_list(window_t *w);
 

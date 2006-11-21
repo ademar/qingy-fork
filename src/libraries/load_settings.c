@@ -104,7 +104,7 @@ void initialize_variables(void)
 	resolution              = NULL;
 	pre_gui_script          = NULL;
 	post_gui_script         = NULL;
-	show_mouse_cursor       = 1;
+	cursor                  = NULL;
 	x_server_offset         = 1;
 	do_autologin            = 0;
 	auto_relogin            = 0;
@@ -661,6 +661,7 @@ char *parse_inittab_file(void)
 
 void restore_default_contents(window_t *window)
 {
+	window->id                = window->id + 1;
   window->x                 = 0;
   window->y                 = 0;
   window->width             = 0;
@@ -675,6 +676,57 @@ void restore_default_contents(window_t *window)
   window->content           = NULL;
   window->command           = NULL;
   window->linkto            = NULL;
+}
+
+int add_cursor_to_list(cursor_t *c)
+{
+  static cursor_t *aux = NULL;
+
+	if (!c) return 0;
+
+	/*
+	 * this seems redundant, but it is not: if we reset theme (i.e. global theme is "bleargh"
+	 * but for tty3 theme "urgh" is selected) we need to clear this also...
+	 */
+	if (!cursorsList) aux = NULL;  
+	else
+	{
+		cursor_t *temp = cursorsList;
+      
+		while (temp)
+		{
+			if (temp->window_id == c->window_id)
+	    { /* we overwrite old settings with new ones */
+				if (temp->path) free(temp->path);
+	      temp->enable = c->enable;
+	      temp->path   = strdup(c->path);
+	      temp->x_off  = c->x_off;
+	      temp->y_off  = c->y_off;
+
+	      return 1;
+	    }
+			temp = temp->next;
+		}
+	}
+
+  if (!aux)
+	{
+		aux = (cursor_t *) calloc(1, sizeof(cursor_t));
+		cursorsList = aux;
+	}
+  else
+	{
+		aux->next = (cursor_t *) calloc(1, sizeof(cursor_t));
+		aux = aux->next;
+	}
+
+	aux->enable    = c->enable;
+  aux->path      = strdup(c->path);
+  aux->x_off     = c->x_off;
+  aux->y_off     = c->y_off;
+  aux->window_id = c->window_id;
+  
+  return 1;
 }
 
 int add_window_to_list(window_t *w)
@@ -727,7 +779,8 @@ int add_window_to_list(window_t *w)
 		aux->next = (window_t *) calloc(1, sizeof(window_t));
 		aux = aux->next;
 	}
-  
+
+	aux->id               = w->id;
   aux->type             = w->type;
   aux->x                = w->x;
   aux->y                = w->y;
@@ -832,6 +885,9 @@ int load_settings(void)
 {
 	static int first_time = 1;
 	struct stat status;
+	cursor_t *cur;
+	window_t *win;
+	int i;
 
 	if (!first_time)
 		destroy_keybindings_list();
@@ -908,6 +964,33 @@ int load_settings(void)
 		return 0;
 	}
 
+	/* let's assign cursors to their appropriate windows... */
+	for (cur = cursorsList; cur; cur=cur->next)
+	{
+		static cursor_t *prevcur = NULL;
+
+		if (prevcur)
+			prevcur->next = NULL;
+
+		if (cur->window_id == -1)
+		{
+			/* this is the global cursor for current theme */
+			cursor = cur;
+		}
+		else
+		{
+			/* we assign it to its intended window */
+			for (win = windowsList; win; win=win->next)
+				if (win->id == cur->window_id)
+				{
+					win->cursor = cur;
+					break;
+				}
+		}
+
+		prevcur = cur;
+	}
+
 	writelog(DEBUG, "The following logging facilities will be used: ");
 	WRITELOG(DEBUG, "%s", (log_facilities & LOG_TO_FILE) ? "FILE " : "");
 	WRITELOG(DEBUG, "%s", (log_facilities & LOG_TO_SYSLOG) ? "SYSLOG " : "");
@@ -915,6 +998,37 @@ int load_settings(void)
 	writelog(DEBUG, "\n");
 
 	WRITELOG(DEBUG, "Session locking is%s enabled.\n", (lock_sessions) ? "" : " NOT");
+
+	if (cursor)
+	{
+		writelog(DEBUG, "Theme cursor:\n");
+		WRITELOG(DEBUG, "  enable:    %d\n", cursor->enable);
+		WRITELOG(DEBUG, "  path:      %s\n", cursor->path);
+		WRITELOG(DEBUG, "  x_off:     %d\n", cursor->x_off);
+		WRITELOG(DEBUG, "  y_off:     %d\n", cursor->y_off);
+		WRITELOG(DEBUG, "  window_id: %d\n", cursor->window_id);
+		writelog(DEBUG, "\n");
+	}
+
+	window_t* temp2=windowsList;
+	for (i=0; temp2; temp2=temp2->next)
+	{
+		cursor_t* temp=temp2->cursor;
+		WRITELOG(DEBUG, "Window #%d:\n", i);
+		WRITELOG(DEBUG, "  type:    %d\n", temp2->type);
+		WRITELOG(DEBUG, "  id:      %d\n", temp2->id);
+		if (temp)
+		{
+			writelog(DEBUG, "  Cursor:\n");
+			WRITELOG(DEBUG, "    enable:    %d\n", temp->enable);
+			WRITELOG(DEBUG, "    path:      %s\n", temp->path);
+			WRITELOG(DEBUG, "    x_off:     %d\n", temp->x_off);
+			WRITELOG(DEBUG, "    y_off:     %d\n", temp->y_off);
+		}
+		writelog(DEBUG, "\n");
+		
+		i++;
+	}
 
   return 1;
 }

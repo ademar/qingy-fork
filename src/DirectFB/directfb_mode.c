@@ -282,7 +282,18 @@ void reset_screen(DFBInputEvent *evt)
 	else
 		show_lock_key_status(NULL);
 
-  layer->EnableCursor (layer, show_mouse_cursor);
+	if (!cursor)
+		layer->EnableCursor (layer, 1);
+	else
+	{
+		if (cursor->path)
+		{
+			char *path=StrApp((char**)NULL, theme_dir, "/", cursor->path);
+			IDirectFBSurface *curs_surface = load_image (path, primary, dfb, x_ratio, y_ratio);
+			layer->SetCursorShape (layer, curs_surface, cursor->x_off, cursor->y_off);
+		}
+		layer->EnableCursor (layer, cursor->enable);
+	}
 }
 
 /* this clears the screen */
@@ -1124,7 +1135,18 @@ int main (int argc, char *argv[])
   if (session_label) session_label->SetFocus(session_label, 0);
   session->SetFocus(session, 0);
 
-  layer->EnableCursor (layer, show_mouse_cursor);
+	if (!cursor)
+		layer->EnableCursor (layer, 1);
+	else
+	{
+		if (cursor->path)
+		{
+			char *path=StrApp((char**)NULL, theme_dir, "/", cursor->path);
+			IDirectFBSurface *curs_surface = load_image (path, primary, dfb, x_ratio, y_ratio);
+			layer->SetCursorShape (layer, curs_surface, cursor->x_off, cursor->y_off);
+		}
+		layer->EnableCursor (layer, cursor->enable);
+	}
 
 	if (use_screen_power_management)
 	{

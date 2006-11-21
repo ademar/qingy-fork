@@ -42,6 +42,7 @@
 extern FILE* yyin;
 extern int yylex();
 extern int in_theme;
+static int in_window               = 0;
 static int clear_background_is_set = 0;
 static int intended_tty            = 0;
 static int ssaver_is_set           = 0;
@@ -52,6 +53,7 @@ static actions   action;
 
 static window_t wind =
   {
+		0,
     0,
     0,
     0,
@@ -65,7 +67,18 @@ static window_t wind =
     NULL,
     NULL,
     NULL,
-    NULL
+    NULL,
+		NULL
+  };
+
+static cursor_t curs =
+  {
+		1,
+    NULL,
+		0,
+		0,
+		0,
+		NULL
   };
 
 %}
@@ -536,8 +549,46 @@ themedefn: /* nothing */
 ;
 
 /* mouse cursor properties */
-mousecursorprop: MOUSE_CURSOR_TOK '=' YES_TOK { show_mouse_cursor = 1; }
-| MOUSE_CURSOR_TOK '=' NO_TOK { show_mouse_cursor = 0; }
+mousecursorprop: MOUSE_CURSOR_TOK '=' YES_TOK
+  {
+    curs.enable = 1;
+		curs.path   = NULL;
+		curs.x_off  = 0;
+		curs.y_off  = 0;
+		if (!in_window)
+			curs.window_id = -1;
+		else
+			curs.window_id = wind.id;
+		add_cursor_to_list(&curs);
+  }
+| MOUSE_CURSOR_TOK '=' NO_TOK
+  {
+    curs.enable = 0;
+		curs.path   = NULL;
+		curs.x_off  = 0;
+		curs.y_off  = 0;
+		if (!in_window)
+			curs.window_id = -1;
+		else
+			curs.window_id = wind.id;
+		add_cursor_to_list(&curs);
+  }
+| MOUSE_CURSOR_TOK '=' '{' cursordefn '}'
+;
+
+/* mouse cursor definition */
+cursordefn: QUOTSTR_T ',' ANUM_T ',' ANUM_T
+	{
+		curs.enable    = 1;
+		curs.path      = $1;
+		curs.x_off     = $3;
+		curs.y_off     = $5;
+		if (!in_window)
+			curs.window_id = -1;
+		else
+			curs.window_id = wind.id;
+		add_cursor_to_list(&curs);
+	}
 ;
 
 /* color assignments */
@@ -656,11 +707,12 @@ window: WINDOW_TOK '{' windefns '}'
 				got_theme   = 0;
 			}
 			add_window_to_list(&wind);
+			in_window=0;
 		}
 	}
 ; 
 
-windefns: windefn | windefns windefn;
+windefns: windefn | windefns windefn { in_window=1; };
 
 windefn: 'x'        '=' ANUM_T    { TTY_CHECK_COND wind.x=$3;                        }
 | 'y'               '=' ANUM_T    { TTY_CHECK_COND wind.y=$3;                        }
@@ -674,6 +726,7 @@ windefn: 'x'        '=' ANUM_T    { TTY_CHECK_COND wind.x=$3;                   
 | WTEXT_ORIENTATION '=' textorientation
 | WTEXT_SIZE_TOK    '=' wintextsize
 | wincolorprop
+| mousecursorprop
 ;
 
 buttoncommand: NULL_TOK { TTY_CHECK_COND wind.command = NULL;       }
