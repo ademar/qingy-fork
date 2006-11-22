@@ -33,7 +33,9 @@
 #include <stdlib.h>
 #include <directfb.h>
 #include <directfb_keynames.h>
+#include <unistd.h>
 
+#include "logger.h"
 #include "utils.h"
 #include "load_settings.h"
 
@@ -147,4 +149,34 @@ DFBEnumerationResult enum_input_device(DFBInputDeviceID device_id, DFBInputDevic
 	*devices = device;
 
 	return DFENUM_OK;
+}
+
+IDirectFBSurface *load_image(const char *filename, IDirectFB *dfb, float x_ratio, float y_ratio)
+{
+	IDirectFBImageProvider *provider;
+	IDirectFBSurface *image = NULL;
+	DFBSurfaceDescription dsc;
+	DFBResult err;
+
+	if (access(filename, R_OK))
+	{
+		WRITELOG(ERROR, "Cannot load image: file '%s' does not exist!\n", filename);
+		return NULL;
+	}
+
+	err = dfb->CreateImageProvider (dfb, filename, &provider);
+	if (err != DFB_OK)
+	{
+		WRITELOG(ERROR, "Couldn't load image from file '%s': %s\n", filename, DirectFBErrorString (err));
+		return NULL;
+	}
+
+	provider->GetSurfaceDescription (provider, &dsc);
+	dsc.flags       = DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PIXELFORMAT;
+	dsc.pixelformat = DSPF_ARGB;
+	dsc.width       = (float)dsc.width  * (float)x_ratio;
+	dsc.height      = (float)dsc.height * (float)y_ratio;
+	if (dfb->CreateSurface (dfb, &dsc, &image) == DFB_OK) provider->RenderTo (provider, image, NULL);
+
+	return image;
 }

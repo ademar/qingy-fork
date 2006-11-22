@@ -141,7 +141,7 @@ void Draw_Background_Image(int do_the_drawing)
   primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
   if (!panel_image)
 	{ /* we design the surface */
-		if (background)  panel_image = load_image (background, primary, dfb, x_ratio, y_ratio);
+		if (background)  panel_image = load_image (background, dfb, x_ratio, y_ratio);
 		if (panel_image) panel_image->GetSize (panel_image, &panel_width, &panel_height);
 	}
   /*	
@@ -285,15 +285,7 @@ void reset_screen(DFBInputEvent *evt)
 	if (!cursor)
 		layer->EnableCursor (layer, 1);
 	else
-	{
-		if (cursor->path)
-		{
-			char *path=StrApp((char**)NULL, theme_dir, "/", cursor->path);
-			IDirectFBSurface *curs_surface = load_image (path, primary, dfb, x_ratio, y_ratio);
-			layer->SetCursorShape (layer, curs_surface, cursor->x_off, cursor->y_off);
-		}
 		layer->EnableCursor (layer, cursor->enable);
-	}
 }
 
 /* this clears the screen */
@@ -1141,8 +1133,8 @@ int main (int argc, char *argv[])
 	{
 		if (cursor->path)
 		{
-			char *path=StrApp((char**)NULL, theme_dir, "/", cursor->path);
-			IDirectFBSurface *curs_surface = load_image (path, primary, dfb, x_ratio, y_ratio);
+			char *path=StrApp((char**)NULL, theme_dir, "/", cursor->path, (char*)NULL);
+			IDirectFBSurface *curs_surface = load_image (path, dfb, x_ratio, y_ratio);
 			layer->SetCursorShape (layer, curs_surface, cursor->x_off, cursor->y_off);
 		}
 		layer->EnableCursor (layer, cursor->enable);

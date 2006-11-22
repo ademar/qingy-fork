@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <directfb.h>
-#include <unistd.h>
+#include <directfb_keynames.h>
 #include <pthread.h>
 
 #include "memmgmt.h"
@@ -40,6 +40,7 @@
 #include "load_settings.h"
 #include "misc.h"
 #include "logger.h"
+#include "utils.h"
 
 static void mouseOver(Button *thiz, int status)
 {
@@ -91,68 +92,6 @@ void Button_Destroy(Button *thiz)
 /* 	if (thiz->window)    thiz->window->Release    (thiz->window); */
 
 /* 	free (thiz); */
-}
-
-static IDirectFBSurface *load_image_int(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb, int db, int x, int y, float x_ratio, float y_ratio)
-{
-	IDirectFBImageProvider *provider;
-	IDirectFBSurface *tmp = NULL;
-	IDirectFBSurface *surface = NULL;
-	DFBSurfaceDescription dsc;
-	DFBResult err;
-
-	if (access(filename, R_OK))
-	{
-		WRITELOG(ERROR, "Cannot load image: file '%s' does not exist!\n", filename);
-		return NULL;
-	}
-
-	err = dfb->CreateImageProvider (dfb, filename, &provider);
-	if (err != DFB_OK)
-	{
-		WRITELOG(ERROR, "Couldn't load image from file '%s': %s\n", filename, DirectFBErrorString (err));
-		return NULL;
-	}
-
-	provider->GetSurfaceDescription (provider, &dsc);
-	dsc.flags       = DSDESC_WIDTH | DSDESC_HEIGHT | DSDESC_PIXELFORMAT;
-	dsc.pixelformat = DSPF_ARGB;
-	dsc.width       = (float)dsc.width  * (float)x_ratio;
-	dsc.height      = (float)dsc.height * (float)y_ratio;
-	if (dfb->CreateSurface (dfb, &dsc, &tmp) == DFB_OK) provider->RenderTo (provider, tmp, NULL);
-
-	provider->Release (provider);
-	primary->SetBlittingFlags (primary, DSBLIT_BLEND_ALPHACHANNEL);
-
-	if (tmp)
-	{
-		primary->GetPixelFormat (primary, &dsc.pixelformat);
-		if (dfb->CreateSurface (dfb, &dsc, &surface) == DFB_OK)
-		{
-			surface->SetBlittingFlags (surface, DSBLIT_BLEND_ALPHACHANNEL);
-			if (db)
-			{
-				IDirectFBSurface *back = NULL;
-				DFBRectangle rect;
-
-				rect.x = x;
-				rect.y = y;
-				tmp->GetSize (tmp, (int *)&(rect.w), (int *)&(rect.h));
-				primary->GetSubSurface(primary, &rect, &back);
-				surface->Blit (surface, back, NULL, 0, 0);
-				back->Release(back);
-			}
-			surface->Blit (surface, tmp, NULL, 0, 0);
-		}
-		tmp->Release (tmp);
-	}
-
-	return surface;
-}
-
-IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb, float x_ratio, float y_ratio)
-{
-	return load_image_int(filename, primary, dfb, 0, 0, 0, x_ratio, y_ratio);
 }
 
 static int mouse_over_button(Button *thiz)
@@ -233,14 +172,14 @@ Button *Button_Create(const char *normal, const char *mouseover, int xpos, int y
 	if (!normal || !mouseover || !layer || !primary || !dfb) return NULL;
 
 	but = (Button *) calloc (1, sizeof (Button));
-	but->normal = load_image_int(normal, primary, dfb, 1, xpos, ypos, x_ratio, y_ratio);
+	but->normal = load_image(normal, dfb, x_ratio, y_ratio);
 	if (!but->normal)
 	{
 		free(but);
 		return NULL;
 	}
 	but->normal->GetSize (but->normal, (int *)&(but->width), (int *)&(but->height));
-	but->mouseover = load_image_int(mouseover, primary, dfb, 1, xpos, ypos, x_ratio, y_ratio);
+	but->mouseover = load_image(mouseover, dfb, x_ratio, y_ratio);
 	if (!but->mouseover)
 	{
 		but->normal->Release (but->normal);

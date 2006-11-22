@@ -60,3 +60,6 @@ static const DirectFBKeySymbolNames (keynames)
 static const DirectFBKeyIdentifierNames (idnames)
 int compare_symbol (const void *a, const void *b);
 int compare_id (const void *a, const void *b);
+
+/* return a surface with an image loaded from disk */
+IDirectFBSurface *load_image(const char *filename, IDirectFB *dfb, float x_ratio, float y_ratio);

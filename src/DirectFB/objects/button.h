@@ -69,6 +69,3 @@ Button *Button_Create
 	float x_ratio,
 	float y_ratio
 );
-
-/* return a surface with an image loaded from disk */
-IDirectFBSurface *load_image(const char *filename, IDirectFBSurface *primary, IDirectFB *dfb, float x_ratio, float y_ratio);
