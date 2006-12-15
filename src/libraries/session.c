@@ -749,13 +749,16 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   int retval;
 #endif
   
-  args[count++] = shell_base_name(pw->pw_shell); /* make it a shell */
-	args[count++] = strdup("-l"); /* make it a login shell */
-
+  
 	if (!session || strcmp(session+6, "Console"))
 	{
+		args[count++] = shell_base_name(pw->pw_shell); /* make it just a shell */
 		args[count++] = strdup("-c");
 		args[count++] = StrApp((char **)NULL, text_sessions_directory, "\"", session+6, "\"", (char *)NULL);
+	}
+	else
+	{
+		args[count++] = StrApp((char**)NULL, "-", shell_base_name(pw->pw_shell), (char*)NULL); /* make it a login shell */
 	}
 
   proc_id = fork();
@@ -872,11 +875,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 
 	vt = int_to_str(current_vt);
   
-  args[count++] = shell_base_name(pw->pw_shell);
-
-	if (strcmp(args[0], "zsh"))
-		args[count++] = strdup("-login");
-
+	args[count++] = shell_base_name(pw->pw_shell); /* make it just a shell */
   args[count++] = strdup("-c");
 
   /* now we compose the xinit launch command line */
@@ -934,8 +933,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 		switchUser(pw, 1);
 
 		/* clean up standard input, output, error */
-		fclose(stdin);
-    //freopen(ttyname, "r", stdin);
+    freopen("/dev/null", "r", stdin);
 	  freopen(ttyname, "w", stdout);
 		freopen(ttyname, "w", stderr);
 		free(ttyname);
