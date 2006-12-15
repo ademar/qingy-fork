@@ -63,3 +63,18 @@ int compare_id (const void *a, const void *b);
 
 /* return a surface with an image loaded from disk */
 IDirectFBSurface *load_image(const char *filename, IDirectFB *dfb, float x_ratio, float y_ratio);
+
+/* a mouse cursor structure */
+typedef struct _dfb_cursor
+{ 
+	IDirectFBSurface *surface;
+  int               x_off;
+  int               y_off;
+	int               locked;
+} dfb_cursor_t;
+
+/* generic function to load a cursor shape */
+void SetCursor(dfb_cursor_t **cursor, IDirectFB *dfb, cursor_t *cursor_data, float x_ratio, float y_ratio);
+
+/* a mutex to lock mouse cursor changes */
+pthread_mutex_t *lock_mouse_cursor;

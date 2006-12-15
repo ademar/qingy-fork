@@ -48,6 +48,7 @@ typedef struct _TextBox
 	pthread_t cursor_thread;
 	IDirectFBEventBuffer *events;
 	IDirectFBDisplayLayer *layer;
+	dfb_cursor_t     *cursor;
   char *text;
   color_t text_color;
   color_t cursor_color;
@@ -64,6 +65,7 @@ typedef struct _TextBox
 	void (*click_callback)(struct _TextBox *thiz);
 
   /* methods */
+	void (*SetCursor) (struct _TextBox *thiz, IDirectFB *dfb, cursor_t *cursor_data, float x_ratio, float y_ratio);
   void (*SetFocus)(struct _TextBox *thiz, int focus);
   void (*SetTextColor)(struct _TextBox *thiz, color_t *text_color);
   void (*SetCursorColor)(struct _TextBox *thiz, color_t *cursor_color);

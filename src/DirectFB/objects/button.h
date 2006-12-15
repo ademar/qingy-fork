@@ -42,6 +42,7 @@ typedef struct _Button
 	IDirectFBSurface *surface;   /* surface of the above                        */
 	IDirectFBSurface *normal;    /* normal button appearance                    */
 	IDirectFBSurface *mouseover; /* button appearance when mouse is over it     */
+	dfb_cursor_t     *cursor;    /* mouse cursor when pointer is over button    */
 	actions action;              /* what should this button do?                 */
 	int xpos;										 /* x position of the button                    */
 	int ypos;										 /* y position of the button                    */
@@ -54,6 +55,7 @@ typedef struct _Button
 	void (*Destroy)   (struct _Button *thiz);
 	void (*Show)      (struct _Button *thiz);
 	void (*Hide)      (struct _Button *thiz);
+	void (*SetCursor) (struct _Button *thiz, IDirectFB *dfb, cursor_t *cursor_data, float x_ratio, float y_ratio);
 
 } Button;
 

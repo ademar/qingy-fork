@@ -36,8 +36,9 @@
 #include <unistd.h>
 
 #include "logger.h"
-#include "utils.h"
 #include "load_settings.h"
+#include "utils.h"
+#include "misc.h"
 
 int lock_is_pressed(DFBInputEvent *evt)
 {
@@ -179,4 +180,42 @@ IDirectFBSurface *load_image(const char *filename, IDirectFB *dfb, float x_ratio
 	if (dfb->CreateSurface (dfb, &dsc, &image) == DFB_OK) provider->RenderTo (provider, image, NULL);
 
 	return image;
+}
+
+/* generic function to load a cursor shape */
+void SetCursor(dfb_cursor_t **cursor, IDirectFB *dfb, cursor_t *cursor_data, float x_ratio, float y_ratio)
+{
+	IDirectFBSurface *temp_surf;
+	dfb_cursor_t     *temp_curs;
+	char             *my_path;
+
+	if (!cursor)      return;
+	if (!cursor_data) return;
+
+	if (!cursor_data->enable)
+	{
+		if (*cursor)
+		{
+			free((*cursor)->surface);
+			free(*cursor);
+			*cursor = NULL;
+		}
+		return;
+	}
+
+	my_path = StrApp((char**)NULL, theme_dir, "/", cursor_data->path, (char*)NULL);
+
+	temp_surf = load_image (my_path, dfb, x_ratio, y_ratio);
+	free(my_path);
+
+	if (temp_surf)
+	{
+		temp_curs = (dfb_cursor_t *)calloc(1, sizeof(dfb_cursor_t));
+		temp_curs->surface = temp_surf;
+		temp_curs->x_off   = cursor_data->x_off;
+		temp_curs->y_off   = cursor_data->y_off;
+		temp_curs->locked  = 0;
+		
+		*cursor = temp_curs;
+	}
 }

@@ -54,8 +54,8 @@
 #include "keybindings.h"
 
 /* my custom DirectFB stuff */
-#include "button.h"
 #include "utils.h"
+#include "button.h"
 #include "textbox.h"
 #include "combobox.h"
 #include "label.h"
@@ -88,6 +88,7 @@ IDirectFB             *dfb;                       /* the super interface        
 IDirectFBDisplayLayer *layer;                     /* the primary layer                         */
 IDirectFBSurface      *primary;                   /* surface of the primary layer              */
 IDirectFBSurface      *panel_image        = NULL; /* background image                          */
+IDirectFBSurface      *curs_surface       = NULL; /* main cursor shape                         */
 IDirectFBEventBuffer  *events;                    /* all input events will be stored here      */
 DeviceInfo            *devices            = NULL; /* the list of all input devices             */
 IDirectFBFont         *font_tiny;                 /* fonts                                     */
@@ -120,7 +121,7 @@ float                 x_ratio               = 1; /* theme res. should be correct
 float                 y_ratio               = 1; /* and y_ratio to match the actual res. */
 int                   ppid                  = 0; /* process id of out parent */
 int                   thread_action         = 0; /* whether one of our threads is doing anything significant */
-pthread_mutex_t       lock_act              = PTHREAD_MUTEX_INITIALIZER; /* action lock       */
+pthread_mutex_t       lock_act              = PTHREAD_MUTEX_INITIALIZER; /* action lock */
 
 
 void safe_exit(int exitstatus)
@@ -639,6 +640,16 @@ void start_login_sequence(DFBInputEvent *evt)
 	if (free_temp) free(temp);
 }
 
+void handle_mouse_event()
+{
+	if (curs_surface)
+		if (!pthread_mutex_trylock(lock_mouse_cursor))
+		{
+			layer->SetCursorShape (layer, curs_surface, cursor->x_off, cursor->y_off);
+			pthread_mutex_unlock(lock_mouse_cursor);
+		}
+}
+
 int handle_keyboard_event(DFBInputEvent *evt)
 {
   struct DFBKeySymbolName *symbol_name; /* we store here the symbol name of the last key the user pressed */
@@ -865,11 +876,13 @@ int create_windows()
 			case LOGIN:
 				username = TextBox_Create(layer, dfb, font, window->text_color, window->cursor_color, &window_desc);
 				if (!username) return 0;
+				if (window->cursor) username->SetCursor(username, dfb, window->cursor, x_ratio, y_ratio);
 				username->SetClickCallBack(username, textbox_click);
 				break;
 			case PASSWORD:
 				password = TextBox_Create(layer, dfb, font, window->text_color, window->cursor_color, &window_desc);
 				if (!password) return 0;
+				if (window->cursor) password->SetCursor(password, dfb, window->cursor, x_ratio, y_ratio);
 				password->SetClickCallBack(password, textbox_click);
 				break;
 			case LABEL:
@@ -936,6 +949,7 @@ int create_windows()
 					if (!strcmp(window->command, "sleep"      )) buttons->button->action = DO_SLEEP;
 					if (!strcmp(window->command, "screensaver")) buttons->button->action = DO_SCREEN_SAVER;
 				}
+				if (window->cursor) buttons->button->SetCursor(buttons->button, dfb, window->cursor, x_ratio, y_ratio);
 
 				break;
 			}
@@ -945,6 +959,7 @@ int create_windows()
 					session = ComboBox_Create(layer, dfb, font, window->text_color, &window_desc, screen_width, screen_height);
 					if (!session) return 0;
 					session->SetSortFunction(session, sort_sessions);
+					if (window->cursor) session->SetCursor(session, dfb, window->cursor, x_ratio, y_ratio);
 				}
 
 				break;
@@ -1051,8 +1066,6 @@ int main (int argc, char *argv[])
   if (result == DFB_OK) result = dfb->CreateInputEventBuffer (dfb, DICAPS_ALL, DFB_TRUE, &events);
   if (result == DFB_OK) result = dfb->GetDisplayLayer (dfb, DLID_PRIMARY, &layer);
 
-	writelog(DEBUG, "dd\n");
-
   /* any errors so far? */
 	if (result != DFB_OK)
 	{
@@ -1060,23 +1073,17 @@ int main (int argc, char *argv[])
 		return GUI_FAILURE;
 	}
 
-	writelog(DEBUG, "ee\n");
-
   /* more initialization */
   layer->SetCooperativeLevel (layer, DLSCL_ADMINISTRATIVE);
   layer->EnableCursor (layer, 0);
   sdsc.flags = DSDESC_CAPS;
   sdsc.caps  = DSCAPS_PRIMARY | DSCAPS_FLIPPING;
 
-	writelog(DEBUG, "ff\n");
-
   if (dfb->CreateSurface( dfb, &sdsc, &primary ) != DFB_OK)
 	{
 		DirectFB_Error();
 		return GUI_FAILURE;
 	}
-
-	writelog(DEBUG, "gg\n");
 
   primary->GetSize(primary, &screen_width, &screen_height);
 
@@ -1089,19 +1096,31 @@ int main (int argc, char *argv[])
 		return GUI_FAILURE;
 	}
 
-	writelog(DEBUG, "hh\n");
-
   Draw_Background_Image(1);
 
-	writelog(DEBUG, "ii\n");
+	lock_mouse_cursor = NULL;
+	if (cursor)
+		if (cursor->path)
+		{
+			char *path = StrApp((char**)NULL, theme_dir, "/", cursor->path, (char*)NULL);
+			curs_surface = load_image (path, dfb, x_ratio, y_ratio);
+			free(path);
+			layer->SetCursorShape (layer, curs_surface, cursor->x_off, cursor->y_off);
+
+			lock_mouse_cursor = (pthread_mutex_t *)calloc(1,sizeof(pthread_mutex_t));
+			if (pthread_mutex_init(lock_mouse_cursor, NULL))
+			{
+				writelog(ERROR, "Could not initialize cursor management mutex\n");
+				free(lock_mouse_cursor);
+				lock_mouse_cursor = NULL;
+			}
+		}
 
   if (!create_windows())
 	{
 		DirectFB_Error();
 		return GUI_FAILURE;
 	}
-
-	writelog(DEBUG, "jj\n");
 
   if (!hide_password) password->MaskText(password, 1);
   else password->HideText(password, 1);
@@ -1130,15 +1149,7 @@ int main (int argc, char *argv[])
 	if (!cursor)
 		layer->EnableCursor (layer, 1);
 	else
-	{
-		if (cursor->path)
-		{
-			char *path=StrApp((char**)NULL, theme_dir, "/", cursor->path, (char*)NULL);
-			IDirectFBSurface *curs_surface = load_image (path, dfb, x_ratio, y_ratio);
-			layer->SetCursorShape (layer, curs_surface, cursor->x_off, cursor->y_off);
-		}
 		layer->EnableCursor (layer, cursor->enable);
-	}
 
 	if (use_screen_power_management)
 	{
@@ -1176,6 +1187,9 @@ int main (int argc, char *argv[])
 				{
 					case DIET_KEYPRESS:
 						returnstatus = handle_keyboard_event(&evt);
+						break;
+					case DIET_AXISMOTION:
+						handle_mouse_event();
 						break;
 					default: /* we do nothing here */
 						break;

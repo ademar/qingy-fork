@@ -1,3 +1,9 @@
+2006-12-15  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* losta_files: 
+	Made custom cursor work for all kinds of window except labels.
+	Now working on a dbus issue with Gnome 2.16...
+
 2006-11-21  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/DirectFB/directfb_mode.c,

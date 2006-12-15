@@ -66,9 +66,6 @@
 #include "logger.h"
 
 
-#define GUI_MAXWAITTIME 5 /* this is in seconds */
-
-
 char *autologin_filename = NULL;
 char *username           = NULL;
 char *password           = NULL;

@@ -38,9 +38,9 @@
 
 #include "memmgmt.h"
 #include "load_settings.h"
+#include "utils.h"
 #include "textbox.h"
 #include "misc.h"
-#include "utils.h"
 #include "logger.h"
 
 static int insert_char(char *buffer, int *length, int *position, char c)
@@ -357,6 +357,14 @@ void TextBox_Destroy(TextBox *thiz)
 /* 	free(thiz); */
 }
 
+void TextBox_SetCursor(TextBox *thiz, IDirectFB *dfb, cursor_t *cursor_data, float x_ratio, float y_ratio)
+{
+	if (!thiz)        return;
+	if (!cursor_data) return;
+
+	SetCursor(&(thiz->cursor), dfb, cursor_data, x_ratio, y_ratio);
+}
+
 static void textbox_cursor_thread(TextBox *thiz)
 {
 	int flashing_cursor = 1;
@@ -430,6 +438,29 @@ static void textbox_thread(TextBox *thiz)
 
 					break;
 				}
+				case DIET_AXISMOTION:
+				{
+					if (thiz->cursor)
+					{
+						if (mouse_over_textbox(thiz))
+						{
+							if (!thiz->cursor->locked)
+							{
+								thiz->cursor->locked = 1;
+								pthread_mutex_lock(lock_mouse_cursor);
+								thiz->layer->SetCursorShape (thiz->layer, thiz->cursor->surface, thiz->cursor->x_off, thiz->cursor->y_off);
+							}
+						}
+						else
+							if (thiz->cursor->locked)
+							{
+								thiz->cursor->locked = 0;
+								pthread_mutex_unlock(lock_mouse_cursor);
+							}
+					}
+
+					break;
+				}
 				case DIET_KEYPRESS:
 				{
 					struct DFBKeySymbolName *symbol_name;
@@ -497,8 +528,10 @@ TextBox *TextBox_Create(IDirectFBDisplayLayer *layer, IDirectFB *dfb, IDirectFBF
 	newbox->Show             = TextBox_Show;
 	newbox->Destroy          = TextBox_Destroy;
 	newbox->SetClickCallBack = TextBox_SetClickCallBack;
+	newbox->SetCursor        = TextBox_SetCursor;
 	newbox->layer            = layer;
 	newbox->click_callback   = NULL;
+	newbox->cursor           = NULL;
 
 	if (layer->CreateWindow(layer, window_desc, &(newbox->window)) != DFB_OK) return NULL;
 	newbox->window->SetOpacity(newbox->window, 0x00);

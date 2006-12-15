@@ -36,11 +36,11 @@
 #include <pthread.h>
 
 #include "memmgmt.h"
-#include "button.h"
 #include "load_settings.h"
+#include "utils.h"
+#include "button.h"
 #include "misc.h"
 #include "logger.h"
-#include "utils.h"
 
 static void mouseOver(Button *thiz, int status)
 {
@@ -56,11 +56,26 @@ static void mouseOver(Button *thiz, int status)
 	{
 		thiz->surface->Blit(thiz->surface, thiz->mouseover, NULL, 0, 0);
 		thiz->surface->Flip(thiz->surface, NULL, 0);
+
+		if (thiz->cursor)
+			if (!thiz->cursor->locked)
+			{
+				thiz->cursor->locked = 1;
+				pthread_mutex_lock(lock_mouse_cursor);
+				thiz->layer->SetCursorShape (thiz->layer, thiz->cursor->surface, thiz->cursor->x_off, thiz->cursor->y_off);
+			}
 	}
 	else
 	{
 		thiz->surface->Blit(thiz->surface, thiz->normal, NULL, 0, 0);
 		thiz->surface->Flip(thiz->surface, NULL, 0);
+
+		if (thiz->cursor)
+			if (thiz->cursor->locked)
+			{
+				thiz->cursor->locked = 0;
+				pthread_mutex_unlock(lock_mouse_cursor);
+			}
 	}
 	
 }
@@ -105,6 +120,14 @@ static int mouse_over_button(Button *thiz)
 		return 1;
 
 	return 0;
+}
+
+void Button_SetCursor(Button *thiz, IDirectFB *dfb, cursor_t *cursor_data, float x_ratio, float y_ratio)
+{
+	if (!thiz)        return;
+	if (!cursor_data) return;
+
+	SetCursor(&(thiz->cursor), dfb, cursor_data, x_ratio, y_ratio);
 }
 
 static void button_thread(Button *thiz)
@@ -191,7 +214,9 @@ Button *Button_Create(const char *normal, const char *mouseover, int xpos, int y
 	but->Destroy     = Button_Destroy;
 	but->Show        = Button_Show;
 	but->Hide        = Button_Hide;
+	but->SetCursor   = Button_SetCursor;
 	but->callback    = callback;
+	but->cursor      = NULL;
 
 	window_desc.flags  = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );
 	window_desc.posx   = (unsigned int) but->xpos;

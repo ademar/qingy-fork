@@ -44,6 +44,7 @@ typedef struct _ComboBox
 	IDirectFBEventBuffer  *events;
 	IDirectFBDisplayLayer *layer;
 	pthread_mutex_t        lock;
+	dfb_cursor_t          *cursor;
 	int                    n_items;
 	char                 **items;
 	char                  *selected;
@@ -62,6 +63,7 @@ typedef struct _ComboBox
 	void (*sortfunc)      (char **items, int n_items);
 
 	/* public methods */
+	void (*SetCursor)      (struct _ComboBox *thiz, IDirectFB *dfb, cursor_t *cursor_data, float x_ratio, float y_ratio);
 	void (*SetTextColor)   (struct _ComboBox *thiz, color_t *text_color);
 	void (*SetFocus)       (struct _ComboBox *thiz, int      focus     );
 	void (*AddItem)        (struct _ComboBox *thiz, char    *item      );

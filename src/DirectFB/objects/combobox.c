@@ -38,10 +38,10 @@
 
 #include "memmgmt.h"
 #include "load_settings.h"
+#include "utils.h"
 #include "combobox.h"
 #include "misc.h"
 #include "logger.h"
-#include "utils.h"
 
 
 #define UPWARD   0
@@ -700,6 +700,14 @@ void ComboBox_Destroy(ComboBox *thiz)
 /*   free(thiz); */
 }
 
+void ComboBox_SetCursor(ComboBox *thiz, IDirectFB *dfb, cursor_t *cursor_data, float x_ratio, float y_ratio)
+{
+	if (!thiz)        return;
+	if (!cursor_data) return;
+
+	SetCursor(&(thiz->cursor), dfb, cursor_data, x_ratio, y_ratio);
+}
+
 static void combobox_thread(ComboBox *thiz)
 {
 	DFBInputEvent evt;
@@ -731,10 +739,25 @@ static void combobox_thread(ComboBox *thiz)
 							if (evt.axisrel == MOUSE_WHEEL_DOWN)
 								keyEvent(thiz, DOWN);
 						}
+						if (thiz->cursor)
+							if (!thiz->cursor->locked)
+							{
+								thiz->cursor->locked = 1;
+								pthread_mutex_lock(lock_mouse_cursor);
+								thiz->layer->SetCursorShape (thiz->layer, thiz->cursor->surface, thiz->cursor->x_off, thiz->cursor->y_off);
+							}
 						mouseOver(thiz, 1);
 					}
 					else
+					{
+						if (thiz->cursor)
+							if (thiz->cursor->locked)
+							{
+								thiz->cursor->locked = 0;
+								pthread_mutex_unlock(lock_mouse_cursor);
+							}
 						mouseOver(thiz, 0);
+					}
 					pthread_mutex_unlock(&(thiz->lock));
 
 					break;
@@ -857,6 +880,7 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFB *dfb, IDirectF
 	newbox->mouse           = 0;
   newbox->window          = NULL;
   newbox->surface         = NULL;
+	newbox->cursor          = NULL;
 	newbox->text_color.R    = text_color->R;
 	newbox->text_color.G    = text_color->G;
 	newbox->text_color.B    = text_color->B;
@@ -871,6 +895,7 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFB *dfb, IDirectF
   newbox->Hide            = ComboBox_Hide;
   newbox->Show            = ComboBox_Show;
   newbox->Destroy         = ComboBox_Destroy;
+	newbox->SetCursor       = ComboBox_SetCursor;
 
 	DropDown *dropDown      = (DropDown *) calloc(1, sizeof(DropDown));
 	dropDown->screen_width  = screen_width;
