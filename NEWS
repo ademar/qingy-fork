@@ -1,8 +1,11 @@
-qingy SVN-0.9.4-SVN:
+qingy 0.9.4 (21 Dec 2006):
 - Fixed zsh not being invocated as a login shell.
 - Rationalized when to start a shell as a login shell or not.
-- Fixed an issue with dbus and gnome 2.6.16.
+- Fixed an issue with dbus.
 - Updated qingy PAM file for Gentoo.
+- Added capability to change (or disable) mouse cursors in themes:
+  now it is possible to set up a global theme cursor, as well as
+  different cursors when the mouse passes specific elements.
 
 qingy 0.9.3 (09 Nov 2006):
 - Fixed qingy compilation in case user chooses openssl encryption.

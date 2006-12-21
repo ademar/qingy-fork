@@ -13,4 +13,7 @@ dist_defaultthemedata_DATA =  \
 	sleep_normal.png            \
 	sleep_mouseover.png         \
 	screensaver_normal.png      \
-	screensaver_mouseover.png
+	screensaver_mouseover.png   \
+	Arrow.png                   \
+	IBeam.png                   \
+	Hand.png
