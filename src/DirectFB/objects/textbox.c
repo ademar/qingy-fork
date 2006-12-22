@@ -122,6 +122,34 @@ static int parse_input(int *input, char *buffer, int modifier, int *length, int 
 	return 0;
 }
 
+static char *getText(TextBox *thiz, int *free_text, int *position)
+{
+	char *text;
+
+	if (!thiz) return NULL;
+
+	if (free_text) *free_text = 0;
+
+	if (thiz->mask_text)
+	{
+		int length = strlen(thiz->text);
+		text = (char *) calloc(length+1, sizeof(char));
+		text[length] = '\0';
+		memset(text, '*', length);
+		if (free_text) *free_text = 1;
+	}
+	else if (thiz->hide_text)
+	{
+		text = (char *) calloc(1, sizeof(char));
+		*text = '\0';
+		if (free_text) *free_text = 1;
+		if (position)  *position = 0;
+	}
+	else text = thiz->text;
+
+	return text;
+}
+
 static void DrawCursor(TextBox *thiz)
 {
 	static IDirectFBFont *font = NULL;
@@ -134,22 +162,7 @@ static void DrawCursor(TextBox *thiz)
 	if (!thiz) return;
 	position = thiz->position;
 
-	if (thiz->mask_text)
-	{
-		int length = strlen(thiz->text);
-		text = (char *) calloc(length+1, sizeof(char));
-		text[length] = '\0';
-		memset(text, '*', length);
-		free_text = 1;
-	}
-	else if (thiz->hide_text)
-	{
-		text = (char *) calloc(1, sizeof(char));
-		*text = '\0';
-		free_text = 1;
-		position = 0;
-	}
-	else text = thiz->text;
+	text = getText(thiz, &free_text, &position);
 
 	if (!font) thiz->surface->GetFont(thiz->surface, &font);
 
@@ -388,7 +401,7 @@ static void textbox_cursor_thread(TextBox *thiz)
 	}
 }
 
-static int mouse_over_textbox(TextBox *thiz)
+static int mouse_over_textbox(TextBox *thiz, int getPosition)
 {
 	int mouse_x, mouse_y;
 
@@ -396,7 +409,34 @@ static int mouse_over_textbox(TextBox *thiz)
 
 	if ( ((mouse_x >= (int)thiz->xpos) && (mouse_x <= ((int)thiz->xpos + (int)thiz->width)))  &&
 			 ((mouse_y >= (int)thiz->ypos) && (mouse_y <= ((int)thiz->ypos + (int)thiz->height)))  )
-		return 1;
+	{
+		static IDirectFBFont *font = NULL;
+		char                 *text;
+		int                   free_text, i, len;
+
+		if (!getPosition) return 1;
+
+		text = getText(thiz, &free_text, NULL);
+		if (!text)               return 1;
+		if (!(len=strlen(text))) return 1;
+
+		if (!font) thiz->surface->GetFont(thiz->surface, &font);
+
+		for (i=0; i<(len-1); i++)
+		{
+			int a, b;
+			font->GetStringWidth (font, text, i,   &a);
+			font->GetStringWidth (font, text, i+1, &b);
+			if ((mouse_x >= (int)thiz->xpos+a) && (mouse_x <= (int)thiz->xpos+b))
+			{
+				if (free_text) free(text);
+				return i+1;
+			}
+		}
+
+		if (free_text) free(text);
+		return len+1;
+	}
 
 	return 0;
 }
@@ -424,14 +464,17 @@ static void textbox_thread(TextBox *thiz)
 			{
 				case DIET_BUTTONPRESS:
 				{
+					int position;
+
 					pthread_mutex_lock(&(thiz->lock));
 				
 					if (!(thiz->ishidden))
-						if (mouse_over_textbox(thiz))
+						if ((position=mouse_over_textbox(thiz, 1)))
 							if (thiz->click_callback)
 							{
 								thiz->click_callback(thiz);
 								setFocus(thiz, 1);
+								thiz->position = position - 1;
 							}
 
 					pthread_mutex_unlock(&(thiz->lock));
@@ -442,7 +485,7 @@ static void textbox_thread(TextBox *thiz)
 				{
 					if (thiz->cursor)
 					{
-						if (mouse_over_textbox(thiz))
+						if (mouse_over_textbox(thiz, 0))
 						{
 							if (!thiz->cursor->locked)
 							{
