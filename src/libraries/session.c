@@ -213,8 +213,7 @@ char *get_sessions(void)
 							FILE *fp;
 
 							if (!(direntry = readdir(dir))) break;
-							if (!strcmp(direntry->d_name, "." )) continue;
-							if (!strcmp(direntry->d_name, "..")) continue;
+							if (!strncmp(direntry->d_name, ".", 1)) continue;
 
 							filename = StrApp((char**)NULL, "/usr/share/xsessions/", direntry->d_name, (char*)NULL);
 							fp = fopen(filename, "r");
