@@ -288,8 +288,7 @@ char *get_sessions(void)
       while (1)
 			{
 				if (!(entry= readdir(dir))) break;
-				if (!strcmp(entry->d_name, "." )) continue;
-				if (!strcmp(entry->d_name, "..")) continue;      
+				if (!strncmp(entry->d_name, ".", 1)) continue;
 				if (dirname == x_sessions_directory)
 				{
 #ifdef slackware

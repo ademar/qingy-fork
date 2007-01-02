@@ -111,7 +111,7 @@ window
 	mouse_cursor =
 	{
 		"IBeam.png",  # image path
-		0,            # hotspot: x offset
+		6,            # hotspot: x offset
 		16            # hotspot: y offset
 	}
 }
@@ -141,7 +141,7 @@ window
 	mouse_cursor =
 	{
 		"IBeam.png",  # image path
-		0,            # hotspot: x offset
+		6,            # hotspot: x offset
 		16            # hotspot: y offset
 	}
 }

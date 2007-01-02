@@ -63,6 +63,8 @@
 #endif
 
 
+#define BUFLEN 50
+
 static char **images;
 
 #define add_image(image_path)                                                \
@@ -83,7 +85,7 @@ static char **images;
 	n_images++;                                                                \
 }
 
-int is_image(char *filename)
+static int is_image(char *filename)
 {
 	char *temp;
 	int lun;
@@ -102,7 +104,7 @@ int is_image(char *filename)
 	return 0;
 }
 
-int load_images_list(char **params)
+static int load_images_list(char **params)
 {
 	int n_images = 0;
 	int max      = 0;
@@ -142,6 +144,16 @@ int load_images_list(char **params)
 	return n_images;
 }
 
+static int compmi(const void *m1, const void *m2)
+{
+	int *a = (int *)(m1);
+	int *b = (int *)(m2);
+
+	if (*a == *b) return 0;
+	if (*a <  *b) return -1;
+	return 1;
+}
+
 void screen_saver_entry(Q_screen_t env)
 {
 	static int n_images = 0;
@@ -151,12 +163,15 @@ void screen_saver_entry(Q_screen_t env)
 	DFBRectangle dest_rectangle;
 	int errorcount = 0;
 	int image;
+	int i;
+	int latest[BUFLEN];
   unsigned int seconds=5;
   unsigned int milli_seconds=0;
 	int image_width,  image_height;
 	float xy_ratio;
 	IDirectFBSurface *dest_surface=NULL;
-
+	time_t epoch;
+	struct tm curr_time;
 
   if (!env.dfb || !env.surface) return;
   /* we clear event buffer to avoid being bailed out immediately */
@@ -164,9 +179,6 @@ void screen_saver_entry(Q_screen_t env)
 
 	if (!n_images)
 	{
-		time_t epoch;
-		struct tm curr_time;
-		
 		env.surface->Clear (env.surface, 0x00, 0x00, 0x00, 0xFF);
 		env.surface->DrawString (env.surface, "Loading images list...", -1, env.screen_width / 2, env.screen_height / 2, DSTF_CENTER);
 		env.surface->Flip (env.surface, NULL, DSFLIP_BLIT);
@@ -175,6 +187,9 @@ void screen_saver_entry(Q_screen_t env)
 		localtime_r(&epoch, &curr_time);
 		srand(curr_time.tm_sec);
 	}
+
+	/* initialize latest images buffer */
+	for (i=0; i<BUFLEN; i++) latest[i] = -1;
 
   /* do screen saver until an input event arrives */
   while (1)
@@ -196,9 +211,46 @@ void screen_saver_entry(Q_screen_t env)
 
 		while (errorcount < 100)
 		{
-			image = rand() % n_images;
+			int buf[BUFLEN];
+			
+			memcpy(buf, latest, sizeof(latest));
+			qsort(buf, BUFLEN, sizeof(int), compmi);			
 
-			if (env.dfb->CreateImageProvider (env.dfb, images[image], &provider) == DFB_OK) break;
+			/* we get a random image and make sure it is not one of the latest 50 we just displayed */
+			while (1)
+			{
+				int *found;
+
+				image = rand() % n_images;
+				
+				found = bsearch(&image, buf, BUFLEN, sizeof(int), compmi);
+				if (!found) break;
+
+				/* re-initialize random seed */
+				epoch = time(NULL);
+				localtime_r(&epoch, &curr_time);
+				srand(curr_time.tm_sec);
+			}
+
+			if (env.dfb->CreateImageProvider (env.dfb, images[image], &provider) == DFB_OK)
+			{
+				/* add image to latest shown buffer */
+				if (latest[BUFLEN-1] == -1)
+				{
+					/* buffer is not filled up yet */
+					for (i=0; latest[i] != -1; i++);
+					latest[i] = image;
+				}
+				else
+				{
+					/* buffer is full, we shift it to left and add our element */
+					for (i=0; i<BUFLEN-1; i++) latest[i] = latest[i+1];
+					latest[i+1] = image;
+				}
+
+				break;
+			}
+
 			errorcount++;
 			if (errorcount == 100)
 			{

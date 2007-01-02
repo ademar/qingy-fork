@@ -1,4 +1,20 @@
+2007-01-02  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/session.c (get_sessions):
+	Made qingy not shot hidden entries when picking up stuff from session dirs...
+
+	* media/screensavers/photos/photos.c:
+	Made photos screensaver keep a list of recently displayed
+	photos so that it is less likely for it to show the same photos
+	twice...
+
 2006-12-22  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/default/theme:
+	Fixed mouse cursors hotspots.
+
+	* src/DirectFB/objects/textbox.c:
+	Made timing better for text cursor repositioning change below.
 
 	* configure.in:
 	Tagged version as 0.9.5.

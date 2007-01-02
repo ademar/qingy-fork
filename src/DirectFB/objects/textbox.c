@@ -150,7 +150,7 @@ static char *getText(TextBox *thiz, int *free_text, int *position)
 	return text;
 }
 
-static void DrawCursor(TextBox *thiz)
+static void DrawTextCursor(TextBox *thiz)
 {
 	static IDirectFBFont *font = NULL;
 	IDirectFBSurface *where;
@@ -179,7 +179,7 @@ static void DrawCursor(TextBox *thiz)
 	if (free_text) free(text);
 }
 
-static void keyEvent(TextBox *thiz, int ascii_code, int modifier, int draw_cursor, int lock)
+static void keyEvent(TextBox *thiz, int ascii_code, int modifier, int draw_text_cursor, int lock)
 {
 	char *buffer;
 	int length;
@@ -203,7 +203,7 @@ static void keyEvent(TextBox *thiz, int ascii_code, int modifier, int draw_curso
 	if (parse_input(&ascii_code, buffer, modifier, &length, position))
 	{
 		window_surface->Clear (window_surface, 0x00, 0x00, 0x00, 0x00);
-		if (draw_cursor) DrawCursor(thiz);
+		if (draw_text_cursor) DrawTextCursor(thiz);
 		if (thiz->mask_text)
 		{
 			char *tmp = (char *) calloc(length+1, sizeof(char));			
@@ -282,7 +282,7 @@ void TextBox_SetCursorColor(TextBox *thiz, color_t *cursor_color)
 	pthread_mutex_unlock(&(thiz->lock));
 }
 
-static void setFocus(TextBox *thiz, int focus)
+static void setFocus(TextBox *thiz, int focus, int reset_position)
 {
 	if (!thiz) return;
 
@@ -291,8 +291,11 @@ static void setFocus(TextBox *thiz, int focus)
 		thiz->window->RequestFocus(thiz->window);
 		thiz->hasfocus = 1;
 		thiz->window->SetOpacity(thiz->window, selected_window_opacity);
-		if (!thiz->text) thiz->position = 0;
-		else thiz->position = strlen(thiz->text);
+		if (reset_position)
+		{
+			if (!thiz->text) thiz->position = 0;
+			else thiz->position = strlen(thiz->text);
+		}
 		keyEvent(thiz, REDRAW, NONE, 1, 0);
 		return;
 	}
@@ -307,7 +310,7 @@ void TextBox_SetFocus(TextBox *thiz, int focus)
 	if (!thiz) return;
 
 	pthread_mutex_lock(&(thiz->lock));
-	setFocus(thiz, focus);
+	setFocus(thiz, focus, 1);
 	pthread_mutex_unlock(&(thiz->lock));
 }
 
@@ -473,8 +476,8 @@ static void textbox_thread(TextBox *thiz)
 							if (thiz->click_callback)
 							{
 								thiz->click_callback(thiz);
-								setFocus(thiz, 1);
 								thiz->position = position - 1;
+								setFocus(thiz, 1, 0);
 							}
 
 					pthread_mutex_unlock(&(thiz->lock));
