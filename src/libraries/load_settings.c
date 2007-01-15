@@ -999,36 +999,36 @@ int load_settings(void)
 
 	WRITELOG(DEBUG, "Session locking is%s enabled.\n", (lock_sessions) ? "" : " NOT");
 
-	if (cursor)
-	{
-		writelog(DEBUG, "Theme cursor:\n");
-		WRITELOG(DEBUG, "  enable:    %d\n", cursor->enable);
-		WRITELOG(DEBUG, "  path:      %s\n", cursor->path);
-		WRITELOG(DEBUG, "  x_off:     %d\n", cursor->x_off);
-		WRITELOG(DEBUG, "  y_off:     %d\n", cursor->y_off);
-		WRITELOG(DEBUG, "  window_id: %d\n", cursor->window_id);
-		writelog(DEBUG, "\n");
-	}
+/* 	if (cursor) */
+/* 	{ */
+/* 		writelog(DEBUG, "Theme cursor:\n"); */
+/* 		WRITELOG(DEBUG, "  enable:    %d\n", cursor->enable); */
+/* 		WRITELOG(DEBUG, "  path:      %s\n", cursor->path); */
+/* 		WRITELOG(DEBUG, "  x_off:     %d\n", cursor->x_off); */
+/* 		WRITELOG(DEBUG, "  y_off:     %d\n", cursor->y_off); */
+/* 		WRITELOG(DEBUG, "  window_id: %d\n", cursor->window_id); */
+/* 		writelog(DEBUG, "\n"); */
+/* 	} */
 
-	window_t* temp2=windowsList;
-	for (i=0; temp2; temp2=temp2->next)
-	{
-		cursor_t* temp=temp2->cursor;
-		WRITELOG(DEBUG, "Window #%d:\n", i);
-		WRITELOG(DEBUG, "  type:    %d\n", temp2->type);
-		WRITELOG(DEBUG, "  id:      %d\n", temp2->id);
-		if (temp)
-		{
-			writelog(DEBUG, "  Cursor:\n");
-			WRITELOG(DEBUG, "    enable:    %d\n", temp->enable);
-			WRITELOG(DEBUG, "    path:      %s\n", temp->path);
-			WRITELOG(DEBUG, "    x_off:     %d\n", temp->x_off);
-			WRITELOG(DEBUG, "    y_off:     %d\n", temp->y_off);
-		}
-		writelog(DEBUG, "\n");
+/* 	window_t* temp2=windowsList; */
+/* 	for (i=0; temp2; temp2=temp2->next) */
+/* 	{ */
+/* 		cursor_t* temp=temp2->cursor; */
+/* 		WRITELOG(DEBUG, "Window #%d:\n", i); */
+/* 		WRITELOG(DEBUG, "  type:    %d\n", temp2->type); */
+/* 		WRITELOG(DEBUG, "  id:      %d\n", temp2->id); */
+/* 		if (temp) */
+/* 		{ */
+/* 			writelog(DEBUG, "  Cursor:\n"); */
+/* 			WRITELOG(DEBUG, "    enable:    %d\n", temp->enable); */
+/* 			WRITELOG(DEBUG, "    path:      %s\n", temp->path); */
+/* 			WRITELOG(DEBUG, "    x_off:     %d\n", temp->x_off); */
+/* 			WRITELOG(DEBUG, "    y_off:     %d\n", temp->y_off); */
+/* 		} */
+/* 		writelog(DEBUG, "\n"); */
 		
-		i++;
-	}
+/* 		i++; */
+/* 	} */
 
   return 1;
 }

@@ -44,6 +44,10 @@
 #include "load_settings.h"
 #include "vt.h"
 
+
+FILE *my_stderr = NULL;
+
+
 void log_file(log_levels loglevel, char *message)
 {
 	static FILE *fp = NULL;
@@ -126,7 +130,12 @@ void writelog(log_levels loglevel, char *message)
 	if (loglevel > max_loglevel) return;
 
 	if (log_facilities & LOG_TO_CONSOLE)
-		fprintf(stderr, "%s", message);
+	{
+		if (my_stderr)
+			fprintf(my_stderr, "%s", message);
+		else
+			fprintf(stderr,    "%s", message);
+	}
 
 	if (log_facilities & LOG_TO_FILE)
 		log_file(loglevel, message);
@@ -135,7 +144,7 @@ void writelog(log_levels loglevel, char *message)
 		log_syslog(loglevel, message);
 }
 
-void file_logger_thread(char *filename)
+void file_logger_process(char *filename)
 {
 	FILE   *fp    = fopen(filename, "r");
 	char   *buf   = NULL;
@@ -143,7 +152,7 @@ void file_logger_thread(char *filename)
 
 	if (!fp)
 	{
-		writelog(ERROR, "Unable to hook to main thread's stderr!\n");
+		writelog(ERROR, "Unable to hook to main process' stderr!\n");
 		abort();
 	}
 
@@ -166,39 +175,70 @@ void file_logger_thread(char *filename)
 
 void log_stderr(void)
 {
-	pthread_t  log_thread;
-	char      *filename   = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
-	int        fd;
+	char *filename1 = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
+	char *filename2 = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
+	int   fd1, fd2;
 
-	fd = mkstemp(filename);
-	if (fd == -1)
+	fd1 = mkstemp(filename1);
+	if (fd1 == -1)
 	{
 		writelog(ERROR, "Could not create temporary file!\n");
 		abort();
 	}
 
 	/* set file mode to 600 */
-	if (chmod(filename, S_IRUSR|S_IWUSR))
+	if (chmod(filename1, S_IRUSR|S_IWUSR))
 	{
 		writelog(ERROR, "Cannot chmod() file!\n");
-		abort();		
+		abort();
 	}
 
-	if (!freopen(filename, "w", stderr))
+	/* save a copy of the original stderr fd */
+	fd2 = mkstemp(filename2);
+	if (fd2 == -1)
+	{
+		writelog(ERROR, "Could not create temporary file!\n");
+		abort();
+	}
+	close(fd2);
+	unlink(filename2);
+	free(filename2);
+	fd_copy(fd2,2);
+	my_stderr = fdopen(fd2, "w");
+
+	/* redirect stderr to our file */
+	if (!freopen(filename1, "w", stderr))
 	{
 		writelog(ERROR, "Unable to redirect stderr!\n");
 		abort();
 	}
 
 	/* close the file descriptor as we have no need for it */
-	close(fd);
+	close(fd1);
 	
-	/* spawn our stderr logger thread */
-	if (pthread_create(&log_thread, NULL, (void*)(&file_logger_thread), filename))
+	/* spawn our stderr logger process */
+	pid_t pid = fork();
+
+	switch (pid)
 	{
-		writelog(ERROR, "Failed to create stderr log writer thread!\n");
-		abort();
+		case -1:
+			writelog(ERROR, "Failed to create stderr log writer thread!\n");
+			abort();
+			break;
+		case 0: /* child */
+			file_logger_process(filename1);
+			break;
+		default: /* parent */
+			fprintf(stderr, "stderr rediretto...\n");
+			break;
 	}
+
+/* 	if (pthread_create(&log_thread, NULL, (void*)(&file_logger_thread), filename)) */
+/* 	{ */
+/* 		writelog(ERROR, "Failed to create stderr log writer thread!\n"); */
+/* 		abort(); */
+/* 	} */
+
 }
 
 void dontlog_stderr()

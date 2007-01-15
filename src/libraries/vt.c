@@ -110,27 +110,23 @@ int switch_to_tty(int tty)
 
 int get_active_tty(void)
 {
-  struct vt_stat term_status;
+  static struct vt_stat *term_status = NULL;
   int fd = getfd();
   
   if (fd == -1) return -1;
-  if (ioctl (fd, VT_GETSTATE, &term_status) == -1)
+
+	if (!term_status)
+		term_status = (struct vt_stat *) calloc(1, sizeof(struct vt_stat));
+
+  if (ioctl (fd, VT_GETSTATE, term_status) == -1)
 	{
-		(void)close(fd);
-		/*
-		 * we do not care about return value of the above,
-		 * as we are failing anyway ;-)
-		 */
+		close(fd);
 		return -1;
 	}
-	/*
-	 * NOTE (Michele): I really would like to know the guy who had
-	 * this smart idea of removing the close(fd), leading *again*
-	 * to the bloody 'too many open files' crash
-	 */
-	if (close(fd) == -1) return -1;
 
-  return term_status.v_active;
+	close(fd);
+
+  return term_status->v_active;
 }
 
 int set_active_tty(int tty)
@@ -321,4 +317,21 @@ void reset_console(int dest_vt)
 
 	unlock_tty_switching();
 	set_active_tty(dest_vt);
+}
+
+int fd_copy(int to,int from)
+{
+  if (to == from) return 0;
+  if (fcntl(from,F_GETFL,0) == -1) return -1;
+  close(to);
+  if (fcntl(from,F_DUPFD,to) == -1) return -1;
+  return 0;
+}
+
+int fd_move(int to,int from)
+{
+  if (to == from) return 0;
+  if (fd_copy(to,from) == -1) return -1;
+  close(from);
+  return 0;
 }

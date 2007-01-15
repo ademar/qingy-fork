@@ -1,3 +1,19 @@
+2007-01-15  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/logger.c: 
+	Made stderr logger have its own process instead of a thread...
+
+	* src/libraries/vt.c (get_active_tty):
+	dinamically calloc a previously statically-callocated variable so that
+	hardened systems do not complain about unitialized memory...
+
+2007-01-12  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/DirectFB/directfb_mode.c: 
+	* src/libraries/logger.c:
+	redirecting stderr to our logging facilities breaks DirectFB, disabled
+	it while I search for a solution...
+
 2007-01-02  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c (get_sessions):
@@ -1851,7 +1867,7 @@
 2004-02-16  Noberasco Michele  <michele.noberasco@tiscali.it>
 
 	* src/load_settings.c (get_random_theme): 
-	simplify method to get value fot srand()
+	simplify method to get value for srand()
 
 	* lost_track_of_all_of_them: 
 	begin work on creating shared libraries and linking to them

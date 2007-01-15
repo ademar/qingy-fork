@@ -1,7 +1,7 @@
 qingy SVN-0.9.5-SVN:
 - Made textbox mouse clicks position the text cursor according
   to where in the text the user clicked.
-- Other small enhancements.
+- Other small fixes and enhancements.
 
 qingy 0.9.4 (21 Dec 2006):
 - Fixed zsh not being invocated as a login shell.

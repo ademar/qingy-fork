@@ -874,10 +874,13 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	vt = int_to_str(current_vt);
   
 	args[count++] = shell_base_name(pw->pw_shell); /* make it just a shell */
+	//args[count++] = StrApp((char**)NULL, "-", shell_base_name(pw->pw_shell), (char*)NULL); /* make it a login shell */
+	//args[count++] = strdup("-l");
   args[count++] = strdup("-c");
 
   /* now we compose the xinit launch command line */
 	args[count] = StrApp((char**)NULL, "exec ", xinit, " ", (char*)NULL);
+	//args[count] = StrApp((char**)NULL, xinit, " ", (char*)NULL);
 
   /* add the chosen X session */
   if (!strcmp(session, "Your .xsession"))
@@ -897,6 +900,10 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 
   /* done... as a final touch we suppress verbose output */
 	args[count] = StrApp(&(args[count]), " >& /dev/null", (char*)NULL);
+
+	int i=0;
+	for (; args[i]; i++)
+		WRITELOG(DEBUG, "shell arg #%d: %s\n", i, args[i]);
 
   free(my_x_server);
   free(vt);

@@ -13,6 +13,8 @@ SUPPORT FOR CUSTOMIZING the "logging in..." and such like messages (in theme).
 
 [GUI]
 
+- Make qingy remember num lock status when entering DirectFB mode.
+
 - Add a combo box to select between X server layouts.
 
 - Make applets possible... A mix of shared modules and window managing :P
