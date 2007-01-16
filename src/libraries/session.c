@@ -748,16 +748,14 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 #endif
   
   
-	if (!session || strcmp(session+6, "Console"))
-	{
-		args[count++] = shell_base_name(pw->pw_shell); /* make it just a shell */
-		args[count++] = strdup("-c");
-		args[count++] = StrApp((char **)NULL, text_sessions_directory, "\"", session+6, "\"", (char *)NULL);
-	}
-	else
-	{
-		args[count++] = StrApp((char**)NULL, "-", shell_base_name(pw->pw_shell), (char*)NULL); /* make it a login shell */
-	}
+	args[count++] = StrApp((char**)NULL, "-", shell_base_name(pw->pw_shell), (char*)NULL); /* make it a login shell */
+
+	if (session)
+		if (strcmp(session+6, "Console"))
+		{
+			args[count++] = strdup("-c");
+			args[count++] = StrApp((char **)NULL, text_sessions_directory, "\"", session+6, "\"", (char *)NULL);
+		}
 
   proc_id = fork();
   if (proc_id == -1)
@@ -867,20 +865,18 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   char *vt = NULL;
   char *args[5] = {NULL, NULL, NULL, NULL, NULL};
 	int   count   = 0;
+	int   i       = 0;
 #ifdef USE_PAM
   int retval;
 #endif
 
 	vt = int_to_str(current_vt);
   
-	args[count++] = shell_base_name(pw->pw_shell); /* make it just a shell */
-	//args[count++] = StrApp((char**)NULL, "-", shell_base_name(pw->pw_shell), (char*)NULL); /* make it a login shell */
-	//args[count++] = strdup("-l");
+	args[count++] = StrApp((char**)NULL, "-", shell_base_name(pw->pw_shell), (char*)NULL); /* make it a login shell */
   args[count++] = strdup("-c");
 
   /* now we compose the xinit launch command line */
 	args[count] = StrApp((char**)NULL, "exec ", xinit, " ", (char*)NULL);
-	//args[count] = StrApp((char**)NULL, xinit, " ", (char*)NULL);
 
   /* add the chosen X session */
   if (!strcmp(session, "Your .xsession"))
@@ -899,11 +895,11 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 		args[count] = StrApp(&(args[count]), " ", x_args, (char*)NULL);
 
   /* done... as a final touch we suppress verbose output */
-	args[count] = StrApp(&(args[count]), " >& /dev/null", (char*)NULL);
-
-	int i=0;
-	for (; args[i]; i++)
-		WRITELOG(DEBUG, "shell arg #%d: %s\n", i, args[i]);
+	if (DEBUG > max_loglevel)
+		args[count] = StrApp(&(args[count]), " >& /dev/null", (char*)NULL);
+	else
+		for (; args[i]; i++)
+			WRITELOG(DEBUG, "Starting X session with argument #%d: %s\n", i, args[i]);
 
   free(my_x_server);
   free(vt);

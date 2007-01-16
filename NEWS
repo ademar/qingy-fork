@@ -1,4 +1,7 @@
 qingy SVN-0.9.5-SVN:
+- Changed again the way qingy fires up the shell: now it
+  is started as a login shell regardless of the session type, 
+  text or graphic, pure shell of program...
 - Made textbox mouse clicks position the text cursor according
   to where in the text the user clicked.
 - Other small fixes and enhancements.

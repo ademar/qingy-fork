@@ -1,3 +1,18 @@
+2007-01-16  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/main.c (start_up),
+	* src/libraries/vt.h,
+	* src/libraries/vt.c (get_keyboard_status):
+	Added some code to get keyboard status (numlock, capslock, ...)
+	before entering DirectFB mode (which resets the status to its
+	own liking). Later I'll implement restoring this status
+	when DirectFB mode shuts down.
+
+	* src/libraries/session.c (Text_Login, Graph_Login):
+	Changed again the way qingy fires up the shell: now it
+	is started as a login shell regardless of the session type, 
+	text or graphic, pure shell of program...
+
 2007-01-15  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/logger.c: 

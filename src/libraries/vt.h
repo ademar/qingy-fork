@@ -2,7 +2,7 @@
                       vt.c  -  Terminal handling functions
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2005 by Noberasco Michele
+    copyright            : (C) 2003-2007 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
  ***************************************************************************/
 
@@ -42,7 +42,16 @@
 /* NOTE: should be an inline func, and StrApp should be probably fixed */
 #define create_tty_name(tty) StrApp((char**)NULL, "/dev/tty", int_to_str(tty), (char*)NULL)
 #define create_vc_name(tty)  StrApp((char**)NULL, "/dev/vc/", int_to_str(tty), (char*)NULL)
- 
+
+/* keyboard and relative leds status (numlock, ...) */
+#define onoff(a) ((a) ? "on " : "off")
+typedef struct _KB_status
+{
+	char leds;
+	char flags;
+
+} KB_status;
+
 /* change stdin, stdout and stderr to a new tty */
 int switch_to_tty(int tty);
 
@@ -55,17 +64,17 @@ int set_active_tty(int tty);
 /* get the number of an unused tty */
 int get_available_tty(void);
 
-/* checks wether a tty is in use */
+/* checks whether a tty is in use */
 int is_tty_available(int tty);
 
-/* allow of block tty switching */
+/* allow to lock/unlock tty switching */
 int lock_tty_switching(void);
 int unlock_tty_switching(void);
 
 /* disallocate tty */
 int disallocate_tty(int tty);
 
-/* enable or disable stdout and stderr */
+/* enable or disable stderr */
 void stderr_disable(void);
 void stderr_enable(int *vt);
 
@@ -74,5 +83,11 @@ char *get_fb_resolution(char *fb_device);
 
 /* reset framebuffer console if DirectFB hangs... */
 void reset_console(int dest_vt);
+
+/* duplicate a file descriptor */
+int fd_copy(int to, int from);
+
+/* get keyboard leds status */
+KB_status *get_keyboard_status(void);
 
 #endif /* !CHVT_H */

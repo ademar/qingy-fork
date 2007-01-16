@@ -2,7 +2,7 @@
                     vt.c  -  Terminal handling functions
                             --------------------
     begin                : Apr 10 2003
-    copyright            : (C) 2003-2005 by Noberasco Michele
+    copyright            : (C) 2003-2007 by Noberasco Michele
     e-mail               : michele.noberasco@tiscali.it
 ***************************************************************************/
 
@@ -328,10 +328,35 @@ int fd_copy(int to,int from)
   return 0;
 }
 
-int fd_move(int to,int from)
+/* int fd_move(int to,int from) */
+/* { */
+/*   if (to == from) return 0; */
+/*   if (fd_copy(to,from) == -1) return -1; */
+/*   close(from); */
+/*   return 0; */
+/* } */
+
+KB_status *get_keyboard_status(void)
 {
-  if (to == from) return 0;
-  if (fd_copy(to,from) == -1) return -1;
-  close(from);
-  return 0;
+	KB_status *status = NULL;
+	char       leds   = 0;
+	char       flags  = 0;
+
+	if (ioctl(0, KDGETLED, &leds))
+	{
+		writelog(ERROR, "Unable to get current keyboard leds setting...\n");
+		return NULL;
+	}
+
+	if (ioctl(0, KDGKBLED, &flags))
+	{
+		writelog(ERROR, "Unable to get current keyboard flags setting...\n");
+		return NULL;
+	}
+
+	status = (KB_status *)calloc(1, sizeof(KB_status));
+	status->leds  = leds;
+	status->flags = flags;
+
+	return status;
 }

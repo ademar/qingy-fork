@@ -53,6 +53,7 @@
 #include <time.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <linux/kd.h>
 
 #ifdef WANT_CRYPTO
 #include "crypto.h"
@@ -131,12 +132,13 @@ void read_action(int signum)
 
 void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 {
-  int    i;
-	int    returnstatus = GUI_FAILURE;
-	char **gui_argv     = NULL;
-	char  *toGUI        = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
-	char  *fromGUI      = strdup(toGUI);
-	int    fd;
+  int         i;
+	int         returnstatus = GUI_FAILURE;
+	char      **gui_argv     = NULL;
+	char       *toGUI        = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
+	char       *fromGUI      = strdup(toGUI);
+	KB_status  *kb_status    = NULL;
+	int         fd;
 
 	if (!do_autologin)
 	{
@@ -154,6 +156,22 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 			free(fromGUI);
 			free(toGUI);
 			text_mode();
+		}
+
+		/* save keyboard status */
+		kb_status = get_keyboard_status();
+		if (kb_status)
+		{
+			char flags = ((kb_status->flags & 7) & 07);
+			char leds  = kb_status->leds;
+			WRITELOG(DEBUG, "Keyboard status: NumLock %s   CapsLock %s   ScrollLock %s\n",
+							 onoff(flags & LED_NUM),
+							 onoff(flags & LED_CAP),
+							 onoff(flags & LED_SCR));
+			WRITELOG(DEBUG, "Keyboard   leds: NumLock %s   CapsLock %s   ScrollLock %s\n",
+							 onoff(leds & LED_NUM),
+							 onoff(leds & LED_CAP),
+							 onoff(leds & LED_SCR));
 		}
 
 		/* display native theme resolution */
@@ -399,6 +417,12 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 
 	/* return to our righteous tty */
 	set_active_tty(our_tty_number);
+
+	/* restore keyboard status if possible */
+	if (kb_status)
+	{
+		
+	}
 
 	switch (returnstatus)
 	{
