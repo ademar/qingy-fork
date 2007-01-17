@@ -384,7 +384,6 @@ AC_CONFIG_FILES([                          \
 	media/sessions/Makefile                  \
 	media/pam/Makefile                       \
 	media/screensavers/Makefile              \
-	media/screensavers/matrix/Makefile       \
 	media/screensavers/photos/Makefile       \
 	media/screensavers/pixel/Makefile        \
 	media/screensavers/running_time/Makefile \

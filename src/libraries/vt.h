@@ -52,6 +52,11 @@ typedef struct _KB_status
 
 } KB_status;
 
+#define LED_NLOCK  1
+#define LED_CMPOSE 2
+#define LED_SCRLCK 4
+#define LED_CLOCK  8
+
 /* change stdin, stdout and stderr to a new tty */
 int switch_to_tty(int tty);
 
@@ -87,7 +92,8 @@ void reset_console(int dest_vt);
 /* duplicate a file descriptor */
 int fd_copy(int to, int from);
 
-/* get keyboard leds status */
-KB_status *get_keyboard_status(void);
+/* get/set keyboard leds status */
+/* KB_status *get_keyboard_status(void); */
+/* void set_keyboard_status(KB_status *status); */
 
 #endif /* !CHVT_H */

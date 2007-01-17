@@ -887,7 +887,7 @@ int load_settings(void)
 	struct stat status;
 	cursor_t *cur;
 	window_t *win;
-	int i;
+/* 	int i; */
 
 	if (!first_time)
 		destroy_keybindings_list();

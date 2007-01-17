@@ -336,27 +336,35 @@ int fd_copy(int to,int from)
 /*   return 0; */
 /* } */
 
-KB_status *get_keyboard_status(void)
-{
-	KB_status *status = NULL;
-	char       leds   = 0;
-	char       flags  = 0;
+/* KB_status *get_keyboard_status(void) */
+/* { */
+/* 	KB_status *status = NULL; */
+/* 	char       leds   = 0; */
+/* 	char       flags  = 0; */
 
-	if (ioctl(0, KDGETLED, &leds))
-	{
-		writelog(ERROR, "Unable to get current keyboard leds setting...\n");
-		return NULL;
-	}
+/* 	if (ioctl(0, KDGETLED, &leds)) */
+/* 	{ */
+/* 		writelog(ERROR, "Unable to get current keyboard leds setting...\n"); */
+/* 		return NULL; */
+/* 	} */
 
-	if (ioctl(0, KDGKBLED, &flags))
-	{
-		writelog(ERROR, "Unable to get current keyboard flags setting...\n");
-		return NULL;
-	}
+/* 	if (ioctl(0, KDGKBLED, &flags)) */
+/* 	{ */
+/* 		writelog(ERROR, "Unable to get current keyboard flags setting...\n"); */
+/* 		return NULL; */
+/* 	} */
 
-	status = (KB_status *)calloc(1, sizeof(KB_status));
-	status->leds  = leds;
-	status->flags = flags;
+/* 	status = (KB_status *)calloc(1, sizeof(KB_status)); */
+/* 	status->leds  = leds; */
+/* 	status->flags = flags; */
 
-	return status;
-}
+/* 	return status; */
+/* } */
+
+/* void set_keyboard_status(KB_status *status) */
+/* { */
+/* 	if (!status) return; */
+
+/* 	ioctl(0, KDSETLED, status->leds); */
+/* 	ioctl(0, KDSKBLED, status->flags);	 */
+/* } */

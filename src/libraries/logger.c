@@ -149,6 +149,7 @@ void file_logger_process(char *filename)
 	FILE   *fp    = fopen(filename, "r");
 	char   *buf   = NULL;
 	size_t  len   = 0;
+	pid_t   ppid  = getppid();
 
 	if (!fp)
 	{
@@ -169,6 +170,13 @@ void file_logger_process(char *filename)
 				writelog(DEBUG, buf);
 		}
 
+		/* let's see whether the process that spawned us still exists... */
+		if (ppid != getppid())
+		{
+			writelog(DEBUG, "stderr logger process shutting down...\n");
+			exit(EXIT_SUCCESS);
+		}
+
 		sleep(1);
 	}
 }
@@ -178,6 +186,8 @@ void log_stderr(void)
 	char *filename1 = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
 	char *filename2 = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
 	int   fd1, fd2;
+	pid_t pid;
+
 
 	fd1 = mkstemp(filename1);
 	if (fd1 == -1)
@@ -217,8 +227,7 @@ void log_stderr(void)
 	close(fd1);
 	
 	/* spawn our stderr logger process */
-	pid_t pid = fork();
-
+	pid = fork();
 	switch (pid)
 	{
 		case -1:
@@ -229,7 +238,7 @@ void log_stderr(void)
 			file_logger_process(filename1);
 			break;
 		default: /* parent */
-			fprintf(stderr, "stderr rediretto...\n");
+			writelog(DEBUG, "redirected stderr to logging facilities...\n");
 			break;
 	}
 
