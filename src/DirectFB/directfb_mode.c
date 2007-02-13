@@ -212,7 +212,7 @@ void close_framebuffer_mode (int exit_status)
 
 	/* disable bogus error messages on DirectFB exit */
   stderr_disable();
-	if (dfb) dfb->Release (dfb);
+/* 	if (dfb) dfb->Release (dfb); */
 /* 	stderr_enable(&current_tty); */
 
 	unlock_tty_switching();

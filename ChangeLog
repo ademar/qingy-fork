@@ -1,5 +1,9 @@
 2007-02-13  Michele Noberasco  <michele.noberasco@tiscali.it>
 
+	* src/main.c (start_up),
+	* src/DirectFB/directfb_mode.c (close_framebuffer_mode):
+	Little fixes...
+
 	* src/main.c (start_up):
 	Increased qingy GUI status polling time. Also, we now make our best
 	attempts to let our GUI shut itself down cleanly before killing it.

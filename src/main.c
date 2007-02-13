@@ -350,7 +350,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 						{
 							/* pid-icide! */
 							system(reset_console_utility);
-							kill(gui_pid, SIGKILL);
+							kill(gui_pid, SIGQUIT);
 							nanosleep(&delay, NULL);
 							system(reset_console_utility);
 							Switch_TTY;
