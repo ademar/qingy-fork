@@ -1,6 +1,17 @@
+2007-02-13  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/main.c (start_up):
+	Increased qingy GUI status polling time. Also, we now make our best
+	attempts to let our GUI shut itself down cleanly before killing it.
+
+	* src/libraries/session.c:
+	Detached qingy from its controlling tty when starting sessions.
+
 2007-01-17  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* configure.in,
+	Tagged version as 0.9.6.
+
 	* media/screensavers/Makefile.am (SUBDIRS),
 	* media/screensavers/matrix:
 	Wiped out matrix screensaver as it used a font with licensing issues.

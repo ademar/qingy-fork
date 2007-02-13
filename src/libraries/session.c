@@ -794,6 +794,12 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 		WRITELOG(ERROR, "Cannot start your session: %s!\n", strerror(errno));
 		exit(0);
 	}
+
+	/* detach from teminal */
+	fclose(stdin);
+	fclose(stdout);
+	fclose(stderr);
+
   set_last_user(username);
   set_last_session_tty(session, current_vt);
 
@@ -949,6 +955,11 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 		WRITELOG(ERROR, "Cannot start your session: %s!\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
+
+	/* detach from teminal */
+	fclose(stdin);
+	fclose(stdout);
+	fclose(stderr);
 
   set_last_user(username);
   set_last_session_tty(session, current_vt);

@@ -310,10 +310,11 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 
 			default: /* parent */
 			{
+				int do_murder = 0;
 				struct timespec delay;
 
 				delay.tv_sec  = 0;
-				delay.tv_nsec = 100000000; /* that's 100M, or one tenth of a second */
+				delay.tv_nsec = 500000000; /* that's 500M, or half a second */
 
 				/* install handler so that our GUI can signal us to
 				 * (try to) authenticate a user...
@@ -339,17 +340,25 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 					if (WIFEXITED(returnstatus) || WIFSIGNALED(returnstatus))
 						break;
 
-					/* if we got action from GUI, let's murder it and go on as if nothing had happened! */
+					/* 
+					 * we got action from GUI, let's give it a little more time to exit,
+					 * then murder it and go on as if nothing had happened!
+					 */
 					if (got_action)
-					{	
-						system(reset_console_utility);
-						kill(gui_pid, SIGQUIT);
-						nanosleep(&delay, NULL);
-						system(reset_console_utility);
-						Switch_TTY;
-						waitpid(gui_pid, &returnstatus, 0);
-
-						break;
+					{
+						if (do_murder)
+						{
+							/* pid-icide! */
+							system(reset_console_utility);
+							kill(gui_pid, SIGKILL);
+							nanosleep(&delay, NULL);
+							system(reset_console_utility);
+							Switch_TTY;
+							waitpid(gui_pid, &returnstatus, 0);
+							break;
+						}
+						else
+							do_murder = 1;
 					}
 
 					nanosleep(&delay, NULL); /* wait a little before checking again */

@@ -1,4 +1,4 @@
-AC_INIT([qingy],[0.9.5],[michele.noberasco@tiscali.it])
+AC_INIT([qingy],[0.9.6],[michele.noberasco@tiscali.it])
 AC_PREREQ(2.59)
 AC_CONFIG_SRCDIR(src/main.c)
 AM_INIT_AUTOMAKE([1.9 check-news dist-bzip2])
