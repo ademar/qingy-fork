@@ -1,7 +1,7 @@
 qingy SVN-0.9.6-SVN:
 - Detached qingy from its controlling tty when starting sessions.
-- Make qingy do everything it can to let its GUI shut itself down cleanly
-  before killing it.
+- qingy does no longer try to kill its GUI as it should no longer
+  hang now.
 
 qingy 0.9.5 (17 Jan 2006):
 - Changed again the way qingy fires up the shell: now it

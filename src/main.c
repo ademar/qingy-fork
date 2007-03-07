@@ -310,7 +310,6 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 
 			default: /* parent */
 			{
-				int do_murder = 0;
 				struct timespec delay;
 
 				delay.tv_sec  = 0;
@@ -321,7 +320,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 				 */
 				signal(SIGUSR1, authenticate_user);
 
-				/* ...and another to get GUI exit status */
+				/* ...another to get GUI exit status... */
 				signal(SIGUSR2, read_action);
 
 				/* it is now safe to open our fifo to read auth data */
@@ -340,37 +339,18 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 					if (WIFEXITED(returnstatus) || WIFSIGNALED(returnstatus))
 						break;
 
-					/* 
-					 * we got action from GUI, let's give it a little more time to exit,
-					 * then murder it and go on as if nothing had happened!
-					 */
-					if (got_action)
-					{
-						if (do_murder)
-						{
-							/* pid-icide! */
-							system(reset_console_utility);
-							kill(gui_pid, SIGQUIT);
-							nanosleep(&delay, NULL);
-							system(reset_console_utility);
-							Switch_TTY;
-							waitpid(gui_pid, &returnstatus, 0);
-							break;
-						}
-						else
-							do_murder = 1;
-					}
-
 					nanosleep(&delay, NULL); /* wait a little before checking again */
 				}
 
-				/* we no longer need the signal handlers */
 				signal(SIGUSR1, SIG_DFL);
 				signal(SIGUSR2, SIG_DFL);
 
 				break;
 			}
 		}
+
+		/* reset console */
+		reset_console(1);
 
 		if ((WIFEXITED(returnstatus) || WIFSIGNALED(returnstatus)) && gui_retval != GUI_FAILURE)
 			returnstatus = gui_retval;

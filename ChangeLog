@@ -1,3 +1,17 @@
+2007-03-06  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/main.c:
+	Modified so that it no longer calls an external utility to reset the console,
+	calling instead the reset_console() function and telling it to do its stuff
+	in a separate process, so that it does not bork the terminal status of the
+	main process. Also, wiped out all code that (tried to) kill the GUI when it
+	thought it had hanged.
+
+	* src/libraries/vt.h,
+	* src/libraries/vt.c (reset_console):
+	Modified this function so that it calculates internally its destination tty,
+	added a parameter to decide whether it should fork() before resetting the terminal.
+
 2007-02-13  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/main.c (start_up),

@@ -35,9 +35,7 @@
 
 int main(void)
 {
-	int tty = get_available_tty();
-
-	reset_console(tty);
+	reset_console(0);
 
 	return EXIT_SUCCESS;
 }

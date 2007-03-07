@@ -87,7 +87,7 @@ void stderr_enable(int *vt);
 char *get_fb_resolution(char *fb_device);
 
 /* reset framebuffer console if DirectFB hangs... */
-void reset_console(int dest_vt);
+void reset_console(int do_fork);
 
 /* duplicate a file descriptor */
 int fd_copy(int to, int from);

@@ -41,6 +41,8 @@
 #include <sys/ioctl.h>
 #include <sys/kd.h>
 #include <sys/vt.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include <errno.h>
 
@@ -299,24 +301,43 @@ static int zap_console(int fd, struct termios *termios_backup)
 	return result;
 }
 
-void reset_console(int dest_vt)
+void reset_console(int do_fork)
 {
-	struct termios termios_backup;
-	int have_backup;
-	int fd;
+	if (!do_fork)
+	{
+		struct termios termios_backup;
+		int dest_vt = get_available_tty();
+		int have_backup;
+		int fd;
 
-	if ((fd = open("/dev/console", O_RDWR)) == -1)
-		writelog(ERROR, "Could not open /dev/console\n");
+		if ((fd = open("/dev/console", O_RDWR)) == -1)
+			writelog(ERROR, "Could not open /dev/console\n");
 		
-	have_backup = zap_console(fd, &termios_backup);
+		have_backup = zap_console(fd, &termios_backup);
 
-	if (have_backup)
-		restore_console(fd, &termios_backup);
-	else
-		restore_console(fd, NULL);
+		if (have_backup)
+			restore_console(fd, &termios_backup);
+		else
+			restore_console(fd, NULL);
 
-	unlock_tty_switching();
-	set_active_tty(dest_vt);
+		unlock_tty_switching();
+		set_active_tty(dest_vt);
+
+		return;
+	}
+
+	switch ((int)fork())
+	{
+		case -1: /* error */
+			writelog(ERROR, "Cannot issue fork() command!\n");
+			sleep(2);
+			exit(EXIT_FAILURE);
+		case 0: /* child */
+			reset_console(0);
+			exit(EXIT_SUCCESS);
+		default: /* parent */
+			wait(NULL);
+	}
 }
 
 int fd_copy(int to,int from)
