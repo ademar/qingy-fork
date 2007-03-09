@@ -2,6 +2,10 @@ qingy SVN-0.9.6-SVN:
 - Detached qingy from its controlling tty when starting sessions.
 - qingy does no longer try to kill its GUI as it should no longer
   hang now.
+- Fixed bug that made shells other that zsh be invoked with a double '-';
+  that is --bash instead of -bash, which is the correct form for login
+  shell invocation.
+- Added proper escaping for session names, removed quoting around them.
 
 qingy 0.9.5 (17 Jan 2006):
 - Changed again the way qingy fires up the shell: now it

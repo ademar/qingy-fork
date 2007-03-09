@@ -527,11 +527,10 @@ int check_password(char *username, char *user_password)
 #endif /* End of USE_PAM */
 }
 
-char *shell_base_name(char *name)
+static char *shell_base_name(char *name)
 {
   char *base = name;
   char *temp = name;
-	char *retval;
   
   if (!name) return NULL;
   while (*temp)
@@ -540,12 +539,34 @@ char *shell_base_name(char *name)
 		temp++;
 	}
   
-	if (strcmp(base, "zsh"))
-		retval = StrApp((char**)NULL, "-", base, (char*)NULL);
-	else
-		retval = strdup(base);
+  return base;
+}
 
-  return retval;
+static char *add_escapes(char *filename)
+{
+	unsigned int i, j, len;
+	char *escaped_filename;
+
+	if (!filename) return NULL;
+
+	len = strlen(filename);
+
+	/* how many escapes should we add? */
+	for (i=0; filename[i] != '\0'; i++)
+		if (filename[i] == ' ')
+			len++;
+
+	escaped_filename = (char*)calloc(len+1, sizeof(char));
+
+	for (j=i=0; i<strlen(filename); i++)
+	{
+		if (filename[i] == ' ')
+			escaped_filename[j++] = '\\';
+		escaped_filename[j++] = filename[i];
+	}
+	escaped_filename[j] = '\0';
+	
+	return escaped_filename;
 }
 
 void setEnvironment(struct passwd *pwd, int is_x_session)
@@ -743,6 +764,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   pid_t proc_id;
   char *args[5] = {NULL, NULL, NULL, NULL, NULL};
 	int   count   = 0;
+	int   i       = 0;
 #ifdef USE_PAM
   int retval;
 #endif
@@ -753,9 +775,18 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 	if (session)
 		if (strcmp(session+6, "Console"))
 		{
+			char *session_name = add_escapes(session+6);
+
 			args[count++] = strdup("-c");
-			args[count++] = StrApp((char **)NULL, text_sessions_directory, "\"", session+6, "\"", (char *)NULL);
+			args[count++] = StrApp((char **)NULL, text_sessions_directory, session_name, (char *)NULL);
+
+			free(session_name);
 		}
+
+  /* done... as a final touch we suppress verbose output */
+	if (DEBUG <= max_loglevel)
+		for (; args[i]; i++)
+			WRITELOG(DEBUG, "Starting text session with argument #%d: %s\n", i, args[i]);
 
   proc_id = fork();
   if (proc_id == -1)
@@ -888,7 +919,12 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   if (!strcmp(session, "Your .xsession"))
     args[count] = StrApp(&(args[count]), "$HOME/.xsession -- ", (char*)NULL);
   else
-    args[count] = StrApp(&(args[count]), x_sessions_directory, "\"", session, "\" -- ", (char*)NULL);
+	{
+		char *session_name = add_escapes(session);
+
+    args[count] = StrApp(&(args[count]), x_sessions_directory, session_name, " -- ", (char*)NULL);
+		free(session_name);
+	}
 
   /* add the chosen X server, if one has been chosen */
 	if (x_server)

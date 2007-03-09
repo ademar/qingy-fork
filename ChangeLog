@@ -1,3 +1,16 @@
+2007-03-09  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/session.c:
+	Added debug information for program invocation in text sessions.
+	Added proper escaping for session names, removed quoting around them.
+
+2007-03-08  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/session.c (shell_base_name):
+	Fixed bug that made shells other that zsh be invoked with a double '-';
+	that is --bash instead of -bash, which is the correct form for login
+	shell invocation.
+
 2007-03-06  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/main.c:
