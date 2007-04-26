@@ -71,10 +71,11 @@
 
 static int where_is_intruder  = 0;
 static int where_was_intruder = 0;
+static int qingy_tty = 0;
 
 
 /* checks wether given string is a number */
-int is_number(char *string)
+static int is_number(char *string)
 {
 	char *endptr = NULL;
 
@@ -86,7 +87,7 @@ int is_number(char *string)
 }
 
 /* we check wether <process> is qingy or getty */
-int is_getty(char *process)
+static int is_getty(char *process)
 {
 	char *link = StrApp((char**)NULL, "/proc/", process, "/exe", (char*)NULL);	
 	char buf[256];
@@ -110,7 +111,7 @@ int is_getty(char *process)
  * entries to find a process that owns /dev/tty<tty> (or /dev/vc/<tty>)
  * of which we return the pid
  */
-char *has_controlling_processes(int tty)
+static char *has_controlling_processes(int tty)
 {
 	struct dirent *entry;
 	char  *device  = create_tty_name(tty);
@@ -223,7 +224,7 @@ char *read_password(int tty)
 }
 
 /* block user until he authenticates */
-int WatchDog_Bark (char *dog_master, char *intruder, int our_land, int session_timed_out)
+static int WatchDog_Bark (char *dog_master, char *intruder, int our_land, int session_timed_out)
 {
 	int   dest = get_available_tty();
 	char *password;
@@ -271,7 +272,7 @@ int WatchDog_Bark (char *dog_master, char *intruder, int our_land, int session_t
 	fflush(stdout);
 	sleep(2);
 	ClearScreen();
-	switch_to_tty(our_land);
+	switch_to_tty(qingy_tty);
 	disallocate_tty(dest);
 
 	if (retval)
@@ -284,7 +285,7 @@ int WatchDog_Bark (char *dog_master, char *intruder, int our_land, int session_t
 }
 
 /* check wether user has auth to visit our tty */
-void WatchDog_Sniff(char *dog_master, int fence, int where_was_intruder)
+static void WatchDog_Sniff(char *dog_master, int fence, int where_was_intruder)
 {
 	static char *previous_intruder = NULL;
 	char        *intruder;
@@ -334,7 +335,8 @@ void WatchDog_Sniff(char *dog_master, int fence, int where_was_intruder)
 
 	if (previous_intruder)
 		if (!strcmp(previous_intruder,intruder))
-			return; /* it's a hard life being sure of someone... */
+			/* it's a hard life being sure of someone... */
+			return;
 
 	/* tell user to authenticate himself */
 	retval = WatchDog_Bark(dog_master, intruder, fence, 0);
@@ -353,7 +355,7 @@ void WatchDog_Sniff(char *dog_master, int fence, int where_was_intruder)
 }
 
 /* guard specified ttys against unauthorized access */
-void ttyWatchDog(char *dog_master, int fence)
+static void ttyWatchDog(char *dog_master, int fence)
 {
 	if (!where_was_intruder) where_was_intruder = get_active_tty();
 	else where_was_intruder = where_is_intruder;
@@ -368,7 +370,7 @@ void ttyWatchDog(char *dog_master, int fence)
 			WatchDog_Sniff(dog_master, fence, where_was_intruder);
 }
 
-void resetTtyWatchDog()
+static void resetTtyWatchDog()
 {
 	where_is_intruder  = 0;
 	where_was_intruder = 0;
@@ -377,7 +379,7 @@ void resetTtyWatchDog()
 /* activate post login features if user wants (any of) them.
  * Now supported: tty guardian, session timeout.
  */
-void watch_over_session(pid_t proc_id, char *username, int session_vt, int is_x_session, int x_offset)
+void watch_over_session(pid_t proc_id, char *username, int session_vt, int x_vt, int is_x_session, int x_offset)
 {
 	struct timespec  delay;
 	time_t           start_time = time(NULL);
@@ -394,17 +396,26 @@ void watch_over_session(pid_t proc_id, char *username, int session_vt, int is_x_
 	/* We set up a delay of 0.1 seconds */
   delay.tv_sec  = 0;
   delay.tv_nsec = 100000000;	/* that's 100M */
+	qingy_tty     = session_vt;
 
 	if (idle_timeout && timeout_action)
-		tty = create_tty_name(session_vt);
+		tty = create_tty_name(x_vt);
 
 	while (waitpid(proc_id, NULL, WNOHANG) != proc_id)
 	{
+		int active_tty = get_active_tty();
+
+		if (active_tty == session_vt && x_vt != session_vt)
+		{
+			set_active_tty(x_vt);
+			active_tty = x_vt;
+		}
+
 		if (bark)
 		{
-			if (get_active_tty() == session_vt)
+			if (active_tty == x_vt)
 			{
-				while (!WatchDog_Bark (username, username, session_vt, 1));
+				while (!WatchDog_Bark (username, username, x_vt, 1));
 				resetTtyWatchDog();
 				start_time = time(NULL);
 				bark = 0;
@@ -414,7 +425,7 @@ void watch_over_session(pid_t proc_id, char *username, int session_vt, int is_x_
 			continue;
 		}
 
-		if (lock_sessions) ttyWatchDog(username, session_vt);
+		if (lock_sessions) ttyWatchDog(username, x_vt);
 
 		if (idle_timeout && timeout_action)
 		{

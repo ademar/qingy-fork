@@ -1,3 +1,22 @@
+2007-04-26  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/session.c (add_escapes):
+	Added quoting for file names with tabs in them (unlikely).
+
+2007-03-21  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/tty_guardian.c,
+	* src/libraries/tty_guardian.h,
+	* src/libraries/session.c (Graph_Login),
+	* media/qingy-mode.el,
+	* src/libraries/parse_settings.y,
+	* src/libraries/load_settings.c (initialize_variables),
+	* src/libraries/load_settings.h,
+	* src/libraries/scan_settings.l, 
+	* media/Makefile.am (settings):
+	Added support for selecting whether to start the X server in the same
+	tty qingy is running in (default for qingy), or in an unused one (default for startx).
+
 2007-03-09  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c:

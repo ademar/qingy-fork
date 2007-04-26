@@ -29,7 +29,7 @@
 /* activate post login features if user wants (any of) them.
  * Now supported: tty guardian, session timeout with lock/logout.
  */
-void watch_over_session(pid_t proc_id, char *username, int session_vt, int is_x_session, int x_offset);
+void watch_over_session(pid_t proc_id, char *username, int session_vt, int x_vt, int is_x_session, int x_offset);
 
 /* read user password without echoing it */
 char *read_password(int tty);

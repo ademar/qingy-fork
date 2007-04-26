@@ -145,8 +145,8 @@ static cursor_t curs =
 /* scrips that are called before the gui fires up and after it is shut down */
 %token PRE_GUI_TOK POST_GUI_TOK
 
-/* X server offset */
-%token X_SERVER_OFFSET_TOK
+/* X server offset and tty handling */
+%token X_SERVER_OFFSET_TOK X_SERVER_TTY_TOK QINGY_TTY_TOK UNUSED_TTY_TOK
 
 /* session timeout tokens */
 %token IDLE_TIMEOUT_TOK IDLE_ACTION_TOK LOGOUT_TOK LOCK_TOK
@@ -178,6 +178,7 @@ config: /* nothing */
 | config pre_gui
 | config post_gui
 | config x_serv_offset
+| config x_serv_tty
 | config ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config dfb_interface
 | config reset_console
@@ -214,6 +215,7 @@ config_tty: /* nothing */
 | config_tty pre_gui
 | config_tty post_gui
 | config_tty x_serv_offset
+| config_tty x_serv_tty
 | config_tty ssav { TTY_CHECK_COND ssaver_is_set = 1; }
 | config_tty dfb_interface
 | config_tty reset_console
@@ -451,6 +453,19 @@ x_serv_offset: X_SERVER_OFFSET_TOK '=' ANUM_T
 	  if(in_theme) yyerror("Setting 'x_server_offset' is not allowed in theme file");
 	  TTY_CHECK_COND x_server_offset = $3;
 	};
+
+/* Handling of the tty the X server should be started in  */
+x_serv_tty: X_SERVER_TTY_TOK  '=' QINGY_TTY_TOK
+	{
+	  if (in_theme) yyerror("Setting 'x_server_tty' is not allowed in theme file.");
+	  TTY_CHECK_COND x_serv_tty_mgmt = QINGY_TTY;
+	}
+| X_SERVER_TTY_TOK '=' UNUSED_TTY_TOK
+	{
+	  if (in_theme) yyerror("Setting 'x_server_tty' is not allowed in theme file.");
+	  TTY_CHECK_COND x_serv_tty_mgmt = UNUSED_TTY;
+	}
+;
 
 /* shutdown policies */
 shutdown: SHUTDOWN_TOK '=' EVERYONE_TOK

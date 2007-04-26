@@ -56,6 +56,12 @@ settings: Makefile
 	@echo "# extra parameters." >> settings
 	@echo "#x_server_offset = 1" >> settings
 	@echo "" >> settings
+	@echo "# Where should we start the X server?" >> settings
+	@echo "# Accepted values are:" >> settings
+	@echo "#   qingy_tty (default) to start it in the same tty qingy is running in" >> settings
+	@echo "#   unused_tty to start it into an unused tty" >> settings
+	@echo "x_server_tty = qingy_tty" >> settings
+	@echo "" >> settings
 	@echo "# Scripts that should be executed just before/after qingy GUI is fired up/shut down" >> settings
 if WANT_GPM_LOCK
 	@echo "pre_gui_script  = \"$(settingsdatadir)/pre_GUI.sh\"" >> settings

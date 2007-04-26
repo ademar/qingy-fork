@@ -87,6 +87,7 @@ void initialize_variables(void)
 	reset_console_utility   = StrApp((char**)NULL, SBINDIR, "qingy-reset-console", (char*)NULL);
 	tmp_files_dir           = strdup("/var/lib/misc");
 	max_loglevel            = ERROR;
+	x_serv_tty_mgmt         = QINGY_TTY;
   background              = NULL;
 	themes_dir              = NULL;
   theme_dir               = NULL;

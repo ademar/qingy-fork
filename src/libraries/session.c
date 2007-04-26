@@ -553,14 +553,14 @@ static char *add_escapes(char *filename)
 
 	/* how many escapes should we add? */
 	for (i=0; filename[i] != '\0'; i++)
-		if (filename[i] == ' ')
+		if (filename[i] == ' ' || filename[i] == '\t')
 			len++;
 
 	escaped_filename = (char*)calloc(len+1, sizeof(char));
 
 	for (j=i=0; i<strlen(filename); i++)
 	{
-		if (filename[i] == ' ')
+		if (filename[i] == ' ' || filename[i] == '\t')
 			escaped_filename[j++] = '\\';
 		escaped_filename[j++] = filename[i];
 	}
@@ -834,7 +834,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   set_last_user(username);
   set_last_session_tty(session, current_vt);
 
-  watch_over_session(proc_id, username, current_vt, 0, 0);
+  watch_over_session(proc_id, username, current_vt, current_vt, 0, 0);
 
   memset(username, '\0', sizeof(username));	
 	free(username); free(session);
@@ -897,9 +897,10 @@ int which_X_server(void)
 void Graph_Login(struct passwd *pw, char *session, char *username)
 {
   pid_t proc_id;
-	int   x_offset = which_X_server();
+	int   x_offset    = which_X_server();
   char *my_x_server = int_to_str(x_offset);
-  char *vt = NULL;
+  char *vt   = NULL;
+	int   x_vt = current_vt;
   char *args[5] = {NULL, NULL, NULL, NULL, NULL};
 	int   count   = 0;
 	int   i       = 0;
@@ -907,7 +908,10 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   int retval;
 #endif
 
-	vt = int_to_str(current_vt);
+	if (x_serv_tty_mgmt == UNUSED_TTY)
+		x_vt = get_available_tty();
+
+	vt = int_to_str(x_vt);
   
 	args[count++] = StrApp((char**)NULL, "-", shell_base_name(pw->pw_shell), (char*)NULL); /* make it a login shell */
   args[count++] = strdup("-c");
@@ -1000,7 +1004,8 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   set_last_user(username);
   set_last_session_tty(session, current_vt);
 
-	watch_over_session(proc_id, username, current_vt, 1, x_offset);
+	watch_over_session(proc_id, username, current_vt, x_vt, 1, x_offset);
+	set_active_tty(current_vt);
 
   memset(username, '\0', sizeof(username));	
 	free(username); free(session);

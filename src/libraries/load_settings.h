@@ -120,6 +120,14 @@ typedef struct _cursor
 cursor_t* cursorsList;
 cursor_t* cursor;
 
+/* X server tty handling... */
+typedef enum 
+{
+  QINGY_TTY=0,
+  UNUSED_TTY
+} x_serv_tty_mgmts;
+x_serv_tty_mgmts x_serv_tty_mgmt;
+
 /* Shutdown permissions policy... */
 typedef enum 
 {
