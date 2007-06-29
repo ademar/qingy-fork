@@ -34,7 +34,7 @@ settings: Makefile
 	@echo "xinit = \"@XINIT@\"" >> settings
 	@echo "" >> settings
 	@echo "# Parameter we should pass to the X server" >> settings
-	@echo "x_args = \"-nolisten tcp\"" >> settings
+	@echo "x_args = \"-nolisten tcp -br\"" >> settings
 	@echo "" >> settings
 	@echo "# How verbose should qingy be?" >> settings
 	@echo "# Possible values are debug, error" >> settings

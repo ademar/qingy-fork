@@ -1,3 +1,8 @@
+2007-06-29  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/Makefile.am (settings):
+	Added -br to default X args...
+
 2007-04-26  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/session.c (add_escapes):

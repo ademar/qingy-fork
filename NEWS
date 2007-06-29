@@ -1,3 +1,6 @@
+qingy SVN-0.9.7-SVN:
+- Added '-br' to default X args.
+
 qingy 0.9.6 (26 Apr 2007):
 - Detached qingy from its controlling tty when starting sessions.
 - qingy no longer tries to kill its GUI as it should not hang any more.
@@ -57,7 +60,7 @@ qingy 0.9.2 (24 Oct 2006):
 - DirectFB version 0.9.24 (or higher) is now required to run qingy.
 
 qingy 0.9.1 (24 Aug 2006):
-- Argh, all graphics in default there were currupt! This probably was caused
+- Argh, all graphics in default theme were currupt! This probably was caused
   by the switch to svn... Fixed it by recovering the files from an older
   qingy tarball.
 - Fixed a bug that sometimes made qingy GUI hang on exit.
