@@ -941,7 +941,9 @@ int load_settings(void)
   if (!text_sessions_directory ||
 			!x_sessions_directory    ||
 			!xinit                   ||
+#ifdef USE_SCREEN_SAVERS
 			!screensavers_dir        ||
+#endif
 			!themes_dir)
 	{
 		writelog(ERROR, "You left some variables undefined in settings file!\n");

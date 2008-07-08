@@ -161,13 +161,22 @@ struct pam_conv PAM_conversation =
 #endif /* End of USE_PAM */
 
 
+typedef struct _sessions
+{
+	char *name;
+	char *exec;
+	struct _sessions *next;
+} Sessions;
+Sessions *sessions = NULL;
+
+
 char *get_sessions(void)
 {
   static DIR    *dir;
   struct dirent *entry;
   static char   *dirname = NULL;
   static int     status  = 0;
-  
+
 #ifdef USE_X
   if (!dirname) dirname = x_sessions_directory;
 #else
@@ -182,26 +191,16 @@ char *get_sessions(void)
 #ifdef USE_X
 			{
 				struct stat dirstat;
-				int         createdir   = 0;
-				int         populatedir = 1;
+				int read_dir = 0;
 
 				if (stat(dirname, &dirstat) == -1)
-					createdir = 1;
+					read_dir = 1;
 
-				if (!createdir)
+				if (!read_dir)
 					if (!S_ISDIR(dirstat.st_mode))
-						createdir = 1;
+						read_dir = 1;
 
-				if (createdir)
-					if (mkdir(dirname, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) == -1)
-					{
-						WRITELOG(ERROR, "Unable to create directory \"%s\"\n", dirname);
-						populatedir = 0;
-					}
-
-				populatedir=1;
-
-				if (populatedir)
+				if (read_dir)
 				{
 					DIR *dir = opendir("/usr/share/xsessions");
 					if (dir)
@@ -234,19 +233,23 @@ char *get_sessions(void)
 										char *content  = buf + offset;
 										char *extension= strstr(direntry->d_name, ".desktop");
 										char *filename = (extension) ? strndup(direntry->d_name, extension-direntry->d_name) : strdup(direntry->d_name);
-										char *pathname = StrApp((char**)NULL, dirname, "/", filename, (char*)NULL);
-										int   fd       = open(pathname, O_WRONLY|O_CREAT|O_TRUNC, S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
-										FILE *fileout  = fdopen(fd, "w");
+										Sessions *mySessions = sessions;
 
-										free(filename);
-										free(pathname);
-
-										if (fileout)
+										if (!mySessions)
 										{
-											fprintf(fileout, "%s\n", content);
-											fclose(fileout);
+											sessions   = (Sessions *)calloc(1, sizeof(Sessions));
+											mySessions = sessions;
 										}
-										close(fd);
+										else
+										{
+											mySessions->next = (Sessions *)calloc(1, sizeof(Sessions));
+											mySessions = mySessions->next;
+										}
+
+										mySessions->name = filename;
+										mySessions->exec = strndup(content, strlen(content) - 1); //remove trailing newspace
+										mySessions->next = NULL;
+
 										break;
 									}
 								}
@@ -276,39 +279,68 @@ char *get_sessions(void)
 				WRITELOG(ERROR, "Unable to open directory \"%s\"\n", dirname);
 				if (dirname == x_sessions_directory)
 				{
-					dirname = text_sessions_directory;
-					return get_sessions();
+					if (sessions)
+					{
+						status = 3;
+						return get_sessions();
+					}
+					else
+					{
+						dirname = text_sessions_directory;
+						return get_sessions();
+					}
 				}
 				status = 0;
 				return NULL;
 			}
       status = 3;
     case 3:
-      while (1)
+			if (dirname == x_sessions_directory && sessions)
 			{
-				if (!(entry= readdir(dir))) break;
-				if (!strncmp(entry->d_name, ".", 1)) continue;
-				if (dirname == x_sessions_directory)
+				static Sessions *mySessions = (Sessions *)-1;
+
+				if (mySessions == (Sessions *)-1)
+					mySessions = sessions;
+
+				if (mySessions)
 				{
+					char *retval = strdup(mySessions->name);
+
+					mySessions = mySessions->next;
+
+					return retval;
+				}
+			}
+			else
+			{
+				while (1)
+				{
+					if (!(entry= readdir(dir))) break;
+					if (!strncmp(entry->d_name, ".", 1)) continue;
+					if (dirname == x_sessions_directory)
+					{
 #ifdef slackware
-					if (strncmp(entry->d_name, "xinitrc.", 8)) continue;
+						if (strncmp(entry->d_name, "xinitrc.", 8)) continue;
 #else /* !slackware  */
 #ifdef gentoo
-					if (!strcmp(entry->d_name, "Xsession")) continue;
+						if (!strcmp(entry->d_name, "Xsession")) continue;
 #endif /* gentoo     */
 #endif /* !slackware */
-					return strdup(entry->d_name);
+						return strdup(entry->d_name);
+					}
+					else return StrApp((char**)NULL, "Text: ", entry->d_name, (char*)NULL);
 				}
-				else return StrApp((char**)NULL, "Text: ", entry->d_name, (char*)NULL);
+				closedir(dir);
 			}
-      closedir(dir);
-      if (dirname == text_sessions_directory)
+
+			if (dirname == text_sessions_directory)
 			{
 				dirname = NULL;
 				status = 0;
 				return NULL;
 			}
-      dirname = text_sessions_directory;
+
+			dirname = text_sessions_directory;
       status = 2;
       return get_sessions();
 	}
@@ -801,7 +833,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 		dolastlog(pw, 0);
 		add_utmp_wtmp_entry(username);
 #ifdef USE_PAM
-		pam_setcred(pamh, PAM_ESTABLISH_CRED);
+		//pam_setcred(pamh, PAM_ESTABLISH_CRED);
 		pam_open_session(pamh, 0);
 #else
 		LogEvent(pw, OPEN_SESSION);
@@ -814,6 +846,10 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 
     /* drop root privileges and set user enviroment */
 		switchUser(pw, 0);
+
+#ifdef USE_PAM
+		pam_setcred(pamh, PAM_ESTABLISH_CRED);
+#endif
 
 		/* save last session for this user */
 		set_last_session_user(username, session);
@@ -924,10 +960,33 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
     args[count] = StrApp(&(args[count]), "$HOME/.xsession -- ", (char*)NULL);
   else
 	{
-		char *session_name = add_escapes(session);
+		char *session_name = NULL;
 
-    args[count] = StrApp(&(args[count]), x_sessions_directory, session_name, " -- ", (char*)NULL);
-		free(session_name);
+		if (sessions)
+		{
+			Sessions *mySessions = (Sessions *)sessions;
+
+			while (mySessions)
+			{
+				if (!strcmp(mySessions->name, session))
+					break;
+
+				mySessions = mySessions->next;
+			}
+
+			session_name = add_escapes(mySessions->exec);
+
+			args[count] = StrApp(&(args[count]), "/usr/bin/", session_name, " -- ", (char*)NULL);
+
+			free(session_name);
+		}
+		else
+		{
+			session_name = add_escapes(session);
+
+			args[count] = StrApp(&(args[count]), x_sessions_directory, session_name, " -- ", (char*)NULL);
+			free(session_name);
+		}
 	}
 
   /* add the chosen X server, if one has been chosen */
@@ -965,7 +1024,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 		dolastlog(pw, 1);
 		add_utmp_wtmp_entry(username);
 #ifdef USE_PAM
-		pam_setcred(pamh, PAM_ESTABLISH_CRED);
+		//pam_setcred(pamh, PAM_ESTABLISH_CRED);
 		pam_open_session(pamh, 0);
 #else
 		LogEvent(pw, OPEN_SESSION);
@@ -978,6 +1037,10 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 
 		/* drop root privileges and set user enviroment */
 		switchUser(pw, 1);
+
+#ifdef USE_PAM
+		pam_setcred(pamh, PAM_ESTABLISH_CRED);
+#endif
 
 		/* clean up standard input, output, error */
     freopen("/dev/null", "r", stdin);
@@ -1069,6 +1132,8 @@ void start_session(char *username, char *session)
 	}
 #endif
   
+	while (get_sessions());
+
   if (!strncmp(session, "Text: ", 6)) Text_Login(pwd, session, username);
   else Graph_Login(pwd, session, username);
   

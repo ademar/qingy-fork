@@ -1,5 +1,6 @@
-qingy SVN-0.9.7-SVN:
+qingy 0.9.7 (08 Jul 2008):
 - Added '-br' to default X args.
+- No longer try to create /etc/X11/Sessions if it was not found
 
 qingy 0.9.6 (26 Apr 2007):
 - Detached qingy from its controlling tty when starting sessions.

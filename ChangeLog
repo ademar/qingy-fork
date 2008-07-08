@@ -1,3 +1,10 @@
+2007-10-15  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/libraries/load_settings.c (load_settings),
+	* src/DirectFB/directfb_mode.c (handle_keyboard_event):
+	Fixed a couple of bugs that trigger if user chooses not to compile
+	screensavers support.
+
 2007-06-29  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* media/Makefile.am (settings):

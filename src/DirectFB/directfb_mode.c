@@ -683,7 +683,9 @@ int handle_keyboard_event(DFBInputEvent *evt)
 				exit(EXIT_SUCCESS);
 				break;
 			case DO_SCREEN_SAVER:
+#ifdef USE_SCREEN_SAVERS
 				do_ss(dfb, primary, font_large, 0);
+#endif
 				break;
 			case DO_SLEEP:
 				if (!sleep_cmd)
