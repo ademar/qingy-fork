@@ -1,3 +1,8 @@
+2008-07-08  Michele Noberasco  <noberasco@zirak.it>
+
+	* losta_files:
+	No longer try to create /etc/X11/Sessions if it was not found
+
 2007-10-15  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* src/libraries/load_settings.c (load_settings),
