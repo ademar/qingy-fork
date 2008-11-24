@@ -61,19 +61,21 @@ typedef struct _ComboBox
 	int                    mouse;     /* 1 if mouse is over combobox, 0 otherwise */
 	void                  *extraData; /* internal use only                        */
 	void (*sortfunc)      (char **items, int n_items);
+	void (*click_callback)(struct _ComboBox *thiz);
 
 	/* public methods */
-	void (*SetCursor)      (struct _ComboBox *thiz, IDirectFB *dfb, cursor_t *cursor_data, float x_ratio, float y_ratio);
-	void (*SetTextColor)   (struct _ComboBox *thiz, color_t *text_color);
-	void (*SetFocus)       (struct _ComboBox *thiz, int      focus     );
-	void (*AddItem)        (struct _ComboBox *thiz, char    *item      );
-	void (*SelectItem)     (struct _ComboBox *thiz, char    *selection );
-	void (*SetSortFunction)(struct _ComboBox *thiz, void    *sortfunc  );
-	void (*SortItems)      (struct _ComboBox *thiz);
-	void (*ClearItems)     (struct _ComboBox *thiz);
-	void (*Hide)           (struct _ComboBox *thiz);
-	void (*Show)           (struct _ComboBox *thiz);
-	void (*Destroy)        (struct _ComboBox *thiz);
+	void (*SetCursor)       (struct _ComboBox *thiz, IDirectFB *dfb, cursor_t *cursor_data, float x_ratio, float y_ratio);
+	void (*SetTextColor)    (struct _ComboBox *thiz, color_t *text_color);
+	void (*SetFocus)        (struct _ComboBox *thiz, int      focus     );
+	void (*AddItem)         (struct _ComboBox *thiz, char    *item      );
+	void (*SelectItem)      (struct _ComboBox *thiz, char    *selection );
+	void (*SetSortFunction) (struct _ComboBox *thiz, void    *sortfunc  );
+	void (*SortItems)       (struct _ComboBox *thiz);
+	void (*ClearItems)      (struct _ComboBox *thiz);
+	void (*SetClickCallBack)(struct _ComboBox *thiz, void *callback);
+	void (*Hide)            (struct _ComboBox *thiz);
+	void (*Show)            (struct _ComboBox *thiz);
+	void (*Destroy)         (struct _ComboBox *thiz);
 
 } ComboBox;
 

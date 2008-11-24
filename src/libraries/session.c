@@ -276,7 +276,7 @@ char *get_sessions(void)
       dir= opendir(dirname);
       if (!dir)
 			{				
-				WRITELOG(ERROR, "Unable to open directory \"%s\"\n", dirname);
+				WRITELOG(DEBUG, "Unable to open directory \"%s\"\n", dirname);
 				if (dirname == x_sessions_directory)
 				{
 					if (sessions)
@@ -976,7 +976,10 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 
 			session_name = add_escapes(mySessions->exec);
 
-			args[count] = StrApp(&(args[count]), "/usr/bin/", session_name, " -- ", (char*)NULL);
+			if (!strncmp(session_name, "/", 1))
+				args[count] = StrApp(&(args[count]),              session_name, " -- ", (char*)NULL);
+			else
+				args[count] = StrApp(&(args[count]), "/usr/bin/", session_name, " -- ", (char*)NULL);
 
 			free(session_name);
 		}
@@ -1043,8 +1046,9 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 #endif
 
 		/* clean up standard input, output, error */
-    freopen("/dev/null", "r", stdin);
-	  freopen(ttyname, "w", stdout);
+		//freopen("/dev/null", "r", stdin);
+		fclose(stdin);
+		freopen(ttyname, "w", stdout);
 		freopen(ttyname, "w", stderr);
 		free(ttyname);
 

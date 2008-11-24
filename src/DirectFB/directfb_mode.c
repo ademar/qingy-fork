@@ -516,6 +516,22 @@ void textbox_click(TextBox *textbox)
 	}
 }
 
+/* callback function to handle combobox clicks */
+void combobox_click(ComboBox *combobox)
+{
+	if (!combobox)          return;
+	if (combobox->hasfocus) return;
+
+	if (combobox == session)
+	{	/* session area has been clicked! */
+		if (session_label) session_label->SetFocus(session_label, 1);
+		username->SetFocus(username, 0);
+		if (username_label) username_label->SetFocus(username_label, 0);
+		password->SetFocus(password, 0);
+		if (password_label) password_label->SetFocus(password_label, 0);
+	}
+}
+
 /* callback function to handle button clicks */
 void button_click(Button *button)
 {
@@ -961,6 +977,7 @@ int create_windows()
 					session = ComboBox_Create(layer, dfb, font, window->text_color, &window_desc, screen_width, screen_height);
 					if (!session) return 0;
 					session->SetSortFunction(session, sort_sessions);
+					session->SetClickCallBack(session, combobox_click);
 					if (window->cursor) session->SetCursor(session, dfb, window->cursor, x_ratio, y_ratio);
 				}
 

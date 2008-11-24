@@ -768,6 +768,8 @@ static void combobox_thread(ComboBox *thiz)
 					pthread_mutex_lock(&(thiz->lock));
 					if (mouse_over_combobox(thiz))
 					{
+						if (thiz->click_callback)
+							thiz->click_callback(thiz);
 						setFocus(thiz, 1, 0);
 						click(thiz);
 					}
@@ -862,6 +864,15 @@ static void combobox_thread(ComboBox *thiz)
 	}
 }
 
+void ComboBox_SetClickCallBack(ComboBox *thiz, void *callback)
+{
+	if (!thiz) return;
+
+	pthread_mutex_lock(&(thiz->lock));
+	thiz->click_callback = callback;
+	pthread_mutex_unlock(&(thiz->lock));
+}
+
 ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFB *dfb, IDirectFBFont *font, color_t *text_color, DFBWindowDescription *window_desc, int screen_width, int screen_height)
 {
   ComboBox *newbox = NULL;
@@ -896,6 +907,7 @@ ComboBox *ComboBox_Create(IDirectFBDisplayLayer *layer, IDirectFB *dfb, IDirectF
   newbox->Show            = ComboBox_Show;
   newbox->Destroy         = ComboBox_Destroy;
 	newbox->SetCursor       = ComboBox_SetCursor;
+	newbox->SetClickCallBack= ComboBox_SetClickCallBack;
 
 	DropDown *dropDown      = (DropDown *) calloc(1, sizeof(DropDown));
 	dropDown->screen_width  = screen_width;

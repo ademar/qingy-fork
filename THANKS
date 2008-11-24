@@ -12,3 +12,4 @@
 - Brian Carter <spakov@users.sourceforge.net>
   who provided code to select a session by typing the first char
   of its name.
+- Riccardo Stagni for integration into Debian, testing and patches.
