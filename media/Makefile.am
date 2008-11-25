@@ -147,12 +147,9 @@ endif
 	@echo "#	# Should we auto log in?" >> settings
 	@echo "#	# Totally insecure, but very convenient ;-)" >> settings
 	@echo "#	# Note that this section must be put inside a tty=n{} block" >> settings
-	@echo "#	# Also, if you decide to use this feature, it is better" >> settings
-	@echo "#	# that you also make this settings file readable only by root" >> settings
 	@echo "#	autologin" >> settings
 	@echo "#	{" >> settings
 	@echo "#		username = \"myuser\"" >> settings
-	@echo "#		password = \"mypassword\"" >> settings
 	@echo "#		# You can also use 'session=lastsession' to automatically choose last user session" >> settings
 	@echo "#		session  = \"Text: emacs\"" >> settings
 	@echo "#		# if set to 'no', qingy will autologin only once every system restart" >> settings

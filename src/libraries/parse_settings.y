@@ -130,7 +130,7 @@ static cursor_t curs =
 %token YES_TOK NO_TOK
 
 /* autologin stuff tokens */
-%token AUTOLOGIN_TOK USERNAME_TOK PASSWORD_TOK SESSION_TOK RELOGIN_TOK LAST_SESSION_TOK
+%token AUTOLOGIN_TOK USERNAME_TOK SESSION_TOK RELOGIN_TOK LAST_SESSION_TOK
 
 /* sleep tokens */
 %token SLEEP_TOK
@@ -239,7 +239,6 @@ config_tty: /* nothing */
 autologin: AUTOLOGIN_TOK '{' config_autologin '}';
 
 config_autologin: username
-| config_autologin password
 | config_autologin session
 | config_autologin RELOGIN_TOK '=' YES_TOK { TTY_CHECK_COND auto_relogin = 1; }
 | config_autologin RELOGIN_TOK '=' NO_TOK  { TTY_CHECK_COND auto_relogin = 0; }
@@ -248,11 +247,6 @@ config_autologin: username
 username: USERNAME_TOK '=' QUOTSTR_T 
 	{
 	  TTY_CHECK_COND autologin_username = strdup($3);
-	}
-
-password: PASSWORD_TOK '=' QUOTSTR_T 
-	{
-	  TTY_CHECK_COND autologin_password = strdup($3);
 	}
 
 session: SESSION_TOK '=' QUOTSTR_T { TTY_CHECK_COND autologin_session = strdup($3); }

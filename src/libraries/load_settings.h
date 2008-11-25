@@ -71,7 +71,6 @@ char *post_gui_script;
 /* autologin stuff */
 char *autologin_file_basename;
 char *autologin_username;
-char *autologin_password;
 char *autologin_session;
 int   do_autologin;
 int   auto_relogin;

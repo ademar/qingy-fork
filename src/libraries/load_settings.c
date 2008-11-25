@@ -78,7 +78,6 @@ void initialize_variables(void)
   text_sessions_directory = NULL;
   x_sessions_directory    = NULL;
 	autologin_username      = NULL;
-	autologin_password      = NULL;
 	autologin_session       = NULL;
 	screensavers_dir        = NULL;
 	log_facilities          = LOG_NONE;

@@ -159,7 +159,6 @@ x_args                     return X_ARGS_TOK;
 NULL                       return NULL_TOK;
 autologin                  return AUTOLOGIN_TOK;
 username                   return USERNAME_TOK;
-password                   return PASSWORD_TOK;
 session                    return SESSION_TOK;
 relogin                    return RELOGIN_TOK;
 lastsession                return LAST_SESSION_TOK;

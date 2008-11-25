@@ -137,7 +137,6 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 	char      **gui_argv     = NULL;
 	char       *toGUI        = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
 	char       *fromGUI      = strdup(toGUI);
-/* 	KB_status  *kb_status    = NULL; */
 	int         fd;
 
 	if (!do_autologin)
@@ -157,22 +156,6 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 			free(toGUI);
 			text_mode();
 		}
-
-		/* save keyboard status */
-/* 		kb_status = get_keyboard_status(); */
-/* 		if (kb_status) */
-/* 		{ */
-/* 			char flags = ((kb_status->flags & 7) & 07); */
-/* 			char leds  = kb_status->leds; */
-/* 			WRITELOG(DEBUG, "Keyboard status: NumLock %s   CapsLock %s   ScrollLock %s\n", */
-/* 							 onoff(flags & LED_NUM), */
-/* 							 onoff(flags & LED_CAP), */
-/* 							 onoff(flags & LED_SCR)); */
-/* 			WRITELOG(DEBUG, "Keyboard   leds: NumLock %s   CapsLock %s   ScrollLock %s\n", */
-/* 							 onoff(leds & LED_NUM), */
-/* 							 onoff(leds & LED_CAP), */
-/* 							 onoff(leds & LED_SCR)); */
-/* 		} */
 
 		/* display native theme resolution */
 		WRITELOG(DEBUG, "Native theme resolution is '%dx%d'\n", theme_xres, theme_yres);
@@ -396,8 +379,9 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		close(fd);
 
 		username     = autologin_username;
-		password     = autologin_password;
+		password     = NULL;
 		session      = autologin_session;
+		auth_ok      = 1;
 		returnstatus = EXIT_SUCCESS;
 	}
 
@@ -406,30 +390,6 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 
 	/* return to our righteous tty */
 	set_active_tty(our_tty_number);
-
-	/* restore keyboard status if possible */
-/* 	if (kb_status) */
-/* 	{ */
-/* 		writelog(DEBUG, "Restoring keyboard status...\n"); */
-/* 		set_keyboard_status(kb_status); */
-/* 		free(kb_status); */
-/* 		kb_status = get_keyboard_status(); */
-/* 		if (kb_status) */
-/* 		{ */
-/* 			char flags = ((kb_status->flags & 7) & 07); */
-/* 			char leds  = kb_status->leds; */
-/* 			writelog(DEBUG, "New status:\n"); */
-/* 			WRITELOG(DEBUG, "Keyboard status: NumLock %s   CapsLock %s   ScrollLock %s\n", */
-/* 							 onoff(flags & LED_NUM), */
-/* 							 onoff(flags & LED_CAP), */
-/* 							 onoff(flags & LED_SCR)); */
-/* 			WRITELOG(DEBUG, "Keyboard   leds: NumLock %s   CapsLock %s   ScrollLock %s\n", */
-/* 							 onoff(leds & LED_NUM), */
-/* 							 onoff(leds & LED_CAP), */
-/* 							 onoff(leds & LED_SCR)); */
-/* 			free(kb_status); */
-/* 		} */
-/* 	} */
 
 	switch (returnstatus)
 	{
@@ -503,7 +463,7 @@ int check_autologin(int our_tty_number)
 	if (!do_autologin) return 0;
 
 	/* Sanity checks */
-	if (!autologin_username || !autologin_password || !autologin_session)
+	if (!autologin_username || !autologin_session)
 	{
 		writelog(ERROR, "Autologin disabled: insuffucient user data!\n");
 		return 0;

@@ -183,13 +183,12 @@ void file_logger_process(char *filename)
 
 void log_stderr(void)
 {
-	char *filename1 = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
-	char *filename2 = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
+	char *filename = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
 	int   fd1, fd2;
 	pid_t pid;
 
 
-	fd1 = mkstemp(filename1);
+	fd1 = mkstemp(filename);
 	if (fd1 == -1)
 	{
 		writelog(ERROR, "Could not create temporary file!\n");
@@ -197,27 +196,18 @@ void log_stderr(void)
 	}
 
 	/* set file mode to 600 */
-	if (chmod(filename1, S_IRUSR|S_IWUSR))
+	if (chmod(filename, S_IRUSR|S_IWUSR))
 	{
 		writelog(ERROR, "Cannot chmod() file!\n");
 		abort();
 	}
 
 	/* save a copy of the original stderr fd */
-	fd2 = mkstemp(filename2);
-	if (fd2 == -1)
-	{
-		writelog(ERROR, "Could not create temporary file!\n");
-		abort();
-	}
-	close(fd2);
-	unlink(filename2);
-	free(filename2);
-	fd_copy(fd2,2);
+	fd2 = dup(2);
 	my_stderr = fdopen(fd2, "w");
 
 	/* redirect stderr to our file */
-	if (!freopen(filename1, "w", stderr))
+	if (!freopen(filename, "w", stderr))
 	{
 		writelog(ERROR, "Unable to redirect stderr!\n");
 		abort();
@@ -235,19 +225,12 @@ void log_stderr(void)
 			abort();
 			break;
 		case 0: /* child */
-			file_logger_process(filename1);
+			file_logger_process(filename);
 			break;
 		default: /* parent */
 			writelog(DEBUG, "redirected stderr to logging facilities...\n");
 			break;
 	}
-
-/* 	if (pthread_create(&log_thread, NULL, (void*)(&file_logger_thread), filename)) */
-/* 	{ */
-/* 		writelog(ERROR, "Failed to create stderr log writer thread!\n"); */
-/* 		abort(); */
-/* 	} */
-
 }
 
 void dontlog_stderr()

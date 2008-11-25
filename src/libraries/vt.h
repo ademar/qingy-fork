@@ -89,11 +89,4 @@ char *get_fb_resolution(char *fb_device);
 /* reset framebuffer console if DirectFB hangs... */
 void reset_console(int do_fork);
 
-/* duplicate a file descriptor */
-int fd_copy(int to, int from);
-
-/* get/set keyboard leds status */
-/* KB_status *get_keyboard_status(void); */
-/* void set_keyboard_status(KB_status *status); */
-
 #endif /* !CHVT_H */

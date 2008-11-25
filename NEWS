@@ -2,10 +2,13 @@ qingy SVN-0.9.8-SVN:
 - Fixed bug introduced in 0.9.7 and triggered when searching for X sessions
 	outside /etc/X11/Sessions and detected session path is a full path.
 	Thanks to Riccardo Stagni for the patch.
-- Fixed bug, found by hungrigerhaifisch <haifischhathunger@web.de>,
+- Fixed bug, found by Tom <haifischhathunger@web.de>,
   that made qingy sometimes improperly set focus to both session
   and username (or password) fields.
-- Other small fixes.
+- Removed need of password to autologin feature.
+  Patch proposed by Florent Bondoux <florent.bondoux@resel.fr>
+- Other small enhancements and fixes, some contributed by Florent Bondoux
+  <florent.bondoux@resel.fr>
 
 qingy 0.9.7 (08 Jul 2008):
 - Added '-br' to default X args.
