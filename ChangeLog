@@ -1,5 +1,15 @@
 2008-11-25  Michele Noberasco  <noberasco@zirak.it>
 
+	* src/main.c,
+	* src/libraries/session.c:
+	Improved qingy main process and GUI communication. Now login times
+	in case of correct authentication are reduced...
+	Patch proposed by Florent Bondoux <florent.bondoux@resel.fr>
+
+	* src/libraries/memmgmt.h:
+	Fixed some warnings on x86-64.
+	Patch proposed by Florent Bondoux <florent.bondoux@resel.fr>
+
 	* src/libraries/load_settings.c,
 	* src/libraries/load_settings.h, 
 	* src/libraries/scan_settings.l,

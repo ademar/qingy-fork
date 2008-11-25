@@ -30,11 +30,21 @@
 #endif
 
 /* safe allocation and deallocation functions */
+
+
+#ifdef strdup
+#undef strdup
+#endif
+#ifdef strndup
+#undef strndup
+#endif
+
 #define calloc  my_calloc
 #define free    my_free
 #define exit    my_exit
 #define strdup  my_strdup
 #define strndup my_strndup
+
 void *my_calloc (size_t  nmemb, size_t size);
 void  my_free   (void   *ptr);
 void  my_exit   (int     n);

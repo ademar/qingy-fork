@@ -132,12 +132,11 @@ void read_action(int signum)
 
 void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 {
-  int         i;
-	int         returnstatus = GUI_FAILURE;
-	char      **gui_argv     = NULL;
-	char       *toGUI        = StrApp((char**)NULL, tmp_files_dir, "/qingyXXXXXX", (char*)NULL);
-	char       *fromGUI      = strdup(toGUI);
-	int         fd;
+	int    returnstatus = GUI_FAILURE;
+	char **gui_argv     = NULL;
+  int    i;
+	int    pipe_toGUI[2];
+	int    pipe_toparent[2];
 
 	if (!do_autologin)
 	{
@@ -151,11 +150,7 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 
 		/* should we perform a text-mode login? */
 		if (text_mode_login)
-		{
-			free(fromGUI);
-			free(toGUI);
 			text_mode();
-		}
 
 		/* display native theme resolution */
 		WRITELOG(DEBUG, "Native theme resolution is '%dx%d'\n", theme_xres, theme_yres);
@@ -189,57 +184,39 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		if (pre_gui_script)
 			execute_script(pre_gui_script);
 
-		/* let's create a couple of file names to communicate with our GUI:
-		 * First the one we will receive auth data from...
-		 */
-		fd = mkstemp(fromGUI);
-		if (fd == -1)
+		/* Create the pipes to communicate with the GUI */
+		if (pipe(pipe_toGUI) == -1)
 		{
-			writelog(ERROR, "Could not create temporary file!\n");
-			free(fromGUI);
-			free(toGUI);
+			writelog(ERROR, "Could not create pipe!\n");
+			text_mode();
+		}
+		if (pipe(pipe_toparent) == -1)
+		{
+			writelog(ERROR, "Could not create pipe!\n");
 			text_mode();
 		}
 
-		/* sad thing having to call mkstemp just to have a reasonably secure unique file name,
-		 * yet I think it is better than calling tempnam...
-		 */
-		close(fd);
-		unlink(fromGUI);
-
-		/* let's create a nice FIFO to receive user auth data */
-		if (mkfifo(fromGUI, S_IRUSR|S_IWUSR))
-		{
-			writelog(ERROR, "Could not create temporary file!\n");
-			free(fromGUI);
-			free(toGUI);
-			text_mode();
-		}
-
-		/* ...then the one we will use to send data to our GUI */
-		fd = mkstemp(toGUI);
-		if (fd == -1)
-		{
-			writelog(ERROR, "Could not create temporary file!\n");
-			free(fromGUI);
-			free(toGUI);
-			text_mode();
-		}
-		if (chmod(toGUI, S_IRUSR|S_IWUSR))
-		{
-			WRITELOG(ERROR, "Cannot chmod() file '%s'!\n", toGUI);
-			free(fromGUI);
-			free(toGUI);
-			text_mode();
-		}
-		fp_toGUI = fdopen(fd, "w");
+		/* Open streams over the pipes */
+		fp_toGUI = fdopen(pipe_toGUI[1], "w");
 		if (!fp_toGUI)
 		{
-			WRITELOG(ERROR, "Unable to open temporary file '%s'!\n", toGUI);
-			free(fromGUI);
-			free(toGUI);
+			writelog(ERROR, "Could not open stream!\n");
 			text_mode();
 		}
+		fp_fromGUI = fdopen(pipe_toparent[0], "r");
+		if (!fp_fromGUI)
+		{
+			writelog(ERROR, "Could not open stream!\n");
+			text_mode();
+		}
+
+		/* install handler so that our GUI can signal us to
+		 * (try to) authenticate a user...
+		 */
+		signal(SIGUSR1, authenticate_user);
+
+		/* ...another to get GUI exit status... */
+		signal(SIGUSR2, read_action);
 
 #ifdef WANT_CRYPTO
 		/* we write the public key to our GUI... */
@@ -257,32 +234,26 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		{
 			case -1:
 				writelog(ERROR, "fork() failed!\n");
+				signal(SIGUSR1, SIG_DFL);
+				signal(SIGUSR2, SIG_DFL);
 				fclose(fp_toGUI);
-				unlink(fromGUI);
-				unlink(toGUI);
-				free(toGUI);
-				free(fromGUI);
+				fclose(fp_fromGUI);
+				close(pipe_toGUI[0]);
+				close(pipe_toparent[1]);
 				text_mode();
 
 			case 0: /* child */
-				/* we set up the standard input for our GUI... */
-				if (!freopen(toGUI, "r", stdin))
-				{
-					writelog(ERROR, "Unable to redirect standard input!\n");
-					exit(EXIT_FAILURE);
-				}
+				signal(SIGUSR1, SIG_DFL);
+				signal(SIGUSR2, SIG_DFL);
 
-				/* once set up, we unlink() it so that noone else will tamper */
-				unlink(toGUI);
-
-				/* ... then the standard output */
-				if (!freopen(fromGUI, "w", stdout))
-				{
-					writelog(ERROR, "Unable to redirect standard output!\n");
-					exit(EXIT_FAILURE);
-				}
-				/* remove comm file so that noone will tamper */
-				unlink(fromGUI);
+				/* setup stdin and stdout for the GUI and close uneeded fd */
+				fclose(fp_toGUI);
+				fclose(fp_fromGUI);
+				dup2(pipe_toGUI[0], STDIN_FILENO);
+				fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
+				dup2(pipe_toparent[1], STDOUT_FILENO);
+				close(pipe_toGUI[0]);
+				close(pipe_toparent[1]);
 
 				/* OK, let's fire up the GUI */
 				execve(gui_argv[0], gui_argv, NULL);
@@ -298,16 +269,9 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 				delay.tv_sec  = 0;
 				delay.tv_nsec = 500000000; /* that's 500M, or half a second */
 
-				/* install handler so that our GUI can signal us to
-				 * (try to) authenticate a user...
-				 */
-				signal(SIGUSR1, authenticate_user);
-
-				/* ...another to get GUI exit status... */
-				signal(SIGUSR2, read_action);
-
-				/* it is now safe to open our fifo to read auth data */
-				fp_fromGUI = fopen(fromGUI, "r");
+				/* close unused ends of the pipes */
+				close(pipe_toGUI[0]);
+				close(pipe_toparent[1]);
 
 				/* we wait for our child to exit */
 				while (1)
@@ -362,8 +326,6 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 		else
 			returnstatus = gui_retval;
 
-		free(toGUI);
-		free(fromGUI);
 		free(gui_argv[--i]);
 		free(gui_argv[--i]);
 		free(gui_argv);

@@ -396,8 +396,10 @@ void LogEvent(struct passwd *pw, int status)
 
 int gui_check_password(char *username, char *password, char *session, int ppid)
 {
-	char   result[10];
-	time_t start;
+	char           result[10];
+	fd_set         rfds;
+	struct timeval timeout_stdin;
+	int            r_select;
 
 	strcpy(result, "\0");
 
@@ -415,22 +417,17 @@ int gui_check_password(char *username, char *password, char *session, int ppid)
 	if (kill (ppid, SIGUSR1))
 	  return 0;
 
-	start = time(NULL);
-
-	/* ... wait until it has done so... and set a handy timeout! */
-	while (time(NULL) - start <= 10)
-	{
-		sleep(1);
-
-		if (fscanf(stdin, "%9s", result) != EOF)
-			break;
-	}
-
-	/* if a timeout occurred, return error */
-	if (time(NULL) - start > 10)
+	/* wait at most 10s */
+	FD_ZERO(&rfds);
+	FD_SET(STDIN_FILENO, &rfds);
+	timeout_stdin.tv_usec = 0;
+	timeout_stdin.tv_sec = 10;
+	r_select = select(STDIN_FILENO+1, &rfds, NULL, NULL, &timeout_stdin);
+	if (r_select <= 0) /* if a timeout or an error occurred, return error */
 		return -1;
 
 	/* ...finally, fetch the results */
+	fscanf(stdin, "%9s", result);
 	if (!strcmp(result, "AUTH_OK"))
 		return 1;
 
@@ -745,10 +742,11 @@ void dolastlog(struct passwd *pwd, int quiet)
  */
 void add_utmp_wtmp_entry(char *username)
 {
-	struct utmp ut;
-	pid_t mypid = getpid ();
-	char *temp = int_to_str(current_vt);
-	char *ttyn = StrApp((char**)NULL, "/dev/tty", temp, (char*)NULL);
+	struct utmp    ut;
+	struct timeval tv;
+	pid_t  mypid = getpid ();
+	char  *temp  = int_to_str(current_vt);
+	char  *ttyn  = StrApp((char**)NULL, "/dev/tty", temp, (char*)NULL);
 
 	free(temp);
 	utmpname (_PATH_UTMP);
@@ -758,9 +756,10 @@ void add_utmp_wtmp_entry(char *username)
 	strncpy (ut.ut_user, username, sizeof (ut.ut_user));
 	strncpy (ut.ut_line, ttyn + strlen (_PATH_DEV), sizeof (ut.ut_line));
 	ut.ut_line[sizeof (ut.ut_line) - 1] = 0;
-	time(&ut.ut_time);
+	gettimeofday(&tv, NULL);
+	ut.ut_time = tv.tv_sec;
 	ut.ut_type = USER_PROCESS;
-	ut.ut_pid = mypid;
+	ut.ut_pid  = mypid;
 	pututline (&ut);
 	endutent ();
 	updwtmp (_PATH_WTMP, &ut);
