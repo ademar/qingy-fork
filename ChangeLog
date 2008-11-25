@@ -1,5 +1,7 @@
 2008-11-25  Michele Noberasco  <noberasco@zirak.it>
 
+	* src/libraries/scan_settings.l,
+	* src/libraries/parse_settings.y,
 	* media/Makefile.am,
 	* src/main.c,
 	* src/libraries/misc.c,
