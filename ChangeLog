@@ -29,9 +29,8 @@
 	* src/DirectFB/directfb_mode.c,
 	* src/DirectFB/objects/combobox.h,
 	* src/DirectFB/objects/combobox.c:
-	Fixed bug, found by Tom <haifischhathunger@web.de>,
-	that made qingy sometimes improperly set focus to both session
-	and username (or password) fields.
+	Fixed bug, found by 'Tom', that made qingy sometimes improperly
+	set focus to both session and username (or password) fields.
 
 2008-07-08  Michele Noberasco  <noberasco@zirak.it>
 
