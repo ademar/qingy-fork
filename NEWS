@@ -10,6 +10,9 @@ qingy SVN-0.9.8-SVN:
 - Improved qingy main process and GUI communication. Now login times
   in case of correct authentication are reduced...
   Patch proposed by Florent Bondoux <florent.bondoux@resel.fr>
+- Added feature, disabled by default, to check current runlevel
+  to prevent qingy from showing its GUI or starting a session
+  during a system shutdown or restart.
 - Other small enhancements and fixes, some contributed by Florent Bondoux
   <florent.bondoux@resel.fr>
 

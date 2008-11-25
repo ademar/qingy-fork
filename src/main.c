@@ -138,6 +138,9 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 	int    pipe_toGUI[2];
 	int    pipe_toparent[2];
 
+	if (!check_runlevel())
+		return;
+
 	if (!do_autologin)
 	{
 		/* parse settings file again, it may have been changed in the mean while */

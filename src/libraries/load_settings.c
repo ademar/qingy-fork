@@ -105,6 +105,7 @@ void initialize_variables(void)
 	pre_gui_script          = NULL;
 	post_gui_script         = NULL;
 	cursor                  = NULL;
+	excluded_runlevels      = NULL;
 	x_server_offset         = 1;
 	do_autologin            = 0;
 	auto_relogin            = 0;
@@ -114,6 +115,7 @@ void initialize_variables(void)
   hide_password           = 0;
 	text_mode_login         = 0;
 	clear_background        = 0;
+	do_runlevel_check       = 0;
   shutdown_policy         = EVERYONE;
 	last_user_policy        = LU_GLOBAL;
 	last_session_policy     = LS_USER;
@@ -1133,4 +1135,23 @@ int ParseCMDLine(int argc, char *argv[], int paranoia)
 	}
   
   return our_tty_number;
+}
+
+void add_to_excluded_runlevels(int runlevel)
+{
+	int count = 0;
+
+	if (runlevel < 0 || runlevel > 9)
+	{
+		fprintf(stderr, "Invalid runlevel number: %d\n", runlevel);
+		return;
+	}
+
+	if (excluded_runlevels)
+		for (; excluded_runlevels[count] != -1; count++);
+
+	excluded_runlevels = (int *)realloc(excluded_runlevels, (count+2) * sizeof(int));
+
+	excluded_runlevels[count]   = runlevel;
+	excluded_runlevels[count+1] = -1;
 }

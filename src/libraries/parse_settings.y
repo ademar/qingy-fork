@@ -157,6 +157,9 @@ static cursor_t curs =
 /* mouse cursor stuff */
 %token MOUSE_CURSOR_TOK
 
+/* runlevel checking stuff */
+%token CHECK_RUNLEVEL_TOK EXCLUDE_RUNLEVELS_TOK
+
 /* typed tokens: */
 %token <ival>  ANUM_T 		/* int */
 %token <str>   QUOTSTR_T	/* char* */
@@ -195,6 +198,7 @@ config: /* nothing */
 | config shutdown
 | config window
 | config keybindings
+| config runlevel
 | config CLEAR_BACKGROUND_TOK '=' YES_TOK { if (!clear_background_is_set) clear_background = 1; }
 | config CLEAR_BACKGROUND_TOK '=' NO_TOK  { if (!clear_background_is_set) clear_background = 0; }
 ;
@@ -231,10 +235,30 @@ config_tty: /* nothing */
 | config_tty theme { TTY_CHECK_COND got_theme=set_theme_result; }
 | config_tty shutdown
 | config_tty window
+| config_tty runlevel
 | config_tty CLEAR_BACKGROUND_TOK '=' YES_TOK { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 1;} }
 | config_tty CLEAR_BACKGROUND_TOK '=' NO_TOK  { TTY_CHECK_COND {if (!clear_background_is_set) clear_background = 0;} }
 | config_tty autologin { TTY_CHECK_COND do_autologin=1;  }
 ;
+
+runlevel: check_runlevel
+|         exclude_runlevels
+;
+
+check_runlevel: CHECK_RUNLEVEL_TOK '=' YES_TOK { TTY_CHECK_COND do_runlevel_check = 1; }
+|               CHECK_RUNLEVEL_TOK '=' NO_TOK  { TTY_CHECK_COND do_runlevel_check = 0; }
+;
+
+exclude_runlevels: EXCLUDE_RUNLEVELS_TOK '=' do_exclude_runlevels;
+
+do_exclude_runlevels: do_exclude_runlevel
+|                     do_exclude_runlevel ',' do_exclude_runlevels
+;
+
+do_exclude_runlevel: ANUM_T
+{
+	TTY_CHECK_COND add_to_excluded_runlevels($1);
+}
 
 autologin: AUTOLOGIN_TOK '{' config_autologin '}';
 

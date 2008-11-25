@@ -45,6 +45,8 @@ int clear_background;
 int current_tty;
 int lock_sessions;
 int x_server_offset;
+int do_runlevel_check;
+int *excluded_runlevels;
 
 /* NOTE: some of these should become #defines through autoconf... */
 char *program_name;
@@ -276,6 +278,9 @@ char *get_welcome_msg(char *user);
 int got_theme;
 extern int set_theme(char *theme);
 char *get_random_theme();
+
+/* add a runlevel to exclusion list */
+void add_to_excluded_runlevels(int runlevel);
 
 /* stuff you don't want to know about ;-P */
 void yyerror(char *where);

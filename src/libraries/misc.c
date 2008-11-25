@@ -174,6 +174,62 @@ int get_group_id(char *group_name)
 }
 
 
+static char get_current_runlevel()
+{
+  struct utmp *ut;
+	char retval = 0;
+
+	setutent();
+
+  while ((ut = getutent()))
+		if (ut->ut_type == RUN_LVL)
+		{
+			retval = ut->ut_pid % 256;
+			break;
+		}
+
+  endutent();
+
+  return(retval);
+}
+
+
+int check_runlevel()
+{
+	int runlevel;
+	int i = 0;
+
+	/* if feature is disabled, return OK */
+	if (!do_runlevel_check)
+		return 1;
+
+	/* get current runlevel */
+	runlevel = get_current_runlevel() - '0';
+
+	/* sanity check */
+	if (runlevel < 0 || runlevel > 9)
+	{
+		WRITELOG(ERROR, "Invalid runlevel number: %d\n", runlevel);
+		return 1;
+	}
+
+	/* check if current runlevel is blacklisted */
+	if (excluded_runlevels)
+		for (; excluded_runlevels[i] != -1; i++)
+		{
+			WRITELOG(DEBUG, "Testing runlevel %d against blacklisted %d\n", runlevel, excluded_runlevels[i]);
+			if (excluded_runlevels[i] == runlevel)
+			{
+				WRITELOG(DEBUG, "GUI will not start since current level %d has been excluded\n", runlevel);
+				return 0;
+			}
+		}
+
+	/* current runlevel is not blacklisted */
+	return 1;
+}
+
+
 char *print_welcome_message(char *preamble, char *postamble)
 {
   char *text = (char *) calloc(MAX, sizeof(char));

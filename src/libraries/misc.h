@@ -58,6 +58,9 @@ char *get_home_dir(char *user);
 /* get id of a given group */
 int get_group_id(char *group_name);
 
+/* check if current runlevel is suitable to log user in or show qingy gui */
+int check_runlevel();
+
 /* Prints a welcome message */
 char *print_welcome_message(char *preamble, char *postamble);
 

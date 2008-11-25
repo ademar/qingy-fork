@@ -136,6 +136,11 @@ endif
 	@echo "#idle_timeout = 30" >> settings
 	@echo "#idle_action  = lock" >> settings
 	@echo "" >> settings
+	@echo "# prevent qingy from logging in user or firing up its GUI if system" >> settings
+	@echo "# is restarting / shutting down" >> settings
+	@echo "#check_runlevel = yes" >> settings
+	@echo "#exclude_runlevels = 0, 6" >> settings
+	@echo "" >> settings
 	@echo "# these options are valid only if qingy is started from tty3" >> settings
 	@echo "#tty = 3" >> settings
 	@echo "#{" >> settings

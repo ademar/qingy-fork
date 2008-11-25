@@ -196,6 +196,8 @@ console                    return CONSOLE_TOK;
 file                       return FILE_TOK;
 syslog                     return SYSLOG_TOK;
 mouse_cursor               return MOUSE_CURSOR_TOK;
+check_runlevel             return CHECK_RUNLEVEL_TOK;
+exclude_runlevels          return EXCLUDE_RUNLEVELS_TOK;
 
 
 "#"[^\n]*"\n" ;			/* skip comments */
