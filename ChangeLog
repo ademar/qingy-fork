@@ -1,3 +1,46 @@
+2008-11-27  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* TODO:
+	Finally removed something from TODO list!
+
+	* media/qingy-mode.el,
+	* src/DirectFB/directfb_mode.c,
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l,
+	* src/libraries/load_settings.c (initialize_variables),
+	* src/libraries/load_settings.h,
+	* media/default/theme:
+	Made several message timeouts user configurable in theme file.
+	
+2008-11-27  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/qingy-mode.el,
+	* src/DirectFB/directfb_mode.c,
+	* media/default/theme,
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l,
+	* src/libraries/load_settings.h,
+	* src/libraries/load_settings.c:
+	Made GUI messages user definable in theme file.
+
+2008-11-26  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* media/qingy-mode.el,
+	* src/DirectFB/directfb_mode.c,
+	* src/libraries/parse_settings.y,
+	* src/libraries/scan_settings.l,
+	* src/libraries/load_settings.h,
+	* src/libraries/load_settings.c:
+	Working on making GUI messages user definable in theme file.
+
+	* src/libraries/load_settings.h,
+	* src/libraries/load_settings.c:
+	Prevent qingy from crashing in case of error when parsing
+	settings files: revert to text mode instead.
+
+	* media/qingy-mode.el:
+	Added a bunch of new stuff to emacs qingy mode.
+
 2008-11-25  Michele Noberasco  <noberasco@zirak.it>
 
 	* src/libraries/scan_settings.l,

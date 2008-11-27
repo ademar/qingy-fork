@@ -47,6 +47,30 @@ int lock_sessions;
 int x_server_offset;
 int do_runlevel_check;
 int *excluded_runlevels;
+int settings_parse_error;
+
+/* text messages displayed by qingy GUI */
+char *shutdown_timeout_message;
+char *restart_timeout_message;
+char *sleep_timeout_message;
+char *sleep_forbidden_message;
+char *shutdown_forbidden_message;
+char *sleep_password_message;
+char *shutdown_password_message;
+char *shutdown_message;
+char *restart_message;
+char *login_message;
+char *login_failed_message;
+char *abort_message;
+char *caps_message;
+char *sleep_cmd_message;
+char *crypto_error_message;
+char *welcome_message;
+
+/* GUI timers */
+int countdown_timeout;
+int info_message_timeout;
+int welcome_message_timeout;
 
 /* NOTE: some of these should become #defines through autoconf... */
 char *program_name;

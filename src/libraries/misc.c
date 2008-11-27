@@ -230,20 +230,6 @@ int check_runlevel()
 }
 
 
-char *print_welcome_message(char *preamble, char *postamble)
-{
-  char *text = (char *) calloc(MAX, sizeof(char));
-  int len;
-  
-  if (preamble) strncpy(text, preamble, MAX-1);
-  len = (int)strlen(text);
-  gethostname(&(text[len]), MAX-len);
-  if (postamble) strncat(text, postamble, MAX-1);
-  
-  return text;
-}
-
-
 /* append any number of strings to dst */
 char *StrApp (char **dst, ...)
 {

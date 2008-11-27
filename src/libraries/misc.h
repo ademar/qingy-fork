@@ -61,9 +61,6 @@ int get_group_id(char *group_name);
 /* check if current runlevel is suitable to log user in or show qingy gui */
 int check_runlevel();
 
-/* Prints a welcome message */
-char *print_welcome_message(char *preamble, char *postamble);
-
 /* checks wether <what> is a directory */
 int is_a_directory(char *what);
 

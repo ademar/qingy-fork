@@ -198,6 +198,25 @@ syslog                     return SYSLOG_TOK;
 mouse_cursor               return MOUSE_CURSOR_TOK;
 check_runlevel             return CHECK_RUNLEVEL_TOK;
 exclude_runlevels          return EXCLUDE_RUNLEVELS_TOK;
+shutdown_timeout_message   return SHUTDOWN_TIMEOUT_MESSAGE_TOK;
+restart_timeout_message    return RESTART_TIMEOUT_MESSAGE_TOK;
+sleep_timeout_message      return SLEEP_TIMEOUT_MESSAGE_TOK;
+sleep_forbidden_message    return SLEEP_FORBIDDEN_MESSAGE_TOK;
+shutdown_forbidden_message return SHUTDOWN_FORBIDDEN_MESSAGE_TOK;
+sleep_password_message     return SLEEP_PASSWORD_MESSAGE_TOK;
+shutdown_password_message  return SHUTDOWN_PASSWORD_MESSAGE_TOK;
+shutdown_message           return SHUTDOWN_MESSAGE_TOK;
+restart_message            return RESTART_MESSAGE_TOK;
+login_message              return LOGIN_MESSAGE_TOK;
+login_failed_message       return LOGIN_FAILED_MESSAGE_TOK;
+abort_message              return ABORT_MESSAGE_TOK;
+caps_message               return CAPS_MESSAGE_TOK;
+sleep_cmd_message          return SLEEP_CMD_MESSAGE_TOK;
+crypto_error_message       return CRYPTO_ERROR_MESSAGE_TOK;
+welcome_message            return WELCOME_MESSAGE_TOK;
+countdown_timeout          return COUNTDOWN_TIMEOUT_TOK;
+info_message_timeout       return INFO_MESSAGE_TIMEOUT_TOK;
+welcome_message_timeout    return WELCOME_MESSAGE_TIMEOUT_TOK;
 
 
 "#"[^\n]*"\n" ;			/* skip comments */

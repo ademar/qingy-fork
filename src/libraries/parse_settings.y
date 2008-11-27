@@ -160,6 +160,18 @@ static cursor_t curs =
 /* runlevel checking stuff */
 %token CHECK_RUNLEVEL_TOK EXCLUDE_RUNLEVELS_TOK
 
+/* GUI messages stuff */
+%token SHUTDOWN_TIMEOUT_MESSAGE_TOK RESTART_TIMEOUT_MESSAGE_TOK SLEEP_TIMEOUT_MESSAGE_TOK
+%token SLEEP_FORBIDDEN_MESSAGE_TOK SHUTDOWN_FORBIDDEN_MESSAGE_TOK SLEEP_PASSWORD_MESSAGE_TOK
+%token SHUTDOWN_PASSWORD_MESSAGE_TOK SHUTDOWN_MESSAGE_TOK RESTART_MESSAGE_TOK
+%token LOGIN_MESSAGE_TOK LOGIN_FAILED_MESSAGE_TOK ABORT_MESSAGE_TOK
+%token CAPS_MESSAGE_TOK SLEEP_CMD_MESSAGE_TOK CRYPTO_ERROR_MESSAGE_TOK
+%token WELCOME_MESSAGE_TOK
+
+/* timeouts */
+%token COUNTDOWN_TIMEOUT_TOK INFO_MESSAGE_TIMEOUT_TOK WELCOME_MESSAGE_TIMEOUT_TOK
+
+
 /* typed tokens: */
 %token <ival>  ANUM_T 		/* int */
 %token <str>   QUOTSTR_T	/* char* */
@@ -579,6 +591,33 @@ themedefn: /* nothing */
 | themedefn CLEAR_BACKGROUND_TOK '=' NO_TOK  { TTY_CHECK_COND {clear_background = 0; clear_background_is_set = 1;} }
 | themedefn resolutionprop
 | themedefn mousecursorprop
+| themedefn guimessageprop
+| themedefn guitimers
+;
+
+/* GUI timers */
+guitimers: COUNTDOWN_TIMEOUT_TOK       '=' ANUM_T { TTY_CHECK_COND countdown_timeout       = $3; }
+|          INFO_MESSAGE_TIMEOUT_TOK    '=' ANUM_T { TTY_CHECK_COND info_message_timeout    = $3; }
+|          WELCOME_MESSAGE_TIMEOUT_TOK '=' ANUM_T { TTY_CHECK_COND welcome_message_timeout = $3; }
+;
+
+/* GUI message properties */
+guimessageprop: SHUTDOWN_TIMEOUT_MESSAGE_TOK   '=' QUOTSTR_T { TTY_CHECK_COND shutdown_timeout_message   = strdup($3); }
+|               RESTART_TIMEOUT_MESSAGE_TOK    '=' QUOTSTR_T { TTY_CHECK_COND restart_timeout_message    = strdup($3); }
+|               SLEEP_TIMEOUT_MESSAGE_TOK      '=' QUOTSTR_T { TTY_CHECK_COND sleep_timeout_message      = strdup($3); }
+|               SLEEP_FORBIDDEN_MESSAGE_TOK    '=' QUOTSTR_T { TTY_CHECK_COND sleep_forbidden_message    = strdup($3); }
+|               SHUTDOWN_FORBIDDEN_MESSAGE_TOK '=' QUOTSTR_T { TTY_CHECK_COND shutdown_forbidden_message = strdup($3); }
+|               SLEEP_PASSWORD_MESSAGE_TOK     '=' QUOTSTR_T { TTY_CHECK_COND sleep_password_message     = strdup($3); }
+|               SHUTDOWN_PASSWORD_MESSAGE_TOK  '=' QUOTSTR_T { TTY_CHECK_COND shutdown_password_message  = strdup($3); }
+|               SHUTDOWN_MESSAGE_TOK           '=' QUOTSTR_T { TTY_CHECK_COND shutdown_message           = strdup($3); }
+|               RESTART_MESSAGE_TOK            '=' QUOTSTR_T { TTY_CHECK_COND restart_message            = strdup($3); }
+|               LOGIN_MESSAGE_TOK              '=' QUOTSTR_T { TTY_CHECK_COND login_message              = strdup($3); }
+|               LOGIN_FAILED_MESSAGE_TOK       '=' QUOTSTR_T { TTY_CHECK_COND login_failed_message       = strdup($3); }
+|               ABORT_MESSAGE_TOK              '=' QUOTSTR_T { TTY_CHECK_COND abort_message              = strdup($3); }
+|               CAPS_MESSAGE_TOK               '=' QUOTSTR_T { TTY_CHECK_COND caps_message               = strdup($3); }
+|               SLEEP_CMD_MESSAGE_TOK          '=' QUOTSTR_T { TTY_CHECK_COND sleep_cmd_message          = strdup($3); }
+|               CRYPTO_ERROR_MESSAGE_TOK       '=' QUOTSTR_T { TTY_CHECK_COND crypto_error_message       = strdup($3); }
+|               WELCOME_MESSAGE_TOK            '=' QUOTSTR_T { TTY_CHECK_COND welcome_message            = strdup($3); }
 ;
 
 /* mouse cursor properties */

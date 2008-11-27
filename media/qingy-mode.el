@@ -1,6 +1,7 @@
 ;; qingy-mode.el --- Major modes for Qingy setup files
 
 ;; Copyright (C) 2003 Paolo Gianrossi 
+;; Copyright (C) 2004-2008 Michele Noberasco, Paolo Gianrossi
 
 ;; Emacs Lisp Archive Entry
 ;; Filename: qingy-mode.el
@@ -43,20 +44,23 @@
 
 (defconst qingy-font-lock-keywords-1
   (list
-	 '("\\(i\\(?:dle_timeout\\|dle_action\\)\\)" . font-lock-variable-name-face)
-	 '("\\(l\\(?:ast_session_policy\\|ast_user_policy\\|og_level\\|og_facilities\\)\\)" . font-lock-variable-name-face)
+	 '("\\(i\\(?:nfo_message_timeout\\|dle_timeout\\|dle_action\\)\\)" . font-lock-variable-name-face)
+	 '("\\(l\\(?:ogin_failed_message\\|ogin_message\\|ast_session_policy\\|ast_user_policy\\|og_level\\|og_facilities\\)\\)" . font-lock-variable-name-face)
    '("\\(lastsession\\|none\\|logout\\)" . font-lock-constant-face)
    '("\\(t\\(?:hemes_dir\\|ext_sessions\\|emp_files_dir\\|ext_mode\\)\\)" . font-lock-variable-name-face)
 	 '("\\(x\\(?:_sessions\\|_args\\|init\\|_server_tty\\|_server_offset\\|_server\\)\\)" . font-lock-variable-name-face)
-   '("\\(c\\(?:lear_background\\)\\|l\\(?:ock_sessions\\)\\|s\\(?:creensavers_dir\\|creen_powersaving_timeout\\|creensaver_timeout\\|creensaver\\|hutdown_policy\\|ession\\)\\)" . font-lock-variable-name-face)
+   '("\\(c\\(?:ountdown_timeout\\|rypto_error_message\\|aps_message\\|heck_runlevel\\|lear_background\\)\\|l\\(?:ock_sessions\\)\\|s\\(?:creensavers_dir\\|creen_powersaving_timeout\\|creensaver_timeout\\|creensaver\\|hutdown_policy\\|ession\\)\\)" . font-lock-variable-name-face)
+	 '("\\(a\\(?:bort_message\\)\\)" . font-lock-variable-name-face)
+	 '("\\(e\\(?:xclude_runlevels\\)\\)" . font-lock-variable-name-face)
 	 '("\\(k\\(?:ill\\)\\)" . font-lock-variable-name-face)
 	 '("\\(n\\(?:ative_resolution\\|ext_tty\\)\\)" . font-lock-variable-name-face)
+	 '("\\(s\\(?:hutdown_password_message\\|hutdown_forbidden_message\\|hutdown_message\\|hutdown_timeout_message\\|leep_password_message\\|leep_forbidden_message\\|leep_cmd_message\\|leep_timeout_message\\|leep\\)\\)" . font-lock-variable-name-face)
 	 '("\\(p\\(?:assword\\|rev_tty\\|oweroff\\|re_gui_script\\|ost_gui_script\\)\\)" . font-lock-variable-name-face)
 	 '("\\(q\\(?:ingy_DirectFB\\|ingy_reset_console\\)\\)" . font-lock-variable-name-face)
-	 '("\\(r\\(?:elogin\\|eboot\\)\\)" . font-lock-variable-name-face)
-	 '("\\(s\\(?:leep\\)\\)" . font-lock-variable-name-face)
+	 '("\\(r\\(?:estart_timeout_message\\|estart_message\\|elogin\\|eboot\\)\\)" . font-lock-variable-name-face)
 	 '("\\(m\\(?:ouse_cursor\\)\\)" . font-lock-variable-name-face)
 	 '("\\(u\\(?:sername\\)\\)" . font-lock-variable-name-face)
+	 '("\\(w\\(?:elcome_message_timeout\\|elcome_message\\)\\)" . font-lock-variable-name-face)
 	 '("\\(u\\(?:ser\\)\\)" . font-lock-constant-face)
 	 '("\\(l\\(?:ock\\)\\)" . font-lock-constant-face)
 	 '("\\(c\\(?:onsole\\)\\)" . font-lock-constant-face)

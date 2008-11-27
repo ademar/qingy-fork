@@ -327,9 +327,7 @@ void clear_screen(void)
 void begin_shutdown_sequence (actions action, IDirectFBEventBuffer *events)
 {
   DFBInputEvent evt;
-  char message[35];
-  int countdown = 5;
-  char *temp;
+  int countdown = countdown_timeout;
 
   clear_screen();
   
@@ -338,11 +336,11 @@ void begin_shutdown_sequence (actions action, IDirectFBEventBuffer *events)
 	{
     case NOONE: /* no one is allowed to shut down the system */
 			if (action == DO_SLEEP)
-				primary->DrawString (primary, "Putting this machine in sleep mode is not allowed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+				primary->DrawString (primary, sleep_forbidden_message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 			else
-				primary->DrawString (primary, "Shutting down this machine is not allowed!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+				primary->DrawString (primary, shutdown_forbidden_message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
       primary->Flip (primary, NULL, 0);
-      sleep(2);
+      sleep(info_message_timeout);
       events->GetEvent(events, DFB_EVENT (&evt));
       reset_screen(&evt);
       return;
@@ -350,11 +348,11 @@ void begin_shutdown_sequence (actions action, IDirectFBEventBuffer *events)
       if (!gui_check_password("root", password->text, session->selected, ppid))
 			{
 				if (action == DO_SLEEP)
-					primary->DrawString (primary, "You must enter root password to put this machine to sleep!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+					primary->DrawString (primary, sleep_password_message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 				else
-					primary->DrawString (primary, "You must enter root password to shut down this machine!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+					primary->DrawString (primary, shutdown_password_message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 				primary->Flip (primary, NULL, 0);
-				sleep(2);
+				sleep(info_message_timeout);
 				events->GetEvent(events, DFB_EVENT (&evt));
 				reset_screen(&evt);
 				return;
@@ -367,6 +365,9 @@ void begin_shutdown_sequence (actions action, IDirectFBEventBuffer *events)
   /* we wait for <countdown> seconds */
   while (countdown >= 0)
 	{
+		char *message = NULL;
+		char *pos     = NULL;
+
 		while ((events->GetEvent (events, DFB_EVENT (&evt))) == DFB_OK)
 			if (evt.type == DIET_KEYPRESS)
 				if (evt.key_symbol == DIKS_ESCAPE)
@@ -375,33 +376,44 @@ void begin_shutdown_sequence (actions action, IDirectFBEventBuffer *events)
 					return;
 				}
 		if (!countdown) break;
-		strcpy (message, "system ");
+
 		switch (action)
 		{
 			case DO_POWEROFF:
-				strcat (message, "shutdown");
+				message = strdup(shutdown_timeout_message);
 				break;
 			case DO_REBOOT:
-				strcat (message, "restart");
+				message = strdup(restart_timeout_message);
 				break;
 			case DO_SLEEP:
-				strcat (message, "will fall asleep");
+				message = strdup(sleep_timeout_message);
 				break;
 			default: /* other actions do not concern us */
 				break;
 		}
+
+		while ((pos=strstr(message, "<INS_TIMEOUT_HERE>")))
+		{
+			char *prev       = strndup(message, pos - message);
+			char *temp       = int_to_str(countdown);
+			char *my_message = StrApp((char**)NULL, prev, temp, pos+18, (char*)NULL);
+
+			free(prev);
+			free(temp);
+			free(message);
+
+			message = my_message;
+		}
+
 		primary->Clear (primary, 0x00, 0x00, 0x00, 0xFF);
 		if (!clear_background) Draw_Background_Image(0);
-		strcat (message, " in ");
-		temp = int_to_str (countdown);
-		strcat (message, temp);
-		free(temp);
-		strcat (message, " seconds");
-		primary->DrawString (primary, "Press ESC key to abort", -1, 0, screen_height, DSTF_LEFT | DSTF_BOTTOM);
+		primary->DrawString (primary, abort_message, -1, 0, screen_height, DSTF_LEFT | DSTF_BOTTOM);
 		primary->DrawString (primary, message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 		primary->Flip (primary, NULL, 0);
 		sleep (1);
 		countdown--;
+
+		free(message);
 	}
   if (no_shutdown_screen || (action == DO_SLEEP))
 	{
@@ -419,7 +431,7 @@ void begin_shutdown_sequence (actions action, IDirectFBEventBuffer *events)
 	{
 		if (!no_shutdown_screen)
 		{
-			primary->DrawString (primary, "shutting down system...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+			primary->DrawString (primary, shutdown_message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 			primary->Flip (primary, NULL, 0);
 		}
 		execl ("/sbin/shutdown", "/sbin/shutdown", "-h", "now", (char*)NULL);
@@ -428,7 +440,7 @@ void begin_shutdown_sequence (actions action, IDirectFBEventBuffer *events)
 	{
 		if (!no_shutdown_screen)
 		{
-			primary->DrawString (primary, "rebooting system...", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+			primary->DrawString (primary, restart_message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 			primary->Flip (primary, NULL, 0);
 		}
 		execl ("/sbin/shutdown", "/sbin/shutdown", "-r", "now", (char*)NULL);
@@ -452,7 +464,7 @@ void do_ctrl_alt_del(DFBInputEvent *evt)
   clear_screen();
   primary->DrawString (primary, action, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
   primary->Flip (primary, NULL, 0);
-  sleep(2);
+  sleep(info_message_timeout);
   reset_screen(evt);
   free(action);
 }
@@ -579,9 +591,9 @@ void button_click(Button *button)
 				DFBInputEvent evt;
 					
 				clear_screen();
-				primary->DrawString (primary, "You must define sleep command in settings file!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+				primary->DrawString (primary, sleep_cmd_message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 				primary->Flip (primary, NULL, 0);
-				sleep(2);
+				sleep(info_message_timeout);
 				events->GetEvent (events, DFB_EVENT (&evt));
 				reset_screen(&evt);
 				break;
@@ -607,7 +619,7 @@ void start_login_sequence(DFBInputEvent *evt)
   char *temp;
 
   if (!strlen(username->text)) return;	
-  message = StrApp((char**)NULL, "Logging in ", username->text, "...", (char*)NULL);
+  message = StrApp((char**)NULL, login_message, " ", username->text, "...", (char*)NULL);
   clear_screen();
   primary->DrawString (primary, message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
   free(message);
@@ -630,7 +642,7 @@ void start_login_sequence(DFBInputEvent *evt)
 			primary->DrawString (primary, welcome_msg, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 			primary->Flip (primary, NULL, DSFLIP_BLIT);
 			free(welcome_msg);
-			sleep(1);
+			sleep(welcome_message_timeout);
 			if (free_temp) free(temp);
 
 			close_framebuffer_mode(EXIT_SUCCESS);
@@ -638,11 +650,11 @@ void start_login_sequence(DFBInputEvent *evt)
 			break;
 
 		case 0: /* login failure */
-			message = StrApp((char**)NULL, "Login failed!", (char*)NULL);
+			message = StrApp((char**)NULL, login_failed_message, (char*)NULL);
 			break;
 
 		default: /* crypto error occurred */
-			message = StrApp((char**)NULL, "Crypto error - regenerate your keys!", (char*)NULL);
+			message = StrApp((char**)NULL, crypto_error_message, (char*)NULL);
 			break;
 	}
 
@@ -650,7 +662,7 @@ void start_login_sequence(DFBInputEvent *evt)
 	if (!clear_background) Draw_Background_Image(0);
 	primary->DrawString (primary, message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 	primary->Flip (primary, NULL, DSFLIP_BLIT);
-	sleep(2);
+	sleep(info_message_timeout);
 	password->ClearText(password);
 	reset_screen(evt);
 	if (free_temp) free(temp);
@@ -709,9 +721,9 @@ int handle_keyboard_event(DFBInputEvent *evt)
 					DFBInputEvent evt;
 
 					clear_screen();
-					primary->DrawString (primary, "You must define sleep command in settings file!", -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
+					primary->DrawString (primary, sleep_cmd_message, -1, screen_width / 2, screen_height / 2, DSTF_CENTER);
 					primary->Flip (primary, NULL, 0);
-					sleep(2);
+					sleep(info_message_timeout);
 					events->GetEvent (events, DFB_EVENT (&evt));
 					reset_screen(&evt);
 					break;
@@ -855,7 +867,7 @@ int create_windows()
   DFBWindowDescription window_desc;
   IDirectFBFont *font;
   window_t *window = windowsList;
-	char *message = "CAPS LOCK is pressed";
+	char *message = caps_message;
 	int width;
 
   window_desc.flags = ( DWDESC_POSX | DWDESC_POSY | DWDESC_WIDTH | DWDESC_HEIGHT | DWDESC_CAPS );

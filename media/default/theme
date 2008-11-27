@@ -35,6 +35,35 @@ theme
 		0,            # hotspot: x offset
 		0             # hotspot: y offset
 	}
+
+# how many seconds should we wait when displaying the 'system will XXX in YYY seconds...'?
+	countdown_timeout = 5
+
+# how many seconds should we wait when displaying informative messages ('login failed', ...)?
+	info_message_timeout = 2
+
+# how many seconds should we wait when displaying welcome message in case of successful login?
+	welcome_message_timeout = 1
+
+# these are the various messages that qingy may show up in its GUI
+# you are free to change them. If you do not define these variables
+# default (English) messages will be shown
+	shutdown_timeout_message = "system shutdown in <INS_TIMEOUT_HERE> seconds"
+	restart_timeout_message = "system restart in <INS_TIMEOUT_HERE> seconds"
+	sleep_timeout_message = "system will fall asleep in <INS_TIMEOUT_HERE> seconds"
+	sleep_forbidden_message = "Putting this machine in sleep mode is not allowed!"
+	shutdown_forbidden_message = "Shutting down this machine is not allowed!"
+	sleep_password_message = "You must enter root password to put this machine to sleep!"
+	shutdown_password_message = "You must enter root password to shut down this machine!"
+	shutdown_message = "shutting down system..."
+	restart_message = "rebooting system..."
+	login_message = "Logging in"
+	login_failed_message = "Login failed!"
+	abort_message = "Press ESC key to abort"
+	caps_message = "CAPS LOCK is pressed"
+	sleep_cmd_message = "You must define sleep command in settings file!"
+	crypto_error_message = "Crypto error - regenerate your keys!"
+	welcome_message = "Starting selected session..."
 }
 
 window

@@ -106,6 +106,7 @@ void initialize_variables(void)
 	post_gui_script         = NULL;
 	cursor                  = NULL;
 	excluded_runlevels      = NULL;
+	settings_parse_error    = 0;
 	x_server_offset         = 1;
 	do_autologin            = 0;
 	auto_relogin            = 0;
@@ -134,6 +135,33 @@ void initialize_variables(void)
 #endif
 	use_screen_power_management     = 0;
 	screen_power_management_timeout = 0;
+	countdown_timeout               = 5;
+	info_message_timeout            = 2;
+	welcome_message_timeout         = 1;
+
+	shutdown_timeout_message = strdup("system shutdown in <INS_TIMEOUT_HERE> seconds");
+	restart_timeout_message = strdup("system restart in <INS_TIMEOUT_HERE> seconds");
+	sleep_timeout_message = strdup("system will fall asleep in <INS_TIMEOUT_HERE> seconds");
+
+	sleep_forbidden_message = strdup("Putting this machine in sleep mode is not allowed!");
+	shutdown_forbidden_message = strdup("Shutting down this machine is not allowed!");
+
+	sleep_password_message = strdup("You must enter root password to put this machine to sleep!");
+	shutdown_password_message = strdup("You must enter root password to shut down this machine!");
+
+	shutdown_message = strdup("shutting down system...");
+	restart_message = strdup("rebooting system...");
+
+	login_message = strdup("Logging in");
+	login_failed_message = strdup("Login failed!");
+
+	abort_message = strdup("Press ESC key to abort");
+	caps_message = strdup("CAPS LOCK is pressed");
+
+	sleep_cmd_message = strdup("You must define sleep command in settings file!");
+	crypto_error_message = strdup("Crypto error - regenerate your keys!");
+
+	welcome_message = strdup("Starting selected session...");
 }
 
 void set_default_paths(void)
@@ -265,6 +293,8 @@ void yyerror(char *error)
 	free(themes_dir);
 	set_default_paths();
   theme_dir = StrApp((char**)NULL, themes_dir, "/default/", (char*)NULL);
+
+	settings_parse_error = 1;
 }
 
 char *get_last_user(void)
@@ -597,7 +627,7 @@ char *get_welcome_msg(char *username)
 		}
 		fclose(fp);
 	}
-  if (!welcome_msg) return strdup("Starting selected session...");
+  if (!welcome_msg) return strdup(welcome_message);
 
   return welcome_msg;
 }
@@ -911,6 +941,12 @@ int load_settings(void)
   file_error = settings;
   yyparse();
   fclose(yyin);
+
+	if (settings_parse_error)
+	{
+		fprintf(stderr, "ERROR parsing settings file: reverting to text mode!\n");
+		return 0;
+	}
 
   file_error = NULL;
 
