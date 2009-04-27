@@ -1,4 +1,4 @@
-qingy SVN-0.9.8-SVN:
+qingy 0.9.8 (27 Apr 2009):
 - Fixed bug introduced in 0.9.7 and triggered when searching for X sessions
 	outside /etc/X11/Sessions and detected session path is a full path.
 	Thanks to Riccardo Stagni for the patch.
