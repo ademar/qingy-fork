@@ -1,3 +1,9 @@
+2009-05-11  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* configure.in,
+	* src/libraries/session.c (Graph_Login):
+	Reverted change in stdin management that interfered with DBus.
+
 2008-11-27  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* TODO:

@@ -1045,8 +1045,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 #endif
 
 		/* clean up standard input, output, error */
-		//freopen("/dev/null", "r", stdin);
-		fclose(stdin);
+		freopen("/dev/null", "r", stdin);
 		freopen(ttyname, "w", stdout);
 		freopen(ttyname, "w", stderr);
 		free(ttyname);
