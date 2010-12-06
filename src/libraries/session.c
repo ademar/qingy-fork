@@ -800,7 +800,6 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   int retval;
 #endif
   
-  
 	args[count++] = StrApp((char**)NULL, "-", shell_base_name(pw->pw_shell), (char*)NULL); /* make it a login shell */
 
 	if (session)
@@ -819,6 +818,12 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 		for (; args[i]; i++)
 			WRITELOG(DEBUG, "Starting text session with argument #%d: %s\n", i, args[i]);
 
+#ifdef USE_PAM
+		pam_open_session(pamh, 0);
+#else
+		LogEvent(pw, OPEN_SESSION);
+#endif
+
   proc_id = fork();
   if (proc_id == -1)
 	{
@@ -831,12 +836,6 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 		/* write to system logs */
 		dolastlog(pw, 0);
 		add_utmp_wtmp_entry(username);
-#ifdef USE_PAM
-		//pam_setcred(pamh, PAM_ESTABLISH_CRED);
-		pam_open_session(pamh, 0);
-#else
-		LogEvent(pw, OPEN_SESSION);
-#endif
       
 		/* remove last session file from user home dir, as previous qingy versions
 			 created it with root ownership
@@ -1011,6 +1010,12 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   free(my_x_server);
   free(vt);
 
+#ifdef USE_PAM
+		pam_open_session(pamh, 0);
+#else
+		LogEvent(pw, OPEN_SESSION);
+#endif
+
   proc_id = fork();
   if (proc_id == -1)
 	{
@@ -1025,12 +1030,6 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 		/* write to system logs */
 		dolastlog(pw, 1);
 		add_utmp_wtmp_entry(username);
-#ifdef USE_PAM
-		//pam_setcred(pamh, PAM_ESTABLISH_CRED);
-		pam_open_session(pamh, 0);
-#else
-		LogEvent(pw, OPEN_SESSION);
-#endif
 
 		/* remove last session file from user home dir, as previous qingy versions
 			 created it with root ownership
