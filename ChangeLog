@@ -1,3 +1,8 @@
+2010-12-07  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	Made qingy work with PAM consolekit.
+	Set version as 1.0 (finally).
+
 2009-05-11  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* configure.in,
@@ -17,7 +22,7 @@
 	* src/libraries/load_settings.h,
 	* media/default/theme:
 	Made several message timeouts user configurable in theme file.
-	
+
 2008-11-27  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	* media/qingy-mode.el,

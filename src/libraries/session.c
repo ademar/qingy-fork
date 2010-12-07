@@ -605,8 +605,13 @@ void setEnvironment(struct passwd *pwd, int is_x_session)
 	char **env      = pam_getenvlist(pamh);
 #endif
   char  *mail     = StrApp((char**)NULL, _PATH_MAILDIR, "/", pwd->pw_name, (char*)NULL);
-	char  *path     = strdup("/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin");
+	char  *path     = NULL;
 	char  *my_xinit = NULL;
+
+	if (pwd->pw_gid == 0)
+		path     = strdup("/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/X11R6/bin");
+	else
+		path     = strdup("/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin");
   
   environ    = (char **) calloc(2, sizeof(char *));
   environ[0] = NULL;

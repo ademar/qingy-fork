@@ -1,3 +1,6 @@
+qingy 1.0.0 (07 Dec 2010):
+- Made qingy work with PAM consolekit.
+
 qingy 0.9.9 (11 May 2009):
 - Reverted change in stdin management that interfered with DBus.
 
