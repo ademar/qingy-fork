@@ -1,3 +1,7 @@
+2011-07-12  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	Fixed autotools to properly compile qingy screensavers again.
+
 2010-12-07  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	Made qingy work with PAM consolekit.

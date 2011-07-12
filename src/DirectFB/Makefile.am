@@ -1,6 +1,6 @@
 ## Makefile.am for qingy/src/DirectFB
 
-INCLUDES  = -I../.. -Iobjects -I../ -I../libraries
+INCLUDES  = -I$(top_srcdir) -I$(srcdir)/objects -I$(srcdir)/.. -I$(srcdir)/../libraries
 AM_CFLAGS = @DIRECTFB_CFLAGS@
 
 sbin_PROGRAMS          = qingy-DirectFB
@@ -17,7 +17,7 @@ qingy_DirectFB_SOURCES =                                           \
 
 if !WANT_STATIC
 qingy_DirectFB_LDADD   = ../libraries/libqingy.la @DIRECTFB_LIBS@
-qingy_DirectFB_LDFLAGS = -rdynamic
+qingy_DirectFB_LDFLAGS = -export-dynamic
 else
 qingy_DirectFB_LDADD   = ../libraries/libqingy_static.la @DIRECTFB_LIBS@
 qingy_DirectFB_LDFLAGS = -static

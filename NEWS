@@ -1,3 +1,6 @@
+qingy SVN-1.0.1-SVN:
+- Fixed autotools to properly compile qingy screensavers again, thanks to yoosty.
+
 qingy 1.0.0 (07 Dec 2010):
 - Made qingy work with PAM consolekit.
 

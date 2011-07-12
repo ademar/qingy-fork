@@ -3,11 +3,11 @@
 DIST_SUBDIRS  = libraries DirectFB
 SUBDIRS       = libraries
 
-INCLUDES      = -I.. -Ilibraries
+INCLUDES      = -I$(top_srcdir) -I$(srcdir)/libraries
 
 if USE_DIRECTFB
 SUBDIRS      += DirectFB
-INCLUDES     += -IDirectFB
+INCLUDES     += -I$(srcdir)/DirectFB
 endif
 
 sbin_PROGRAMS   = qingy qingy-reset-console
@@ -21,9 +21,9 @@ qingy_reset_console_SOURCES  =  \
 
 if !WANT_STATIC
 qingy_LDADD                   = libraries/libqingy.la
-qingy_LDFLAGS                 = -rdynamic
+qingy_LDFLAGS                 = -export-dynamic
 qingy_reset_console_LDADD     = libraries/libqingy.la
-qingy_reset_console_LDFLAGS   = -rdynamic
+qingy_reset_console_LDFLAGS   = -export-dynamic
 else
 qingy_LDADD                   = libraries/libqingy_static.la
 qingy_LDFLAGS                 = -static
@@ -46,7 +46,7 @@ sbin_PROGRAMS        += qingy-keygen
 
 if !WANT_STATIC
 qingy_keygen_LDADD    = libraries/libqingy.la
-qingy_keygen_LDFLAGS  = -rdynamic
+qingy_keygen_LDFLAGS  = -export-dynamic
 else
 qingy_keygen_LDADD    = libraries/libqingy_static.la
 qingy_keygen_LDFLAGS  = -static

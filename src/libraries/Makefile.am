@@ -1,7 +1,7 @@
 ## Makefile.am for qingy/src/libraries
 
 AM_YFLAGS     = -d
-INCLUDES      = -I../.. -I../
+INCLUDES      = -I$(top_srcdir) -I$(top_srcdir)/src
 BUILT_SOURCES = parse_settings.h
 
 AM_CFLAGS = -DSETTINGS_DIR=\"$(sysconfdir)/qingy\" -DSBINDIR=\"$(sbindir)/\"

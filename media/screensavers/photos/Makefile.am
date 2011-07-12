@@ -1,23 +1,22 @@
 screensaverdir     = @SCREENSAVERS_DIR@
 
 if WANT_SCREEN_SAVERS
-screensaver_PROGRAMS = photos.qss
+screensaver_LTLIBRARIES = photos.la
 else
-screensaver_PROGRAMS =
+screensaver_LTLIBRARIES =
 endif
 
-photos_qss_SOURCES = \
+photos_la_SOURCES = \
     photos.c         \
     wildcards.c      \
     wildcards.h
 
-INCLUDES  = -I../../.. -I../../../src/DirectFB/objects/ -I../../../src/ -I../../../src/libraries/
-AM_CFLAGS = @DIRECTFB_CFLAGS@ -fpic -shared
+INCLUDES   = -I$(top_srcdir) -I$(top_srcdir)/src/DirectFB/objects/ -I$(top_srcdir)/src/ -I$(top_srcdir)/src/libraries/
+AM_CFLAGS  = @DIRECTFB_CFLAGS@
+AM_LDFLAGS = -module -shared -avoid-version -shrext .qss
 
 if !WANT_STATIC
-photos_qss_LDADD    = ../../../src/libraries/libqingy.la
-photos_qss_LDFLAGS  = -rdynamic
+photos_la_LIBADD = ../../../src/libraries/libqingy.la
 else
-photos_qss_LDADD    = ../../../src/libraries/libqingy_static.la
-photos_qss_LDFLAGS  = -static
+photos_la_LIBADD = ../../../src/libraries/libqingy_static.la
 endif
