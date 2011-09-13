@@ -41,3 +41,9 @@ libqingy_la_LDFLAGS = -release @VERSION@
 libqingy_static_la_SOURCES = $(libqingy_la_SOURCES)
 libqingy_static_la_LIBADD  = @PASSWDLIB@ @CRYPTOLIB@ @NCURSESLIB@ @XLIBS@
 libqingy_static_la_LDFLAGS = -release @VERSION@
+
+if USE_CONSOLEKIT
+AM_CFLAGS                 += @CONSOLEKIT_CFLAGS@
+libqingy_la_LIBADD        += @CONSOLEKIT_LIBS@
+libqingy_static_la_LIBADD += @CONSOLEKIT_LIBS@
+endif

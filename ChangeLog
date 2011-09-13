@@ -1,3 +1,8 @@
+2011-09-13  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	Work in progress adding ConsoleKit support. Now it works for text and X sessions,
+	still need to work on proper ./configure support and stuff. Also need to fix autologin.
+
 2011-07-12  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	Fixed autotools to properly compile qingy screensavers again.

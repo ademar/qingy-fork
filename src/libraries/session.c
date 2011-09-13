@@ -100,6 +100,13 @@ int current_vt;
 extern char **environ;
 
 
+#ifdef USE_CONSOLEKIT
+#include <ck-connector.h>
+static CkConnector *ckconn;
+char *ck_cookie = "unset";
+#endif
+
+
 #ifdef USE_PAM
 #include <security/pam_appl.h>
 #include <security/pam_misc.h>
@@ -440,8 +447,6 @@ int check_password(char *username, char *user_password)
   char *password;
 #ifdef USE_PAM
   int retcode;
-  char *ttyname;
-  char *short_ttyname;
 #else
   char*  correct;
 #ifdef HAVE_LIBCRYPT
@@ -469,26 +474,8 @@ int check_password(char *username, char *user_password)
   
 #ifdef USE_PAM
   PAM_password = (char *)password;
-  ttyname = create_tty_name(get_active_tty());
-  if ((short_ttyname = strrchr(ttyname, '/')) != NULL)
-	if (*(++short_ttyname) == '\0') short_ttyname = NULL;
   if (pam_start("qingy", username, &PAM_conversation, &pamh) != PAM_SUCCESS)
 	{
-		LogEvent(pw, PAM_FAILURE);
-		return 0;
-	}
-	if (!short_ttyname)
-		retcode = pam_set_item(pamh, PAM_TTY, ttyname);
-	else
-	{
-		retcode = pam_set_item(pamh, PAM_TTY, short_ttyname);
-		if (retcode != PAM_SUCCESS)
-			retcode = pam_set_item(pamh, PAM_TTY, ttyname);
-	}
-  if (retcode != PAM_SUCCESS)
-	{
-		pam_end(pamh, retcode);
-		pamh = NULL;
 		LogEvent(pw, PAM_FAILURE);
 		return 0;
 	}
@@ -555,6 +542,40 @@ int check_password(char *username, char *user_password)
   return 0;
 #endif /* End of USE_PAM */
 }
+
+#ifdef USE_PAM
+int autologin_pam_start (char *username)
+{
+	struct passwd *pw;
+
+	int retcode;
+	
+	pw = getpwnam(username);
+	endpwent();
+	if (!pw)
+	{
+		struct passwd pwd;
+      
+		pwd.pw_name = username;
+		LogEvent(&pwd, UNKNOWN_USER);
+		return 0;
+	}
+	if (pam_start("qingy", username, &PAM_conversation, &pamh) != PAM_SUCCESS)
+	{
+		return 0;
+	}
+	if ((retcode = pam_set_item(pamh, PAM_RHOST, "")) != PAM_SUCCESS)
+	{
+		pam_end(pamh, retcode);
+		pamh = NULL;
+		LogEvent(pw, PAM_FAILURE);
+		return 0;
+	}
+	free (infostr); free (errstr);
+	
+	return 1;
+}
+#endif
 
 static char *shell_base_name(char *name)
 {
@@ -644,6 +665,9 @@ void setEnvironment(struct passwd *pwd, int is_x_session)
   setenv("USER",    pwd->pw_name,  1);
   setenv("LOGNAME", pwd->pw_name,  1);
   setenv("MAIL",    mail,          1);
+#ifdef USE_CONSOLEKIT
+  setenv("XDG_SESSION_COOKIE", ck_cookie, 1);
+#endif
   chdir(pwd->pw_dir);
   free(mail);
 	free(path);
@@ -795,6 +819,123 @@ void remove_utmp_entry(void)
 	endutent ();
 }
 
+#ifdef USE_PAM
+/* Setting up PAM_TTY. */
+/* and CKCON_X11_DISPLAY_DEVICE for graphical session. */
+/* x_display == -1 means text session. */
+int set_pam_tty_to_current_tty(int cur_tty, int x_display)
+{
+	int retcode;
+	char *tty_for_pam;
+	char *short_tty_for_pam;
+	char *x11_display;
+	char *x11_display_device;
+	
+	tty_for_pam = create_tty_name(cur_tty);
+	if ((short_tty_for_pam = strrchr(tty_for_pam, '/')) != NULL)
+		if (*(++short_tty_for_pam) == '\0') short_tty_for_pam = NULL;
+
+	if ( x_display == -1 ) /* session is text session. */
+	{
+		if (!short_tty_for_pam)
+		{
+			retcode = pam_set_item(pamh, PAM_TTY, tty_for_pam);
+		}
+		else
+		{
+			retcode = pam_set_item(pamh, PAM_TTY, short_tty_for_pam);
+			if (retcode != PAM_SUCCESS)
+			{
+				retcode = pam_set_item(pamh, PAM_TTY, tty_for_pam);
+			}
+		}
+		if (retcode != PAM_SUCCESS)
+		{
+			WRITELOG (ERROR, "Something wrong with setting PAM_TTY to %s\n", tty_for_pam);
+			return 0;
+		}
+	}
+	else /* session is graphical. */
+	{
+		x11_display = StrApp ((char **)NULL, ":", int_to_str(x_display), (char*)NULL);
+		retcode = pam_set_item (pamh, PAM_TTY, x11_display);
+		if (retcode != PAM_SUCCESS)
+		{
+			WRITELOG (ERROR, "Something wrong with setting PAM_TTY to %s\n", x11_display);
+			return 0;
+		}
+		x11_display_device = StrApp ((char**)NULL, "CKCON_X11_DISPLAY_DEVICE=", tty_for_pam, (char*)NULL);
+		pam_putenv (pamh, x11_display_device);
+		if (retcode != PAM_SUCCESS)
+		{
+			writelog (ERROR, "Setting CKCON_X11_DISPLAY_DEVICE failed.\n");
+			return 0;
+		}
+		
+	}
+	free (infostr); free (errstr);
+
+	return 1;
+}
+#endif
+
+#ifdef USE_CONSOLEKIT
+static int openCKSession(struct passwd *pwd, int vt, char *x_server) {
+	int ret;
+	int local = 1;
+	char *device = create_tty_name(vt);
+	char *display = StrApp((char **)NULL, ":", x_server, (char *)NULL);
+	DBusError dbuserr;
+
+	ckconn = ck_connector_new();
+	if (!ckconn)
+		return 0;
+	dbus_error_init(&dbuserr);
+	if (x_server)
+	{
+		ret = ck_connector_open_session_with_parameters(
+			ckconn, &dbuserr,
+			"unix-user", &pwd->pw_uid,
+			"x11-display", &display,
+			"x11-display-device", &device,
+			"display-device", &device,
+			"is-local", &local,
+			NULL);
+	}
+	else
+	{
+		ret = ck_connector_open_session_with_parameters(
+			ckconn, &dbuserr,
+			"unix-user", &pwd->pw_uid,
+			"is-local", &local,
+			NULL);
+	}
+	if (!ret && dbus_error_is_set(&dbuserr)) {
+		WRITELOG(DEBUG, "Dbus error: %s\n", dbuserr.message);
+		dbus_error_free(&dbuserr);
+		ck_connector_unref(ckconn);
+		ckconn = NULL;
+		return 0;
+	}
+	ck_cookie = ck_connector_get_cookie(ckconn);
+	return 1;
+}
+
+static void closeCKSession(void) {
+	DBusError dbuserr;
+	if (!ckconn)
+		return;
+	dbus_error_init(&dbuserr);
+	if (!ck_connector_close_session(ckconn, &dbuserr)) {
+		if (dbus_error_is_set(&dbuserr)) {
+			dbus_error_free(&dbuserr);
+		}
+	}
+	ck_connector_unref(ckconn);
+	ckconn = NULL;
+}
+#endif
+
 void Text_Login(struct passwd *pw, char *session, char *username)
 {
   pid_t proc_id;
@@ -823,10 +964,18 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 		for (; args[i]; i++)
 			WRITELOG(DEBUG, "Starting text session with argument #%d: %s\n", i, args[i]);
 
-#ifdef USE_PAM
-		pam_open_session(pamh, 0);
+#ifdef USE_CONSOLEKIT
+	if (!openCKSession(pw, current_vt, NULL))
+	  WRITELOG(DEBUG, "Unable to open ConsoleKit session!\n");
 #else
-		LogEvent(pw, OPEN_SESSION);
+#ifdef USE_PAM
+	if(!set_pam_tty_to_current_tty(current_vt, -1))
+	  writelog (ERROR, "Something wrong with pam_tty_set_to_current_tty(). But we keep going.\n");
+
+	pam_open_session(pamh, 0);
+#else
+	LogEvent(pw, OPEN_SESSION);
+#endif
 #endif
 
   proc_id = fork();
@@ -878,6 +1027,9 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   memset(username, '\0', sizeof(username));	
 	free(username); free(session);
 	
+#ifdef USE_CONSOLEKIT
+	closeCKSession();
+#else
 #ifdef USE_PAM
   pam_setcred(pamh, PAM_DELETE_CRED);
   retval = pam_close_session(pamh, 0);
@@ -885,6 +1037,7 @@ void Text_Login(struct passwd *pw, char *session, char *username)
   pamh = NULL;
 #else
   LogEvent(pw, CLOSE_SESSION);
+#endif
 #endif
   
 	remove_utmp_entry();	
@@ -1012,13 +1165,25 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 		for (; args[i]; i++)
 			WRITELOG(DEBUG, "Starting X session with argument #%d: %s\n", i, args[i]);
 
+#ifdef USE_CONSOLEKIT
+	if (!openCKSession(pw, x_vt, my_x_server))
+	  WRITELOG(DEBUG, "Unable to open ConsoleKit session!\n");
+#endif
+
   free(my_x_server);
   free(vt);
 
+#ifndef USE_CONSOLEKIT
 #ifdef USE_PAM
-		pam_open_session(pamh, 0);
+  if(!set_pam_tty_to_current_tty(x_vt, x_offset))
+	  writelog (ERROR, "Something wrong with setting PAM_TTY and CKCON_X11_DISPLAY_DEVICE. But we keep going.\n");
+
+	pam_open_session(pamh, 0);
+
+	pam_putenv(pamh, "CKCON_X11_DISPLAY_DEVICE");
 #else
-		LogEvent(pw, OPEN_SESSION);
+	LogEvent(pw, OPEN_SESSION);
+#endif
 #endif
 
   proc_id = fork();
@@ -1079,6 +1244,9 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   memset(username, '\0', sizeof(username));	
 	free(username); free(session);
 		
+#ifdef USE_CONSOLEKIT
+	closeCKSession();
+#else
 #ifdef USE_PAM
   pam_setcred(pamh, PAM_DELETE_CRED);
   retval = pam_close_session(pamh, 0);
@@ -1086,6 +1254,7 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
   pamh = NULL;
 #else
   LogEvent(pw, CLOSE_SESSION);
+#endif
 #endif
 
 	remove_utmp_entry();
