@@ -356,6 +356,16 @@ void start_up(int argc, char *argv[], int our_tty_number, int do_autologin)
 	/* return to our righteous tty */
 	set_active_tty(our_tty_number);
 
+#ifdef USE_PAM
+	/* PAM initialization for autologin. */
+	if (do_autologin)
+	{
+		if (!autologin_pam_start(username))
+			/* Keep going. */
+			writelog (ERROR, "autologin pam initialization failed.\n");
+	}
+#endif
+
 	switch (returnstatus)
 	{
 		case EXIT_SUCCESS:

@@ -41,3 +41,6 @@ void start_session(char *username, char *session);
 
 /* sort sessions */
 void sort_sessions(char **sessions, int n_items);
+
+/* PAM initialization for autologin */
+int autologin_pam_start(char *username);
