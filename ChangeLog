@@ -1,3 +1,7 @@
+2011-09-14  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	Fix PAM initialization in case of autologin.
+
 2011-09-13  Michele Noberasco  <michele.noberasco@tiscali.it>
 
 	Work in progress adding ConsoleKit support. Now it works for text and X sessions,

@@ -1,5 +1,10 @@
 qingy SVN-1.0.1-SVN:
-- Fixed autotools to properly compile qingy screensavers again, thanks to yoosty.
+- Fixed autotools support to properly compile qingy screensavers again,
+  thanks to yoosty and Jonathan Callen <abcd@gentoo.org>.
+- Fixed support for ConsoleKit,
+  thanks, again, to yoosty and Jonathan Callen <abcd@gentoo.org>.
+- Fixed support for autologin in PAM environments,
+  thanks to ichelm
 
 qingy 1.0.0 (07 Dec 2010):
 - Made qingy work with PAM consolekit.
