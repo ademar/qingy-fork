@@ -963,19 +963,19 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 	if (DEBUG <= max_loglevel)
 		for (; args[i]; i++)
 			WRITELOG(DEBUG, "Starting text session with argument #%d: %s\n", i, args[i]);
-
+#if defined(USE_CONSOLEKIT) || defined(USE_PAM)
 #ifdef USE_CONSOLEKIT
 	if (!openCKSession(pw, current_vt, NULL))
 	  WRITELOG(DEBUG, "Unable to open ConsoleKit session!\n");
-#else
+#endif
 #ifdef USE_PAM
 	if(!set_pam_tty_to_current_tty(current_vt, -1))
 	  writelog (ERROR, "Something wrong with pam_tty_set_to_current_tty(). But we keep going.\n");
 
 	pam_open_session(pamh, 0);
+#endif
 #else
 	LogEvent(pw, OPEN_SESSION);
-#endif
 #endif
 
   proc_id = fork();
@@ -1026,18 +1026,18 @@ void Text_Login(struct passwd *pw, char *session, char *username)
 
   memset(username, '\0', sizeof(username));	
 	free(username); free(session);
-	
+#if defined(USE_CONSOLEKIT) || defined(USE_PAM)	
 #ifdef USE_CONSOLEKIT
 	closeCKSession();
-#else
+#endif
 #ifdef USE_PAM
   pam_setcred(pamh, PAM_DELETE_CRED);
   retval = pam_close_session(pamh, 0);
   pam_end(pamh, retval);
   pamh = NULL;
+#endif
 #else
   LogEvent(pw, CLOSE_SESSION);
-#endif
 #endif
   
 	remove_utmp_entry();	
@@ -1164,16 +1164,11 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	else
 		for (; args[i]; i++)
 			WRITELOG(DEBUG, "Starting X session with argument #%d: %s\n", i, args[i]);
-
+#if defined(USE_CONSOLEKIT) || defined(USE_PAM)
 #ifdef USE_CONSOLEKIT
 	if (!openCKSession(pw, x_vt, my_x_server))
 	  WRITELOG(DEBUG, "Unable to open ConsoleKit session!\n");
 #endif
-
-  free(my_x_server);
-  free(vt);
-
-#ifndef USE_CONSOLEKIT
 #ifdef USE_PAM
   if(!set_pam_tty_to_current_tty(x_vt, x_offset))
 	  writelog (ERROR, "Something wrong with setting PAM_TTY and CKCON_X11_DISPLAY_DEVICE. But we keep going.\n");
@@ -1181,10 +1176,13 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 	pam_open_session(pamh, 0);
 
 	pam_putenv(pamh, "CKCON_X11_DISPLAY_DEVICE");
+#endif
 #else
 	LogEvent(pw, OPEN_SESSION);
 #endif
-#endif
+
+  free(my_x_server);
+  free(vt);
 
   proc_id = fork();
   if (proc_id == -1)
@@ -1243,18 +1241,18 @@ void Graph_Login(struct passwd *pw, char *session, char *username)
 
   memset(username, '\0', sizeof(username));	
 	free(username); free(session);
-		
+#if defined(USE_CONSOLEKIT) || defined(USE_PAM)	
 #ifdef USE_CONSOLEKIT
 	closeCKSession();
-#else
+#endif
 #ifdef USE_PAM
   pam_setcred(pamh, PAM_DELETE_CRED);
   retval = pam_close_session(pamh, 0);
   pam_end(pamh, retval);
   pamh = NULL;
+#endif
 #else
   LogEvent(pw, CLOSE_SESSION);
-#endif
 #endif
 
 	remove_utmp_entry();
